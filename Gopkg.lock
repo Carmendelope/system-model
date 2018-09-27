@@ -74,12 +74,16 @@
   version = "v0.0.5"
 
 [[projects]]
-  digest = "1:a724235ce5a6a214e9a23d37e952b274334d6edfcdfd587710451a17808b64e0"
+  digest = "1:05c1a54c80e2d88b6af8f6e3af68ded6ef7f5aea9a28873fb68edc72ea798581"
   name = "github.com/nalej/grpc-utils"
-  packages = ["pkg/tools"]
+  packages = [
+    "pkg/conversions",
+    "pkg/test",
+    "pkg/tools",
+  ]
   pruneopts = ""
-  revision = "319a68671284ca248907e43aa4f4dcbe533c8fd0"
-  version = "v1.0.0"
+  revision = "5dd4662c03100806b57763212966a72e0c4b85e5"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:a7fd918fb5bd2188436785c0424f8a50b4addfedf37a2b14d796be2a927b8007"
@@ -143,6 +147,14 @@
   version = "v1.9.1"
 
 [[projects]]
+  digest = "1:7f569d906bdd20d906b606415b7d794f798f91a62fcfb6a4daa6d50690fb7a3f"
+  name = "github.com/satori/go.uuid"
+  packages = ["."]
+  pruneopts = ""
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:a1403cc8a94b8d7956ee5e9694badef0e7b051af289caad1cf668331e3ffa4f6"
   name = "github.com/spf13/cobra"
   packages = ["."]
@@ -160,7 +172,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6846191f608c0dd6109f37ca46b784f9630191ff13f86ae974135c05a4c92971"
+  digest = "1:08e41d63f8dac84d83797368b56cf0b339e42d0224e5e56668963c28aec95685"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -175,15 +187,15 @@
     "trace",
   ]
   pruneopts = ""
-  revision = "f04abc6bdfa7a0171a8a0c9fd2ada9391044d056"
+  revision = "4dfa2610cdf3b287375bbba5b8f2a14d3b01d8de"
 
 [[projects]]
   branch = "master"
-  digest = "1:1afbe765dd3e5869f73ef6680cd86b12308d5051701445e93a6d129a52f5ba86"
+  digest = "1:dad137c4b24778e11782675f4ef8a00e9625dfe8cf063cb7d104d370c303c6cb"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = ""
-  revision = "2f1df4e56cdeb503a08d8577e6f1a7eb12efab82"
+  revision = "c2ed4eda69e7f62900806e4cd6e45f0429f859fa"
 
 [[projects]]
   digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
@@ -224,7 +236,10 @@
   branch = "master"
   digest = "1:0c092d90af564cfe88bf7d11e7a86fdbf38fd33f9cff6fd76f4a085f125eec78"
   name = "google.golang.org/genproto"
-  packages = ["googleapis/rpc/status"]
+  packages = [
+    "googleapis/rpc/errdetails",
+    "googleapis/rpc/status",
+  ]
   pruneopts = ""
   revision = "0e822944c569bf5c9afd034adaa56208bd2906ac"
 
@@ -258,6 +273,7 @@
     "stats",
     "status",
     "tap",
+    "test/bufconn",
   ]
   pruneopts = ""
   revision = "8dea3dc473e90c8179e519d91302d0597c0ca1d1"
@@ -298,12 +314,17 @@
     "github.com/nalej/golang-template/version",
     "github.com/nalej/grpc-common-go",
     "github.com/nalej/grpc-organization-go",
+    "github.com/nalej/grpc-utils/pkg/conversions",
+    "github.com/nalej/grpc-utils/pkg/test",
     "github.com/nalej/grpc-utils/pkg/tools",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/rs/zerolog",
     "github.com/rs/zerolog/log",
+    "github.com/satori/go.uuid",
     "github.com/spf13/cobra",
+    "google.golang.org/grpc",
+    "google.golang.org/grpc/test/bufconn",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

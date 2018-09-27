@@ -12,7 +12,7 @@
 
 [[constraint]]
     name="github.com/nalej/grpc-utils"
-    version="v1.0.0"
+    version="v1.1.0"
 
 [[constraint]]
     name="github.com/nalej/grpc-organization-go"
@@ -33,3 +33,7 @@
 [[constraint]]
     name="github.com/onsi/gomega"
     version="v1.4.2"
+
+[[constraint]]
+  name = "github.com/satori/go.uuid"
+  version = "1.1.0"
