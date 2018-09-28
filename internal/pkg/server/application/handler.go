@@ -10,6 +10,7 @@ import (
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
+	"github.com/nalej/grpc-utils/pkg/conversions"
 )
 
 type Handler struct {
@@ -21,11 +22,22 @@ func NewHandler(manager Manager) *Handler{
 }
 
 func (h * Handler) validAddDescriptorRequest(toAdd * grpc_application_go.AddAppDescriptorRequest) derrors.Error {
-	return nil
+	if toAdd.OrganizationId != "" && toAdd.Name != "" && len(toAdd.Services) > 0 {
+		return nil
+	}
+	return derrors.NewInvalidArgumentError("missing required fields")
 }
 
 func (h *Handler) AddAppDescriptor(ctx context.Context, addRequest *grpc_application_go.AddAppDescriptorRequest) (*grpc_application_go.AppDescriptor, error) {
-	panic("implement me")
+	err := h.validAddDescriptorRequest(addRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	added, err := h.Manager.AddAppDescriptor(addRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return added.ToGRPC(), nil
 }
 
 func (h *Handler) GetAppDescriptors(ctx context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppDescriptorList, error) {

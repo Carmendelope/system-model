@@ -7,6 +7,10 @@ package application
 import (
 	"context"
 	"fmt"
+	"github.com/nalej/grpc-organization-go"
+
+	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
+
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-utils/pkg/test"
 	"github.com/onsi/ginkgo"
@@ -24,7 +28,6 @@ func generateRandomSpecs() * grpc_application_go.DeploySpecs {
 		Replicas:int32(rand.Intn(10)),
 	}
 }
-
 
 func generateRandomService() * grpc_application_go.Service {
 	return &grpc_application_go.Service{
@@ -50,6 +53,10 @@ func generateAddAppDescriptor(orgID string, numServices int) * grpc_application_
 	}
 }
 
+func createOrganization(orgProvider orgProvider.Provider) * grpc_organization_go.Organization {
+
+}
+
 var _ = ginkgo.Describe("Applications", func(){
 
 	const orgID = "existingOrg"
@@ -61,6 +68,8 @@ var _ = ginkgo.Describe("Applications", func(){
 	var listener * bufconn.Listener
 	// client
 	var client grpc_application_go.ApplicationsClient
+
+	var targetOrganization grpc_organization_go.Organization
 
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()

@@ -4,13 +4,28 @@
 
 package application
 
-import "github.com/nalej/system-model/internal/pkg/provider/application"
+import (
+	"github.com/nalej/derrors"
+	"github.com/nalej/grpc-application-go"
+	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/nalej/system-model/internal/pkg/provider/application"
+	"github.com/nalej/system-model/internal/pkg/provider/organization"
+)
 
 type Manager struct {
-	provider application.Provider
+	OrgProvider organization.Provider
+	AppProvider application.Provider
 }
 
-func NewManager(provider application.Provider) Manager {
-	return Manager{provider}
+func NewManager(orgProvider organization.Provider, appProvider application.Provider) Manager {
+	return Manager{orgProvider, appProvider}
+}
+
+func (m * Manager) AddAppDescriptor(addRequest grpc_application_go.AddAppDescriptorRequest) (* entities.AppDescriptor, derrors.Error) {
+	exists := m.OrgProvider.Exists(addRequest.OrganizationId)
+	if !exists{
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
+	}
+	added, err := m.AppProvider.AddDescriptor()
 }
 
