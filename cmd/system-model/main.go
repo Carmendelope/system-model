@@ -7,8 +7,8 @@
 package main
 
 import (
-	"github.com/nalej/golang-template/cmd/example-app/commands"
-	"github.com/nalej/golang-template/version"
+	"github.com/nalej/system-model/cmd/system-model/commands"
+	"github.com/nalej/system-model/version"
 )
 
 var MainVersion string

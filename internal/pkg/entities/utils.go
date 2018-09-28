@@ -12,6 +12,8 @@ const OrganizationPrefix = "o-"
 const ClusterPrefix = "c-"
 const NodePrefix = "n-"
 const DevicePrefix = "d-"
+const AppDescPrefix = "app-"
+const AppInstPrefix = "inst-"
 
 // GenerateUUID generates a new UUID.
 //   params:

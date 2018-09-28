@@ -5,7 +5,7 @@
 package commands
 
 import (
-	"github.com/nalej/golang-template/version"
+	"github.com/nalej/system-model/version"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -25,7 +25,7 @@ var rootCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		SetupLogging()
-		log.Info().Msg("This is a root message")
+		cmd.Help()
 	},
 }
 
