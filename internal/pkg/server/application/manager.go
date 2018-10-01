@@ -26,6 +26,7 @@ func (m * Manager) AddAppDescriptor(addRequest grpc_application_go.AddAppDescrip
 	if !exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
 	}
-	added, err := m.AppProvider.AddDescriptor()
+	descriptor := NewApp
+	added, err := m.AppProvider.AddDescriptor(descriptor)
 }
 

@@ -14,6 +14,10 @@ const NodePrefix = "n-"
 const DevicePrefix = "d-"
 const AppDescPrefix = "app-"
 const AppInstPrefix = "inst-"
+const SecurityRulePrefix = "sr-"
+const ServicePrefix = "s-"
+const ServiceGroupPrefix = "sg-"
+const ConfigFilePrefix = "cf-"
 
 // GenerateUUID generates a new UUID.
 //   params:

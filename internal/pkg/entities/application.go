@@ -16,22 +16,34 @@ const (
 )
 
 var PortAccessToGRPC = map[PortAccess]grpc_application_go.PortAccess{
-	AllAppServices : grpc_application_go.PortAccess_ALL_APP_SERVICES,
-	AppServices : grpc_application_go.PortAccess_APP_SERVICES,
-	Public : grpc_application_go.PortAccess_PUBLIC,
-	DeviceGroup : grpc_application_go.PortAccess_DEVICE_GROUP,
+	AllAppServices: grpc_application_go.PortAccess_ALL_APP_SERVICES,
+	AppServices:    grpc_application_go.PortAccess_APP_SERVICES,
+	Public:         grpc_application_go.PortAccess_PUBLIC,
+	DeviceGroup:    grpc_application_go.PortAccess_DEVICE_GROUP,
+}
+
+var PortAccessFromGRPC = map[grpc_application_go.PortAccess]PortAccess{
+	grpc_application_go.PortAccess_ALL_APP_SERVICES: AllAppServices,
+	grpc_application_go.PortAccess_APP_SERVICES:     AppServices,
+	grpc_application_go.PortAccess_PUBLIC:           Public,
+	grpc_application_go.PortAccess_DEVICE_GROUP:     DeviceGroup,
 }
 
 type CollocationPolicy int
 
 const (
-	SameCluster CollocationPolicy = iota +1
+	SameCluster CollocationPolicy = iota + 1
 	SeparateClusters
 )
 
-var CollocationPolicyToGRPC = map[CollocationPolicy] grpc_application_go.CollocationPolicy {
-	SameCluster : grpc_application_go.CollocationPolicy_SAME_CLUSTER,
-	SeparateClusters : grpc_application_go.CollocationPolicy_SEPARATE_CLUSTERS,
+var CollocationPolicyToGRPC = map[CollocationPolicy]grpc_application_go.CollocationPolicy{
+	SameCluster:      grpc_application_go.CollocationPolicy_SAME_CLUSTER,
+	SeparateClusters: grpc_application_go.CollocationPolicy_SEPARATE_CLUSTERS,
+}
+
+var CollocationPolicyFromGRPC = map[grpc_application_go.CollocationPolicy]CollocationPolicy{
+	grpc_application_go.CollocationPolicy_SAME_CLUSTER:      SameCluster,
+	grpc_application_go.CollocationPolicy_SEPARATE_CLUSTERS: SeparateClusters,
 }
 
 type SecurityRule struct {
@@ -53,20 +65,35 @@ type SecurityRule struct {
 	AuthServices []string `json:"auth_services,omitempty"`
 	// DeviceGroups defining a list of device groups that can access the port.
 	DeviceGroups []string `json:"device_groups,omitempty"`
-
 }
 
-func (sr * SecurityRule) ToGRPC() * grpc_application_go.SecurityRule {
+func NewSecurityRuleFromGRPC(appDescriptorID string, rule *grpc_application_go.SecurityRule) *SecurityRule {
+	uuid := GenerateUUID(SecurityRulePrefix)
+	access := PortAccessFromGRPC[rule.Access]
+	return &SecurityRule{
+		OrganizationId:  rule.OrganizationId,
+		AppDescriptorId: appDescriptorID,
+		RuleId:          uuid,
+		Name:            rule.Name,
+		SourceServiceId: rule.SourceServiceId,
+		SourcePort:      rule.SourcePort,
+		Access:          access,
+		AuthServices:    rule.AuthServices,
+		DeviceGroups:    rule.DeviceGroups,
+	}
+}
+
+func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
 	access, _ := PortAccessToGRPC[sr.Access]
 	return &grpc_application_go.SecurityRule{
-		OrganizationId: sr.OrganizationId,
-		AppDescriptorId:sr.AppDescriptorId,
-		RuleId:sr.RuleId,
-		Name:sr.Name,
-		SourceServiceId:sr.SourceServiceId, SourcePort:sr.SourcePort,
-		Access:access,
-		AuthServices:sr.AuthServices,
-		DeviceGroups:sr.DeviceGroups,
+		OrganizationId:  sr.OrganizationId,
+		AppDescriptorId: sr.AppDescriptorId,
+		RuleId:          sr.RuleId,
+		Name:            sr.Name,
+		SourceServiceId: sr.SourceServiceId, SourcePort: sr.SourcePort,
+		Access:       access,
+		AuthServices: sr.AuthServices,
+		DeviceGroups: sr.DeviceGroups,
 	}
 }
 
@@ -85,19 +112,31 @@ type ServiceGroup struct {
 	Services []string `json:"services,omitempty"`
 	// Policy indicating the deployment collocation policy.
 	Policy CollocationPolicy `json:"policy,omitempty"`
-
 }
 
-func (sg * ServiceGroup) ToGRPC() *grpc_application_go.ServiceGroup {
+func NewServiceGroupFromGRPC(appDescriptorID string, group * grpc_application_go.ServiceGroup) * ServiceGroup {
+	policy, _ := CollocationPolicyFromGRPC[group.Policy]
+	return &ServiceGroup{
+		OrganizationId: group.OrganizationId,
+		AppDescriptorId: appDescriptorID,
+		ServiceGroupId: GenerateUUID(ServiceGroupPrefix),
+		Name : group.Name,
+		Description: group.Description,
+		Services: group.Services,
+		Policy: policy,
+	}
+}
+
+func (sg *ServiceGroup) ToGRPC() *grpc_application_go.ServiceGroup {
 	policy, _ := CollocationPolicyToGRPC[sg.Policy]
 	return &grpc_application_go.ServiceGroup{
-		OrganizationId: sg.OrganizationId,
+		OrganizationId:  sg.OrganizationId,
 		AppDescriptorId: sg.AppDescriptorId,
-		ServiceGroupId: sg.ServiceGroupId,
-		Name: sg.Name,
-		Description: sg.Description,
-		Services: sg.Services,
-		Policy: policy,
+		ServiceGroupId:  sg.ServiceGroupId,
+		Name:            sg.Name,
+		Description:     sg.Description,
+		Services:        sg.Services,
+		Policy:          policy,
 	}
 }
 
@@ -107,8 +146,12 @@ const (
 	DockerService ServiceType = iota + 1
 )
 
-var ServiceTypeToGRPC = map[ServiceType] grpc_application_go.ServiceType {
-	DockerService : grpc_application_go.ServiceType_DOCKER,
+var ServiceTypeToGRPC = map[ServiceType]grpc_application_go.ServiceType{
+	DockerService: grpc_application_go.ServiceType_DOCKER,
+}
+
+var ServiceTypeFromGRPC = map[grpc_application_go.ServiceType]ServiceType{
+	grpc_application_go.ServiceType_DOCKER: DockerService,
 }
 
 type ImageCredentials struct {
@@ -117,11 +160,19 @@ type ImageCredentials struct {
 	Email    string `json:"email,omitempty"`
 }
 
-func (ic * ImageCredentials) ToGRPC() *grpc_application_go.ImageCredentials {
+func NewImageCredentialsFromGRPC(credentials * grpc_application_go.ImageCredentials) *ImageCredentials {
+	return &ImageCredentials{
+		Username: credentials.Username,
+		Password: credentials.Password,
+		Email:    credentials.Email,
+	}
+}
+
+func (ic *ImageCredentials) ToGRPC() *grpc_application_go.ImageCredentials {
 	return &grpc_application_go.ImageCredentials{
 		Username: ic.Username,
 		Password: ic.Password,
-		Email: ic.Email,
+		Email:    ic.Email,
 	}
 }
 
@@ -131,10 +182,18 @@ type DeploySpecs struct {
 	Replicas int32 `json:"replicas,omitempty"`
 }
 
-func (ds * DeploySpecs) ToGRPC() *grpc_application_go.DeploySpecs {
+func NewDeploySpecsFromGRPC(specs * grpc_application_go.DeploySpecs) * DeploySpecs {
+	return &DeploySpecs{
+		Cpu:      specs.Cpu,
+		Memory:   specs.Memory,
+		Replicas: specs.Replicas,
+	}
+}
+
+func (ds *DeploySpecs) ToGRPC() *grpc_application_go.DeploySpecs {
 	return &grpc_application_go.DeploySpecs{
-		Cpu: ds.Cpu,
-		Memory: ds.Memory,
+		Cpu:      ds.Cpu,
+		Memory:   ds.Memory,
 		Replicas: ds.Replicas,
 	}
 }
@@ -142,17 +201,24 @@ func (ds * DeploySpecs) ToGRPC() *grpc_application_go.DeploySpecs {
 type StorageType int32
 
 const (
-	Ephemeral        StorageType = iota + 1
+	Ephemeral StorageType = iota + 1
 	ClusterLocal
 	ClusterReplica
 	CloudPersistent
 )
 
-var StorageTypeToGRPC = map[StorageType] grpc_application_go.StorageType {
-	Ephemeral : grpc_application_go.StorageType_EPHEMERAL,
-	ClusterLocal : grpc_application_go.StorageType_CLUSTER_LOCAL,
-	ClusterReplica : grpc_application_go.StorageType_CLUSTER_REPLICA,
-	CloudPersistent : grpc_application_go.StorageType_CLOUD_PERSISTENT,
+var StorageTypeToGRPC = map[StorageType]grpc_application_go.StorageType{
+	Ephemeral:       grpc_application_go.StorageType_EPHEMERAL,
+	ClusterLocal:    grpc_application_go.StorageType_CLUSTER_LOCAL,
+	ClusterReplica:  grpc_application_go.StorageType_CLUSTER_REPLICA,
+	CloudPersistent: grpc_application_go.StorageType_CLOUD_PERSISTENT,
+}
+
+var StorageTypeFromGRPC = map[grpc_application_go.StorageType]StorageType{
+	grpc_application_go.StorageType_EPHEMERAL:        Ephemeral,
+	grpc_application_go.StorageType_CLUSTER_LOCAL:    ClusterLocal,
+	grpc_application_go.StorageType_CLUSTER_REPLICA:  ClusterReplica,
+	grpc_application_go.StorageType_CLOUD_PERSISTENT: CloudPersistent,
 }
 
 type Storage struct {
@@ -161,29 +227,45 @@ type Storage struct {
 	Type      StorageType `json:"type,omitempty"`
 }
 
-func (s * Storage) ToGRPC() *grpc_application_go.Storage {
+func NewStorageFromGRPC(storage * grpc_application_go.Storage) * Storage{
+	storageType, _ := StorageTypeFromGRPC[storage.Type]
+	return &Storage{
+		Size:      storage.Size,
+		MountPath: storage.MountPath,
+		Type:      storageType,
+	}
+}
+
+func (s *Storage) ToGRPC() *grpc_application_go.Storage {
 	convertedType, _ := StorageTypeToGRPC[s.Type]
 	return &grpc_application_go.Storage{
-		Size: s.Size,
+		Size:      s.Size,
 		MountPath: s.MountPath,
-		Type: convertedType,
+		Type:      convertedType,
 	}
 }
 
 type EndpointType int
 
-const(
-	IsAlive   EndpointType = iota + 1
+const (
+	IsAlive EndpointType = iota + 1
 	Rest
 	Web
 	Prometheus
 )
 
-var EndpointTypeToGRPC = map[EndpointType] grpc_application_go.EndpointType {
-	IsAlive : grpc_application_go.EndpointType_IS_ALIVE,
-	Rest : grpc_application_go.EndpointType_REST,
-	Web : grpc_application_go.EndpointType_WEB,
-	Prometheus : grpc_application_go.EndpointType_PROMETHEUS,
+var EndpointTypeToGRPC = map[EndpointType]grpc_application_go.EndpointType{
+	IsAlive:    grpc_application_go.EndpointType_IS_ALIVE,
+	Rest:       grpc_application_go.EndpointType_REST,
+	Web:        grpc_application_go.EndpointType_WEB,
+	Prometheus: grpc_application_go.EndpointType_PROMETHEUS,
+}
+
+var EndpointTypeFromGRPC = map[grpc_application_go.EndpointType]EndpointType{
+	grpc_application_go.EndpointType_IS_ALIVE:   IsAlive,
+	grpc_application_go.EndpointType_REST:       Rest,
+	grpc_application_go.EndpointType_WEB:        Web,
+	grpc_application_go.EndpointType_PROMETHEUS: Prometheus,
 }
 
 type Endpoint struct {
@@ -191,7 +273,15 @@ type Endpoint struct {
 	Path string       `json:"path,omitempty"`
 }
 
-func (e * Endpoint) ToGRPC() *grpc_application_go.Endpoint {
+func NewEndpointFromGRPC( endpoint * grpc_application_go.Endpoint) * Endpoint {
+	endpointType, _ := EndpointTypeFromGRPC[endpoint.Type]
+	return &Endpoint{
+		Type: endpointType,
+		Path: endpoint.Path,
+	}
+}
+
+func (e *Endpoint) ToGRPC() *grpc_application_go.Endpoint {
 	convertedType, _ := EndpointTypeToGRPC[e.Type]
 	return &grpc_application_go.Endpoint{
 		Type: convertedType,
@@ -199,15 +289,27 @@ func (e * Endpoint) ToGRPC() *grpc_application_go.Endpoint {
 	}
 }
 
-
 type Port struct {
-	Name         string      `json:"name,omitempty"`
-	InternalPort int32       `json:"internal_port,omitempty"`
-	ExposedPort  int32       `json:"exposed_port,omitempty"`
+	Name         string     `json:"name,omitempty"`
+	InternalPort int32      `json:"internal_port,omitempty"`
+	ExposedPort  int32      `json:"exposed_port,omitempty"`
 	Endpoints    []Endpoint `json:"endpoints,omitempty"`
 }
 
-func (p *Port) ToGRPC() *grpc_application_go.Port  {
+func NewPortFromGRPC(port *grpc_application_go.Port) * Port {
+	endpoints := make([]Endpoint, 0)
+	for _, e := range port.Endpoints{
+		endpoints = append(endpoints, *NewEndpointFromGRPC(e))
+	}
+	return &Port{
+		Name:         port.Name,
+		InternalPort: port.InternalPort,
+		ExposedPort:  port.ExposedPort,
+		Endpoints:    endpoints,
+	}
+}
+
+func (p *Port) ToGRPC() *grpc_application_go.Port {
 	endpoints := make([]*grpc_application_go.Endpoint, 0)
 
 	for _, ep := range p.Endpoints {
@@ -215,10 +317,10 @@ func (p *Port) ToGRPC() *grpc_application_go.Port  {
 	}
 
 	return &grpc_application_go.Port{
-		Name: p.Name,
+		Name:         p.Name,
 		InternalPort: p.InternalPort,
-		ExposedPort: p.ExposedPort,
-		Endpoints: endpoints,
+		ExposedPort:  p.ExposedPort,
+		Endpoints:    endpoints,
 	}
 }
 
@@ -235,13 +337,23 @@ type ConfigFile struct {
 	MountPath string `json:"mount_path,omitempty"`
 }
 
-func (cf * ConfigFile) ToGRPC() *grpc_application_go.ConfigFile {
+func NewConfigFileFromGRPC(appDescriptorID string, config * grpc_application_go.ConfigFile) * ConfigFile {
+	return &ConfigFile{
+		OrganizationId:  config.OrganizationId,
+		AppDescriptorId: appDescriptorID,
+		ConfigFileId:    GenerateUUID(ConfigFilePrefix),
+		Content:         config.Content,
+		MountPath:       config.MountPath,
+	}
+}
+
+func (cf *ConfigFile) ToGRPC() *grpc_application_go.ConfigFile {
 	return &grpc_application_go.ConfigFile{
-		OrganizationId:       cf.OrganizationId,
-		AppDescriptorId:      cf.AppDescriptorId,
-		ConfigFileId:         cf.ConfigFileId,
-		Content:              cf.Content,
-		MountPath:            cf.MountPath,
+		OrganizationId:  cf.OrganizationId,
+		AppDescriptorId: cf.AppDescriptorId,
+		ConfigFileId:    cf.ConfigFileId,
+		Content:         cf.Content,
+		MountPath:       cf.MountPath,
 	}
 }
 
@@ -261,7 +373,7 @@ type Service struct {
 	// Image contains the URL/name of the image to be executed.
 	Image string `json:"image,omitempty"`
 	// ImageCredentials with the data required to access the repository the image is available at.
-	Credentials *ImageCredentials `json:"credentials,omitempty"`
+	Credentials ImageCredentials `json:"credentials,omitempty"`
 	// DeploySpecs with the resource specs required by the service.
 	Specs DeploySpecs `json:"specs,omitempty"`
 	// Storage restrictions
@@ -276,18 +388,51 @@ type Service struct {
 	// Labels with the user defined labels.
 	Labels map[string]string `json:"labels,omitempty"`
 	// DeployAfter contains the list of services that must be running before launching a service.
-	DeployAfter          []string `json:"deploy_after,omitempty"`
-
+	DeployAfter []string `json:"deploy_after,omitempty"`
 }
 
-func (s * Service) ToGRPC() *grpc_application_go.Service {
+func NewServiceFromGRPC(appDescriptorID string, service *grpc_application_go.Service) * Service {
+	storage := make([]Storage, 0)
+	for _, s := range service.Storage {
+		storage = append(storage, *NewStorageFromGRPC(s))
+	}
+	ports := make([]Port, 0)
+	for _, p := range service.ExposedPorts {
+		ports = append(ports, *NewPortFromGRPC(p))
+	}
+	configs := make([]ConfigFile, 0)
+	for _, cf := range service.Configs {
+		configs = append(configs, *NewConfigFileFromGRPC(appDescriptorID, cf))
+	}
+
+	serviceType, _ := ServiceTypeFromGRPC[service.Type]
+	return &Service{
+		OrganizationId:       service.OrganizationId,
+		AppDescriptorId:      appDescriptorID,
+		ServiceId:            service.ServiceId,
+		Name:                 service.Name,
+		Description:          service.Description,
+		Type:                 serviceType,
+		Image:                service.Image,
+		Credentials:          *NewImageCredentialsFromGRPC(service.Credentials),
+		Specs:                *NewDeploySpecsFromGRPC(service.Specs),
+		Storage:              storage,
+		ExposedPorts:         ports,
+		EnvironmentVariables: service.EnvironmentVariables,
+		Configs:              configs,
+		Labels:               service.Labels,
+		DeployAfter:          service.DeployAfter,
+	}
+}
+
+func (s *Service) ToGRPC() *grpc_application_go.Service {
 	serviceType, _ := ServiceTypeToGRPC[s.Type]
 	storage := make([]*grpc_application_go.Storage, 0)
-	for _, s := range s.Storage{
+	for _, s := range s.Storage {
 		storage = append(storage, s.ToGRPC())
 	}
 	exposedPorts := make([]*grpc_application_go.Port, 0)
-	for _, ep := range s.ExposedPorts{
+	for _, ep := range s.ExposedPorts {
 		exposedPorts = append(exposedPorts, ep.ToGRPC())
 	}
 	configs := make([]*grpc_application_go.ConfigFile, 0)
@@ -334,16 +479,15 @@ type AppDescriptor struct {
 	// Groups with the Service collocation strategies.
 	Groups []ServiceGroup `json:"groups,omitempty"`
 	// Services of the application.
-	Services             []Service `json:"services,omitempty"`
+	Services []Service `json:"services,omitempty"`
 }
 
-func NewAppDescriptor(organizationID string, name string, description string,
+func NewAppDescriptor(organizationID string, appDescriptorID string, name string, description string,
 	configOptions map[string]string, envVars map[string]string,
 	labels map[string]string,
-	rules []SecurityRule, groups []ServiceGroup, services []Service) * AppDescriptor {
-	uuid := GenerateUUID(AppDescPrefix)
+	rules []SecurityRule, groups []ServiceGroup, services []Service) *AppDescriptor {
 	return &AppDescriptor{
-		organizationID, uuid,
+		organizationID, appDescriptorID,
 		name, description,
 		configOptions,
 		envVars,
@@ -354,7 +498,35 @@ func NewAppDescriptor(organizationID string, name string, description string,
 	}
 }
 
-func (d * AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
+func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorRequest) * AppDescriptor {
+
+	uuid := GenerateUUID(AppDescPrefix)
+
+	rules := make([]SecurityRule, 0)
+	for _, r := range addRequest.Rules {
+		rules = append(rules, *NewSecurityRuleFromGRPC(uuid, r))
+	}
+	groups := make([]ServiceGroup, 0)
+	for _, sg := range addRequest.Groups{
+		groups = append(groups, *NewServiceGroupFromGRPC(uuid, sg))
+	}
+	services := make([]Service, 0)
+	for _, s := range addRequest.Services{
+		services = append(services, *NewServiceFromGRPC(uuid, s))
+	}
+
+	return NewAppDescriptor(
+		addRequest.OrganizationId,
+		uuid,
+		addRequest.Name,
+		addRequest.Description,
+		addRequest.ConfigurationOptions,
+		addRequest.EnvironmentVariables,
+		addRequest.Labels,
+		rules, groups, services)
+}
+
+func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
 
 	rules := make([]*grpc_application_go.SecurityRule, 0)
 	for _, r := range d.Rules {
@@ -384,9 +556,8 @@ func (d * AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
 }
 
 type AppInstance struct {
-
 }
 
-func (i * AppInstance) ToGRPC() * grpc_application_go.AppInstance {
+func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
 	return nil
 }

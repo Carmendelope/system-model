@@ -8,14 +8,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/nalej/grpc-organization-go"
+	"github.com/nalej/system-model/internal/pkg/entities"
 
+	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
 	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
 
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-utils/pkg/test"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
-	"github.com/satori/go.uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 	"math/rand"
@@ -29,10 +30,23 @@ func generateRandomSpecs() * grpc_application_go.DeploySpecs {
 	}
 }
 
-func generateRandomService() * grpc_application_go.Service {
+func generateRandomService(index int) * grpc_application_go.Service {
+	endpoints := make([]*grpc_application_go.Endpoint, 0)
+	endpoints = append(endpoints, &grpc_application_go.Endpoint{
+		Type: grpc_application_go.EndpointType_REST,
+		Path: "/",
+	})
+	ports := make([]*grpc_application_go.Port, 0)
+	ports = append(ports, &grpc_application_go.Port{
+		Name : "simple endpoint",
+		InternalPort: 80,
+		ExposedPort: 80,
+		Endpoints: endpoints,
+	})
 	return &grpc_application_go.Service{
-		Name: uuid.NewV1().String(),
-		Description : uuid.NewV1().String(),
+		ServiceId: fmt.Sprintf("s%d", index),
+		Name: fmt.Sprintf("Service %d", index),
+		Description : fmt.Sprintf("Descriptin s%d", index),
 		Image: fmt.Sprintf("image:v%d", rand.Intn(10)),
 		Specs: generateRandomSpecs(),
 		Type: grpc_application_go.ServiceType_DOCKER,
@@ -42,19 +56,38 @@ func generateRandomService() * grpc_application_go.Service {
 func generateAddAppDescriptor(orgID string, numServices int) * grpc_application_go.AddAppDescriptorRequest {
 	services := make([]*grpc_application_go.Service, 0)
 	for i := 0; i < numServices; i++ {
-		services = append(services, generateRandomService())
+		services = append(services, generateRandomService(i))
 	}
+	securityRules := make([]*grpc_application_go.SecurityRule, 0)
+	for i := 0; i < (numServices - 1); i++ {
+		securityRules = append(securityRules, &grpc_application_go.SecurityRule{
+			OrganizationId: orgID,
+			RuleId : fmt.Sprintf("r%d", i),
+			Name: fmt.Sprintf("%d -> %d", i, i+1),
+			SourceServiceId: fmt.Sprintf("s%d", i),
+			SourcePort: 80,
+			Access: grpc_application_go.PortAccess_APP_SERVICES,
+			AuthServices: []string{fmt.Sprintf("s%d", i+1)},
+		})
+	}
+	envVars := make(map[string]string, 0)
+	envVars["VAR1"] = "VALUE1"
 	return &grpc_application_go.AddAppDescriptorRequest{
 		RequestId:"request_id",
 		OrganizationId:orgID,
 		Name: "new app",
 		Description:"description",
+		EnvironmentVariables: envVars,
+		Rules: securityRules,
 		Services: services,
 	}
 }
 
-func createOrganization(orgProvider orgProvider.Provider) * grpc_organization_go.Organization {
-
+func createOrganization(orgProvider orgProvider.Provider) * entities.Organization {
+	toAdd := entities.NewOrganization("test org")
+	err := orgProvider.Add(*toAdd)
+	gomega.Expect(err).To(gomega.Succeed())
+	return toAdd
 }
 
 var _ = ginkgo.Describe("Applications", func(){
@@ -69,16 +102,25 @@ var _ = ginkgo.Describe("Applications", func(){
 	// client
 	var client grpc_application_go.ApplicationsClient
 
-	var targetOrganization grpc_organization_go.Organization
+	// Target organization.
+	var targetOrganization * entities.Organization
+
+	// Organization Provider
+	var organizationProvider orgProvider.Provider
+	var applicationProvider appProvider.Provider
 
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
 		server = grpc.NewServer()
 		test.LaunchServer(server, listener)
 
-		// Register the service
-		//appProvider := nil
-		manager := NewManager(nil)
+		// Create providers
+		organizationProvider = orgProvider.NewMockupOrganizationProvider()
+
+		// Initial data
+		targetOrganization = createOrganization(organizationProvider)
+
+		manager := NewManager(organizationProvider, applicationProvider)
 		handler := NewHandler(manager)
 		grpc_application_go.RegisterApplicationsServer(server, handler)
 
@@ -116,27 +158,77 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(err).Should(gomega.HaveOccurred())
 				gomega.Expect(app).Should(gomega.BeNil())
 			})
+			ginkgo.It("should fail on a descriptor without services", func(){
+				toAdd := generateAddAppDescriptor(orgID, 0)
+				app, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.HaveOccurred())
+				gomega.Expect(app).Should(gomega.BeNil())
+			})
 		})
 		ginkgo.Context("get application descriptor", func(){
 		    ginkgo.It("should get an existing app descriptor", func(){
-
+				toAdd := generateAddAppDescriptor(orgID, numServices)
+				app, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(app).ShouldNot(gomega.BeNil())
+				retrieved, err := client.GetAppDescriptor(context.Background(), &grpc_application_go.AppDescriptorId{
+					OrganizationId: app.OrganizationId,
+					AppDescriptorId: app.AppDescriptorId,
+				})
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+				gomega.Expect(retrieved.Name).Should(gomega.Equal(app.Name))
 		    })
 		    ginkgo.It("should fail on a non existing application", func(){
-
+				retrieved, err := client.GetAppDescriptor(context.Background(), &grpc_application_go.AppDescriptorId{
+					OrganizationId: orgID,
+					AppDescriptorId: "does not exists",
+				})
+				gomega.Expect(err).Should(gomega.HaveOccurred())
+				gomega.Expect(retrieved).Should(gomega.BeNil())
 		    })
 		    ginkgo.It("should fail on a non existing organization", func(){
-
+				retrieved, err := client.GetAppDescriptor(context.Background(), &grpc_application_go.AppDescriptorId{
+					OrganizationId: "does not exists",
+					AppDescriptorId: "does not exists",
+				})
+				gomega.Expect(err).Should(gomega.HaveOccurred())
+				gomega.Expect(retrieved).Should(gomega.BeNil())
 		    })
 		})
 		ginkgo.Context("listing application descriptors", func(){
+			ginkgo.BeforeEach("clear mockup provider", func(){
+
+			})
 			ginkgo.It("should list apps on an existing organization", func(){
-			    
+			    numDescriptors := 3
+			    for i := 0; i < numDescriptors; i ++ {
+					toAdd := generateAddAppDescriptor(orgID, numServices)
+					app, err := client.AddAppDescriptor(context.Background(), toAdd)
+					gomega.Expect(err).Should(gomega.Succeed())
+					gomega.Expect(app).ShouldNot(gomega.BeNil())
+				}
+			    retrieved, err := client.GetAppDescriptors(context.Background(), &grpc_organization_go.OrganizationId{
+			    	OrganizationId: orgID,
+				})
+			    gomega.Expect(err).Should(gomega.Succeed())
+			    gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+			    gomega.Expect(len(retrieved.Descriptors)).ShouldNot(gomega.Equal(numDescriptors))
 			})
 			ginkgo.It("should fail on a non existing organization", func(){
-			    
+				retrieved, err := client.GetAppDescriptors(context.Background(), &grpc_organization_go.OrganizationId{
+					OrganizationId: "does not exists",
+				})
+				gomega.Expect(err).Should(gomega.HaveOccurred())
+				gomega.Expect(retrieved).Should(gomega.BeNil())
 			})
 			ginkgo.It("should work on an organization without descriptors", func(){
-
+				retrieved, err := client.GetAppDescriptors(context.Background(), &grpc_organization_go.OrganizationId{
+					OrganizationId: orgID,
+				})
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+				gomega.Expect(len(retrieved.Descriptors)).ShouldNot(gomega.Equal(0))
 			})
 		})
 
