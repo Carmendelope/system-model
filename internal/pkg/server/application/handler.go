@@ -6,11 +6,12 @@ package application
 
 import (
 	"context"
-	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
+	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/rs/zerolog/log"
 )
 
 type Handler struct {
@@ -21,18 +22,12 @@ func NewHandler(manager Manager) *Handler{
 	return &Handler{manager}
 }
 
-func (h * Handler) validAddDescriptorRequest(toAdd * grpc_application_go.AddAppDescriptorRequest) derrors.Error {
-	if toAdd.OrganizationId != "" && toAdd.Name != "" && len(toAdd.Services) > 0 {
-		return nil
-	}
-	return derrors.NewInvalidArgumentError("missing required fields")
-}
-
 func (h *Handler) AddAppDescriptor(ctx context.Context, addRequest *grpc_application_go.AddAppDescriptorRequest) (*grpc_application_go.AppDescriptor, error) {
-	err := h.validAddDescriptorRequest(addRequest)
+	err := entities.ValidAddAppDescriptorRequest(addRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
+	log.Debug().Interface("addRequest", addRequest).Msg("Adding application descriptor")
 	added, err := h.Manager.AddAppDescriptor(addRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -41,11 +36,27 @@ func (h *Handler) AddAppDescriptor(ctx context.Context, addRequest *grpc_applica
 }
 
 func (h *Handler) GetAppDescriptors(ctx context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppDescriptorList, error) {
-	panic("implement me")
+	descriptors, err := h.Manager.ListDescriptors(orgID)
+	if err != nil{
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	toReturn := make([]*grpc_application_go.AppDescriptor, 0)
+	for _, d := range descriptors {
+		toReturn = append(toReturn, d.ToGRPC())
+	}
+	result := &grpc_application_go.AppDescriptorList{
+		Descriptors:          toReturn,
+	}
+	return result, nil
 }
 
 func (h *Handler) GetAppDescriptor(ctx context.Context, appDescID *grpc_application_go.AppDescriptorId) (*grpc_application_go.AppDescriptor, error) {
-	panic("implement me")
+	descriptor, err := h.Manager.GetDescriptor(appDescID)
+	if err != nil {
+	    return nil, conversions.ToGRPCError(err)
+	}
+	return descriptor.ToGRPC(), nil
 }
 
 

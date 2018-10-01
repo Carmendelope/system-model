@@ -6,6 +6,7 @@ package entities
 
 import (
 	"fmt"
+	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-organization-go"
 	"time"
 )
@@ -31,4 +32,15 @@ func (o * Organization) ToGRPC() * grpc_organization_go.Organization {
 		Name: o.Name,
 		Created: o.Created,
 	}
+}
+
+func ValidAddOrganizationRequest(toAdd * grpc_organization_go.AddOrganizationRequest) derrors.Error {
+	if toAdd.Name != "" {
+		return nil
+	}
+	return derrors.NewInvalidArgumentError("organization required fields missing")
+}
+
+func ValidUpdateOrganization(toUpdate * grpc_organization_go.UpdateOrganizationRequest) derrors.Error {
+	return nil
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
+	"github.com/nalej/system-model/internal/pkg/entities"
 )
 
 type Handler struct{
@@ -21,26 +22,8 @@ func NewHandler(manager Manager) *Handler {
 	return &Handler{manager}
 }
 
-func (h * Handler) validAddOrganization(toAdd * grpc_organization_go.AddOrganizationRequest) derrors.Error {
-	if toAdd.Name != "" {
-		return nil
-	}
-	return derrors.NewInvalidArgumentError("organization required fields missing")
-}
-
-func (h * Handler) validOrganizationId(orgId * grpc_organization_go.OrganizationId) derrors.Error {
-	if orgId.OrganizationId != "" {
-		return nil
-	}
-	return derrors.NewInvalidArgumentError("organization id is not valid")
-}
-
-func (h * Handler) validUpdateOrganization(toUpdate * grpc_organization_go.UpdateOrganizationRequest) derrors.Error {
-	return nil
-}
-
 func (h *Handler) AddOrganization(ctx context.Context, addOrganizationRequest *grpc_organization_go.AddOrganizationRequest) (*grpc_organization_go.Organization, error) {
-	err := h.validAddOrganization(addOrganizationRequest)
+	err := entities.ValidAddOrganizationRequest(addOrganizationRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}

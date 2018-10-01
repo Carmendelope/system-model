@@ -4,7 +4,10 @@
 
 package entities
 
-import "github.com/nalej/grpc-application-go"
+import (
+	"github.com/nalej/derrors"
+	"github.com/nalej/grpc-application-go"
+)
 
 type PortAccess int
 
@@ -68,6 +71,9 @@ type SecurityRule struct {
 }
 
 func NewSecurityRuleFromGRPC(appDescriptorID string, rule *grpc_application_go.SecurityRule) *SecurityRule {
+	if rule == nil {
+		return nil
+	}
 	uuid := GenerateUUID(SecurityRulePrefix)
 	access := PortAccessFromGRPC[rule.Access]
 	return &SecurityRule{
@@ -115,6 +121,9 @@ type ServiceGroup struct {
 }
 
 func NewServiceGroupFromGRPC(appDescriptorID string, group * grpc_application_go.ServiceGroup) * ServiceGroup {
+	if group == nil {
+		return nil
+	}
 	policy, _ := CollocationPolicyFromGRPC[group.Policy]
 	return &ServiceGroup{
 		OrganizationId: group.OrganizationId,
@@ -161,6 +170,9 @@ type ImageCredentials struct {
 }
 
 func NewImageCredentialsFromGRPC(credentials * grpc_application_go.ImageCredentials) *ImageCredentials {
+	if credentials == nil {
+		return nil
+	}
 	return &ImageCredentials{
 		Username: credentials.Username,
 		Password: credentials.Password,
@@ -169,6 +181,9 @@ func NewImageCredentialsFromGRPC(credentials * grpc_application_go.ImageCredenti
 }
 
 func (ic *ImageCredentials) ToGRPC() *grpc_application_go.ImageCredentials {
+	if ic == nil {
+		return nil
+	}
 	return &grpc_application_go.ImageCredentials{
 		Username: ic.Username,
 		Password: ic.Password,
@@ -183,6 +198,9 @@ type DeploySpecs struct {
 }
 
 func NewDeploySpecsFromGRPC(specs * grpc_application_go.DeploySpecs) * DeploySpecs {
+	if specs == nil {
+		return nil
+	}
 	return &DeploySpecs{
 		Cpu:      specs.Cpu,
 		Memory:   specs.Memory,
@@ -228,6 +246,9 @@ type Storage struct {
 }
 
 func NewStorageFromGRPC(storage * grpc_application_go.Storage) * Storage{
+	if storage == nil {
+		return nil
+	}
 	storageType, _ := StorageTypeFromGRPC[storage.Type]
 	return &Storage{
 		Size:      storage.Size,
@@ -274,6 +295,9 @@ type Endpoint struct {
 }
 
 func NewEndpointFromGRPC( endpoint * grpc_application_go.Endpoint) * Endpoint {
+	if endpoint == nil {
+		return nil
+	}
 	endpointType, _ := EndpointTypeFromGRPC[endpoint.Type]
 	return &Endpoint{
 		Type: endpointType,
@@ -297,6 +321,9 @@ type Port struct {
 }
 
 func NewPortFromGRPC(port *grpc_application_go.Port) * Port {
+	if port == nil {
+		return nil
+	}
 	endpoints := make([]Endpoint, 0)
 	for _, e := range port.Endpoints{
 		endpoints = append(endpoints, *NewEndpointFromGRPC(e))
@@ -338,6 +365,9 @@ type ConfigFile struct {
 }
 
 func NewConfigFileFromGRPC(appDescriptorID string, config * grpc_application_go.ConfigFile) * ConfigFile {
+	if config == nil {
+		return nil
+	}
 	return &ConfigFile{
 		OrganizationId:  config.OrganizationId,
 		AppDescriptorId: appDescriptorID,
@@ -373,9 +403,9 @@ type Service struct {
 	// Image contains the URL/name of the image to be executed.
 	Image string `json:"image,omitempty"`
 	// ImageCredentials with the data required to access the repository the image is available at.
-	Credentials ImageCredentials `json:"credentials,omitempty"`
+	Credentials * ImageCredentials `json:"credentials,omitempty"`
 	// DeploySpecs with the resource specs required by the service.
-	Specs DeploySpecs `json:"specs,omitempty"`
+	Specs * DeploySpecs `json:"specs,omitempty"`
 	// Storage restrictions
 	Storage []Storage `json:"storage,omitempty"`
 	// ExposedPorts contains the list of ports exposed by the current service.
@@ -392,6 +422,10 @@ type Service struct {
 }
 
 func NewServiceFromGRPC(appDescriptorID string, service *grpc_application_go.Service) * Service {
+	if service == nil{
+		return nil
+	}
+
 	storage := make([]Storage, 0)
 	for _, s := range service.Storage {
 		storage = append(storage, *NewStorageFromGRPC(s))
@@ -414,8 +448,8 @@ func NewServiceFromGRPC(appDescriptorID string, service *grpc_application_go.Ser
 		Description:          service.Description,
 		Type:                 serviceType,
 		Image:                service.Image,
-		Credentials:          *NewImageCredentialsFromGRPC(service.Credentials),
-		Specs:                *NewDeploySpecsFromGRPC(service.Specs),
+		Credentials:          NewImageCredentialsFromGRPC(service.Credentials),
+		Specs:                NewDeploySpecsFromGRPC(service.Specs),
 		Storage:              storage,
 		ExposedPorts:         ports,
 		EnvironmentVariables: service.EnvironmentVariables,
@@ -500,6 +534,10 @@ func NewAppDescriptor(organizationID string, appDescriptorID string, name string
 
 func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorRequest) * AppDescriptor {
 
+	if addRequest == nil {
+		return nil
+	}
+
 	uuid := GenerateUUID(AppDescPrefix)
 
 	rules := make([]SecurityRule, 0)
@@ -555,7 +593,61 @@ func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
 	}
 }
 
+func ValidAddService(service * grpc_application_go.Service) derrors.Error {
+	if service.OrganizationId == "" || service.ServiceId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, service_id")
+	}
+	return nil
+}
+
+func ValidAddAppDescriptorRequest(toAdd * grpc_application_go.AddAppDescriptorRequest) derrors.Error {
+	if toAdd.OrganizationId == "" || toAdd.Name == "" || toAdd.RequestId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, name, and request_id")
+	}
+
+	if len(toAdd.Services) == 0 {
+		return derrors.NewInvalidArgumentError("expecting at least one service")
+	}
+
+	for _, s := range toAdd.Services {
+		err := ValidAddService(s)
+		if err != nil{
+			return err
+		}
+	}
+
+	return nil
+}
+
+
+
 type AppInstance struct {
+	// OrganizationId with the organization identifier.
+	OrganizationId string `json:"organization_id,omitempty"`
+	// AppDescriptorId with the application descriptor identifier.
+	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	// AppInstanceId with the application instance identifier.
+	AppInstanceId string `json:"app_instance_id,omitempty"`
+	// Name of the application.
+	Name string `json:"name,omitempty"`
+	// Description of the application.
+	Description string `json:"description,omitempty"`
+	// ConfigurationOptions defines a key-value map of configuration options.
+	ConfigurationOptions map[string]string `json:"configuration_options,omitempty"`
+	// EnvironmentVariables defines a key-value map of environment variables and values that will be passed to all
+	// running services.
+	EnvironmentVariables map[string]string `json:"environment_variables,omitempty"`
+	// Labels defined by the user.
+	Labels map[string]string `json:"labels,omitempty"`
+	// Rules that define the connectivity between the elements of an application.
+	Rules []*SecurityRule `json:"rules,omitempty"`
+	// Groups with the Service collocation strategies.
+	Groups []*ServiceGroup `json:"groups,omitempty"`
+	// Services of the applicaiton.
+	Services []*Service `json:"services,omitempty"`
+	// Status of the deployed instance.
+	//Status  ApplicationStatus `json:"status,omitempty"`
+	// TODO fix
 }
 
 func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {

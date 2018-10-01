@@ -16,4 +16,13 @@ type Provider interface {
 	Exists(organizationID string) bool
 	// Get an organization.
 	Get(organizationID string) (* entities.Organization, derrors.Error)
+
+	// AddDescriptor adds a new descriptor ID to a given organization.
+	AddDescriptor(organizationID string, appDescriptorID string) derrors.Error
+	// DescriptorExists checks if an application descriptor exists on the system.
+	DescriptorExists(organizationID string, appDescriptorID string) bool
+	// ListDescriptors returns the identifiers of the application descriptors associated with an organization.
+	ListDescriptors(organizationID string) ([]string, derrors.Error)
+	// DeleteDescriptor removes a descriptor from an organization
+	DeleteDescriptor(organizationID string, appDescriptorID string) derrors.Error
 }
