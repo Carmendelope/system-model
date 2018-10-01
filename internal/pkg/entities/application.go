@@ -120,6 +120,7 @@ type ServiceGroup struct {
 	Policy CollocationPolicy `json:"policy,omitempty"`
 }
 
+
 func NewServiceGroupFromGRPC(appDescriptorID string, group * grpc_application_go.ServiceGroup) * ServiceGroup {
 	if group == nil {
 		return nil
@@ -148,6 +149,53 @@ func (sg *ServiceGroup) ToGRPC() *grpc_application_go.ServiceGroup {
 		Policy:          policy,
 	}
 }
+
+func (sg * ServiceGroup) ToServiceGroupInstance(appInstID string) * ServiceGroupInstance {
+	return &ServiceGroupInstance{
+		OrganizationId:   sg.OrganizationId,
+		AppDescriptorId:  sg.AppDescriptorId,
+		AppInstanceId:    appInstID,
+		ServiceGroupId:   sg.ServiceGroupId,
+		Name:             sg.Name,
+		Description:      sg.Description,
+		ServiceInstances: sg.Services,
+		Policy:           sg.Policy,
+	}
+}
+
+type ServiceGroupInstance struct {
+	// OrganizationId with the organization identifier.
+	OrganizationId string `json:"organization_id,omitempty"`
+	// AppDescriptorId with the application descriptor identifier.
+	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	// AppInstanceId with the application instance identifier.
+	AppInstanceId string `json:"app_instance_id,omitempty"`
+	// ServiceGroupId with the group identifier.
+	ServiceGroupId string `json:"service_group_id,omitempty"`
+	// Name of the service group.
+	Name string `json:"name,omitempty"`
+	// Description of the service group.
+	Description string `json:"description,omitempty"`
+	// ServicesInstances defining a list of service identifiers that belong to the group.
+	ServiceInstances []string `json:"service_instances,omitempty"`
+	// Policy indicating the deployment collocation policy.
+	Policy               CollocationPolicy `json:"policy,omitempty"`
+}
+
+func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInstance {
+	policy, _ := CollocationPolicyToGRPC[sgi.Policy]
+	return &grpc_application_go.ServiceGroupInstance{
+		OrganizationId:       sgi.OrganizationId,
+		AppDescriptorId:      sgi.AppDescriptorId,
+		AppInstanceId:        sgi.AppInstanceId,
+		ServiceGroupId:       sgi.ServiceGroupId,
+		Name:                 sgi.Name,
+		Description:          sgi.Description,
+		ServiceInstances:     sgi.ServiceInstances,
+		Policy:               policy,
+	}
+}
+
 
 type ServiceType int32
 
@@ -492,6 +540,132 @@ func (s *Service) ToGRPC() *grpc_application_go.Service {
 	}
 }
 
+func (s * Service) ToServiceInstance(appInstanceID string) * ServiceInstance {
+
+	return &ServiceInstance{
+		OrganizationId:       s.OrganizationId,
+		AppDescriptorId:      s.AppDescriptorId,
+		AppInstanceId:        appInstanceID,
+		ServiceId:            s.ServiceId,
+		Name:                 s.Name,
+		Description:          s.Description,
+		Type:                 s.Type,
+		Image:                s.Image,
+		Credentials:          s.Credentials,
+		Specs:                s.Specs,
+		Storage:              s.Storage,
+		ExposedPorts:         s.ExposedPorts,
+		EnvironmentVariables: s.EnvironmentVariables,
+		Configs:              s.Configs,
+		Labels:               s.Labels,
+		DeployAfter:          s.DeployAfter,
+		Status:               ServiceWaiting,
+	}
+}
+
+type ServiceStatus int
+
+const (
+	ServiceScheduled ServiceStatus = iota + 1
+	ServiceWaiting
+	ServiceDeploying
+	ServiceRunning
+	ServiceError
+)
+
+var ServiceStatusToGRPC = map[ServiceStatus]grpc_application_go.ServiceStatus{
+	ServiceScheduled:    grpc_application_go.ServiceStatus_SERVICE_SCHEDULED,
+	ServiceWaiting: grpc_application_go.ServiceStatus_SERVICE_WAITING,
+	ServiceDeploying:       grpc_application_go.ServiceStatus_SERVICE_DEPLOYING,
+	ServiceRunning:        grpc_application_go.ServiceStatus_SERVICE_RUNNING,
+	ServiceError: grpc_application_go.ServiceStatus_SERVICE_ERROR,
+}
+
+var ServiceStatusFromGRPC = map[grpc_application_go.ServiceStatus]ServiceStatus{
+	grpc_application_go.ServiceStatus_SERVICE_SCHEDULED : ServiceScheduled,
+	grpc_application_go.ServiceStatus_SERVICE_WAITING : ServiceWaiting,
+	grpc_application_go.ServiceStatus_SERVICE_DEPLOYING : ServiceDeploying,
+	grpc_application_go.ServiceStatus_SERVICE_RUNNING : ServiceRunning,
+	grpc_application_go.ServiceStatus_SERVICE_ERROR : ServiceError,
+}
+
+type ServiceInstance struct {
+	// OrganizationId with the organization identifier.
+	OrganizationId string `json:"organization_id,omitempty"`
+	// AppDescriptorId with the application descriptor identifier.
+	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	// AppInstanceId with the application instance identifier.
+	AppInstanceId string `json:"app_instance_id,omitempty"`
+	// ServiceId with the service identifier.
+	ServiceId string `json:"service_id,omitempty"`
+	// Name of the service.
+	Name string `json:"name,omitempty"`
+	// Description of the service.
+	Description string `json:"description,omitempty"`
+	// ServiceType represents the underlying technology of the service to be launched.
+	Type ServiceType `json:"type,omitempty"`
+	// Image contains the URL/name of the image to be executed.
+	Image string `json:"image,omitempty"`
+	// ImageCredentials with the data required to access the repository the image is available at.
+	Credentials * ImageCredentials `json:"credentials,omitempty"`
+	// DeploySpecs with the resource specs required by the service.
+	Specs * DeploySpecs `json:"specs,omitempty"`
+	// Storage restrictions
+	Storage []Storage `json:"storage,omitempty"`
+	// ExposedPorts contains the list of ports exposed by the current service.
+	ExposedPorts []Port `json:"exposed_ports,omitempty"`
+	// EnvironmentVariables defines a key-value map of environment variables and values that will be passed to all
+	// running services.
+	EnvironmentVariables map[string]string `json:"environment_variables,omitempty"`
+	// Configs contains the configuration files required by the service.
+	Configs []ConfigFile `json:"configs,omitempty"`
+	// Labels with the user defined labels.
+	Labels map[string]string `json:"labels,omitempty"`
+	// DeployAfter contains the list of services that must be running before launching a service.
+	DeployAfter []string `json:"deploy_after,omitempty"`
+	// Status of the deployed service
+	Status ServiceStatus `json:"status,omitempty"`
+
+}
+
+func (si *ServiceInstance) ToGRPC() *grpc_application_go.ServiceInstance {
+	serviceType, _ := ServiceTypeToGRPC[si.Type]
+	serviceStatus, _ := ServiceStatusToGRPC[si.Status]
+	storage := make([]*grpc_application_go.Storage, 0)
+	for _, s := range si.Storage {
+		storage = append(storage, s.ToGRPC())
+	}
+	exposedPorts := make([]*grpc_application_go.Port, 0)
+	for _, ep := range si.ExposedPorts {
+		exposedPorts = append(exposedPorts, ep.ToGRPC())
+	}
+	configs := make([]*grpc_application_go.ConfigFile, 0)
+	for _, c := range si.Configs {
+		configs = append(configs, c.ToGRPC())
+	}
+	return &grpc_application_go.ServiceInstance{
+		OrganizationId:       si.OrganizationId,
+		AppDescriptorId:      si.AppDescriptorId,
+		AppInstanceId:        si.AppInstanceId,
+		ServiceId:           si.ServiceId,
+		Name:                 si.Name,
+		Description:          si.Description,
+		Type:                 serviceType,
+		Image:                si.Image,
+		Credentials:          si.Credentials.ToGRPC(),
+		Specs:                si.Specs.ToGRPC(),
+		Storage:              storage,
+		ExposedPorts:         exposedPorts,
+		EnvironmentVariables: si.EnvironmentVariables,
+		Configs:              configs,
+		Labels:               si.Labels,
+		DeployAfter:          si.DeployAfter,
+		Status:               serviceStatus,
+
+	}
+
+}
+
 type AppDescriptor struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty"`
@@ -621,6 +795,44 @@ func ValidAddAppDescriptorRequest(toAdd * grpc_application_go.AddAppDescriptorRe
 
 
 
+type ApplicationStatus int
+
+const (
+	Queued ApplicationStatus = iota +1
+	Planning
+	Scheduled
+	Deploying
+	Running
+	Incomplete
+	PlanningError
+	DeploymentError
+	Error
+)
+
+var AppStatusToGRPC = map[ApplicationStatus]grpc_application_go.ApplicationStatus{
+	Queued: grpc_application_go.ApplicationStatus_QUEUED,
+	Planning: grpc_application_go.ApplicationStatus_PLANNING,
+	Scheduled: grpc_application_go.ApplicationStatus_SCHEDULED,
+	Deploying: grpc_application_go.ApplicationStatus_DEPLOYING,
+	Running: grpc_application_go.ApplicationStatus_RUNNING,
+	Incomplete: grpc_application_go.ApplicationStatus_INCOMPLETE,
+	PlanningError: grpc_application_go.ApplicationStatus_PLANNING_ERROR,
+	DeploymentError: grpc_application_go.ApplicationStatus_DEPLOYMENT_ERROR,
+	Error: grpc_application_go.ApplicationStatus_ERROR,
+}
+
+var AppStatusFromGRPC = map[grpc_application_go.ApplicationStatus]ApplicationStatus{
+	grpc_application_go.ApplicationStatus_QUEUED:Queued,
+	grpc_application_go.ApplicationStatus_PLANNING:Planning,
+	grpc_application_go.ApplicationStatus_SCHEDULED:Scheduled,
+	grpc_application_go.ApplicationStatus_DEPLOYING:Deploying,
+	grpc_application_go.ApplicationStatus_RUNNING:Running,
+	grpc_application_go.ApplicationStatus_INCOMPLETE:Incomplete,
+	grpc_application_go.ApplicationStatus_PLANNING_ERROR:PlanningError,
+	grpc_application_go.ApplicationStatus_DEPLOYMENT_ERROR:DeploymentError,
+	grpc_application_go.ApplicationStatus_ERROR:Error,
+}
+
 type AppInstance struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty"`
@@ -640,16 +852,79 @@ type AppInstance struct {
 	// Labels defined by the user.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Rules that define the connectivity between the elements of an application.
-	Rules []*SecurityRule `json:"rules,omitempty"`
+	Rules []SecurityRule `json:"rules,omitempty"`
 	// Groups with the Service collocation strategies.
-	Groups []*ServiceGroup `json:"groups,omitempty"`
+	Groups []ServiceGroupInstance `json:"groups,omitempty"`
 	// Services of the applicaiton.
-	Services []*Service `json:"services,omitempty"`
+	Services []ServiceInstance `json:"services,omitempty"`
 	// Status of the deployed instance.
-	//Status  ApplicationStatus `json:"status,omitempty"`
-	// TODO fix
+	Status  ApplicationStatus `json:"status,omitempty"`
+}
+
+func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceRequest, descriptor * AppDescriptor) * AppInstance {
+	uuid := GenerateUUID(AppInstPrefix)
+
+	groups := make([]ServiceGroupInstance, 0)
+	for _, g := range descriptor.Groups {
+		groups = append(groups, *g.ToServiceGroupInstance(uuid))
+	}
+	services := make([]ServiceInstance, 0)
+	for _, s := range descriptor.Services {
+		services = append(services, *s.ToServiceInstance(uuid))
+	}
+
+	return &AppInstance{
+		OrganizationId:       addRequest.OrganizationId,
+		AppDescriptorId:      addRequest.AppDescriptorId,
+		AppInstanceId:        uuid,
+		Name:                 addRequest.Name,
+		Description:          addRequest.Description,
+		ConfigurationOptions: descriptor.ConfigurationOptions,
+		EnvironmentVariables: descriptor.EnvironmentVariables,
+		Labels:               descriptor.Labels,
+		Rules:                descriptor.Rules,
+		Groups:               groups,
+		Services:             services,
+		Status: Queued,
+	}
 }
 
 func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
+	rules := make([]*grpc_application_go.SecurityRule, 0)
+	for _, r := range i.Rules {
+		rules = append(rules, r.ToGRPC())
+	}
+	groups := make([]*grpc_application_go.ServiceGroupInstance, 0)
+	for _, g := range i.Groups {
+		groups = append(groups, g.ToGRPC())
+	}
+	services := make([]*grpc_application_go.ServiceInstance, 0)
+	for _, s := range i.Services {
+		services = append(services, s.ToGRPC())
+	}
+
+	status, _ := AppStatusToGRPC[i.Status]
+
+	return &grpc_application_go.AppInstance{
+		OrganizationId:       i.OrganizationId,
+		AppDescriptorId:      i.AppDescriptorId,
+		AppInstanceId:        i.AppInstanceId,
+		Name:                 i.Name,
+		Description:          i.Description,
+		ConfigurationOptions: i.ConfigurationOptions,
+		EnvironmentVariables: i.EnvironmentVariables,
+		Labels:               i.Labels,
+		Rules:                rules,
+		Groups:               groups,
+		Services:             services,
+		Status:               status,
+	}
+}
+
+func ValidAddAppInstanceRequest(toAdd * grpc_application_go.AddAppInstanceRequest) derrors.Error {
+	if toAdd.OrganizationId == "" || toAdd.Name == "" || toAdd.AppDescriptorId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, name, and descriptor_id")
+	}
+
 	return nil
 }

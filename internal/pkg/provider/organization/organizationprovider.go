@@ -25,4 +25,13 @@ type Provider interface {
 	ListDescriptors(organizationID string) ([]string, derrors.Error)
 	// DeleteDescriptor removes a descriptor from an organization
 	DeleteDescriptor(organizationID string, appDescriptorID string) derrors.Error
+
+	// AddInstance adds a new application instance ID to a given organization.
+	AddInstance(organizationID string, appInstanceID string) derrors.Error
+	// InstanceExists checks if an application instance exists on the system.
+	InstanceExists(organizationID string, appInstanceID string) bool
+	// ListInstances returns a the identifiers associate with a given organization.
+	ListInstances(organizationID string) ([]string, derrors.Error)
+	// DeleteInstance removes an instance from an organization
+	DeleteInstance(organizationID string, appInstanceID string) derrors.Error
 }

@@ -47,23 +47,12 @@
   version = "v2.0.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:900e25ec4093ae823a88ff220c456debce40c445b587a5c5cde5cc897f669af7"
-  name = "github.com/nalej/golang-template"
-  packages = [
-    "cmd/other-app/commands",
-    "version",
-  ]
-  pruneopts = ""
-  revision = "f8413c8531db6c33e41caaa2c1a10b9e43333650"
-
-[[projects]]
-  digest = "1:746c4ff9b00598af62a808a70acbc0fc1d4c6db87d7a5367b622fa1a543879e3"
+  digest = "1:cb54e9a00f5c1bb9e07feb051a3796ddfa480f89d1f262846c33e76d062329af"
   name = "github.com/nalej/grpc-application-go"
   packages = ["."]
   pruneopts = ""
-  revision = "f228030be6ecc0f27f5cda7d96c9ad1ae858ac96"
-  version = "v0.0.4"
+  revision = "d5d12eae1174151a31f21a9a1b2fc8ef1829f7db"
+  version = "v0.0.5"
 
 [[projects]]
   digest = "1:62eeb0cedcfd181a06a0bb5fe186879a96769dd9a6f9a4d02d5a4cc227777fa6"
@@ -199,11 +188,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:630da6b685efd0155076e77c082a4fb297a5fd49a722d28fb4c728cd8656e060"
+  digest = "1:149a432fabebb8221a80f77731b1cd63597197ded4f14af606ebe3a0959004ec"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = ""
-  revision = "dad3d9fb7b6e83d0f9ac8f54670f6334c3a287b4"
+  revision = "e4b3c5e9061176387e7cea65e4dc5853801f3fb7"
 
 [[projects]]
   digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
@@ -242,14 +231,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0c092d90af564cfe88bf7d11e7a86fdbf38fd33f9cff6fd76f4a085f125eec78"
+  digest = "1:8bd33d8fe8a5c7a788ba91773629250db88fdf578197c0ec66ff1c5a479b4ada"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/rpc/errdetails",
     "googleapis/rpc/status",
   ]
   pruneopts = ""
-  revision = "0e822944c569bf5c9afd034adaa56208bd2906ac"
+  revision = "c7e5094acea1ca1b899e2259d80a6b0f882f81f8"
 
 [[projects]]
   digest = "1:15656947b87a6a240e61dcfae9e71a55a8d5677f240d12ab48f02cdbabf1e309"
@@ -319,8 +308,6 @@
   analyzer-version = 1
   input-imports = [
     "github.com/nalej/derrors",
-    "github.com/nalej/golang-template/cmd/other-app/commands",
-    "github.com/nalej/golang-template/version",
     "github.com/nalej/grpc-application-go",
     "github.com/nalej/grpc-common-go",
     "github.com/nalej/grpc-organization-go",

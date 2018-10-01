@@ -47,7 +47,7 @@ func generateRandomService(orgID string, index int) * grpc_application_go.Servic
 		OrganizationId: orgID,
 		ServiceId: fmt.Sprintf("s%d", index),
 		Name: fmt.Sprintf("Service %d", index),
-		Description : fmt.Sprintf("Descriptin s%d", index),
+		Description : fmt.Sprintf("Description s%d", index),
 		Type: grpc_application_go.ServiceType_DOCKER,
 		Image: fmt.Sprintf("image:v%d", rand.Intn(10)),
 		Specs: generateRandomSpecs(),
@@ -85,6 +85,15 @@ func generateAddAppDescriptor(orgID string, numServices int) * grpc_application_
 	}
 }
 
+func generateAddAppInstance(organizationID string, appDescriptorID string) * grpc_application_go.AddAppInstanceRequest {
+	return &grpc_application_go.AddAppInstanceRequest{
+		OrganizationId:       organizationID,
+		AppDescriptorId:      appDescriptorID,
+		Name:                 fmt.Sprintf("app instance %d", rand.Int31n(100)),
+		Description:          "app instance description",
+	}
+}
+
 func createOrganization(orgProvider orgProvider.Provider) * entities.Organization {
 	toAdd := entities.NewOrganization("test org")
 	err := orgProvider.Add(*toAdd)
@@ -105,6 +114,8 @@ var _ = ginkgo.Describe("Applications", func(){
 
 	// Target organization.
 	var targetOrganization * entities.Organization
+
+	var targetDescriptor * grpc_application_go.AppDescriptor
 
 	// Organization Provider
 	var organizationProvider orgProvider.Provider
@@ -242,38 +253,102 @@ var _ = ginkgo.Describe("Applications", func(){
 
 	})
 
-	ginkgo.PContext("Application instance", func(){
+	ginkgo.Context("Application instance", func(){
+		ginkgo.BeforeEach(func(){
+			ginkgo.By("creating required descriptor", func(){
+				// Initial data
+				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
+				app, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(app).ShouldNot(gomega.BeNil())
+				targetDescriptor = app
+			})
+		})
 	    ginkgo.Context("adding application instance", func(){
-			ginkgo.PIt("should add an app instance", func(){
-			    
+			ginkgo.It("should add an app instance", func(){
+			    toAdd := generateAddAppInstance(targetDescriptor.OrganizationId, targetDescriptor.AppDescriptorId)
+			    added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+			    gomega.Expect(added.AppInstanceId).ShouldNot(gomega.BeEmpty())
+			    gomega.Expect(added.OrganizationId).Should(gomega.Equal(targetDescriptor.OrganizationId))
+			    gomega.Expect(added.AppDescriptorId).Should(gomega.Equal(targetDescriptor.AppDescriptorId))
 			})
-			ginkgo.PIt("should fail on a non existing app descriptor", func(){
-			    
+			ginkgo.It("should fail on a non existing app descriptor", func(){
+				toAdd := generateAddAppInstance(targetDescriptor.OrganizationId, "does not exists")
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.HaveOccurred())
+				gomega.Expect(added).Should(gomega.BeNil())
 			})
-			ginkgo.PIt("should fail on a non existing organization", func(){
-			    
+			ginkgo.It("should fail on a non existing organization", func(){
+				toAdd := generateAddAppInstance("does not exists", targetDescriptor.AppDescriptorId)
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.HaveOccurred())
+				gomega.Expect(added).Should(gomega.BeNil())
 			})
 	    })
 	    ginkgo.Context("get application instance", func(){
-			ginkgo.PIt("should retrieve an existing app", func(){
-
+			ginkgo.It("should retrieve an existing app", func(){
+				toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+				gomega.Expect(added.AppInstanceId).ShouldNot(gomega.BeEmpty())
+				retrieved, err := client.GetAppInstance(context.Background(), &grpc_application_go.AppInstanceId{
+					OrganizationId: added.OrganizationId,
+					AppInstanceId: added.AppInstanceId,
+				})
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+				gomega.Expect(retrieved.Name).Should(gomega.Equal(added.Name))
 			})
-			ginkgo.PIt("should fail on a non existing instance", func(){
-
+			ginkgo.It("should fail on a non existing instance", func(){
+				retrieved, err := client.GetAppInstance(context.Background(), &grpc_application_go.AppInstanceId{
+					OrganizationId: targetDescriptor.OrganizationId,
+					AppInstanceId: "does not exists",
+				})
+				gomega.Expect(err).Should(gomega.HaveOccurred())
+				gomega.Expect(retrieved).Should(gomega.BeNil())
 			})
-			ginkgo.PIt("should fail on a non existing organization", func(){
-
+			ginkgo.It("should fail on a non existing organization", func(){
+				retrieved, err := client.GetAppInstance(context.Background(), &grpc_application_go.AppInstanceId{
+					OrganizationId: "does not exists",
+					AppInstanceId: "does not exists",
+				})
+				gomega.Expect(err).Should(gomega.HaveOccurred())
+				gomega.Expect(retrieved).Should(gomega.BeNil())
 			})
 	    })
 	    ginkgo.Context("listing application instances", func(){
-			ginkgo.PIt("should retrieve instances on an existing organization", func(){
-
+			ginkgo.It("should retrieve instances on an existing organization", func(){
+				numInstances := 3
+				for i := 0; i < numInstances; i ++ {
+					toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
+					added, err := client.AddAppInstance(context.Background(), toAdd)
+					gomega.Expect(err).Should(gomega.Succeed())
+					gomega.Expect(added).ShouldNot(gomega.BeNil())
+				}
+				retrieved, err := client.GetAppInstances(context.Background(), &grpc_organization_go.OrganizationId{
+					OrganizationId: targetOrganization.ID,
+				})
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+				gomega.Expect(len(retrieved.Instances)).Should(gomega.Equal(numInstances))
 			})
-			ginkgo.PIt("should work on an organization without instances", func(){
-
+			ginkgo.It("should work on an organization without instances", func(){
+				retrieved, err := client.GetAppInstances(context.Background(), &grpc_organization_go.OrganizationId{
+					OrganizationId: targetOrganization.ID,
+				})
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+				gomega.Expect(len(retrieved.Instances)).Should(gomega.Equal(0))
 			})
-			ginkgo.PIt("should fail on a non existing organization", func(){
-
+			ginkgo.It("should fail on a non existing organization", func(){
+				retrieved, err := client.GetAppInstances(context.Background(), &grpc_organization_go.OrganizationId{
+					OrganizationId: "does not exists",
+				})
+				gomega.Expect(err).Should(gomega.HaveOccurred())
+				gomega.Expect(retrieved).Should(gomega.BeNil())
 			})
 	    })
 	})

@@ -68,3 +68,60 @@ func (m * Manager) GetDescriptor(appDescID * grpc_application_go.AppDescriptorId
 	}
 	return m.AppProvider.GetDescriptor(appDescID.AppDescriptorId)
 }
+
+func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanceRequest) (* entities.AppInstance, derrors.Error) {
+
+	if !m.OrgProvider.Exists(addRequest.OrganizationId){
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
+	}
+	if !m.AppProvider.DescriptorExists(addRequest.AppDescriptorId){
+		return nil, derrors.NewNotFoundError("descriptorID").WithParams(addRequest.OrganizationId, addRequest.AppDescriptorId)
+	}
+
+
+	descriptor, err := m.AppProvider.GetDescriptor(addRequest.AppDescriptorId)
+	if err != nil {
+	    return nil, err
+	}
+
+	instance := entities.NewAppInstanceFromGRPC(addRequest, descriptor)
+	err = m.AppProvider.AddInstance(*instance)
+	if err != nil {
+		return nil, err
+	}
+	err = m.OrgProvider.AddInstance(instance.OrganizationId, instance.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	return instance, nil
+}
+
+func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([] entities.AppInstance, derrors.Error) {
+	if !m.OrgProvider.Exists(orgID.OrganizationId){
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(orgID.OrganizationId)
+	}
+	instances, err := m.OrgProvider.ListInstances(orgID.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	result := make([] entities.AppInstance, 0)
+	for _, instID := range instances {
+		toAdd, err := m.AppProvider.GetInstance(instID)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *toAdd)
+	}
+	return result, nil
+}
+
+func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (* entities.AppInstance, derrors.Error){
+	if ! m.OrgProvider.Exists(appInstID.OrganizationId){
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(appInstID.OrganizationId)
+	}
+
+	if !m.OrgProvider.InstanceExists(appInstID.OrganizationId, appInstID.AppInstanceId){
+		return nil, derrors.NewNotFoundError("appInstanceID").WithParams(appInstID.OrganizationId, appInstID.AppInstanceId)
+	}
+	return m.AppProvider.GetInstance(appInstID.AppInstanceId)
+}

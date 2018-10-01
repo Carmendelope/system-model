@@ -61,15 +61,40 @@ func (h *Handler) GetAppDescriptor(ctx context.Context, appDescID *grpc_applicat
 
 
 func (h *Handler) AddAppInstance(ctx context.Context, addInstanceRequest *grpc_application_go.AddAppInstanceRequest) (*grpc_application_go.AppInstance, error) {
-	panic("implement me")
+	err := entities.ValidAddAppInstanceRequest(addInstanceRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	log.Debug().Interface("addAppInstance", addInstanceRequest).Msg("Adding application instance")
+	added, err := h.Manager.AddAppInstance(addInstanceRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return added.ToGRPC(), nil
 }
 
 func (h *Handler) GetAppInstances(ctx context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppInstanceList, error) {
-	panic("implement me")
+	instances, err := h.Manager.ListInstances(orgID)
+	if err != nil{
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	toReturn := make([]*grpc_application_go.AppInstance, 0)
+	for _, inst := range instances {
+		toReturn = append(toReturn, inst.ToGRPC())
+	}
+	result := &grpc_application_go.AppInstanceList{
+		Instances:          toReturn,
+	}
+	return result, nil
 }
 
 func (h *Handler) GetAppInstance(ctx context.Context, appInstID *grpc_application_go.AppInstanceId) (*grpc_application_go.AppInstance, error) {
-	panic("implement me")
+	instance, err := h.Manager.GetInstance(appInstID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return instance.ToGRPC(), nil
 }
 
 func (h *Handler) UpdateAppStatus(ctx context.Context, updateAppStatus *grpc_application_go.UpdateAppStatusRequest) (*grpc_common_go.Success, error) {
