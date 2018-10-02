@@ -74,7 +74,7 @@ func NewSecurityRuleFromGRPC(appDescriptorID string, rule *grpc_application_go.S
 	if rule == nil {
 		return nil
 	}
-	uuid := GenerateUUID(SecurityRulePrefix)
+	uuid := GenerateUUID()
 	access := PortAccessFromGRPC[rule.Access]
 	return &SecurityRule{
 		OrganizationId:  rule.OrganizationId,
@@ -129,7 +129,7 @@ func NewServiceGroupFromGRPC(appDescriptorID string, group * grpc_application_go
 	return &ServiceGroup{
 		OrganizationId: group.OrganizationId,
 		AppDescriptorId: appDescriptorID,
-		ServiceGroupId: GenerateUUID(ServiceGroupPrefix),
+		ServiceGroupId: GenerateUUID(),
 		Name : group.Name,
 		Description: group.Description,
 		Services: group.Services,
@@ -419,7 +419,7 @@ func NewConfigFileFromGRPC(appDescriptorID string, config * grpc_application_go.
 	return &ConfigFile{
 		OrganizationId:  config.OrganizationId,
 		AppDescriptorId: appDescriptorID,
-		ConfigFileId:    GenerateUUID(ConfigFilePrefix),
+		ConfigFileId:    GenerateUUID(),
 		Content:         config.Content,
 		MountPath:       config.MountPath,
 	}
@@ -712,7 +712,7 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 		return nil
 	}
 
-	uuid := GenerateUUID(AppDescPrefix)
+	uuid := GenerateUUID()
 
 	rules := make([]SecurityRule, 0)
 	for _, r := range addRequest.Rules {
@@ -855,14 +855,14 @@ type AppInstance struct {
 	Rules []SecurityRule `json:"rules,omitempty"`
 	// Groups with the Service collocation strategies.
 	Groups []ServiceGroupInstance `json:"groups,omitempty"`
-	// Services of the applicaiton.
+	// Services of the application.
 	Services []ServiceInstance `json:"services,omitempty"`
 	// Status of the deployed instance.
 	Status  ApplicationStatus `json:"status,omitempty"`
 }
 
 func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceRequest, descriptor * AppDescriptor) * AppInstance {
-	uuid := GenerateUUID(AppInstPrefix)
+	uuid := GenerateUUID()
 
 	groups := make([]ServiceGroupInstance, 0)
 	for _, g := range descriptor.Groups {

@@ -18,7 +18,7 @@ type Organization struct {
 }
 
 func NewOrganization(name string) * Organization{
-	uuid := GenerateUUID(OrganizationPrefix)
+	uuid := GenerateUUID()
 	return &Organization{uuid, name, time.Now().Unix()}
 }
 
