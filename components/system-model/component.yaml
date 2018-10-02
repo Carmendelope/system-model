@@ -1,0 +1,35 @@
+###
+# System Model
+###
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: management-cluster
+    component: system-model
+  name: system-model
+  namespace: nalej
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: management-cluster
+      component: system-model
+  template:
+    metadata:
+      labels:
+        app: management-cluster
+        component: system-model
+    spec:
+      containers:
+      - name: system-model
+        image: nalej/system-model:v0.0.1
+        imagePullPolicy: Always
+        args:
+          - "--debug"
+        securityContext:
+          runAsUser: 2000
+      imagePullSecrets:
+      - name: myregistrykey
