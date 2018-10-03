@@ -15,7 +15,11 @@ import (
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/tools"
 	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
+	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
+
 	"github.com/nalej/system-model/internal/pkg/server/organization"
+	"github.com/nalej/system-model/internal/pkg/server/application"
+	"github.com/nalej/grpc-application-go"
 )
 
 type Service struct {
@@ -33,6 +37,7 @@ func NewService(conf Config) *Service {
 
 type Providers struct {
 	organizationProvider orgProvider.Provider
+	applicationProvider appProvider.Provider
 }
 
 // Name of the service.
@@ -49,6 +54,7 @@ func (s *Service) Description() string {
 func (s *Service) CreateInMemoryProviders() * Providers {
 	return &Providers{
 		organizationProvider: orgProvider.NewMockupOrganizationProvider(),
+		applicationProvider: appProvider.NewMockupOrganizationProvider(),
 	}
 }
 
@@ -69,11 +75,17 @@ func (s *Service) Run() error {
 	if err != nil {
 		log.Fatal().Errs("failed to listen: %v", []error{err})
 	}
-
+	// organizations
 	orgManager := organization.NewManager(p.organizationProvider)
 	organizationHandler := organization.NewHandler(orgManager)
+	// applications
+	appManager := application.NewManager(p.organizationProvider, p.applicationProvider)
+	applicationHandler := application.NewHandler(appManager)
+
+
 	grpcServer := grpc.NewServer()
 	grpc_organization_go.RegisterOrganizationsServer(grpcServer, organizationHandler)
+	grpc_application_go.RegisterApplicationsServer(grpcServer, applicationHandler)
 
 	// Register reflection service on gRPC server.
 	reflection.Register(grpcServer)
