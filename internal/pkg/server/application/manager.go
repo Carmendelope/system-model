@@ -36,6 +36,7 @@ func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescr
 	if err != nil {
 	    return nil, err
 	}
+
 	return descriptor, nil
 }
 

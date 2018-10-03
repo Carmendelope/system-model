@@ -11,6 +11,7 @@ import (
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/rs/zerolog/log"
 )
 
 type Handler struct{
@@ -23,6 +24,7 @@ func NewHandler(manager Manager) *Handler {
 }
 
 func (h *Handler) AddOrganization(ctx context.Context, addOrganizationRequest *grpc_organization_go.AddOrganizationRequest) (*grpc_organization_go.Organization, error) {
+	log.Debug().Msgf("add organization %s",addOrganizationRequest)
 	err := entities.ValidAddOrganizationRequest(addOrganizationRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
