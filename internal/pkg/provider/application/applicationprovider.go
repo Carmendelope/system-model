@@ -36,6 +36,6 @@ type Provider interface {
 	DeleteInstance(appInstanceID string) derrors.Error
 
 	// Update status of this instance
-	UpdateInstance(appInstanceID string, instance entities.AppInstance) derrors.Error
+	UpdateInstance(instance entities.AppInstance) derrors.Error
 
 }

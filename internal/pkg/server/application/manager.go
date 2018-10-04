@@ -143,7 +143,7 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 
 	toUpdate.Status = entities.AppStatusFromGRPC[updateRequest.Status]
 
-	err = m.AppProvider.UpdateInstance(updateRequest.AppInstanceId,*toUpdate)
+	err = m.AppProvider.UpdateInstance(*toUpdate)
 	if err != nil {
 		return derrors.NewInternalError("impossible to update instance").CausedBy(err)
 	}
