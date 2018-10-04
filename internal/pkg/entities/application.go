@@ -925,6 +925,12 @@ func ValidAddAppInstanceRequest(toAdd * grpc_application_go.AddAppInstanceReques
 	if toAdd.OrganizationId == "" || toAdd.Name == "" || toAdd.AppDescriptorId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, name, and descriptor_id")
 	}
+	return nil
+}
 
+func ValidUpdateAppStatusRequest(updateRequest *grpc_application_go.UpdateAppStatusRequest) derrors.Error {
+    if updateRequest.OrganizationId == "" || updateRequest.AppInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id and app_instance_id")
+	}
 	return nil
 }

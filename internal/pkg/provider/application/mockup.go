@@ -114,6 +114,15 @@ func (m *MockupApplicationProvider) DeleteInstance(appInstanceID string) derrors
 }
 
 
+func (m *MockupApplicationProvider) UpdateInstance(appInstanceID string, instance entities.AppInstance) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+	if !m.unsafeExistsAppInst(appInstanceID) {
+		return derrors.NewNotFoundError("instance").WithParams(appInstanceID)
+	}
+	m.appInstances[appInstanceID] = instance
+	return nil
+}
 
 
 

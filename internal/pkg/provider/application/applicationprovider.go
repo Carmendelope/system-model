@@ -35,4 +35,7 @@ type Provider interface {
 	// DeleteInstance removes a given instance from the system.
 	DeleteInstance(appInstanceID string) derrors.Error
 
+	// Update status of this instance
+	UpdateInstance(appInstanceID string, instance entities.AppInstance) derrors.Error
+
 }

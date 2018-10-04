@@ -101,6 +101,15 @@ func createOrganization(orgProvider orgProvider.Provider) * entities.Organizatio
 	return toAdd
 }
 
+func generateUpdateAppInstance(organizationID string, appInstanceID string,
+	status grpc_application_go.ApplicationStatus) * grpc_application_go.UpdateAppStatusRequest {
+	return &grpc_application_go.UpdateAppStatusRequest{
+		OrganizationId: organizationID,
+		AppInstanceId: appInstanceID,
+		Status: status,
+	}
+}
+
 var _ = ginkgo.Describe("Applications", func(){
 
 	const numServices = 2
@@ -351,5 +360,25 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(retrieved).Should(gomega.BeNil())
 			})
 	    })
+		ginkgo.Context("update application instance", func(){
+			ginkgo.It("should update instance and return the new values", func(){
+				toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+				gomega.Expect(added.AppInstanceId).ShouldNot(gomega.BeEmpty())
+				// update
+				req := generateUpdateAppInstance(targetOrganization.ID, added.AppInstanceId,
+					grpc_application_go.ApplicationStatus_RUNNING)
+				_, err = client.UpdateAppStatus(context.Background(), req)
+				gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+				// recover and check the changes
+				recovered, err := client.GetAppInstance(context.Background(),
+					&grpc_application_go.AppInstanceId{OrganizationId:req.OrganizationId,AppInstanceId:req.AppInstanceId})
+				gomega.Expect(recovered.Status).To(gomega.Equal(req.Status))
+				gomega.Expect(recovered.AppInstanceId).To(gomega.Equal(req.AppInstanceId))
+
+			})
+		})
 	})
 })
