@@ -128,9 +128,9 @@ func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (*
 }
 
 func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppStatusRequest) error {
-	if ! m.OrgProvider.Exists(updateRequest.OrganizationId){
-		return derrors.NewNotFoundError("organizationID").WithParams(updateRequest.OrganizationId)
-	}
+	//if ! m.OrgProvider.Exists(updateRequest.OrganizationId){
+	//	return derrors.NewNotFoundError("organizationID").WithParams(updateRequest.OrganizationId)
+	//}
 
 	if !m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId){
 		return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppDescriptorId)
@@ -152,9 +152,6 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 }
 
 func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServiceStatusRequest) error {
-    if ! m.OrgProvider.Exists(updateRequest.OrganizationId){
-        return derrors.NewNotFoundError("organizationID").WithParams(updateRequest.OrganizationId)
-    }
 
     if !m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId){
         return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppDescriptorId)
