@@ -98,7 +98,16 @@ func (h *Handler) GetAppInstance(ctx context.Context, appInstID *grpc_applicatio
 }
 
 func (h *Handler) UpdateAppStatus(ctx context.Context, updateAppStatus *grpc_application_go.UpdateAppStatusRequest) (*grpc_common_go.Success, error) {
-	panic("implement me")
+	err := entities.ValidUpdateAppStatusRequest(updateAppStatus)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	derr := h.Manager.UpdateInstance(updateAppStatus)
+	if derr != nil {
+		return nil, derr
+	}
+	return &grpc_common_go.Success{},nil
 }
 
 func (h *Handler) UpdateServiceStatus(ctx context.Context, updateServiceStatus *grpc_application_go.UpdateServiceStatusRequest) (*grpc_common_go.Success, error) {

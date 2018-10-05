@@ -126,3 +126,27 @@ func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (*
 	}
 	return m.AppProvider.GetInstance(appInstID.AppInstanceId)
 }
+
+func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppStatusRequest) error {
+	if ! m.OrgProvider.Exists(updateRequest.OrganizationId){
+		return derrors.NewNotFoundError("organizationID").WithParams(updateRequest.OrganizationId)
+	}
+
+	if !m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId){
+		return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppDescriptorId)
+	}
+
+	toUpdate, err := m.AppProvider.GetInstance(updateRequest.AppInstanceId)
+	if err != nil {
+		return derrors.NewInternalError("impossible to get old instance", err)
+	}
+
+	toUpdate.Status = entities.AppStatusFromGRPC[updateRequest.Status]
+
+	err = m.AppProvider.UpdateInstance(*toUpdate)
+	if err != nil {
+		return derrors.NewInternalError("impossible to update instance").CausedBy(err)
+	}
+
+	return nil
+}
