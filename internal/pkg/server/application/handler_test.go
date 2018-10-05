@@ -110,6 +110,18 @@ func generateUpdateAppInstance(organizationID string, appInstanceID string,
 	}
 }
 
+func generateUpdateServiceStatus(organizationID string, appInstanceID string, serviceID string,
+    appDescriptorId string, status grpc_application_go.ServiceStatus) * grpc_application_go.UpdateServiceStatusRequest {
+    return &grpc_application_go.UpdateServiceStatusRequest{
+        OrganizationId: organizationID,
+        AppInstanceId: appInstanceID,
+        ServiceId: serviceID,
+        Status: status,
+        AppDescriptorId: appDescriptorId,
+    }
+}
+
+
 var _ = ginkgo.Describe("Applications", func(){
 
 	const numServices = 2
@@ -380,5 +392,25 @@ var _ = ginkgo.Describe("Applications", func(){
 
 			})
 		})
+
+		ginkgo.Context("update service status in application instance", func(){
+		    ginkgo.It("should update intance and return the new values", func(){
+                toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
+                added, err := client.AddAppInstance(context.Background(), toAdd)
+                gomega.Expect(err).Should(gomega.Succeed())
+                gomega.Expect(added).ShouldNot(gomega.BeNil())
+                gomega.Expect(added.AppInstanceId).ShouldNot(gomega.BeEmpty())
+                // update it
+                req := generateUpdateServiceStatus(added.OrganizationId, added.AppInstanceId,
+                     added.Services[0].ServiceId, added.AppDescriptorId, grpc_application_go.ServiceStatus_SERVICE_RUNNING)
+                _, err = client.UpdateServiceStatus(context.Background(), req)
+                // recover changes
+                recovered, err := client.GetAppInstance(context.Background(),
+                    &grpc_application_go.AppInstanceId{OrganizationId:added.OrganizationId,AppInstanceId:added.AppInstanceId})
+                gomega.Expect(err).Should(gomega.BeNil())
+                gomega.Expect(recovered.AppInstanceId).To(gomega.Equal(added.AppInstanceId))
+                gomega.Expect(recovered.Services[0].Status).To(gomega.Equal(grpc_application_go.ServiceStatus_SERVICE_RUNNING))
+            })
+        })
 	})
 })

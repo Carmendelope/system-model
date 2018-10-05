@@ -128,9 +128,9 @@ func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (*
 }
 
 func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppStatusRequest) error {
-	if ! m.OrgProvider.Exists(updateRequest.OrganizationId){
-		return derrors.NewNotFoundError("organizationID").WithParams(updateRequest.OrganizationId)
-	}
+	//if ! m.OrgProvider.Exists(updateRequest.OrganizationId){
+	//	return derrors.NewNotFoundError("organizationID").WithParams(updateRequest.OrganizationId)
+	//}
 
 	if !m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId){
 		return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppDescriptorId)
@@ -149,4 +149,29 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 	}
 
 	return nil
+}
+
+func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServiceStatusRequest) error {
+
+    if !m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId){
+        return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppDescriptorId)
+    }
+
+    toUpdate, err := m.AppProvider.GetInstance(updateRequest.AppInstanceId)
+    if err != nil {
+        return derrors.NewInternalError("impossible to get parent instance", err)
+    }
+
+    // find the service instance
+    for index, s := range toUpdate.Services {
+        if s.ServiceId == updateRequest.ServiceId {
+            toUpdate.Services[index].Status = entities.ServiceStatusFromGRPC[updateRequest.Status]
+            err = m.AppProvider.UpdateInstance(*toUpdate)
+            if err != nil {
+                return derrors.NewInternalError("impossible to update instance").CausedBy(err)
+            }
+            return nil
+        }
+    }
+    return derrors.NewInternalError("service not found")
 }

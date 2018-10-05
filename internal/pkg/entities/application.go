@@ -934,3 +934,11 @@ func ValidUpdateAppStatusRequest(updateRequest *grpc_application_go.UpdateAppSta
 	}
 	return nil
 }
+
+func ValidUpdateServiceStatusRequest (updateRequest *grpc_application_go.UpdateServiceStatusRequest) derrors.Error {
+	if updateRequest.OrganizationId == "" || updateRequest.AppInstanceId == "" || updateRequest.ServiceId == "" {
+			return derrors.NewInvalidArgumentError("expecting orgazation_id, app_instance_id, app_descriptor_id " +
+				"and service_id")
+	}
+	return nil
+}
