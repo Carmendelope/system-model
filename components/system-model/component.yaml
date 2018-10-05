@@ -25,9 +25,10 @@ spec:
     spec:
       containers:
       - name: system-model
-        image: nalej/system-model:v0.0.1
+        image: nalej/system-model:VERSION
         imagePullPolicy: Always
         args:
+          - "run"
           - "--debug"
         securityContext:
           runAsUser: 2000
