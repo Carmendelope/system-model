@@ -97,10 +97,15 @@ linux:
 yaml:
 	$(info >>> Creating K8s files)
 	for app in $(APPS); do \
-		if [ -d components/"$$app"/ ]; then \
-			mkdir -p $(TARGET)/yaml/"$$app" ; \
-			cp components/"$$app"/*.yaml $(TARGET)/yaml/"$$app"/. ; \
-			cd $(TARGET)/yaml/"$$app" && find . -type f -name '*.yaml' | xargs sed -i '' 's/VERSION/$(VERSION)/g' && cd - ; \
+		if [ -d components/"$$app"/appcluster ]; then \
+			mkdir -p $(TARGET)/yaml/appcluster ; \
+			cp components/"$$app"/appcluster/*.yaml $(TARGET)/yaml/appcluster/. ; \
+			cd $(TARGET)/yaml/appcluster && find . -type f -name '*.yaml' | xargs sed -i '' 's/VERSION/$(VERSION)/g' && cd - ; \
+		fi ; \
+		if [ -d components/"$$app"/mngtcluster ]; then \
+			mkdir -p $(TARGET)/yaml/mngtcluster ; \
+			cp components/"$$app"/mngtcluster/*.yaml $(TARGET)/yaml/mngtcluster/. ; \
+			cd $(TARGET)/yaml/mngtcluster && find . -type f -name '*.yaml' | xargs sed -i '' 's/VERSION/$(VERSION)/g' && cd - ; \
 		fi ; \
 	done
 
