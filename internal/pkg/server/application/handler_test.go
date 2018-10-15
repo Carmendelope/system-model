@@ -117,7 +117,6 @@ func generateUpdateServiceStatus(organizationID string, appInstanceID string, se
         AppInstanceId: appInstanceID,
         ServiceId: serviceID,
         Status: status,
-        AppDescriptorId: appDescriptorId,
     }
 }
 
