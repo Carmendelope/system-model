@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: system-model
+  cluster: management
+  namespace: nalej
+spec:
+  selector:
+    cluster: management
+    component: system-model
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 8800
+    targetPort: 8800
+    nodePort: 31089
