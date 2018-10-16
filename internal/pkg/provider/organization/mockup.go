@@ -14,6 +14,8 @@ type MockupOrganizationProvider struct {
 	sync.Mutex
 	// organizations contains the organization indexed per organization identifier.
 	organizations map[string] entities.Organization
+	// clusters attached to an organization.
+	clusters map[string][]string
 	// Descriptors contains the application descriptors ids per organization.
 	descriptors map[string][]string
 	// Instances contains the application instances ids per organization.
@@ -24,6 +26,7 @@ type MockupOrganizationProvider struct {
 func NewMockupOrganizationProvider() * MockupOrganizationProvider {
 	return &MockupOrganizationProvider{
 		organizations:make(map[string]entities.Organization, 0),
+		clusters:make(map[string][]string, 0),
 		descriptors:make(map[string][]string, 0),
 		instances:make(map[string][]string, 0),
 	}
@@ -32,6 +35,7 @@ func NewMockupOrganizationProvider() * MockupOrganizationProvider {
 func (m * MockupOrganizationProvider) Clear() {
 	m.Lock()
 	m.organizations = make(map[string] entities.Organization, 0)
+	m.clusters = make(map[string] []string, 0)
 	m.descriptors = make(map[string] []string, 0)
 	m.instances = make(map[string] []string, 0)
 	m.Unlock()
@@ -68,6 +72,18 @@ func (m *MockupOrganizationProvider) unsafeExistsAppInst(organizationID string, 
 	return false
 }
 
+func (m *MockupOrganizationProvider) unsafeExistsCluster(organizationID string, clusterID string) bool {
+	clusterList, ok := m.clusters[organizationID]
+	if ok {
+		for _, cID := range clusterList {
+			if cID == clusterID {
+				return true
+			}
+		}
+		return false
+	}
+	return false
+}
 
 func (m *MockupOrganizationProvider) Add(org entities.Organization) derrors.Error {
 	m.Lock()
@@ -93,6 +109,58 @@ func (m *MockupOrganizationProvider) Get(organizationID string) (*entities.Organ
 		return &org, nil
 	}
 	return nil, derrors.NewNotFoundError(organizationID)
+}
+
+func (m *MockupOrganizationProvider) AddCluster(organizationID string, clusterID string) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+	if m.unsafeExists(organizationID) {
+		if !m.unsafeExistsCluster(organizationID, clusterID) {
+			clusterList, _ := m.clusters[organizationID]
+			m.clusters[organizationID] = append(clusterList, clusterID)
+			return nil
+		}
+		return derrors.NewAlreadyExistsError("cluster").WithParams(organizationID, clusterID)
+	}
+	return derrors.NewNotFoundError("organization").WithParams(organizationID)
+}
+
+func (m *MockupOrganizationProvider) ClusterExists(organizationID string, clusterID string) bool {
+	m.Lock()
+	defer m.Unlock()
+	return m.unsafeExistsCluster(organizationID, clusterID)
+}
+
+func (m *MockupOrganizationProvider) ListClusters(organizationID string) ([]string, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+
+	if !m.unsafeExists(organizationID) {
+		return nil, derrors.NewNotFoundError("organization").WithParams(organizationID)
+	}
+
+	clusterList, ok := m.clusters[organizationID]
+	if ok {
+		return clusterList, nil
+	}
+	return make([]string, 0), nil
+}
+
+func (m *MockupOrganizationProvider) DeleteCluster(organizationID string, clusterID string) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+	if m.unsafeExistsCluster(organizationID, clusterID) {
+		previous := m.clusters[organizationID]
+		newList := make([] string, 0, len(previous)-1)
+		for _, id := range previous {
+			if id != clusterID {
+				newList = append(newList, id)
+			}
+		}
+		m.clusters[organizationID] = newList
+		return nil
+	}
+	return derrors.NewNotFoundError("cluster").WithParams(organizationID, clusterID)
 }
 
 func (m *MockupOrganizationProvider) AddDescriptor(organizationID string, appDescriptorID string) derrors.Error {
