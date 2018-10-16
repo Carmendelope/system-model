@@ -6,6 +6,8 @@ package server
 
 import (
 	"fmt"
+	"github.com/nalej/grpc-infrastructure-go"
+	"github.com/nalej/system-model/internal/pkg/server/cluster"
 	"net"
 
 	"github.com/rs/zerolog/log"
@@ -15,6 +17,7 @@ import (
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/tools"
 	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
+	clusterProvider "github.com/nalej/system-model/internal/pkg/provider/cluster"
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
 
 	"github.com/nalej/system-model/internal/pkg/server/organization"
@@ -37,6 +40,7 @@ func NewService(conf Config) *Service {
 
 type Providers struct {
 	organizationProvider orgProvider.Provider
+	clusterProvider clusterProvider.Provider
 	applicationProvider appProvider.Provider
 }
 
@@ -54,6 +58,7 @@ func (s *Service) Description() string {
 func (s *Service) CreateInMemoryProviders() * Providers {
 	return &Providers{
 		organizationProvider: orgProvider.NewMockupOrganizationProvider(),
+		clusterProvider: clusterProvider.NewMockupClusterProvider(),
 		applicationProvider: appProvider.NewMockupOrganizationProvider(),
 	}
 }
@@ -78,6 +83,9 @@ func (s *Service) Run() error {
 	// organizations
 	orgManager := organization.NewManager(p.organizationProvider)
 	organizationHandler := organization.NewHandler(orgManager)
+	// clusters
+	clusterManager := cluster.NewManager(p.organizationProvider, p.clusterProvider)
+	clusterHandler := cluster.NewHandler(clusterManager)
 	// applications
 	appManager := application.NewManager(p.organizationProvider, p.applicationProvider)
 	applicationHandler := application.NewHandler(appManager)
@@ -85,6 +93,7 @@ func (s *Service) Run() error {
 
 	grpcServer := grpc.NewServer()
 	grpc_organization_go.RegisterOrganizationsServer(grpcServer, organizationHandler)
+	grpc_infrastructure_go.RegisterClustersServer(grpcServer, clusterHandler)
 	grpc_application_go.RegisterApplicationsServer(grpcServer, applicationHandler)
 
 	// Register reflection service on gRPC server.
