@@ -16,6 +16,8 @@ type MockupOrganizationProvider struct {
 	organizations map[string] entities.Organization
 	// clusters attached to an organization.
 	clusters map[string][]string
+	// nodes attached to an organization
+	nodes map[string][]string
 	// Descriptors contains the application descriptors ids per organization.
 	descriptors map[string][]string
 	// Instances contains the application instances ids per organization.
@@ -27,6 +29,7 @@ func NewMockupOrganizationProvider() * MockupOrganizationProvider {
 	return &MockupOrganizationProvider{
 		organizations:make(map[string]entities.Organization, 0),
 		clusters:make(map[string][]string, 0),
+		nodes:make(map[string][]string, 0),
 		descriptors:make(map[string][]string, 0),
 		instances:make(map[string][]string, 0),
 	}
@@ -36,6 +39,7 @@ func (m * MockupOrganizationProvider) Clear() {
 	m.Lock()
 	m.organizations = make(map[string] entities.Organization, 0)
 	m.clusters = make(map[string] []string, 0)
+	m.nodes = make(map[string] []string, 0)
 	m.descriptors = make(map[string] []string, 0)
 	m.instances = make(map[string] []string, 0)
 	m.Unlock()
@@ -77,6 +81,19 @@ func (m *MockupOrganizationProvider) unsafeExistsCluster(organizationID string, 
 	if ok {
 		for _, cID := range clusterList {
 			if cID == clusterID {
+				return true
+			}
+		}
+		return false
+	}
+	return false
+}
+
+func (m *MockupOrganizationProvider) unsafeExistsNode(organizationID string, nodeID string) bool {
+	nodeList, ok := m.nodes[organizationID]
+	if ok {
+		for _, nID := range  nodeList {
+			if nID == nodeID {
 				return true
 			}
 		}
@@ -162,6 +179,59 @@ func (m *MockupOrganizationProvider) DeleteCluster(organizationID string, cluste
 	}
 	return derrors.NewNotFoundError("cluster").WithParams(organizationID, clusterID)
 }
+
+func (m *MockupOrganizationProvider) AddNode(organizationID string, nodeID string) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+	if m.unsafeExists(organizationID) {
+		if !m.unsafeExistsNode(organizationID, nodeID) {
+			nodeList, _ := m.nodes[organizationID]
+			m.nodes[organizationID] = append(nodeList, nodeID)
+			return nil
+		}
+		return derrors.NewAlreadyExistsError("node").WithParams(organizationID, nodeID)
+	}
+	return derrors.NewNotFoundError("organization").WithParams(organizationID)
+}
+
+func (m *MockupOrganizationProvider) NodeExists(organizationID string, nodeID string) bool {
+	m.Lock()
+	defer m.Unlock()
+	return m.unsafeExistsNode(organizationID, nodeID)
+}
+
+func (m *MockupOrganizationProvider) ListNodes(organizationID string) ([]string, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+
+	if !m.unsafeExists(organizationID) {
+		return nil, derrors.NewNotFoundError("organization").WithParams(organizationID)
+	}
+
+	nodeList, ok := m.nodes[organizationID]
+	if ok {
+		return nodeList, nil
+	}
+	return make([]string, 0), nil
+}
+
+func (m *MockupOrganizationProvider) DeleteNode(organizationID string, nodeID string) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+	if m.unsafeExistsNode(organizationID, nodeID) {
+		previous := m.nodes[organizationID]
+		newList := make([] string, 0, len(previous)-1)
+		for _, id := range previous {
+			if id != nodeID {
+				newList = append(newList, id)
+			}
+		}
+		m.nodes[organizationID] = newList
+		return nil
+	}
+	return derrors.NewNotFoundError("node").WithParams(organizationID, nodeID)
+}
+
 
 func (m *MockupOrganizationProvider) AddDescriptor(organizationID string, appDescriptorID string) derrors.Error {
 	m.Lock()

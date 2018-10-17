@@ -7,3 +7,4 @@ package entities
 const emptyRequestId = "request_id cannot be empty"
 const emptyOrganizationId = "organization_id cannot be empty"
 const emptyClusterId = "cluster_id cannot be empty"
+const emptyNodeId = "node_id cannot be empty"

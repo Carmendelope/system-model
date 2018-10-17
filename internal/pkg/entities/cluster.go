@@ -93,6 +93,22 @@ type Cluster struct {
 	Cordon               bool     `json:"cordon,omitempty"`
 }
 
+func NewCluster(organizationID string, name string, description string) *Cluster {
+	uuid := GenerateUUID()
+	return &Cluster{
+		OrganizationId: organizationID,
+		ClusterId:      uuid,
+		Name:           name,
+		Description:    description,
+		ClusterType:    KubernetesCluster,
+		Multitenant:    MultitenantYes,
+		Status:         InfraStatusInstalling,
+		Labels:         make(map[string]string, 0),
+		Cordon:         false,
+	}
+}
+
+
 func NewClusterFromGRPC(addClusterRequest *grpc_infrastructure_go.AddClusterRequest) *Cluster {
 	uuid := GenerateUUID()
 	return &Cluster{
