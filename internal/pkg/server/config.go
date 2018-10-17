@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Config structure with the options for the system model.
 type Config struct {
 	// Address where the API service will listen requests.
 	Port int
@@ -16,10 +17,15 @@ type Config struct {
 	UseInMemoryProviders bool
 }
 
+// Validate the current configuration.
 func (conf * Config) Validate() derrors.Error {
+	if conf.Port <= 0 {
+		return derrors.NewInvalidArgumentError("port must be specified")
+	}
 	return nil
 }
 
+// Print the current configuration to the log system.
 func (conf *Config) Print() {
 	log.Info().Int("port", conf.Port).Msg("gRPC port")
 	if conf.UseInMemoryProviders {

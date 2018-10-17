@@ -133,7 +133,7 @@ var _ = ginkgo.Describe("Node service", func() {
 			success, err := client.AttachNode(context.Background(), attach)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(success).ToNot(gomega.BeNil())
-			
+
 			clusterID := &grpc_infrastructure_go.ClusterId{
 				OrganizationId: targetOrganization.ID,
 				ClusterId: targetCluster.ClusterId,

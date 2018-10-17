@@ -13,15 +13,18 @@ import (
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
 )
 
+// Manager structure with the required providers for cluster operations.
 type Manager struct {
 	OrgProvider organization.Provider
 	ClusterProvider cluster.Provider
 }
 
+// NewManager creates a Manager using a set of providers.
 func NewManager(orgProvider organization.Provider, clusterProvider cluster.Provider) Manager {
 	return Manager{orgProvider, clusterProvider}
 }
 
+// AddCluster adds a new cluster to the system.
 func (m * Manager) AddCluster(addClusterRequest *grpc_infrastructure_go.AddClusterRequest) (*entities.Cluster, derrors.Error) {
 	exists := m.OrgProvider.Exists(addClusterRequest.OrganizationId)
 	if !exists{
@@ -40,6 +43,7 @@ func (m * Manager) AddCluster(addClusterRequest *grpc_infrastructure_go.AddClust
 	return toAdd, nil
 }
 
+// GetCluster retrieves the cluster information.
 func (m * Manager) GetCluster(clusterID *grpc_infrastructure_go.ClusterId) (*entities.Cluster, derrors.Error) {
 	if ! m.OrgProvider.Exists(clusterID.OrganizationId){
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(clusterID.OrganizationId)
@@ -51,6 +55,7 @@ func (m * Manager) GetCluster(clusterID *grpc_infrastructure_go.ClusterId) (*ent
 	return m.ClusterProvider.Get(clusterID.ClusterId)
 }
 
+// ListClusters obtains a list of the clusters in the organization.
 func (m * Manager) ListClusters(organizationID *grpc_organization_go.OrganizationId) ([] entities.Cluster, derrors.Error) {
 	if !m.OrgProvider.Exists(organizationID.OrganizationId){
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(organizationID.OrganizationId)
@@ -70,6 +75,8 @@ func (m * Manager) ListClusters(organizationID *grpc_organization_go.Organizatio
 	return result, nil
 }
 
+// RemoveCluster removes a cluster from an organization. Notice that removing a cluster implies draining the cluster
+// of running applications.
 func (m * Manager) RemoveCluster(removeClusterRequest *grpc_infrastructure_go.RemoveClusterRequest) derrors.Error {
 	if ! m.OrgProvider.Exists(removeClusterRequest.OrganizationId){
 		return derrors.NewNotFoundError("organizationID").WithParams(removeClusterRequest.OrganizationId)

@@ -14,15 +14,17 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Handler structure for the organization requests.
 type Handler struct{
 	Manager Manager
 }
 
-// NewHandler creates a new Handler.
+// NewHandler creates a new Handler with a linked manager.
 func NewHandler(manager Manager) *Handler {
 	return &Handler{manager}
 }
 
+// AddOrganization adds a new organization to the system.
 func (h *Handler) AddOrganization(ctx context.Context, addOrganizationRequest *grpc_organization_go.AddOrganizationRequest) (*grpc_organization_go.Organization, error) {
 	log.Debug().Msgf("add organization %s",addOrganizationRequest)
 	err := entities.ValidAddOrganizationRequest(addOrganizationRequest)

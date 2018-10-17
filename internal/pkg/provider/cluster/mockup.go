@@ -44,6 +44,7 @@ func (m *MockupClusterProvider) unsafeExistsNode(clusterID string, nodeID string
 	return false
 }
 
+// Add a new cluster to the system.
 func (m * MockupClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -54,12 +55,14 @@ func (m * MockupClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 	return derrors.NewAlreadyExistsError(cluster.ClusterId)
 }
 
+// Exists checks if a cluster exists on the system.
 func (m * MockupClusterProvider) Exists(clusterID string) bool {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExists(clusterID)
 }
 
+// Get a cluster.
 func (m * MockupClusterProvider) Get(clusterID string) (*entities.Cluster, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
@@ -81,7 +84,7 @@ func (m * MockupClusterProvider) Remove(clusterID string) derrors.Error {
 	return nil
 }
 
-
+// AddNode adds a new node ID to the cluster.
 func (m *MockupClusterProvider) AddNode(clusterID string, nodeID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -96,12 +99,14 @@ func (m *MockupClusterProvider) AddNode(clusterID string, nodeID string) derrors
 	return derrors.NewNotFoundError("cluster").WithParams(clusterID)
 }
 
+// NodeExists checks if a node is linked to a cluster.
 func (m *MockupClusterProvider) NodeExists(clusterID string, nodeID string) bool {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExistsNode(clusterID, nodeID)
 }
 
+// ListNodes returns a list of nodes in a cluster.
 func (m *MockupClusterProvider) ListNodes(clusterID string) ([]string, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
@@ -117,6 +122,7 @@ func (m *MockupClusterProvider) ListNodes(clusterID string) ([]string, derrors.E
 	return make([]string, 0), nil
 }
 
+// DeleteNode removes a node from a cluster.
 func (m *MockupClusterProvider) DeleteNode(clusterID string, nodeID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -134,7 +140,7 @@ func (m *MockupClusterProvider) DeleteNode(clusterID string, nodeID string) derr
 	return derrors.NewNotFoundError("node").WithParams(clusterID, nodeID)
 }
 
-
+// Clear cleans the contents of the mockup.
 func (m * MockupClusterProvider) Clear() {
 	m.Lock()
 	m.clusters = make(map[string]entities.Cluster, 0)

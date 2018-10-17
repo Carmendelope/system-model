@@ -28,11 +28,11 @@ type Provider interface {
 
 	// AddNode adds a new node ID to the organization.
 	AddNode(organizationID string, nodeID string) derrors.Error
-	// ClusterExists checks if a cluster is linked to an organization.
+	// NodeExists checks if a node is linked to an organization.
 	NodeExists(organizationID string, nodeID string) bool
-	// ListClusters returns a list of nodes in an organization.
+	// ListNodes returns a list of nodes in an organization.
 	ListNodes(organizationID string) ([]string, derrors.Error)
-	// DeleteCluster removes a node from an organization.
+	// DeleteNode removes a node from an organization.
 	DeleteNode(organizationID string, nodeID string) derrors.Error
 
 	// AddDescriptor adds a new descriptor ID to a given organization.

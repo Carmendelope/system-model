@@ -11,14 +11,17 @@ import (
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
 )
 
+// Manager structure with the required providers for organization operations.
 type Manager struct {
 	Provider organization.Provider
 }
 
+// NewManager creates a Manager using a set of providers.
 func NewManager(provider organization.Provider) Manager{
 	return Manager{provider}
 }
 
+// AddOrganization adds a new organization to the system.
 func (m *Manager) AddOrganization(toAdd grpc_organization_go.AddOrganizationRequest) (* entities.Organization, derrors.Error) {
 	newOrg := entities.NewOrganization(toAdd.Name)
 	err := m.Provider.Add(*newOrg)
@@ -28,6 +31,7 @@ func (m *Manager) AddOrganization(toAdd grpc_organization_go.AddOrganizationRequ
 	return newOrg, nil
 }
 
+// GetOrganization retrieves the profile information of a given organization.
 func (m *Manager) GetOrganization(orgID grpc_organization_go.OrganizationId) (* entities.Organization, derrors.Error) {
 	return m.Provider.Get(orgID.OrganizationId)
 }

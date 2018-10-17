@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/nalej/grpc-infrastructure-go"
 	"github.com/nalej/system-model/internal/pkg/server/cluster"
+	"github.com/nalej/system-model/internal/pkg/server/node"
 	"net"
 
 	"github.com/rs/zerolog/log"
@@ -18,6 +19,7 @@ import (
 	"github.com/nalej/grpc-utils/pkg/tools"
 	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
 	clusterProvider "github.com/nalej/system-model/internal/pkg/provider/cluster"
+	nodeProvider "github.com/nalej/system-model/internal/pkg/provider/node"
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
 
 	"github.com/nalej/system-model/internal/pkg/server/organization"
@@ -25,6 +27,7 @@ import (
 	"github.com/nalej/grpc-application-go"
 )
 
+// Service structure containing the configuration and gRPC server.
 type Service struct {
 	Configuration Config
 	Server * tools.GenericGRPCServer
@@ -38,9 +41,11 @@ func NewService(conf Config) *Service {
 	}
 }
 
+// Providers structure with all the providers in the system.
 type Providers struct {
 	organizationProvider orgProvider.Provider
 	clusterProvider clusterProvider.Provider
+	nodeProvider nodeProvider.Provider
 	applicationProvider appProvider.Provider
 }
 
@@ -59,6 +64,7 @@ func (s *Service) CreateInMemoryProviders() * Providers {
 	return &Providers{
 		organizationProvider: orgProvider.NewMockupOrganizationProvider(),
 		clusterProvider: clusterProvider.NewMockupClusterProvider(),
+		nodeProvider: nodeProvider.NewMockupNodeProvider(),
 		applicationProvider: appProvider.NewMockupOrganizationProvider(),
 	}
 }
@@ -86,14 +92,17 @@ func (s *Service) Run() error {
 	// clusters
 	clusterManager := cluster.NewManager(p.organizationProvider, p.clusterProvider)
 	clusterHandler := cluster.NewHandler(clusterManager)
+	// nodes
+	nodeManager := node.NewManager(p.organizationProvider, p.clusterProvider, p.nodeProvider)
+	nodeHandler := node.NewHandler(nodeManager)
 	// applications
 	appManager := application.NewManager(p.organizationProvider, p.applicationProvider)
 	applicationHandler := application.NewHandler(appManager)
 
-
 	grpcServer := grpc.NewServer()
 	grpc_organization_go.RegisterOrganizationsServer(grpcServer, organizationHandler)
 	grpc_infrastructure_go.RegisterClustersServer(grpcServer, clusterHandler)
+	grpc_infrastructure_go.RegisterNodesServer(grpcServer, nodeHandler)
 	grpc_application_go.RegisterApplicationsServer(grpcServer, applicationHandler)
 
 	// Register reflection service on gRPC server.

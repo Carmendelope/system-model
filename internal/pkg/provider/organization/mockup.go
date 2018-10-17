@@ -35,6 +35,7 @@ func NewMockupOrganizationProvider() * MockupOrganizationProvider {
 	}
 }
 
+// Clear cleans the contents of the mockup.
 func (m * MockupOrganizationProvider) Clear() {
 	m.Lock()
 	m.organizations = make(map[string] entities.Organization, 0)
@@ -102,6 +103,7 @@ func (m *MockupOrganizationProvider) unsafeExistsNode(organizationID string, nod
 	return false
 }
 
+// Add a new organization to the system.
 func (m *MockupOrganizationProvider) Add(org entities.Organization) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -112,12 +114,14 @@ func (m *MockupOrganizationProvider) Add(org entities.Organization) derrors.Erro
 	return derrors.NewAlreadyExistsError(org.ID)
 }
 
+// Check if an organization exists on the system.
 func (m *MockupOrganizationProvider) Exists(organizationID string) bool {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExists(organizationID)
 }
 
+// Get an organization.
 func (m *MockupOrganizationProvider) Get(organizationID string) (*entities.Organization, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
@@ -128,6 +132,7 @@ func (m *MockupOrganizationProvider) Get(organizationID string) (*entities.Organ
 	return nil, derrors.NewNotFoundError(organizationID)
 }
 
+// AddCluster adds a new cluster ID to the organization.
 func (m *MockupOrganizationProvider) AddCluster(organizationID string, clusterID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -142,12 +147,14 @@ func (m *MockupOrganizationProvider) AddCluster(organizationID string, clusterID
 	return derrors.NewNotFoundError("organization").WithParams(organizationID)
 }
 
+// ClusterExists checks if a cluster is linked to an organization.
 func (m *MockupOrganizationProvider) ClusterExists(organizationID string, clusterID string) bool {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExistsCluster(organizationID, clusterID)
 }
 
+// ListClusters returns a list of clusters in an organization.
 func (m *MockupOrganizationProvider) ListClusters(organizationID string) ([]string, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
@@ -163,6 +170,7 @@ func (m *MockupOrganizationProvider) ListClusters(organizationID string) ([]stri
 	return make([]string, 0), nil
 }
 
+// DeleteCluster removes a cluster from an organization.
 func (m *MockupOrganizationProvider) DeleteCluster(organizationID string, clusterID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -180,6 +188,7 @@ func (m *MockupOrganizationProvider) DeleteCluster(organizationID string, cluste
 	return derrors.NewNotFoundError("cluster").WithParams(organizationID, clusterID)
 }
 
+// AddNode adds a new node ID to the organization.
 func (m *MockupOrganizationProvider) AddNode(organizationID string, nodeID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -194,12 +203,14 @@ func (m *MockupOrganizationProvider) AddNode(organizationID string, nodeID strin
 	return derrors.NewNotFoundError("organization").WithParams(organizationID)
 }
 
+// NodeExists checks if a node is linked to an organization.
 func (m *MockupOrganizationProvider) NodeExists(organizationID string, nodeID string) bool {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExistsNode(organizationID, nodeID)
 }
 
+// ListNodes returns a list of nodes in an organization.
 func (m *MockupOrganizationProvider) ListNodes(organizationID string) ([]string, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
@@ -215,6 +226,7 @@ func (m *MockupOrganizationProvider) ListNodes(organizationID string) ([]string,
 	return make([]string, 0), nil
 }
 
+// DeleteNode removes a node from an organization.
 func (m *MockupOrganizationProvider) DeleteNode(organizationID string, nodeID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -232,7 +244,7 @@ func (m *MockupOrganizationProvider) DeleteNode(organizationID string, nodeID st
 	return derrors.NewNotFoundError("node").WithParams(organizationID, nodeID)
 }
 
-
+// AddDescriptor adds a new descriptor ID to a given organization.
 func (m *MockupOrganizationProvider) AddDescriptor(organizationID string, appDescriptorID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -247,12 +259,14 @@ func (m *MockupOrganizationProvider) AddDescriptor(organizationID string, appDes
 	return derrors.NewNotFoundError("organization").WithParams(organizationID)
 }
 
+// DescriptorExists checks if an application descriptor exists on the system.
 func (m *MockupOrganizationProvider) DescriptorExists(organizationID string, appDescriptorID string) bool {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExistsAppDesc(organizationID, appDescriptorID)
 }
 
+// ListDescriptors returns the identifiers of the application descriptors associated with an organization.
 func (m *MockupOrganizationProvider) ListDescriptors(organizationID string) ([]string, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
@@ -268,6 +282,7 @@ func (m *MockupOrganizationProvider) ListDescriptors(organizationID string) ([]s
 	return make([]string, 0), nil
 }
 
+// DeleteDescriptor removes a descriptor from an organization
 func (m *MockupOrganizationProvider) DeleteDescriptor(organizationID string, appDescriptorID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -285,6 +300,7 @@ func (m *MockupOrganizationProvider) DeleteDescriptor(organizationID string, app
 	return derrors.NewNotFoundError("descriptor").WithParams(organizationID, appDescriptorID)
 }
 
+// AddInstance adds a new application instance ID to a given organization.
 func (m *MockupOrganizationProvider) AddInstance(organizationID string, appInstanceID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -299,12 +315,14 @@ func (m *MockupOrganizationProvider) AddInstance(organizationID string, appInsta
 	return derrors.NewNotFoundError("organization").WithParams(organizationID)
 }
 
+// InstanceExists checks if an application instance exists on the system.
 func (m *MockupOrganizationProvider) InstanceExists(organizationID string, appInstanceID string) bool {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExistsAppInst(organizationID, appInstanceID)
 }
 
+// ListInstances returns a the identifiers associate with a given organization.
 func (m *MockupOrganizationProvider) ListInstances(organizationID string) ([]string, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
@@ -320,6 +338,7 @@ func (m *MockupOrganizationProvider) ListInstances(organizationID string) ([]str
 	return make([]string, 0), nil
 }
 
+// DeleteInstance removes an instance from an organization
 func (m *MockupOrganizationProvider) DeleteInstance(organizationID string, appInstanceID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()

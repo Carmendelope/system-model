@@ -13,15 +13,18 @@ import (
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
 )
 
+// Manager structure with the required providers for application operations.
 type Manager struct {
 	OrgProvider organization.Provider
 	AppProvider application.Provider
 }
 
+// NewManager creates a Manager using a set of providers.
 func NewManager(orgProvider organization.Provider, appProvider application.Provider) Manager {
 	return Manager{orgProvider, appProvider}
 }
 
+// AddAppDescriptor adds a new application descriptor to a given organization.
 func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescriptorRequest) (* entities.AppDescriptor, derrors.Error) {
 	exists := m.OrgProvider.Exists(addRequest.OrganizationId)
 	if !exists{
@@ -40,6 +43,7 @@ func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescr
 	return descriptor, nil
 }
 
+// ListDescriptors obtains a list of descriptors associated with an organization.
 func (m * Manager) ListDescriptors(orgID * grpc_organization_go.OrganizationId) ([] entities.AppDescriptor, derrors.Error) {
 	if !m.OrgProvider.Exists(orgID.OrganizationId){
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(orgID.OrganizationId)
@@ -59,6 +63,7 @@ func (m * Manager) ListDescriptors(orgID * grpc_organization_go.OrganizationId) 
 	return result, nil
 }
 
+// GetDescriptor retrieves a single application descriptor.
 func (m * Manager) GetDescriptor(appDescID * grpc_application_go.AppDescriptorId) (* entities.AppDescriptor, derrors.Error){
 	if ! m.OrgProvider.Exists(appDescID.OrganizationId){
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(appDescID.OrganizationId)
@@ -70,6 +75,7 @@ func (m * Manager) GetDescriptor(appDescID * grpc_application_go.AppDescriptorId
 	return m.AppProvider.GetDescriptor(appDescID.AppDescriptorId)
 }
 
+// AddAppInstance adds a new application instance to a given organization.
 func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanceRequest) (* entities.AppInstance, derrors.Error) {
 
 	if !m.OrgProvider.Exists(addRequest.OrganizationId){
@@ -78,7 +84,6 @@ func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanc
 	if !m.AppProvider.DescriptorExists(addRequest.AppDescriptorId){
 		return nil, derrors.NewNotFoundError("descriptorID").WithParams(addRequest.OrganizationId, addRequest.AppDescriptorId)
 	}
-
 
 	descriptor, err := m.AppProvider.GetDescriptor(addRequest.AppDescriptorId)
 	if err != nil {
@@ -97,6 +102,7 @@ func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanc
 	return instance, nil
 }
 
+// ListInstances retrieves the list of instances associated with an organization.
 func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([] entities.AppInstance, derrors.Error) {
 	if !m.OrgProvider.Exists(orgID.OrganizationId){
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(orgID.OrganizationId)
@@ -116,6 +122,7 @@ func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([
 	return result, nil
 }
 
+// GetInstance retrieves a single instance.
 func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (* entities.AppInstance, derrors.Error){
 	if ! m.OrgProvider.Exists(appInstID.OrganizationId){
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(appInstID.OrganizationId)
@@ -127,11 +134,8 @@ func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (*
 	return m.AppProvider.GetInstance(appInstID.AppInstanceId)
 }
 
+// UpdateInstance updates the information of a given instance.
 func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppStatusRequest) error {
-	//if ! m.OrgProvider.Exists(updateRequest.OrganizationId){
-	//	return derrors.NewNotFoundError("organizationID").WithParams(updateRequest.OrganizationId)
-	//}
-
 	if !m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId){
 		return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppInstanceId)
 	}
@@ -151,12 +155,12 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 	return nil
 }
 
+// UpdateService updates an application service.
 func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServiceStatusRequest) error {
 
     if !m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId){
         return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppInstanceId)
     }
-
 
     toUpdate, err := m.AppProvider.GetInstance(updateRequest.AppInstanceId)
     if err != nil {

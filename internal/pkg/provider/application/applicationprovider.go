@@ -20,7 +20,7 @@ type Provider interface {
 	// DescriptorExists checks if a given descriptor exists on the system.
 	DescriptorExists(appDescriptorID string) bool
 
-	// Delete descriptor removes a given descriptor from the system.
+	// DeleteDescriptor removes a given descriptor from the system.
 	DeleteDescriptor(appDescriptorID string) derrors.Error
 
 	// AddInstance adds a new application instance to the system
@@ -35,7 +35,7 @@ type Provider interface {
 	// DeleteInstance removes a given instance from the system.
 	DeleteInstance(appInstanceID string) derrors.Error
 
-	// Update status of this instance
+	// UpdateInstance updates the information of an instance
 	UpdateInstance(instance entities.AppInstance) derrors.Error
 
 }

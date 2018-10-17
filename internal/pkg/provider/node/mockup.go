@@ -27,7 +27,7 @@ func (m * MockupNodeProvider) unsafeExists(nodeID string) bool {
 	return exists
 }
 
-
+// Add a new node to the system.
 func (m * MockupNodeProvider) Add(node entities.Node) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -38,6 +38,7 @@ func (m * MockupNodeProvider) Add(node entities.Node) derrors.Error {
 	return derrors.NewAlreadyExistsError(node.NodeId)
 }
 
+// Update an existing node in the system
 func (m * MockupNodeProvider) Update(node entities.Node) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
@@ -48,12 +49,14 @@ func (m * MockupNodeProvider) Update(node entities.Node) derrors.Error {
 	return nil
 }
 
+// Exists checks if a node exists on the system.
 func (m * MockupNodeProvider) Exists(nodeID string) bool {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExists(nodeID)
 }
 
+// Get a node.
 func (m * MockupNodeProvider) Get(nodeID string) (*entities.Node, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
@@ -75,6 +78,7 @@ func (m * MockupNodeProvider) Remove(nodeID string) derrors.Error {
 	return nil
 }
 
+// Clear cleans the contents of the mockup.
 func (m * MockupNodeProvider) Clear() {
 	m.Lock()
 	m.nodes = make(map[string]entities.Node, 0)

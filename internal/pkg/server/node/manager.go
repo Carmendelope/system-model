@@ -13,12 +13,14 @@ import (
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
 )
 
+// Manager structure with the required providers for node operations.
 type Manager struct {
 	OrgProvider organization.Provider
 	ClusterProvider cluster.Provider
 	NodeProvider node.Provider
 }
 
+// NewManager creates a Manager using a set of providers.
 func NewManager(
 	orgProvider organization.Provider,
 	clusterProvider cluster.Provider,
@@ -26,6 +28,7 @@ func NewManager(
 	return Manager{orgProvider, clusterProvider, nodeProvider}
 }
 
+// AddNode adds a new node to the system.
 func (m * Manager) AddNode(addNodeRequest *grpc_infrastructure_go.AddNodeRequest) (*entities.Node, derrors.Error) {
 	exists := m.OrgProvider.Exists(addNodeRequest.OrganizationId)
 	if !exists{
@@ -43,6 +46,7 @@ func (m * Manager) AddNode(addNodeRequest *grpc_infrastructure_go.AddNodeRequest
 	return toAdd, nil
 }
 
+// AttachNode links a node with a given cluster.
 func (m * Manager) AttachNode(attachNodeRequest *grpc_infrastructure_go.AttachNodeRequest) derrors.Error {
 	exists := m.OrgProvider.Exists(attachNodeRequest.OrganizationId)
 	if !exists{
@@ -72,6 +76,7 @@ func (m * Manager) AttachNode(attachNodeRequest *grpc_infrastructure_go.AttachNo
 	return nil
 }
 
+// ListNodes obtains a list of nodes in a cluster.
 func (m * Manager) ListNodes(clusterID *grpc_infrastructure_go.ClusterId) ([] entities.Node, derrors.Error) {
 	if !m.OrgProvider.Exists(clusterID.OrganizationId){
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(clusterID.OrganizationId)
@@ -91,6 +96,7 @@ func (m * Manager) ListNodes(clusterID *grpc_infrastructure_go.ClusterId) ([] en
 	return result, nil
 }
 
+// RemoveNodes removes a set of nodes from the system.
 func (m * Manager) RemoveNodes(removeNodesRequest *grpc_infrastructure_go.RemoveNodesRequest) derrors.Error {
 	if ! m.OrgProvider.Exists(removeNodesRequest.OrganizationId){
 		return derrors.NewNotFoundError("organizationID").WithParams(removeNodesRequest.OrganizationId)
