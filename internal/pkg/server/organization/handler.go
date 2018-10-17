@@ -38,8 +38,8 @@ func (h *Handler) AddOrganization(ctx context.Context, addOrganizationRequest *g
 	return org.ToGRPC(), nil
 }
 // GetOrganization retrieves the profile information of a given organization.
-func (h *Handler) GetOrganization(ctx context.Context, organizationId *grpc_organization_go.OrganizationId) (*grpc_organization_go.Organization, error) {
-	retrieved, err := h.Manager.GetOrganization(*organizationId)
+func (h *Handler) GetOrganization(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_organization_go.Organization, error) {
+	retrieved, err := h.Manager.GetOrganization(*organizationID)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}

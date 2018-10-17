@@ -31,13 +31,13 @@ func (m * MockupApplicationProvider) Clear() {
 	m.Unlock()
 }
 
-func (mockup *MockupApplicationProvider) unsafeExistsAppDesc(descriptorID string) bool {
-	_, exists := mockup.appDescriptors[descriptorID]
+func (m *MockupApplicationProvider) unsafeExistsAppDesc(descriptorID string) bool {
+	_, exists := m.appDescriptors[descriptorID]
 	return exists
 }
 
-func (mockup *MockupApplicationProvider) unsafeExistsAppInst(instanceID string) bool {
-	_, exists := mockup.appInstances[instanceID]
+func (m *MockupApplicationProvider) unsafeExistsAppInst(instanceID string) bool {
+	_, exists := m.appInstances[instanceID]
 	return exists
 }
 
