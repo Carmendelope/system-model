@@ -14,17 +14,19 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Handler structure for the organization requests.
 type Handler struct{
 	Manager Manager
 }
 
-// NewHandler creates a new Handler.
+// NewHandler creates a new Handler with a linked manager.
 func NewHandler(manager Manager) *Handler {
 	return &Handler{manager}
 }
 
+// AddOrganization adds a new organization to the system.
 func (h *Handler) AddOrganization(ctx context.Context, addOrganizationRequest *grpc_organization_go.AddOrganizationRequest) (*grpc_organization_go.Organization, error) {
-	log.Debug().Msgf("add organization %s",addOrganizationRequest)
+	log.Debug().Str("name", addOrganizationRequest.Name).Msg("add organization")
 	err := entities.ValidAddOrganizationRequest(addOrganizationRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -33,11 +35,12 @@ func (h *Handler) AddOrganization(ctx context.Context, addOrganizationRequest *g
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
+	log.Debug().Str("organizationID", org.ID).Msg("organization has been added")
 	return org.ToGRPC(), nil
 }
 // GetOrganization retrieves the profile information of a given organization.
-func (h *Handler) GetOrganization(ctx context.Context, organizationId *grpc_organization_go.OrganizationId) (*grpc_organization_go.Organization, error) {
-	retrieved, err := h.Manager.GetOrganization(*organizationId)
+func (h *Handler) GetOrganization(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_organization_go.Organization, error) {
+	retrieved, err := h.Manager.GetOrganization(*organizationID)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}

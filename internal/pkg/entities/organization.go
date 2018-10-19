@@ -34,6 +34,13 @@ func (o * Organization) ToGRPC() * grpc_organization_go.Organization {
 	}
 }
 
+func ValidOrganizationID(organizationID *grpc_organization_go.OrganizationId) derrors.Error {
+	if organizationID.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	return nil
+}
+
 func ValidAddOrganizationRequest(toAdd * grpc_organization_go.AddOrganizationRequest) derrors.Error {
 	if toAdd.Name != "" {
 		return nil

@@ -17,6 +17,24 @@ type Provider interface {
 	// Get an organization.
 	Get(organizationID string) (* entities.Organization, derrors.Error)
 
+	// AddCluster adds a new cluster ID to the organization.
+	AddCluster(organizationID string, clusterID string) derrors.Error
+	// ClusterExists checks if a cluster is linked to an organization.
+	ClusterExists(organizationID string, clusterID string) bool
+	// ListClusters returns a list of clusters in an organization.
+	ListClusters(organizationID string) ([]string, derrors.Error)
+	// DeleteCluster removes a cluster from an organization.
+	DeleteCluster(organizationID string, clusterID string) derrors.Error
+
+	// AddNode adds a new node ID to the organization.
+	AddNode(organizationID string, nodeID string) derrors.Error
+	// NodeExists checks if a node is linked to an organization.
+	NodeExists(organizationID string, nodeID string) bool
+	// ListNodes returns a list of nodes in an organization.
+	ListNodes(organizationID string) ([]string, derrors.Error)
+	// DeleteNode removes a node from an organization.
+	DeleteNode(organizationID string, nodeID string) derrors.Error
+
 	// AddDescriptor adds a new descriptor ID to a given organization.
 	AddDescriptor(organizationID string, appDescriptorID string) derrors.Error
 	// DescriptorExists checks if an application descriptor exists on the system.

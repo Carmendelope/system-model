@@ -13,6 +13,7 @@ var AppVersion string
 // Commit contains the commit identifier that is being built. Do not modify this value, use main.MainCommit.
 var Commit string
 
+// GetVersionInfo returns a string with the current version and commit.
 func GetVersionInfo() string {
 	return fmt.Sprintf("version: %s commit: %s\n", AppVersion, Commit)
 }

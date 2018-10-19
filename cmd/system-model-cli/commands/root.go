@@ -33,6 +33,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&consoleLogging, "consoleLogging", false, "Pretty print logging")
 }
 
+// Execute the current command.
 func Execute() {
 	rootCmd.SetVersionTemplate(version.GetVersionInfo())
 	if err := rootCmd.Execute(); err != nil {

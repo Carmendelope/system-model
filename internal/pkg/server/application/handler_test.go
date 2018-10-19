@@ -111,7 +111,7 @@ func generateUpdateAppInstance(organizationID string, appInstanceID string,
 }
 
 func generateUpdateServiceStatus(organizationID string, appInstanceID string, serviceID string,
-    appDescriptorId string, status grpc_application_go.ServiceStatus) * grpc_application_go.UpdateServiceStatusRequest {
+    appDescriptorID string, status grpc_application_go.ServiceStatus) * grpc_application_go.UpdateServiceStatusRequest {
     return &grpc_application_go.UpdateServiceStatusRequest{
         OrganizationId: organizationID,
         AppInstanceId: appInstanceID,

@@ -9,6 +9,7 @@ import (
 	"github.com/nalej/grpc-application-go"
 )
 
+
 type PortAccess int
 
 const (
@@ -111,7 +112,7 @@ type ServiceGroup struct {
 	// ServiceGroupId with the group identifier.
 	ServiceGroupId string `json:"service_group_id,omitempty"`
 	// Name of the service group.
-	Name string `protobuf:"json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
 	// Description of the service group.
 	Description string `json:"description,omitempty"`
 	// Services defining a list of service identifiers that belong to the group.
