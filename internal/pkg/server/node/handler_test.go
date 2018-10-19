@@ -28,7 +28,7 @@ func createOrganization(orgProvider orgProvider.Provider) * entities.Organizatio
 }
 
 func createCluster(organizationID string, orgProvider orgProvider.Provider, clusProvider clusProvider.Provider) * entities.Cluster {
-	toAdd := entities.NewCluster(organizationID, "test cluster", "")
+	toAdd := entities.NewCluster(organizationID, "test cluster", "", "hostname")
 	err := clusProvider.Add(*toAdd)
 	gomega.Expect(err).To(gomega.Succeed())
 	err = orgProvider.AddCluster(organizationID, toAdd.ClusterId)
@@ -116,6 +116,27 @@ var _ = ginkgo.Describe("Node service", func() {
 			added, err := client.AddNode(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.HaveOccurred())
 			gomega.Expect(added).Should(gomega.BeNil())
+		})
+		ginkgo.It("should be able to update a node", func(){
+			toAdd := createAddNodeRequest(targetOrganization.ID)
+			added, err := client.AddNode(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+
+			newLabels := make(map[string]string, 0)
+			newLabels["nk"]="nv"
+			updateNodeRequest := &grpc_infrastructure_go.UpdateNodeRequest{
+				OrganizationId:       added.OrganizationId,
+				NodeId:               added.NodeId,
+				UpdateLabels:         true,
+				Labels:               newLabels,
+				UpdateStatus:         true,
+				Status:               grpc_infrastructure_go.InfraStatus_RUNNING,
+			}
+			updated, err := client.UpdateNode(context.Background(), updateNodeRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(updated.Labels).Should(gomega.Equal(updateNodeRequest.Labels))
+			gomega.Expect(updated.Status).Should(gomega.Equal(updateNodeRequest.Status))
 		})
 		ginkgo.It("should be able to list nodes", func(){
 			toAdd := createAddNodeRequest(targetOrganization.ID)

@@ -78,6 +78,15 @@ func (n * Node) ToGRPC() * grpc_infrastructure_go.Node {
 	}
 }
 
+func (n * Node) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateNodeRequest){
+	if updateRequest.UpdateLabels{
+		n.Labels = updateRequest.Labels
+	}
+	if updateRequest.UpdateStatus{
+		n.Status = InfraStatusFromGRPC[updateRequest.Status]
+	}
+}
+
 func ValidAddNodeRequest(addNodeRequest *grpc_infrastructure_go.AddNodeRequest) derrors.Error {
 	if addNodeRequest.RequestId == "" {
 		return derrors.NewInvalidArgumentError(emptyRequestId)
@@ -93,6 +102,17 @@ func ValidAddNodeRequest(addNodeRequest *grpc_infrastructure_go.AddNodeRequest) 
 	}
 	return nil
 }
+
+func ValidUpdateNodeRequest(updateNodeRequest *grpc_infrastructure_go.UpdateNodeRequest) derrors.Error {
+	if updateNodeRequest.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	if updateNodeRequest.NodeId == "" {
+		return derrors.NewInvalidArgumentError(emptyNodeId)
+	}
+	return nil
+}
+
 
 func ValidAttachNodeRequest(attachNodeRequest *grpc_infrastructure_go.AttachNodeRequest) derrors.Error {
 	if attachNodeRequest.RequestId == "" {

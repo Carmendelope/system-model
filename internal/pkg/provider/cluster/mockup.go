@@ -55,6 +55,17 @@ func (m * MockupClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 	return derrors.NewAlreadyExistsError(cluster.ClusterId)
 }
 
+// Update an existing cluster in the system
+func (m * MockupClusterProvider) Update(cluster entities.Cluster) derrors.Error{
+	m.Lock()
+	defer m.Unlock()
+	if !m.unsafeExists(cluster.ClusterId){
+		return derrors.NewNotFoundError(cluster.ClusterId)
+	}
+	m.clusters[cluster.ClusterId] = cluster
+	return nil
+}
+
 // Exists checks if a cluster exists on the system.
 func (m * MockupClusterProvider) Exists(clusterID string) bool {
 	m.Lock()

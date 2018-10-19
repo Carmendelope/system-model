@@ -43,6 +43,26 @@ func (m * Manager) AddCluster(addClusterRequest *grpc_infrastructure_go.AddClust
 	return toAdd, nil
 }
 
+func (m * Manager) UpdateCluster(updateRequest * grpc_infrastructure_go.UpdateClusterRequest) (*entities.Cluster, derrors.Error){
+	if ! m.OrgProvider.Exists(updateRequest.OrganizationId){
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(updateRequest.OrganizationId)
+	}
+
+	if !m.OrgProvider.ClusterExists(updateRequest.OrganizationId, updateRequest.ClusterId){
+		return nil, derrors.NewNotFoundError("clusterID").WithParams(updateRequest.OrganizationId, updateRequest.ClusterId)
+	}
+	old, err := m.ClusterProvider.Get(updateRequest.ClusterId)
+	if err != nil{
+		return nil, err
+	}
+	old.ApplyUpdate(*updateRequest)
+	err = m.ClusterProvider.Update(*old)
+	if err != nil{
+		return nil, err
+	}
+	return old, nil
+}
+
 // GetCluster retrieves the cluster information.
 func (m * Manager) GetCluster(clusterID *grpc_infrastructure_go.ClusterId) (*entities.Cluster, derrors.Error) {
 	if ! m.OrgProvider.Exists(clusterID.OrganizationId){

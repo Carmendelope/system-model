@@ -36,6 +36,7 @@ func createAddClusterRequest(organizationID string) *grpc_infrastructure_go.AddC
 		OrganizationId:       organizationID,
 		Name:                 "name",
 		Description:          "description",
+		Hostname: "hostname",
 		Labels:               labels,
 	}
 }
@@ -116,6 +117,37 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
 			gomega.Expect(retrieved).Should(gomega.Equal(added))
+		})
+		ginkgo.It("should be able to update a cluster", func(){
+			toAdd := createAddClusterRequest(targetOrganization.ID)
+			added, err := client.AddCluster(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
+
+			newLabels := make(map[string]string, 0)
+			newLabels["nk"]="nv"
+			updateClusterReq := &grpc_infrastructure_go.UpdateClusterRequest{
+				OrganizationId:       targetOrganization.ID,
+				ClusterId:            added.ClusterId,
+				UpdateName:           true,
+				Name:                 "newName",
+				UpdateDescription:    true,
+				Description:          "newDescription",
+				UpdateHostname:       true,
+				Hostname:             "newHostname",
+				UpdateLabels:         true,
+				Labels:               newLabels,
+				UpdateStatus:         true,
+				Status:               grpc_infrastructure_go.InfraStatus_RUNNING,
+			}
+			updated, err := client.UpdateCluster(context.Background(), updateClusterReq)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(updated.Name).Should(gomega.Equal(updateClusterReq.Name))
+			gomega.Expect(updated.Description).Should(gomega.Equal(updateClusterReq.Description))
+			gomega.Expect(updated.Hostname).Should(gomega.Equal(updateClusterReq.Hostname))
+			gomega.Expect(updated.Labels).Should(gomega.Equal(updateClusterReq.Labels))
+			gomega.Expect(updated.Status).Should(gomega.Equal(updateClusterReq.Status))
 		})
 		ginkgo.It("should be able to list clusters", func(){
 			toAdd := createAddClusterRequest(targetOrganization.ID)

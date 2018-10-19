@@ -13,6 +13,8 @@ import (
 type Provider interface {
 	// Add a new cluster to the system.
 	Add(cluster entities.Cluster) derrors.Error
+	// Update an existing cluster in the system
+	Update(cluster entities.Cluster) derrors.Error
 	// Exists checks if a cluster exists on the system.
 	Exists(clusterID string) bool
 	// Get a cluster.

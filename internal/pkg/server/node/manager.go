@@ -46,6 +46,27 @@ func (m * Manager) AddNode(addNodeRequest *grpc_infrastructure_go.AddNodeRequest
 	return toAdd, nil
 }
 
+func (m * Manager) UpdateNode(updateNodeRequest * grpc_infrastructure_go.UpdateNodeRequest) (*entities.Node, derrors.Error){
+	exists := m.OrgProvider.Exists(updateNodeRequest.OrganizationId)
+	if !exists{
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(updateNodeRequest.OrganizationId)
+	}
+	exists = m.OrgProvider.NodeExists(updateNodeRequest.OrganizationId, updateNodeRequest.NodeId)
+	if !exists{
+		return nil, derrors.NewNotFoundError("nodeID").WithParams(updateNodeRequest.NodeId)
+	}
+	old, err := m.NodeProvider.Get(updateNodeRequest.NodeId)
+	if err != nil{
+		return nil, err
+	}
+	old.ApplyUpdate(*updateNodeRequest)
+	err = m.NodeProvider.Update(*old)
+	if err != nil{
+		return nil, err
+	}
+	return old, nil
+}
+
 // AttachNode links a node with a given cluster.
 func (m * Manager) AttachNode(attachNodeRequest *grpc_infrastructure_go.AttachNodeRequest) derrors.Error {
 	exists := m.OrgProvider.Exists(attachNodeRequest.OrganizationId)

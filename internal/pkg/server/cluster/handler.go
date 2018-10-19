@@ -11,6 +11,7 @@ import (
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/rs/zerolog/log"
 )
 // Handler structure for the cluster requests.
 type Handler struct {
@@ -24,6 +25,9 @@ func NewHandler(manager Manager) *Handler{
 
 // AddCluster adds a new cluster to the system.
 func (h * Handler) AddCluster(ctx context.Context, addClusterRequest *grpc_infrastructure_go.AddClusterRequest) (*grpc_infrastructure_go.Cluster, error) {
+	log.Debug().Str("organizationID", addClusterRequest.OrganizationId).
+		Str("name", addClusterRequest.Name).
+		Str("hostname", addClusterRequest.Hostname).Msg("add cluster")
 	err := entities.ValidAddClusterRequest(addClusterRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -32,6 +36,23 @@ func (h * Handler) AddCluster(ctx context.Context, addClusterRequest *grpc_infra
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
+	log.Debug().Str("clusterID", cluster.ClusterId).Msg("cluster has been added")
+	return cluster.ToGRPC(), nil
+}
+
+// UpdateCluster updates the information of a cluster.
+func (h * Handler) UpdateCluster(ctx context.Context, updateClusterRequest *grpc_infrastructure_go.UpdateClusterRequest) (*grpc_infrastructure_go.Cluster, error){
+	log.Debug().Str("organizationID", updateClusterRequest.OrganizationId).
+		Str("clusterID", updateClusterRequest.ClusterId).Msg("update cluster")
+	err := entities.ValidUpdateClusterRequest(updateClusterRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	cluster, err := h.Manager.UpdateCluster(updateClusterRequest)
+	if err != nil{
+		return nil, conversions.ToGRPCError(err)
+	}
+	log.Debug().Str("clusterID", cluster.ClusterId).Msg("cluster has been updated")
 	return cluster.ToGRPC(), nil
 }
 

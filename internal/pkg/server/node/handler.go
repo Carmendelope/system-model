@@ -10,6 +10,7 @@ import (
 	"github.com/nalej/grpc-infrastructure-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/rs/zerolog/log"
 )
 
 // Handler structure for the node requests.
@@ -24,6 +25,7 @@ func NewHandler(manager Manager) *Handler{
 
 // AddNode adds a new node to the system.
 func (h *Handler) AddNode(ctx context.Context, addNodeRequest *grpc_infrastructure_go.AddNodeRequest) (*grpc_infrastructure_go.Node, error) {
+	log.Debug().Str("organizationID", addNodeRequest.OrganizationId).Str("IP", addNodeRequest.Ip).Msg("add node")
 	err := entities.ValidAddNodeRequest(addNodeRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -32,11 +34,28 @@ func (h *Handler) AddNode(ctx context.Context, addNodeRequest *grpc_infrastructu
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
+	log.Debug().Str("nodeID", added.NodeId).Msg("node has been added")
 	return added.ToGRPC(), nil
+}
+
+// UpdateNode updates the information of a node.
+func (h *Handler) UpdateNode(ctx context.Context, updateNodeRequest *grpc_infrastructure_go.UpdateNodeRequest) (*grpc_infrastructure_go.Node, error) {
+	log.Debug().Str("organizationID", updateNodeRequest.OrganizationId).Str("nodeID", updateNodeRequest.NodeId).Msg("update node")
+	err := entities.ValidUpdateNodeRequest(updateNodeRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	node, err := h.Manager.UpdateNode(updateNodeRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	log.Debug().Str("nodeID", updateNodeRequest.NodeId).Msg("node has been updated")
+	return node.ToGRPC(), nil
 }
 
 // AttachNode links a node with a given cluster.
 func (h *Handler) AttachNode(ctx context.Context, attachNodeRequest *grpc_infrastructure_go.AttachNodeRequest) (*grpc_common_go.Success, error) {
+	log.Debug().Str("nodeID", attachNodeRequest.NodeId).Str("clusterID", attachNodeRequest.ClusterId).Msg("attach node")
 	err := entities.ValidAttachNodeRequest(attachNodeRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -45,6 +64,7 @@ func (h *Handler) AttachNode(ctx context.Context, attachNodeRequest *grpc_infras
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
+	log.Debug().Str("nodeID", attachNodeRequest.NodeId).Msg("node has been attached")
 	return &grpc_common_go.Success{}, nil
 }
 
