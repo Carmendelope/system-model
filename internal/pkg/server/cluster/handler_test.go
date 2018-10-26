@@ -11,6 +11,7 @@ import (
 	"github.com/nalej/grpc-utils/pkg/test"
 	clusProvider "github.com/nalej/system-model/internal/pkg/provider/cluster"
 	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
+	"github.com/nalej/system-model/internal/pkg/server/testhelpers"
 	"github.com/onsi/ginkgo"
 	"github.com/satori/go.uuid"
 	"google.golang.org/grpc"
@@ -19,13 +20,6 @@ import (
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/onsi/gomega"
 )
-
-func createOrganization(orgProvider orgProvider.Provider) * entities.Organization {
-	toAdd := entities.NewOrganization("test org")
-	err := orgProvider.Add(*toAdd)
-	gomega.Expect(err).To(gomega.Succeed())
-	return toAdd
-}
 
 func createAddClusterRequest(organizationID string) *grpc_infrastructure_go.AddClusterRequest {
 	labels := make(map[string]string, 0)
@@ -83,7 +77,7 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			clusterProvider.(*clusProvider.MockupClusterProvider).Clear()
 			// Initial data
-			targetOrganization = createOrganization(organizationProvider)
+			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
 		})
 	})
 

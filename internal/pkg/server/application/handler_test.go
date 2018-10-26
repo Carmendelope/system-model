@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/nalej/system-model/internal/pkg/server/testhelpers"
 
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
 	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
@@ -94,13 +95,6 @@ func generateAddAppInstance(organizationID string, appDescriptorID string) * grp
 	}
 }
 
-func createOrganization(orgProvider orgProvider.Provider) * entities.Organization {
-	toAdd := entities.NewOrganization("test org")
-	err := orgProvider.Add(*toAdd)
-	gomega.Expect(err).To(gomega.Succeed())
-	return toAdd
-}
-
 func generateUpdateAppInstance(organizationID string, appInstanceID string,
 	status grpc_application_go.ApplicationStatus) * grpc_application_go.UpdateAppStatusRequest {
 	return &grpc_application_go.UpdateAppStatusRequest{
@@ -171,7 +165,7 @@ var _ = ginkgo.Describe("Applications", func(){
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			applicationProvider.(*appProvider.MockupApplicationProvider).Clear()
 			// Initial data
-			targetOrganization = createOrganization(organizationProvider)
+			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
 		})
 	})
 
