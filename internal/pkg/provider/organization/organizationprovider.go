@@ -52,4 +52,22 @@ type Provider interface {
 	ListInstances(organizationID string) ([]string, derrors.Error)
 	// DeleteInstance removes an instance from an organization
 	DeleteInstance(organizationID string, appInstanceID string) derrors.Error
+
+	// AddUser adds a new user to the organization.
+	AddUser(organizationID string, email string) derrors.Error
+	// UserExists checks if a user is linked to an organization.
+	UserExists(organizationID string, email string) bool
+	// ListUser returns a list of users in an organization.
+	ListUsers(organizationID string) ([]string, derrors.Error)
+	// DeleteUser removes a user from an organization.
+	DeleteUser(organizationID string, email string) derrors.Error
+
+	// AddRole adds a new role ID to the organization.
+	AddRole(organizationID string, roleID string) derrors.Error
+	// RoleExists checks if a role is linked to an organization.
+	RoleExists(organizationID string, roleID string) bool
+	// ListNodes returns a list of roles in an organization.
+	ListRoles(organizationID string) ([]string, derrors.Error)
+	// DeleteRole removes a role from an organization.
+	DeleteRole(organizationID string, roleID string) derrors.Error
 }
