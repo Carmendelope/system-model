@@ -11,6 +11,7 @@ import (
 	"github.com/nalej/grpc-user-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/rs/zerolog/log"
 )
 
 // Handler structure for the user requests.
@@ -25,6 +26,8 @@ func NewHandler(manager Manager) *Handler {
 
 // AddUser adds a new user to a given organization.
 func (h*Handler) AddUser(ctx context.Context, addUserRequest *grpc_user_go.AddUserRequest) (*grpc_user_go.User, error){
+	log.Debug().Str("organizationID", addUserRequest.OrganizationId).Str("roleID", addUserRequest.RoleId).
+		Str("email", addUserRequest.Email).Msg("add user")
 	vErr := entities.ValidAddUserRequest(addUserRequest)
 	if vErr != nil{
 		return nil, conversions.ToGRPCError(vErr)
@@ -33,6 +36,8 @@ func (h*Handler) AddUser(ctx context.Context, addUserRequest *grpc_user_go.AddUs
 	if err != nil{
 		return nil, conversions.ToGRPCError(err)
 	}
+	log.Debug().Str("organizationID", addUserRequest.OrganizationId).
+		Str("email", addUserRequest.Email).Msg("user has been added")
 	return added.ToGRPC(), nil
 }
 
@@ -51,6 +56,7 @@ func (h*Handler) GetUser(ctx context.Context, userID *grpc_user_go.UserId) (*grp
 
 // GetUsers retrieves the list of users of a given organization.
 func (h*Handler) GetUsers(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_user_go.UserList, error){
+	log.Debug().Str("organizationID", organizationID.OrganizationId).Msg("list users")
 	vErr := entities.ValidOrganizationID(organizationID)
 	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
@@ -71,6 +77,8 @@ func (h*Handler) GetUsers(ctx context.Context, organizationID *grpc_organization
 
 // RemoveUser removes a given user from an organization.
 func (h*Handler) RemoveUser(ctx context.Context, removeRequest *grpc_user_go.RemoveUserRequest) (*grpc_common_go.Success, error){
+	log.Debug().Str("organizationID", removeRequest.OrganizationId).
+		Str("email", removeRequest.Email).Msg("remove user")
 	vErr := entities.ValidRemoveUserRequest(removeRequest)
 	if vErr != nil{
 		return nil, conversions.ToGRPCError(vErr)
@@ -79,5 +87,7 @@ func (h*Handler) RemoveUser(ctx context.Context, removeRequest *grpc_user_go.Rem
 	if err != nil{
 		return nil, conversions.ToGRPCError(err)
 	}
+	log.Debug().Str("organizationID", removeRequest.OrganizationId).
+		Str("email", removeRequest.Email).Msg("user has been removed")
 	return &grpc_common_go.Success{}, nil
 }
