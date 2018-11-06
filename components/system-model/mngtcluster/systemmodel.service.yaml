@@ -2,7 +2,9 @@ kind: Service
 apiVersion: v1
 metadata:
   name: system-model
-  cluster: management
+  labels:
+    cluster: management
+    component: system-model
   namespace: nalej
 spec:
   selector:

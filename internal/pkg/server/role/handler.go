@@ -11,6 +11,7 @@ import (
 	"github.com/nalej/grpc-role-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/rs/zerolog/log"
 )
 
 // Handler structure for the role requests.
@@ -25,6 +26,8 @@ func NewHandler(manager Manager) *Handler {
 
 // AddRole adds a new role to a given organization.
 func (h * Handler) AddRole(ctx context.Context, addRoleRequest *grpc_role_go.AddRoleRequest) (*grpc_role_go.Role, error) {
+	log.Debug().Str("organizationID", addRoleRequest.OrganizationId).
+		Str("name", addRoleRequest.Name).Msg("add role")
 	vErr := entities.ValidAddRoleRequest(addRoleRequest)
 	if vErr != nil{
 		return nil, conversions.ToGRPCError(vErr)
@@ -33,6 +36,7 @@ func (h * Handler) AddRole(ctx context.Context, addRoleRequest *grpc_role_go.Add
 	if err != nil{
 		return nil, conversions.ToGRPCError(err)
 	}
+	log.Debug().Str("roleID", added.RoleId).Msg("role has been added")
 	return added.ToGRPC(), nil
 }
 
@@ -51,6 +55,7 @@ func (h * Handler) GetRole(ctx context.Context, roleID *grpc_role_go.RoleId) (*g
 
 // ListRoles retrieves the list of roles of a given organization.
 func (h * Handler) ListRoles(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_role_go.RoleList, error) {
+	log.Debug().Str("organizationID", organizationID.OrganizationId).Msg("list roles")
 	vErr := entities.ValidOrganizationID(organizationID)
 	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
@@ -71,6 +76,8 @@ func (h * Handler) ListRoles(ctx context.Context, organizationID *grpc_organizat
 
 // RemoveRole removes a given role from an organization.
 func (h * Handler) RemoveRole(ctx context.Context, removeRoleRequest *grpc_role_go.RemoveRoleRequest) (*grpc_common_go.Success, error) {
+	log.Debug().Str("organizationID", removeRoleRequest.OrganizationId).
+		Str("roleID", removeRoleRequest.RoleId).Msg("remove role")
 	vErr := entities.ValidRemoveRoleRequest(removeRoleRequest)
 	if vErr != nil{
 		return nil, conversions.ToGRPCError(vErr)

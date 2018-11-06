@@ -6,6 +6,7 @@ package server
 
 import (
 	"github.com/nalej/derrors"
+	"github.com/nalej/system-model/version"
 	"github.com/rs/zerolog/log"
 )
 
@@ -27,6 +28,7 @@ func (conf * Config) Validate() derrors.Error {
 
 // Print the current configuration to the log system.
 func (conf *Config) Print() {
+	log.Info().Str("app", version.AppVersion).Str("commit", version.Commit).Msg("Version")
 	log.Info().Int("port", conf.Port).Msg("gRPC port")
 	if conf.UseInMemoryProviders {
 		log.Info().Bool("UseInMemoryProviders", conf.UseInMemoryProviders).Msg("Using in-memory providers")
