@@ -50,10 +50,10 @@ func (m * MockupUserProvider) Update(user entities.User) derrors.Error{
 }
 
 // Exists checks if a user exists on the system.
-func (m * MockupUserProvider) Exists(email string) bool{
+func (m * MockupUserProvider) Exists(email string) (bool, derrors.Error){
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExists(email)
+	return m.unsafeExists(email), nil
 }
 
 // Get a user.
