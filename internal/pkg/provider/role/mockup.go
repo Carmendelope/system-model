@@ -50,10 +50,10 @@ func(m * MockupRoleProvider) Update(role entities.Role) derrors.Error{
 }
 
 // Exists checks if a role exists on the system.
-func(m * MockupRoleProvider) Exists(roleID string) bool{
+func(m * MockupRoleProvider) Exists(roleID string) (bool, derrors.Error){
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExists(roleID)
+	return m.unsafeExists(roleID), nil
 }
 
 // Get a role.
