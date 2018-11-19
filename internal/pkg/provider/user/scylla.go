@@ -12,7 +12,7 @@ const addUser = "INSERT INTO Users (organization_id, email, name, photo_url, mem
 const updateUser = "UPDATE Users SET organization_id = ?, name = ?, photo_url = ?, member_since = ? WHERE email = ?"
 const exitsUser = "SELECT email from Users where email = ?"
 const selectUser = "SELECT organization_id, name, photo_url, member_since from Users where email = ?"
-const deleteUser = "delete  from nalej.Users where email = ?"
+const deleteUser = "delete  from Users where email = ?"
 
 // TODO: ask to Dani if we need cluster.Consistency = gocql.Quorum
 type ScyllaUserProvider struct {
@@ -61,7 +61,7 @@ func (sp *ScyllaUserProvider) Add(user entities.User) derrors.Error{
 		return conversions.ToDerror(err)
 	}
 	if  exists {
-		log.Info().Str("email", user.Email).Str("user", user.Email).Msg("unable to update the user, user alredy exists")
+		log.Info().Str("user", user.Email).Msg("unable to add the user, user alredy exists")
 		return derrors.NewInvalidArgumentError("User alredy exists")
 	}
 
@@ -152,7 +152,7 @@ func (sp *ScyllaUserProvider) Remove(email string) derrors.Error {
 	// insert a user
 	cqlErr := sp.Session.Query(deleteUser, email).Exec()
 
-	if err != nil {
+	if cqlErr != nil {
 		log.Info().Str("trace", conversions.ToDerror(cqlErr).DebugReport()).Msg("failed to delete the user")
 		return conversions.ToDerror(cqlErr)
 	}
