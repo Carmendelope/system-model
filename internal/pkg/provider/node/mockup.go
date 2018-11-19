@@ -50,10 +50,10 @@ func (m * MockupNodeProvider) Update(node entities.Node) derrors.Error {
 }
 
 // Exists checks if a node exists on the system.
-func (m * MockupNodeProvider) Exists(nodeID string) bool {
+func (m * MockupNodeProvider) Exists(nodeID string) (bool,derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExists(nodeID)
+	return m.unsafeExists(nodeID), nil
 }
 
 // Get a node.
