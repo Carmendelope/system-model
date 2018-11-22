@@ -38,8 +38,8 @@ func (h *Handler) AddAppDescriptor(ctx context.Context, addRequest *grpc_applica
 	return added.ToGRPC(), nil
 }
 
-// GetAppDescriptors retrieves a list of application descriptors.
-func (h *Handler) GetAppDescriptors(ctx context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppDescriptorList, error) {
+// ListAppDescriptors retrieves a list of application descriptors.
+func (h *Handler) ListAppDescriptors(ctx context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppDescriptorList, error) {
 	descriptors, err := h.Manager.ListDescriptors(orgID)
 	if err != nil{
 		return nil, conversions.ToGRPCError(err)
@@ -64,6 +64,16 @@ func (h *Handler) GetAppDescriptor(ctx context.Context, appDescID *grpc_applicat
 	return descriptor.ToGRPC(), nil
 }
 
+// RemoveAppDescriptor removes an application descriptor.
+func (h *Handler) RemoveAppDescriptor(ctx context.Context, appDescID *grpc_application_go.AppDescriptorId) (*grpc_common_go.Success, error){
+	err := h.Manager.RemoveAppDescriptor(appDescID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{},nil
+}
+
+
 // AddAppInstance adds a new application instance to a given organization.
 func (h *Handler) AddAppInstance(ctx context.Context, addInstanceRequest *grpc_application_go.AddAppInstanceRequest) (*grpc_application_go.AppInstance, error) {
 	err := entities.ValidAddAppInstanceRequest(addInstanceRequest)
@@ -78,8 +88,8 @@ func (h *Handler) AddAppInstance(ctx context.Context, addInstanceRequest *grpc_a
 	return added.ToGRPC(), nil
 }
 
-// GetAppInstances retrieves a list of application instances.
-func (h *Handler) GetAppInstances(ctx context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppInstanceList, error) {
+// ListAppInstances retrieves a list of application instances.
+func (h *Handler) ListAppInstances(ctx context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppInstanceList, error) {
 	instances, err := h.Manager.ListInstances(orgID)
 	if err != nil{
 		return nil, conversions.ToGRPCError(err)
@@ -131,4 +141,11 @@ func (h *Handler) UpdateServiceStatus(ctx context.Context, updateServiceStatus *
     return &grpc_common_go.Success{},nil
 }
 
-
+// RemoveAppInstance removes an application instance
+func (h *Handler) RemoveAppInstance(ctx context.Context, appInstID *grpc_application_go.AppInstanceId) (*grpc_common_go.Success, error){
+	err := h.Manager.RemoveAppInstance(appInstID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{},nil
+}
