@@ -67,10 +67,10 @@ func (m * MockupClusterProvider) Update(cluster entities.Cluster) derrors.Error{
 }
 
 // Exists checks if a cluster exists on the system.
-func (m * MockupClusterProvider) Exists(clusterID string) bool {
+func (m * MockupClusterProvider) Exists(clusterID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExists(clusterID)
+	return m.unsafeExists(clusterID), nil
 }
 
 // Get a cluster.
@@ -111,10 +111,10 @@ func (m *MockupClusterProvider) AddNode(clusterID string, nodeID string) derrors
 }
 
 // NodeExists checks if a node is linked to a cluster.
-func (m *MockupClusterProvider) NodeExists(clusterID string, nodeID string) bool {
+func (m *MockupClusterProvider) NodeExists(clusterID string, nodeID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExistsNode(clusterID, nodeID)
+	return m.unsafeExistsNode(clusterID, nodeID), nil
 }
 
 // ListNodes returns a list of nodes in a cluster.
@@ -152,9 +152,10 @@ func (m *MockupClusterProvider) DeleteNode(clusterID string, nodeID string) derr
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupClusterProvider) Clear() {
+func (m * MockupClusterProvider) Clear() derrors.Error {
 	m.Lock()
 	m.clusters = make(map[string]entities.Cluster, 0)
 	m.nodes = make(map[string] []string, 0)
 	m.Unlock()
+	return nil
 }
