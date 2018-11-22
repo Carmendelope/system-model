@@ -116,7 +116,7 @@ type ServiceGroup struct {
 	// Description of the service group.
 	Description string `json:"description,omitempty" cql:"description"`
 	// Services defining a list of service identifiers that belong to the group.
-	Services []string `json:"services,omitempty" cql:"service_instances"`
+	Services []string `json:"services,omitempty" cql:"services"`
 	// Policy indicating the deployment collocation policy.
 	Policy CollocationPolicy `json:"policy,omitempty" cql:"policy"`
 }
@@ -836,30 +836,30 @@ var AppStatusFromGRPC = map[grpc_application_go.ApplicationStatus]ApplicationSta
 
 type AppInstance struct {
 	// OrganizationId with the organization identifier.
-	OrganizationId string `json:"organization_id,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// AppDescriptorId with the application descriptor identifier.
-	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql: "app_descriptor_id"`
 	// AppInstanceId with the application instance identifier.
-	AppInstanceId string `json:"app_instance_id,omitempty"`
+	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
 	// Name of the application.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" cql:"name"`
 	// Description of the application.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" cql:"description"`
 	// ConfigurationOptions defines a key-value map of configuration options.
-	ConfigurationOptions map[string]string `json:"configuration_options,omitempty"`
+	ConfigurationOptions map[string]string `json:"configuration_options,omitempty" cql:"configuration_options"`
 	// EnvironmentVariables defines a key-value map of environment variables and values that will be passed to all
 	// running services.
-	EnvironmentVariables map[string]string `json:"environment_variables,omitempty"`
+	EnvironmentVariables map[string]string `json:"environment_variables,omitempty" cql:"environment_variables"`
 	// Labels defined by the user.
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty" cql:"labels"`
 	// Rules that define the connectivity between the elements of an application.
-	Rules []SecurityRule `json:"rules,omitempty"`
+	Rules []SecurityRule `json:"rules,omitempty" cql:"rules"`
 	// Groups with the Service collocation strategies.
-	Groups []ServiceGroupInstance `json:"groups,omitempty"`
+	Groups []ServiceGroupInstance `json:"groups,omitempty" cql:"groups"`
 	// Services of the application.
-	Services []ServiceInstance `json:"services,omitempty"`
+	Services []ServiceInstance `json:"services,omitempty" cql:"services"`
 	// Status of the deployed instance.
-	Status  ApplicationStatus `json:"status,omitempty"`
+	Status  ApplicationStatus `json:"status,omitempty" cql:"status"`
 }
 
 func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceRequest, descriptor * AppDescriptor) * AppInstance {

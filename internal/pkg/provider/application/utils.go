@@ -44,11 +44,11 @@ func CreateServiceInstance (appInstanceId string) entities.ServiceInstance {
 	stores = append(stores, entities.Storage{Size:900, MountPath:"../../mount_path", Type:entities.StorageType(1)})
 
 	endpoints := make ([]entities.Endpoint, 0)
-	endpoints = append(endpoints, entities.Endpoint {Type:entities.EndpointType(0),Path:"../../endpoint" })
+	endpoints = append(endpoints, entities.Endpoint {Type:entities.EndpointType(1),Path:"../../endpoint" })
 
 	ports := make ([]entities.Port, 0)
 	for i:=0; i<5; i++{
-		ports = append(ports, entities.Port{Name:fmt.Sprintf("port%d", i), InternalPort:int32(i), Endpoints:endpoints})
+		ports = append(ports, entities.Port{Name:fmt.Sprintf("port%d", i), InternalPort:int32(i), ExposedPort:int32(i), Endpoints:endpoints})
 	}
 
 	envVariables := make(map[string]string, 0)
@@ -73,7 +73,7 @@ func CreateServiceInstance (appInstanceId string) entities.ServiceInstance {
 		ServiceId: serviceId,
 		Name: serviceName,
 		Description: serviceDescription,
-		Type: entities.ServiceType(0),
+		Type: entities.ServiceType(1),
 		Image: image,
 		Credentials: &entities.ImageCredentials{
 			Username: "carmen",
@@ -90,7 +90,7 @@ func CreateServiceInstance (appInstanceId string) entities.ServiceInstance {
 		Configs: confFile,
 		Labels: labels,
 		DeployAfter: deployAfter,
-		Status: entities.ServiceStatus(0)}
+		Status: entities.ServiceStatus(1)}
 
 }
 
@@ -100,11 +100,11 @@ func CreateService (appDescriptorId string) entities.Service {
 	stores = append(stores, entities.Storage{Size:900, MountPath:"../../mount_path", Type:entities.StorageType(1)})
 
 	endpoints := make ([]entities.Endpoint, 0)
-	endpoints = append(endpoints, entities.Endpoint {Type:entities.EndpointType(0),Path:"../../endpoint" })
+	endpoints = append(endpoints, entities.Endpoint {Type:entities.EndpointType(1),Path:"../../endpoint" })
 
 	ports := make ([]entities.Port, 0)
 	for i:=0; i<5; i++{
-		ports = append(ports, entities.Port{Name:fmt.Sprintf("port%d", i), InternalPort:int32(i), Endpoints:endpoints})
+		ports = append(ports, entities.Port{Name:fmt.Sprintf("port%d", i), InternalPort:int32(i), ExposedPort:int32(i), Endpoints:endpoints})
 	}
 
 	envVariables := make(map[string]string, 0)
@@ -128,7 +128,7 @@ func CreateService (appDescriptorId string) entities.Service {
 		ServiceId: serviceId,
 		Name: serviceName,
 		Description: serviceDescription,
-		Type: entities.ServiceType(0),
+		Type: entities.ServiceType(1),
 		Image: image,
 		Credentials: &entities.ImageCredentials{
 			Username: "carmen",
@@ -241,7 +241,7 @@ func CreateApplication(id string) *entities.AppInstance {
 		Rules: rules,
 		Groups:groups,
 		Services: services,
-		Status: entities.ApplicationStatus(0)}
+		Status: entities.ApplicationStatus(1)}
 
 	return &app
 }

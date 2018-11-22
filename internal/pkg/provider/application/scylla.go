@@ -14,7 +14,7 @@ import (
 //const addInstance = "INSERT INTO applications (app_instance_id, app_descriptor_id, configuration_options, description, environment_variables, groups, labels, name, organization_id, rules, services, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 //const selectInstance = "SELECT organization_id, app_descriptor_id, name, description, configuration_options, environment_variables, labels, rules, groups, services, status FROM applications WHERE app_instance_id = ?"
 
-const applicationTable = "applications"
+const applicationTable = "ApplicationInstances"
 const applicationTablePK = "app_instance_id"
 
 const applicationDescriptorTable = "applicationdescriptors"
@@ -231,26 +231,6 @@ func (sp *ScyllaApplicationProvider) GetInstance(appInstanceID string) (* entiti
 		return nil, err
 	}
 
-/*
-	// 1.-
-	var organizationId, appDescriptorId, name, description  string
-	var status entities.ApplicationStatus
-	configurationOptions := make(map[string]string)
-	environmentVariables:= make(map[string]string)
-	labels := make(map[string]string)
-	groups := make([]entities.ServiceGroupInstance, 0)
-	services := make([]entities.ServiceInstance, 0)
-	rules := make([]entities.SecurityRule, 0)
-
-
-
-	err := sp.Session.Query(selectInstance, appInstanceID).Scan(&organizationId, &appDescriptorId, &name,
-		&description, &configurationOptions, &environmentVariables, &labels, &rules, &groups, &services, &status)
-
-	if err != nil {
-		return nil, conversions.ToDerror(err)
-	}
-*/
 	// 2.- Gocqlx
 	var app entities.AppInstance
 	stmt, names := qb.Select(applicationTable).Where(qb.Eq(applicationTablePK)).ToCql()
@@ -264,21 +244,7 @@ func (sp *ScyllaApplicationProvider) GetInstance(appInstanceID string) (* entiti
 	}
 
 	return &app, nil
-
-	/*return &entities.AppInstance{
-		OrganizationId: organizationId,
-		AppDescriptorId: appDescriptorId,
-		AppInstanceId: appInstanceID,
-		Name: name,
-		Description:description,
-		ConfigurationOptions:configurationOptions,
-		EnvironmentVariables:environmentVariables,
-		Labels:labels,
-		Rules: rules,
-		Groups:groups,
-		Services: services,
-		Status: status}, nil
-*/
+	
 }
 
 // DeleteInstance removes a given instance from the system.
