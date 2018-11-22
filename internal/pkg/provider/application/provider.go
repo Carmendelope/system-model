@@ -18,7 +18,7 @@ type Provider interface {
 	GetDescriptor(appDescriptorID string) (* entities.AppDescriptor, derrors.Error)
 
 	// DescriptorExists checks if a given descriptor exists on the system.
-	DescriptorExists(appDescriptorID string) bool
+	DescriptorExists(appDescriptorID string) (bool, derrors.Error)
 
 	// DeleteDescriptor removes a given descriptor from the system.
 	DeleteDescriptor(appDescriptorID string) derrors.Error
@@ -27,7 +27,7 @@ type Provider interface {
 	AddInstance(instance entities.AppInstance) derrors.Error
 
 	// InstanceExists checks if an application instance exists on the system.
-	InstanceExists(appInstanceID string) bool
+	InstanceExists(appInstanceID string) (bool, derrors.Error)
 
 	// GetInstance retrieves an application instance.
 	GetInstance(appInstanceID string) (* entities.AppInstance, derrors.Error)
@@ -37,5 +37,8 @@ type Provider interface {
 
 	// UpdateInstance updates the information of an instance
 	UpdateInstance(instance entities.AppInstance) derrors.Error
+
+	// Clear descriptors and instances
+	Clear() derrors.Error
 
 }

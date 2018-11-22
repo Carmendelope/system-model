@@ -24,11 +24,13 @@ func NewMockupOrganizationProvider() * MockupApplicationProvider {
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupApplicationProvider) Clear() {
+func (m * MockupApplicationProvider) Clear()  derrors.Error{
 	m.Lock()
 	m.appDescriptors = make(map[string] entities.AppDescriptor, 0)
 	m.appInstances = make(map[string] entities.AppInstance, 0)
 	m.Unlock()
+
+	return nil
 }
 
 func (m *MockupApplicationProvider) unsafeExistsAppDesc(descriptorID string) bool {
@@ -53,10 +55,10 @@ func (m *MockupApplicationProvider) AddDescriptor(descriptor entities.AppDescrip
 }
 
 // DescriptorExists checks if a given descriptor exists on the system.
-func (m *MockupApplicationProvider) DescriptorExists(appDescriptorID string) bool {
+func (m *MockupApplicationProvider) DescriptorExists(appDescriptorID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExistsAppDesc(appDescriptorID)
+	return m.unsafeExistsAppDesc(appDescriptorID), nil
 }
 
 // GetDescriptors retrieves an application descriptor.
@@ -93,10 +95,10 @@ func (m *MockupApplicationProvider) AddInstance(instance entities.AppInstance) d
 }
 
 // InstanceExists checks if an application instance exists on the system.
-func (m *MockupApplicationProvider) InstanceExists(appInstanceID string) bool {
+func (m *MockupApplicationProvider) InstanceExists(appInstanceID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExistsAppInst(appInstanceID)
+	return m.unsafeExistsAppInst(appInstanceID), nil
 }
 
 // GetInstance retrieves an application instance.

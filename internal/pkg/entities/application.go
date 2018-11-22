@@ -52,23 +52,23 @@ var CollocationPolicyFromGRPC = map[grpc_application_go.CollocationPolicy]Colloc
 
 type SecurityRule struct {
 	// OrganizationId with the organization identifier.
-	OrganizationId string `json:"organization_id,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// AppDescriptorId with the application descriptor identifier.
-	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
 	// RuleId with the security rule identifier.
-	RuleId string `json:"rule_id,omitempty"`
+	RuleId string `json:"rule_id,omitempty" cql:"rule_id"`
 	// Name of the security rule.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" cql:"name"`
 	// SourceServiceId defining the service onto which the security rule is defined.
-	SourceServiceId string `json:"source_service_id,omitempty"`
+	SourceServiceId string `json:"source_service_id,omitempty" cql:"source_service_id"`
 	// SourcePort defining the port that is affected by the current rule.
-	SourcePort int32 `json:"source_port,omitempty"`
+	SourcePort int32 `json:"source_port,omitempty" cql:"source_port"`
 	// Access level to that port defining who can access the port.
-	Access PortAccess `json:"access,omitempty"`
+	Access PortAccess `json:"access,omitempty" cql:"access"`
 	// AuthServices defining a list of services that can access the port.
-	AuthServices []string `json:"auth_services,omitempty"`
+	AuthServices []string `json:"auth_services,omitempty" cql:"auth_services"`
 	// DeviceGroups defining a list of device groups that can access the port.
-	DeviceGroups []string `json:"device_groups,omitempty"`
+	DeviceGroups []string `json:"device_groups,omitempty" cql:"device_groups"`
 }
 
 func NewSecurityRuleFromGRPC(appDescriptorID string, rule *grpc_application_go.SecurityRule) *SecurityRule {
@@ -106,19 +106,19 @@ func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
 
 type ServiceGroup struct {
 	// OrganizationId with the organization identifier.
-	OrganizationId string `json:"organization_id,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// AppDescriptorId with the application descriptor identifier.
-	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
 	// ServiceGroupId with the group identifier.
-	ServiceGroupId string `json:"service_group_id,omitempty"`
+	ServiceGroupId string `json:"service_group_id,omitempty" cql:"service_group_id"`
 	// Name of the service group.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" cql:"name"`
 	// Description of the service group.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" cql:"description"`
 	// Services defining a list of service identifiers that belong to the group.
-	Services []string `json:"services,omitempty"`
+	Services []string `json:"services,omitempty" cql:"service_instances"`
 	// Policy indicating the deployment collocation policy.
-	Policy CollocationPolicy `json:"policy,omitempty"`
+	Policy CollocationPolicy `json:"policy,omitempty" cql:"policy"`
 }
 
 
@@ -166,21 +166,21 @@ func (sg * ServiceGroup) ToServiceGroupInstance(appInstID string) * ServiceGroup
 
 type ServiceGroupInstance struct {
 	// OrganizationId with the organization identifier.
-	OrganizationId string `json:"organization_id,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// AppDescriptorId with the application descriptor identifier.
-	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
 	// AppInstanceId with the application instance identifier.
-	AppInstanceId string `json:"app_instance_id,omitempty"`
+	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
 	// ServiceGroupId with the group identifier.
-	ServiceGroupId string `json:"service_group_id,omitempty"`
+	ServiceGroupId string `json:"service_group_id,omitempty" cql:"service_group_id"`
 	// Name of the service group.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" cql:"name"`
 	// Description of the service group.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" cql:"description"`
 	// ServicesInstances defining a list of service identifiers that belong to the group.
-	ServiceInstances []string `json:"service_instances,omitempty"`
+	ServiceInstances []string `json:"service_instances,omitempty" cql:"service_instances"`
 	// Policy indicating the deployment collocation policy.
-	Policy               CollocationPolicy `json:"policy,omitempty"`
+	Policy               CollocationPolicy `json:"policy,omitempty" cql:"policy"`
 }
 
 func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInstance {
@@ -213,9 +213,9 @@ var ServiceTypeFromGRPC = map[grpc_application_go.ServiceType]ServiceType{
 }
 
 type ImageCredentials struct {
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
-	Email    string `json:"email,omitempty"`
+	Username string `json:"username,omitempty" cql:"username"`
+	Password string `json:"password,omitempty" cql:"password"`
+	Email    string `json:"email,omitempty" cql:"email"`
 }
 
 func NewImageCredentialsFromGRPC(credentials * grpc_application_go.ImageCredentials) *ImageCredentials {
@@ -241,9 +241,9 @@ func (ic *ImageCredentials) ToGRPC() *grpc_application_go.ImageCredentials {
 }
 
 type DeploySpecs struct {
-	Cpu      int64 `json:"cpu,omitempty"`
-	Memory   int64 `json:"memory,omitempty"`
-	Replicas int32 `json:"replicas,omitempty"`
+	Cpu      int64 `json:"cpu,omitempty" cql:"cpu"`
+	Memory   int64 `json:"memory,omitempty" cql:"memory"`
+	Replicas int32 `json:"replicas,omitempty" cql:"replicas"`
 }
 
 func NewDeploySpecsFromGRPC(specs * grpc_application_go.DeploySpecs) * DeploySpecs {
@@ -289,9 +289,9 @@ var StorageTypeFromGRPC = map[grpc_application_go.StorageType]StorageType{
 }
 
 type Storage struct {
-	Size      int64       `json:"size,omitempty"`
-	MountPath string      `json:"mount_path,omitempty"`
-	Type      StorageType `json:"type,omitempty"`
+	Size      int64       `json:"size,omitempty" cql:"size"`
+	MountPath string      `json:"mount_path,omitempty" cql:"mount_path"`
+	Type      StorageType `json:"type,omitempty" cql:"type"`
 }
 
 func NewStorageFromGRPC(storage * grpc_application_go.Storage) * Storage{
@@ -339,8 +339,8 @@ var EndpointTypeFromGRPC = map[grpc_application_go.EndpointType]EndpointType{
 }
 
 type Endpoint struct {
-	Type EndpointType `json:"type,omitempty"`
-	Path string       `json:"path,omitempty"`
+	Type EndpointType `json:"type,omitempty" cql:"type"`
+	Path string       `json:"path,omitempty" cql:"path"`
 }
 
 func NewEndpointFromGRPC( endpoint * grpc_application_go.Endpoint) * Endpoint {
@@ -363,10 +363,10 @@ func (e *Endpoint) ToGRPC() *grpc_application_go.Endpoint {
 }
 
 type Port struct {
-	Name         string     `json:"name,omitempty"`
-	InternalPort int32      `json:"internal_port,omitempty"`
-	ExposedPort  int32      `json:"exposed_port,omitempty"`
-	Endpoints    []Endpoint `json:"endpoints,omitempty"`
+	Name         string     `json:"name,omitempty" cql:"name"`
+	InternalPort int32      `json:"internal_port,omitempty" cql:"internal_port"`
+	ExposedPort  int32      `json:"exposed_port,omitempty" cql:"exposed_port"`
+	Endpoints    []Endpoint `json:"endpoints,omitempty" cql:"endpoint"`
 }
 
 func NewPortFromGRPC(port *grpc_application_go.Port) * Port {
@@ -402,15 +402,15 @@ func (p *Port) ToGRPC() *grpc_application_go.Port {
 
 type ConfigFile struct {
 	// OrganizationId with the organization identifier.
-	OrganizationId string `json:"organization_id,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// AppDescriptorId with the application descriptor identifier.
-	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
 	// ConfigFileId with the config file identifier.
-	ConfigFileId string `json:"config_file_id,omitempty"`
+	ConfigFileId string `json:"config_file_id,omitempty" cql:"config_file_id"`
 	// Content of the configuration file.
-	Content []byte `json:"content,omitempty"`
+	Content []byte `json:"content,omitempty" cql:"content"`
 	// MountPath of the configuration file in the service instance.
-	MountPath string `json:"mount_path,omitempty"`
+	MountPath string `json:"mount_path,omitempty" cql:"mount_path"`
 }
 
 func NewConfigFileFromGRPC(appDescriptorID string, config * grpc_application_go.ConfigFile) * ConfigFile {
@@ -438,36 +438,36 @@ func (cf *ConfigFile) ToGRPC() *grpc_application_go.ConfigFile {
 
 type Service struct {
 	// OrganizationId with the organization identifier.
-	OrganizationId string `json:"organization_id,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// AppDescriptorId with the application descriptor identifier.
-	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
 	// ServiceId with the service identifier.
-	ServiceId string `json:"service_id,omitempty"`
+	ServiceId string `json:"service_id,omitempty" cql:"service_id"`
 	// Name of the service.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" cql:"name"`
 	// Description of the service.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" cql:"description"`
 	// ServiceType represents the underlying technology of the service to be launched.
-	Type ServiceType `json:"type,omitempty"`
+	Type ServiceType `json:"type,omitempty" cql:"type"`
 	// Image contains the URL/name of the image to be executed.
-	Image string `json:"image,omitempty"`
+	Image string `json:"image,omitempty" cql:"image"`
 	// ImageCredentials with the data required to access the repository the image is available at.
-	Credentials * ImageCredentials `json:"credentials,omitempty"`
+	Credentials * ImageCredentials `json:"credentials,omitempty" cql:"credentials"`
 	// DeploySpecs with the resource specs required by the service.
-	Specs * DeploySpecs `json:"specs,omitempty"`
+	Specs * DeploySpecs `json:"specs,omitempty" cql:"specs"`
 	// Storage restrictions
-	Storage []Storage `json:"storage,omitempty"`
+	Storage []Storage `json:"storage,omitempty" cql:"storage"`
 	// ExposedPorts contains the list of ports exposed by the current service.
-	ExposedPorts []Port `json:"exposed_ports,omitempty"`
+	ExposedPorts []Port `json:"exposed_ports,omitempty" cql:"exposed_ports"`
 	// EnvironmentVariables defines a key-value map of environment variables and values that will be passed to all
 	// running services.
-	EnvironmentVariables map[string]string `json:"environment_variables,omitempty"`
+	EnvironmentVariables map[string]string `json:"environment_variables,omitempty" cql:"environment_variables"`
 	// Configs contains the configuration files required by the service.
-	Configs []ConfigFile `json:"configs,omitempty"`
+	Configs []ConfigFile `json:"configs,omitempty" cql:"configs"`
 	// Labels with the user defined labels.
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty" cql:"labels"`
 	// DeployAfter contains the list of services that must be running before launching a service.
-	DeployAfter []string `json:"deploy_after,omitempty"`
+	DeployAfter []string `json:"deploy_after,omitempty" cql:"deploy_after"`
 }
 
 func NewServiceFromGRPC(appDescriptorID string, service *grpc_application_go.Service) * Service {
@@ -592,40 +592,40 @@ var ServiceStatusFromGRPC = map[grpc_application_go.ServiceStatus]ServiceStatus{
 
 type ServiceInstance struct {
 	// OrganizationId with the organization identifier.
-	OrganizationId string `json:"organization_id,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// AppDescriptorId with the application descriptor identifier.
-	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
 	// AppInstanceId with the application instance identifier.
-	AppInstanceId string `json:"app_instance_id,omitempty"`
+	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
 	// ServiceId with the service identifier.
-	ServiceId string `json:"service_id,omitempty"`
+	ServiceId string `json:"service_id,omitempty" cql:"service_id"`
 	// Name of the service.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" cql:"name"`
 	// Description of the service.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" cql:"description"`
 	// ServiceType represents the underlying technology of the service to be launched.
-	Type ServiceType `json:"type,omitempty"`
+	Type ServiceType `json:"type,omitempty" cql:"type"`
 	// Image contains the URL/name of the image to be executed.
-	Image string `json:"image,omitempty"`
+	Image string `json:"image,omitempty" cql:"image"`
 	// ImageCredentials with the data required to access the repository the image is available at.
-	Credentials * ImageCredentials `json:"credentials,omitempty"`
+	Credentials * ImageCredentials `json:"credentials,omitempty" cql:"credentials"`
 	// DeploySpecs with the resource specs required by the service.
-	Specs * DeploySpecs `json:"specs,omitempty"`
+	Specs * DeploySpecs `json:"specs,omitempty" cql:"specs"`
 	// Storage restrictions
-	Storage []Storage `json:"storage,omitempty"`
+	Storage []Storage `json:"storage,omitempty" cql:"storage"`
 	// ExposedPorts contains the list of ports exposed by the current service.
-	ExposedPorts []Port `json:"exposed_ports,omitempty"`
+	ExposedPorts []Port `json:"exposed_ports,omitempty" cql:"exposed_ports"`
 	// EnvironmentVariables defines a key-value map of environment variables and values that will be passed to all
 	// running services.
-	EnvironmentVariables map[string]string `json:"environment_variables,omitempty"`
+	EnvironmentVariables map[string]string `json:"environment_variables,omitempty" cql:"environment_variables"`
 	// Configs contains the configuration files required by the service.
-	Configs []ConfigFile `json:"configs,omitempty"`
+	Configs []ConfigFile `json:"configs,omitempty" cql:"configs"`
 	// Labels with the user defined labels.
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty" cql:"labels"`
 	// DeployAfter contains the list of services that must be running before launching a service.
-	DeployAfter []string `json:"deploy_after,omitempty"`
+	DeployAfter []string `json:"deploy_after,omitempty" cql:"deploy_after"`
 	// Status of the deployed service
-	Status ServiceStatus `json:"status,omitempty"`
+	Status ServiceStatus `json:"status,omitempty" cql:"status"`
 
 }
 
@@ -669,26 +669,26 @@ func (si *ServiceInstance) ToGRPC() *grpc_application_go.ServiceInstance {
 
 type AppDescriptor struct {
 	// OrganizationId with the organization identifier.
-	OrganizationId string `json:"organization_id,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// AppDescriptorId with the application descriptor identifier.
-	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
 	// Name of the application.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" cql:"name"`
 	// Description of the application.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description,omitempty" cql:"description"`
 	// ConfigurationOptions defines a key-value map of configuration options.
-	ConfigurationOptions map[string]string `json:"configuration_options,omitempty"`
+	ConfigurationOptions map[string]string `json:"configuration_options,omitempty" cql:"configuration_options"`
 	// EnvironmentVariables defines a key-value map of environment variables and values that will be passed to all
 	// running services.
-	EnvironmentVariables map[string]string `json:"environment_variables,omitempty"`
+	EnvironmentVariables map[string]string `json:"environment_variables,omitempty" cql:"environment_variables"`
 	// Labels defined by the user.
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty" cql:"labels"`
 	// Rules that define the connectivity between the elements of an application.
-	Rules []SecurityRule `json:"rules,omitempty"`
+	Rules []SecurityRule `json:"rules,omitempty" cql:"rules"`
 	// Groups with the Service collocation strategies.
-	Groups []ServiceGroup `json:"groups,omitempty"`
+	Groups []ServiceGroup `json:"groups,omitempty" cql:"groups"`
 	// Services of the application.
-	Services []Service `json:"services,omitempty"`
+	Services []Service `json:"services,omitempty" cql:"services"`
 }
 
 func NewAppDescriptor(organizationID string, appDescriptorID string, name string, description string,
