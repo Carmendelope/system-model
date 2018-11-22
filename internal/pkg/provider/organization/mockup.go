@@ -378,7 +378,7 @@ func (m *MockupOrganizationProvider) ListInstances(organizationID string) ([]str
 func (m *MockupOrganizationProvider) DeleteInstance(organizationID string, appInstanceID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if m.unsafeExistsAppDesc(organizationID, appInstanceID) {
+	if m.unsafeExistsAppInst(organizationID, appInstanceID) {
 		previous := m.instances[organizationID]
 		newList := make([] string, 0, len(previous)-1)
 		for _, id := range previous {
