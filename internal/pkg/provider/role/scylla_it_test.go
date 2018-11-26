@@ -8,14 +8,14 @@ RUN_INTEGRATION_TEST=true
 /*
 before past test:
 
-docker run --name scylla -p 9042:9042 -d scylladb/scylla -> launch docker image
-docker exec -it scylla nodetool status -> Check the node is up
+docker run --name scylla -p 9042:9042 -d scylladb/scylla
+docker exec -it scylla nodetool status
 
 Prepare the database...
 
 docker exec -it scylla cqlsh
 create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-create table nalej.Roles (organization_id text, role_id text, name text, description text, created int, PRIMARY KEY (role_id));
+create table nalej.Roles (organization_id text, role_id text, name text, description text, internal boolean, created int, PRIMARY KEY (role_id));
 
 */
 
@@ -72,7 +72,9 @@ var _ = ginkgo.Describe("Scylla user provider", func() {
 			role := &entities.Role{OrganizationId: "org",
 				Name:    "name-" + roleID,
 				Created: int64(i),
-				RoleId:  roleID}
+				RoleId:  roleID,
+				Internal:true,
+				Description: "desc-" + roleID,}
 			err := sp.Add(*role)
 			gomega.Expect(err).To(gomega.Succeed())
 		}

@@ -77,7 +77,7 @@ func (sp *ScyllaRoleProvider) Add(role entities.Role) derrors.Error {
 	}
 
 	// insert a role
-	stmt, names := qb.Insert(roleTable).Columns("organization_id","role_id","name","description","created").ToCql()
+	stmt, names := qb.Insert(roleTable).Columns("organization_id","role_id","name","description","internal","created").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(role)
 	cqlErr := q.ExecRelease()
 
@@ -106,7 +106,7 @@ func (sp *ScyllaRoleProvider) Update(role entities.Role) derrors.Error{
 	}
 
 	// update the role
-	stmt, names := qb.Update(roleTable).Set("organization_id","name","description","created").Where(qb.Eq(roleTablePK)).ToCql()
+	stmt, names := qb.Update(roleTable).Set("organization_id","name","description","internal","created").Where(qb.Eq(roleTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(role)
 	cqlErr := q.ExecRelease()
 

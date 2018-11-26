@@ -26,7 +26,7 @@ func NewHandler(manager Manager) *Handler {
 
 // AddUser adds a new user to a given organization.
 func (h*Handler) AddUser(ctx context.Context, addUserRequest *grpc_user_go.AddUserRequest) (*grpc_user_go.User, error){
-	log.Debug().Str("organizationID", addUserRequest.OrganizationId).Str("roleID", addUserRequest.RoleId).
+	log.Debug().Str("organizationID", addUserRequest.OrganizationId).
 		Str("email", addUserRequest.Email).Msg("add user")
 	vErr := entities.ValidAddUserRequest(addUserRequest)
 	if vErr != nil{

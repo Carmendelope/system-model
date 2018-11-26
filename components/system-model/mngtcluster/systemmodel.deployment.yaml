@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
       - name: system-model
-        image: nalej/system-model:VERSION
+        image: nalejregistry.azurecr.io/nalej/system-model:VERSION
         imagePullPolicy: IfNotPresent
         args:
           - "run"
@@ -33,4 +33,4 @@ spec:
         securityContext:
           runAsUser: 2000
       imagePullSecrets:
-      - name: myregistrykey
+      - name: nalej-registry

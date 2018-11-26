@@ -19,7 +19,7 @@ create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replicatio
 use nalej;
 
 create table nalej.Clusters (organization_id text, cluster_id text, name text, description text, cluster_type int, hostname text, multitenant int, status int, labels map<text, text>, cordon boolean, PRIMARY KEY (cluster_id));
-create table Cluster_Nodes (cluster_id text, node_id text, PRIMARY KEY (cluster_id, node_id));
+create table nalej.Cluster_Nodes (cluster_id text, node_id text, PRIMARY KEY (cluster_id, node_id));
  */
 
 var _ = ginkgo.Describe("Scylla cluster provider", func(){

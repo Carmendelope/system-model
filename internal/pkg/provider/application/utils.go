@@ -30,11 +30,13 @@ var image = "../../image_path"
 
 func CreateConfigFile () entities.ConfigFile {
 
+	content := make([]byte, 0)
+	content = append(content, 0x00, 0x01, 0x02)
 	return entities.ConfigFile{
 		OrganizationId: organizationId,
 		AppDescriptorId:appDescriptorId,
 		ConfigFileId: "Config file",
-		//Content []byte
+		Content: content,
 		MountPath: "../../path"}
 }
 

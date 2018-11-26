@@ -11,35 +11,38 @@ import (
 )
 
 type Role struct {
-	OrganizationId       string   `json:"organization_id,omitempty"`
-	RoleId               string   `json:"role_id,omitempty"`
-	Name                 string   `json:"name,omitempty"`
-	Description          string   `json:"description,omitempty"`
-	Created              int64    `json:"created,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty"`
+	RoleId         string `json:"role_id,omitempty"`
+	Name           string `json:"name,omitempty"`
+	Description    string `json:"description,omitempty"`
+	Internal       bool   `json:"internal"`
+	Created        int64  `json:"created,omitempty"`
 }
 
-func NewRoleFromGRPC(addRoleRequest * grpc_role_go.AddRoleRequest) * Role{
+func NewRoleFromGRPC(addRoleRequest *grpc_role_go.AddRoleRequest) *Role {
 	uuid := GenerateUUID()
 	return &Role{
 		OrganizationId: addRoleRequest.OrganizationId,
 		RoleId:         uuid,
 		Name:           addRoleRequest.Name,
 		Description:    addRoleRequest.Description,
+		Internal:       addRoleRequest.Internal,
 		Created:        time.Now().Unix(),
 	}
 }
 
-func (r * Role) ToGRPC() * grpc_role_go.Role{
+func (r *Role) ToGRPC() *grpc_role_go.Role {
 	return &grpc_role_go.Role{
-		OrganizationId:       r.OrganizationId,
-		RoleId:               r.RoleId,
-		Name:                 r.Name,
-		Description:          r.Description,
-		Created:              r.Created,
+		OrganizationId: r.OrganizationId,
+		RoleId:         r.RoleId,
+		Name:           r.Name,
+		Description:    r.Description,
+		Internal:       r.Internal,
+		Created:        r.Created,
 	}
 }
 
-func ValidAddRoleRequest(addRoleRequest *grpc_role_go.AddRoleRequest) derrors.Error{
+func ValidAddRoleRequest(addRoleRequest *grpc_role_go.AddRoleRequest) derrors.Error {
 	if addRoleRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
 	}
@@ -49,7 +52,7 @@ func ValidAddRoleRequest(addRoleRequest *grpc_role_go.AddRoleRequest) derrors.Er
 	return nil
 }
 
-func ValidRemoveRoleRequest(removeRoleRequest *grpc_role_go.RemoveRoleRequest) derrors.Error{
+func ValidRemoveRoleRequest(removeRoleRequest *grpc_role_go.RemoveRoleRequest) derrors.Error {
 	if removeRoleRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
 	}

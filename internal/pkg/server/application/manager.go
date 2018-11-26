@@ -26,12 +26,15 @@ func NewManager(orgProvider organization.Provider, appProvider application.Provi
 
 // AddAppDescriptor adds a new application descriptor to a given organization.
 func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescriptorRequest) (* entities.AppDescriptor, derrors.Error) {
-	exists := m.OrgProvider.Exists(addRequest.OrganizationId)
+	exists, err := m.OrgProvider.Exists(addRequest.OrganizationId)
+	if err != nil{
+		return nil, err
+	}
 	if !exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
 	}
 	descriptor := entities.NewAppDescriptorFromGRPC(addRequest)
-	err := m.AppProvider.AddDescriptor(*descriptor)
+	err = m.AppProvider.AddDescriptor(*descriptor)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +48,12 @@ func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescr
 
 // ListDescriptors obtains a list of descriptors associated with an organization.
 func (m * Manager) ListDescriptors(orgID * grpc_organization_go.OrganizationId) ([] entities.AppDescriptor, derrors.Error) {
-	if !m.OrgProvider.Exists(orgID.OrganizationId){
+	exists, err := m.OrgProvider.Exists(orgID.OrganizationId)
+	if err != nil{
+		return nil, err
+	}
+
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(orgID.OrganizationId)
 	}
 	descriptors, err := m.OrgProvider.ListDescriptors(orgID.OrganizationId)
@@ -65,23 +73,61 @@ func (m * Manager) ListDescriptors(orgID * grpc_organization_go.OrganizationId) 
 
 // GetDescriptor retrieves a single application descriptor.
 func (m * Manager) GetDescriptor(appDescID * grpc_application_go.AppDescriptorId) (* entities.AppDescriptor, derrors.Error){
-	if ! m.OrgProvider.Exists(appDescID.OrganizationId){
+	exists, err := m.OrgProvider.Exists(appDescID.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if ! exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(appDescID.OrganizationId)
 	}
-
-	if !m.OrgProvider.DescriptorExists(appDescID.OrganizationId, appDescID.AppDescriptorId){
+	exists, err = m.OrgProvider.DescriptorExists(appDescID.OrganizationId, appDescID.AppDescriptorId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists{
 		return nil, derrors.NewNotFoundError("appDescriptorID").WithParams(appDescID.OrganizationId, appDescID.AppDescriptorId)
 	}
 	return m.AppProvider.GetDescriptor(appDescID.AppDescriptorId)
 }
 
+// RemoveAppDescriptor removes an application descriptor.
+func (m * Manager) RemoveAppDescriptor(appDescID *grpc_application_go.AppDescriptorId) derrors.Error {
+	exists, err := m.OrgProvider.Exists(appDescID.OrganizationId)
+	if err != nil {
+		return err
+	}
+	if ! exists {
+		return derrors.NewNotFoundError("organizationID").WithParams(appDescID.OrganizationId)
+	}
+	exists, err = m.OrgProvider.DescriptorExists(appDescID.OrganizationId, appDescID.AppDescriptorId)
+	if err != nil {
+		return err
+	}
+	if ! exists {
+		return derrors.NewNotFoundError("appDescriptorId").WithParams(appDescID.AppDescriptorId)
+	}
+	err = m.OrgProvider.DeleteDescriptor(appDescID.OrganizationId, appDescID.AppDescriptorId)
+	if err != nil {
+		return err
+	}
+	return m.AppProvider.DeleteDescriptor(appDescID.AppDescriptorId)
+}
+
 // AddAppInstance adds a new application instance to a given organization.
 func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanceRequest) (* entities.AppInstance, derrors.Error) {
 
-	if !m.OrgProvider.Exists(addRequest.OrganizationId){
+	exists, err := m.OrgProvider.Exists(addRequest.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if ! exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
 	}
-	if !m.AppProvider.DescriptorExists(addRequest.AppDescriptorId){
+	exists, err = m.AppProvider.DescriptorExists(addRequest.AppDescriptorId)
+	if err != nil {
+		return nil, err
+	}
+	if ! exists {
 		return nil, derrors.NewNotFoundError("descriptorID").WithParams(addRequest.OrganizationId, addRequest.AppDescriptorId)
 	}
 
@@ -104,7 +150,11 @@ func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanc
 
 // ListInstances retrieves the list of instances associated with an organization.
 func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([] entities.AppInstance, derrors.Error) {
-	if !m.OrgProvider.Exists(orgID.OrganizationId){
+	exists, err := m.OrgProvider.Exists(orgID.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(orgID.OrganizationId)
 	}
 	instances, err := m.OrgProvider.ListInstances(orgID.OrganizationId)
@@ -124,11 +174,19 @@ func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([
 
 // GetInstance retrieves a single instance.
 func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (* entities.AppInstance, derrors.Error){
-	if ! m.OrgProvider.Exists(appInstID.OrganizationId){
+	exists, err := m.OrgProvider.Exists(appInstID.OrganizationId)
+	if err != nil{
+		return nil, err
+	}
+	if ! exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(appInstID.OrganizationId)
 	}
 
-	if !m.OrgProvider.InstanceExists(appInstID.OrganizationId, appInstID.AppInstanceId){
+	exists, err = m.OrgProvider.InstanceExists(appInstID.OrganizationId, appInstID.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists{
 		return nil, derrors.NewNotFoundError("appInstanceID").WithParams(appInstID.OrganizationId, appInstID.AppInstanceId)
 	}
 	return m.AppProvider.GetInstance(appInstID.AppInstanceId)
@@ -136,7 +194,11 @@ func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (*
 
 // UpdateInstance updates the information of a given instance.
 func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppStatusRequest) error {
-	if !m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId){
+	exists, err := m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId)
+	if err != nil {
+		return err
+	}
+	if !exists{
 		return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppInstanceId)
 	}
 
@@ -157,8 +219,11 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 
 // UpdateService updates an application service.
 func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServiceStatusRequest) error {
-
-    if !m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId){
+	exists, err := m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId)
+	if err != nil {
+		return err
+	}
+    if !exists{
         return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppInstanceId)
     }
 
@@ -179,4 +244,27 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
         }
     }
     return derrors.NewInternalError("service not found")
+}
+
+// RemoveAppInstance removes an application instance
+func (m * Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceId) derrors.Error {
+	exists, err := m.OrgProvider.Exists(appInstID.OrganizationId)
+	if err != nil{
+		return err
+	}
+	if ! exists{
+		return derrors.NewNotFoundError("organizationID").WithParams(appInstID.OrganizationId)
+	}
+	exists, err = m.OrgProvider.InstanceExists(appInstID.OrganizationId, appInstID.AppInstanceId)
+	if err != nil{
+		return err
+	}
+	if ! exists{
+		return derrors.NewNotFoundError("AppInstanceId").WithParams(appInstID.AppInstanceId)
+	}
+	err = m.OrgProvider.DeleteInstance(appInstID.OrganizationId, appInstID.AppInstanceId)
+	if err != nil {
+		return err
+	}
+	return m.AppProvider.DeleteInstance(appInstID.AppInstanceId)
 }
