@@ -79,8 +79,9 @@ func (m * MockupUserProvider) Remove(email string) derrors.Error{
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupUserProvider) Clear() {
+func (m * MockupUserProvider) Clear() derrors.Error{
 	m.Lock()
 	m.users = make(map[string]entities.User, 0)
 	m.Unlock()
+	return nil
 }

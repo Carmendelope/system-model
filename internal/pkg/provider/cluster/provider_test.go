@@ -141,9 +141,14 @@ func RunTest (provider Provider) {
 		clusterID := "cluster_0001"
 		nodeID := "node_0001"
 
-		err := provider.AddNode(clusterID, nodeID)
+		// add the cluster
+		cluster := CreateCluster("0001")
+		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
 
+		// add the cluster-node
+		err = provider.AddNode(clusterID, nodeID)
+		gomega.Expect(err).To(gomega.Succeed())
 
 		exists, err := provider.NodeExists(clusterID, nodeID)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -225,6 +230,6 @@ func RunTest (provider Provider) {
 		nodeID := "nodeID"
 
 		err := provider.DeleteNode(clusterID, nodeID)
-		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(err).NotTo(gomega.Succeed())
 	})
 }

@@ -6,13 +6,14 @@ import (
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/gocql/gocql"
 	"github.com/rs/zerolog/log"
+	"github.com/scylladb/gocqlx"
+	"github.com/scylladb/gocqlx/qb"
 )
 
-const addUser = "INSERT INTO Users (organization_id, email, name, photo_url, member_since) VALUES (?, ?, ?, ?, ?)"
-const updateUser = "UPDATE Users SET organization_id = ?, name = ?, photo_url = ?, member_since = ? WHERE email = ?"
-const exitsUser = "SELECT email from Users where email = ?"
-const selectUser = "SELECT organization_id, name, photo_url, member_since from Users where email = ?"
-const deleteUser = "delete  from Users where email = ?"
+const userTable = "users"
+const userTablePK = "email"
+
+const rowNotFound = "not found"
 
 // TODO: ask to Dani if we need cluster.Consistency = gocql.Quorum
 type ScyllaUserProvider struct {
@@ -33,7 +34,6 @@ func (sp *ScyllaUserProvider) Connect() derrors.Error {
 
 	session, err := conf.CreateSession()
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
 		return conversions.ToDerror(err)
 	}
 
@@ -49,27 +49,40 @@ func (sp *ScyllaUserProvider) Disconnect () {
 	}
 }
 
+// check if the session is created
+func (sp *ScyllaUserProvider) CheckConnection () derrors.Error {
+	if sp.Session == nil{
+		return derrors.NewGenericError("Session not created")
+	}
+	return nil
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 func (sp *ScyllaUserProvider) Add(user entities.User) derrors.Error{
 
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return err
+	}
 
 	// check if the user exists
 	exists, err := sp.Exists(user.Email)
 
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to add the user")
 		return conversions.ToDerror(err)
 	}
 	if  exists {
-		log.Info().Str("user", user.Email).Msg("unable to add the user, user alredy exists")
-		return derrors.NewInvalidArgumentError("User alredy exists")
+		return derrors.NewAlreadyExistsError(user.Email)
 	}
 
 	// insert a user
-	cqlErr := sp.Session.Query(addUser,user.OrganizationId, user.Email, user.Name, user.PhotoUrl, user.MemberSince).Exec()
+
+	stmt, names := qb.Insert(userTable).Columns("organization_id", "email", "name", "photo_url","member_since").ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(user)
+	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		log.Info().Str("trace", conversions.ToDerror(cqlErr).DebugReport()).Msg("failed to add the user")
 		return conversions.ToDerror(cqlErr)
 	}
 
@@ -78,23 +91,27 @@ func (sp *ScyllaUserProvider) Add(user entities.User) derrors.Error{
 // Update an existing user in the system
 func (sp *ScyllaUserProvider) Update(user entities.User) derrors.Error {
 
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return err
+	}
+
 	// check if the user exists
 	exists, err := sp.Exists(user.Email)
 
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Str("user", user.Email).Msg("unable to update the user")
 		return conversions.ToDerror(err)
 	}
 	if ! exists {
-		log.Info().Str("email", user.Email).Msg("unable to update the user, not exists")
-		return derrors.NewInvalidArgumentError("User does not exit")
+		return derrors.NewNotFoundError(user.Email)
 	}
 
-	// insert a user
-	cqlErr := sp.Session.Query(updateUser, user.OrganizationId, user.Name, user.PhotoUrl, user.MemberSince, user.Email).Exec()
+	// update a user
+	stmt, names := qb.Update(userTable).Set("organization_id", "name", "photo_url","member_since").Where(qb.Eq(userTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(user)
+	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		log.Info().Str("trace", conversions.ToDerror(cqlErr).DebugReport()).Msg("failed to update the user")
 		return conversions.ToDerror(cqlErr)
 	}
 
@@ -103,17 +120,24 @@ func (sp *ScyllaUserProvider) Update(user entities.User) derrors.Error {
 // Exists checks if a user exists on the system.
 func (sp *ScyllaUserProvider) Exists(email string) (bool, derrors.Error) {
 
-	// check if exists
-	var recoveredEmail string
-	err := sp.Session.Query(exitsUser, email).Scan(&recoveredEmail)
+	var returnedEmail string
 
-	if err == gocql.ErrNotFound{
-		return false, nil
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return false, err
 	}
 
+	stmt, names := qb.Select(userTable).Columns(userTablePK).Where(qb.Eq(userTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		userTablePK: email })
+
+	err := q.GetRelease(&returnedEmail)
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed user exists")
-		return false, conversions.ToDerror(err)
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, conversions.ToDerror(err)
+		}
 	}
 
 	return true, nil
@@ -121,46 +145,64 @@ func (sp *ScyllaUserProvider) Exists(email string) (bool, derrors.Error) {
 // Get a user.
 func (sp *ScyllaUserProvider) Get(email string) (* entities.User, derrors.Error) {
 
-	// check if exists
-	var organizationId, name, photoUrl string
-	var memberSince int64
-	err := sp.Session.Query(selectUser, email).Scan(&organizationId,  &name, &photoUrl, &memberSince)
-
-	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed getting user")
-		return nil, conversions.ToDerror(err)
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return nil, err
 	}
 
-	return &entities.User{OrganizationId:organizationId, Email:email, Name:name, MemberSince: memberSince, PhotoUrl:photoUrl}, nil
+	var user entities.User
+	stmt, names := qb.Select(userTable).Where(qb.Eq(userTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		userTablePK: email,
+	})
+
+	err := q.GetRelease(&user)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return nil, conversions.ToDerror(err)
+		}else{
+			return nil, derrors.NewNotFoundError(email)
+		}
+	}
+
+	return &user, nil
 
 }
 // Remove a user.
 func (sp *ScyllaUserProvider) Remove(email string) derrors.Error {
 
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return err
+	}
+
 	// check if the user exists
 	exists, err := sp.Exists(email)
 
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Str("user", email).Msg("unable to remove the user")
 		return conversions.ToDerror(err)
 	}
 	if ! exists {
-		log.Info().Str("email", email).Msg("unable to remove the user, not exists")
-		return derrors.NewInvalidArgumentError("User does not exit")
+		return derrors.NewNotFoundError("user").WithParams(email)
 	}
 
-	// insert a user
-	cqlErr := sp.Session.Query(deleteUser, email).Exec()
+	// remove a user
+	stmt, _ := qb.Delete(userTable).Where(qb.Eq(userTablePK)).ToCql()
+	cqlErr := sp.Session.Query(stmt, email).Exec()
 
 	if cqlErr != nil {
-		log.Info().Str("trace", conversions.ToDerror(cqlErr).DebugReport()).Msg("failed to delete the user")
 		return conversions.ToDerror(cqlErr)
 	}
 
 	return nil
 }
 
-func (sp *ScyllaUserProvider) ClearTable() derrors.Error{
+func (sp *ScyllaUserProvider) Clear() derrors.Error{
+
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return err
+	}
 
 	err := sp.Session.Query("TRUNCATE TABLE USERS").Exec()
 	if err != nil {

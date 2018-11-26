@@ -79,8 +79,9 @@ func(m * MockupRoleProvider) Remove(roleID string) derrors.Error{
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupRoleProvider) Clear() {
+func (m * MockupRoleProvider) Clear() derrors.Error {
 	m.Lock()
 	m.roles = make(map[string]entities.Role, 0)
 	m.Unlock()
+	return nil
 }

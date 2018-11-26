@@ -21,6 +21,8 @@ type ScyllaClusterProvider struct {
 	Session *gocql.Session
 }
 
+const rowNotFound = "not found"
+
 func NewScyllaClusterProvider (address string, keyspace string) * ScyllaClusterProvider {
 	return &ScyllaClusterProvider{ address, keyspace, nil}
 }
@@ -69,7 +71,7 @@ func (sp *ScyllaClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 		return err
 	}
 
-	// check if the application exists
+	// check if the luster exists
 	exists, err := sp.Exists(cluster.ClusterId)
 	if err != nil {
 		return conversions.ToDerror(err)
@@ -78,7 +80,7 @@ func (sp *ScyllaClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 		return derrors.NewAlreadyExistsError(cluster.ClusterId)
 	}
 
-	// insert the application instance
+	// insert the cluster instance
 	stmt, names := qb.Insert(clusterTable).Columns("organization_id","cluster_id","name","description",
 		"cluster_type","hostname","multitenant","status","labels","cordon").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(cluster)
@@ -100,7 +102,7 @@ func (sp *ScyllaClusterProvider) Update(cluster entities.Cluster) derrors.Error{
 		return err
 	}
 
-	// check if the application exists
+	// check if the cluster exists
 	exists, err := sp.Exists(cluster.ClusterId)
 	if err != nil {
 		return conversions.ToDerror(err)
@@ -109,7 +111,7 @@ func (sp *ScyllaClusterProvider) Update(cluster entities.Cluster) derrors.Error{
 		return derrors.NewNotFoundError(cluster.ClusterId)
 	}
 
-	// insert the application instance
+	// insert the cluster instance
 	stmt, names := qb.Update(clusterTable).Set("organization_id","name","description",
 		"cluster_type","hostname","multitenant","status","labels","cordon").Where(qb.Eq(clusterTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(cluster)
@@ -133,7 +135,11 @@ func (sp *ScyllaClusterProvider) Exists(clusterID string) (bool, derrors.Error){
 
 	err := q.GetRelease(&returnedId)
 	if err != nil {
-		return false, nil
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, conversions.ToDerror(err)
+		}
 	}
 
 	return true, nil
@@ -146,14 +152,6 @@ func (sp *ScyllaClusterProvider) Get(clusterID string) (* entities.Cluster, derr
 	if err := sp.CheckConnection(); err != nil {
 		return nil, err
 	}
-	// check if the application exists
-	exists, err := sp.Exists(clusterID)
-	if err != nil {
-		return nil, conversions.ToDerror(err)
-	}
-	if ! exists {
-		return nil, derrors.NewNotFoundError(clusterID)
-	}
 
 	var cluster entities.Cluster
 	stmt, names := qb.Select(clusterTable).Where(qb.Eq(clusterTablePK)).ToCql()
@@ -161,9 +159,13 @@ func (sp *ScyllaClusterProvider) Get(clusterID string) (* entities.Cluster, derr
 		clusterTablePK: clusterID,
 	})
 
-	cqlErr := q.GetRelease(&cluster)
-	if cqlErr != nil {
-		return nil, conversions.ToDerror(cqlErr)
+	err := q.GetRelease(&cluster)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return nil, derrors.NewNotFoundError("cluster").WithParams(clusterID)
+		}else {
+			return nil, conversions.ToDerror(err)
+		}
 	}
 
 	return &cluster, nil
@@ -178,7 +180,7 @@ func (sp *ScyllaClusterProvider) Remove(clusterID string) derrors.Error {
 		return err
 	}
 
-	// check if the application exists
+	// check if the cluster exists
 	exists, err := sp.Exists(clusterID)
 	if err != nil {
 		return conversions.ToDerror(err)
@@ -214,10 +216,10 @@ func (sp *ScyllaClusterProvider) AddNode(clusterID string, nodeID string) derror
 		return conversions.ToDerror(err)
 	}
 	if !exists{
-		return derrors.NewNotFoundError("cluster").WithParams(clusterID)
+		return derrors.NewNotFoundError("node").WithParams(clusterID)
 	}
 
-	// check if the application exists
+	// check if the node exists in the cluster
 	exists, err = sp.NodeExists(clusterID, nodeID)
 	if err != nil {
 		return conversions.ToDerror(err)
@@ -226,7 +228,7 @@ func (sp *ScyllaClusterProvider) AddNode(clusterID string, nodeID string) derror
 		return derrors.NewAlreadyExistsError("node").WithParams(clusterID, nodeID)
 	}
 
-	// insert the application instance
+	// insert the node instance
 	stmt, names := qb.Insert(clusterNodeTable).Columns("cluster_id", "node_id").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"cluster_id": clusterID,
@@ -253,7 +255,11 @@ func (sp *ScyllaClusterProvider) NodeExists(clusterID string, nodeID string) (bo
 
 	err := q.GetRelease(&returnedId)
 	if err != nil {
-		return false, nil
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, conversions.ToDerror(err)
+		}
 	}
 
 	return true, nil

@@ -79,8 +79,9 @@ func (m * MockupNodeProvider) Remove(nodeID string) derrors.Error {
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupNodeProvider) Clear() {
+func (m * MockupNodeProvider) Clear() derrors.Error{
 	m.Lock()
 	m.nodes = make(map[string]entities.Node, 0)
 	m.Unlock()
+	return nil
 }

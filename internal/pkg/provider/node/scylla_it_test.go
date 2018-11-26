@@ -1,15 +1,17 @@
 package node
 
+/*
+create table nalej.Nodes (organization_id text, cluster_id text, node_id text, ip text, labels map<text, text>, status int, state int, PRIMARY KEY(node_id));
+ */
+
 import (
 	"fmt"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/onsi/gomega"
 
-	//"fmt"
-	//"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/utils"
 	"github.com/onsi/ginkgo"
-	//"github.com/onsi/gomega"
+
 	"github.com/rs/zerolog/log"
 	"os"
 )
@@ -37,29 +39,24 @@ var _ = ginkgo.Describe("Scylla node provider", func(){
 	err := sp.Connect()
 	if err != nil {
 		ginkgo.Fail("unable to connect")
-
 	}
 
-	ginkgo.BeforeSuite(func() {
-     	log.Debug().Msg("clearing table")
-		sp.ClearTable()
+	ginkgo.AfterSuite(func() {
+		sp.Disconnect()
 	})
-
-	// TODO: ask to Dani why the session has been closed
-	// defer sp.Disconnect()
 
 	RunTest(sp)
 
-
 	ginkgo.It("Should be able to add user", func(){
-
 
 		labels := make(map[string]string)
 		labels ["lab1"] = "label1"
 		for i := 0; i < numNodes; i++ {
-			nodeId := fmt.Sprintf("Node%d", i)
-			node := &entities.Node{OrganizationId:"organization", ClusterId:"cluster_id", NodeId:nodeId,
-			Ip:"0.0.0.0", Labels:labels, Status:0, State:0}
+			node := &entities.Node{OrganizationId:fmt.Sprintf("Org_%d", i),
+			ClusterId:fmt.Sprintf("Cluster%d", i),
+			NodeId:fmt.Sprintf("Node%d", i),
+			Ip:fmt.Sprintf("%d.%d.%d.%d", i,i,i,i),
+			Labels:labels, Status:0, State:0}
 			err := sp.Add(*node)
 			gomega.Expect(err).To(gomega.Succeed())
 		}

@@ -11,15 +11,19 @@ func RunTest(provider Provider) {
 	var roleOK = "RoleID-1"
 	var roleKO = "RoleID-2"
 
+	ginkgo.BeforeEach(func(){
+		provider.Clear()
+	})
+
 	// AddUser
 	ginkgo.It("Should be able to add role", func(){
 
-		user := &entities.Role{ OrganizationId:"org",
+		role := &entities.Role{ OrganizationId:"org",
 			RoleId: roleOK,
 			Name:"name",
 			Created:1 }
 
-		err := provider.Add(*user)
+		err := provider.Add(*role)
 		gomega.Expect(err).To(gomega.Succeed())
 
 	})
@@ -27,23 +31,28 @@ func RunTest(provider Provider) {
 	//	Update
 	ginkgo.It("Should be able to update role", func(){
 
-		user := &entities.Role{ OrganizationId:"org",
+		// insert a role
+		role := &entities.Role{ OrganizationId:"org",
 			RoleId: roleOK,
-			Name:"name modified",
+			Name:"name",
 			Created:1 }
 
-		err := provider.Update(*user)
+		err := provider.Add(*role)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		role.OrganizationId = "organization_MOD"
+		err = provider.Update(*role)
 		gomega.Expect(err).To(gomega.Succeed())
 
 	})
 	ginkgo.It("Should not be able to update role", func(){
 
-		user := &entities.Role{ OrganizationId:"org",
-			RoleId: roleKO,
+		role := &entities.Role{ OrganizationId:"org",
+			RoleId: roleOK,
 			Name:"name modified",
 			Created:1 }
 
-		err := provider.Update(*user)
+		err := provider.Update(*role)
 		gomega.Expect(err).NotTo(gomega.Succeed())
 
 	})
@@ -51,6 +60,16 @@ func RunTest(provider Provider) {
 	//	Exists
 	ginkgo.It("Should be able to find role", func(){
 
+		// insert a role
+		role := &entities.Role{ OrganizationId:"org",
+			RoleId: roleOK,
+			Name:"name modified",
+			Created:1 }
+
+		err := provider.Add(*role)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		// ask if exists
 		exists, err := provider.Exists(roleOK)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(exists).To(gomega.BeTrue())
@@ -66,9 +85,18 @@ func RunTest(provider Provider) {
 	//	Get
 	ginkgo.It("Should be able to return role", func(){
 
-		role, err := provider.Get(roleOK)
+		// insert a role
+		role := &entities.Role{ OrganizationId:"org",
+			RoleId: roleOK,
+			Name:"Name",
+			Created:1 }
+
+		err := provider.Add(*role)
 		gomega.Expect(err).To(gomega.Succeed())
-		gomega.Expect(role).NotTo(gomega.BeNil())
+
+		returnedRole, err := provider.Get(roleOK)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(returnedRole).NotTo(gomega.BeNil())
 	})
 	ginkgo.It("Should not be able to return role", func(){
 
@@ -79,7 +107,17 @@ func RunTest(provider Provider) {
 	//	Remove
 	ginkgo.It("Should be able to remove role", func(){
 
-		err := provider.Remove(roleOK)
+		// insert a role
+		role := &entities.Role{ OrganizationId:"org",
+			RoleId: roleOK,
+			Name:"Name",
+			Created:1 }
+
+		err := provider.Add(*role)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		// remove it
+		err = provider.Remove(role.RoleId)
 		gomega.Expect(err).To(gomega.Succeed())
 
 	})

@@ -29,7 +29,6 @@ create type nalej.config_file (organization_id text, app_descriptor_id text, con
 create type nalej.service_instance (organization_id text, app_descriptor_id text, app_instance_id text, service_id text, name text, description text, type int, image text, credentials FROZEN <credential>, specs FROZEN<deploy_spec>,storage list<FROZEN<storage>>,exposed_ports list<FROZEN<port>>, environment_variables map<text, text>, configs list<FROZEN<config_file>>, labels map<text, text>,deploy_after list<text>, status int);
 
 create type nalej.service (organization_id text, app_descriptor_id text, service_id text, name text, description text, type int, image text, credentials FROZEN <credential>, specs FROZEN<deploy_spec>,storage list<FROZEN<storage>>,exposed_ports list<FROZEN<port>>, environment_variables map<text, text>, configs list<FROZEN<config_file>>, labels map<text, text>,deploy_after list<text>);
-
 create type nalej.service_group (organization_id text, app_descriptor_id text, service_group_id text, name text, description text, services list<text>, policy int);
 
 create table nalej.ApplicationInstances (organization_id text, app_descriptor_id text, app_instance_id text, name text, description text, configuration_options map<text, text>, environment_variables map<text, text>, labels map<text, text>, rules list<FROZEN<security_rule>>, groups list<FROZEN<service_group_instance>>, services list<FROZEN<service_instance>>, status int, PRIMARY KEY (app_instance_id));
@@ -73,7 +72,7 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 
 	RunTest(sp)
 
-	ginkgo.FIt("Should be able to add Applications", func(){
+	ginkgo.It("Should be able to add Applications", func(){
 
 		for i := 0; i < numApps; i++ {
 			appId := fmt.Sprintf("00%d", i)

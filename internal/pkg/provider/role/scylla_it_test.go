@@ -8,23 +8,24 @@ RUN_INTEGRATION_TEST=true
 /*
 before past test:
 
-$ docker run --name scylla -p 9042:9042 -d scylladb/scylla -> launch docker image
-$ docker exec -it scylla nodetool status -> Check the node is up
+docker run --name scylla -p 9042:9042 -d scylladb/scylla -> launch docker image
+docker exec -it scylla nodetool status -> Check the node is up
 
 Prepare the database...
 
-$ docker exec -it scylla cqlsh
-cqlsh> create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-cqlsh> create table nalej.Roles (organization_id text, role_id text, name text, description text, created int, PRIMARY KEY (role_id));
+docker exec -it scylla cqlsh
+create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+create table nalej.Roles (organization_id text, role_id text, name text, description text, created int, PRIMARY KEY (role_id));
 
 */
 
 import (
-	//"fmt"
-	//"github.com/nalej/system-model/internal/pkg/entities"
+	"fmt"
+	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/onsi/gomega"
+
 	"github.com/nalej/system-model/internal/pkg/utils"
 	"github.com/onsi/ginkgo"
-	//"github.com/onsi/gomega"
 	"github.com/rs/zerolog/log"
 	"os"
 )
@@ -33,7 +34,7 @@ import (
 
 var _ = ginkgo.Describe("Scylla user provider", func() {
 
-	//var numRoles = 20
+	var numRoles = 20
 
 	if ! utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
@@ -57,17 +58,14 @@ var _ = ginkgo.Describe("Scylla user provider", func() {
 
 	}
 
-	ginkgo.BeforeSuite(func() {
-		log.Debug().Msg("clearing table")
-		sp.ClearTable()
-
+	// disconnect
+	ginkgo.AfterSuite(func() {
+		sp.Disconnect()
 	})
-
-	// defer sp.Disconnect()
 
 	RunTest(sp)
 
-	/*ginkgo.It("Should be able to add user", func() {
+	ginkgo.It("Should be able to add user", func() {
 
 		for i := 0; i < numRoles; i++ {
 			roleID := fmt.Sprintf("Role_%d", i)
@@ -78,5 +76,5 @@ var _ = ginkgo.Describe("Scylla user provider", func() {
 			err := sp.Add(*role)
 			gomega.Expect(err).To(gomega.Succeed())
 		}
-	})*/
+	})
 })

@@ -13,9 +13,9 @@ var description = "Application description"
 var confLabel = "Conf"
 var confValue = "Conf_value"
 var envLabel = "Env"
-var envfValue = "Env_value"
+var envValue = "Env_value"
 var labelLabel = "lab1"
-var labelfValue = "LABEL1"
+var labelValue = "LABEL1"
 var ruleId = "rule id 1"
 var ruleName = "Rule name"
 var sourceServiceId = "SourceServiceId1"
@@ -215,10 +215,10 @@ func CreateApplication(id string) *entities.AppInstance {
 	configurationOptions[confLabel] = confValue
 
 	environmentVariables := make(map[string]string, 0)
-	environmentVariables[envLabel] = envfValue
+	environmentVariables[envLabel] = envValue
 
 	labels := make(map[string]string, 0)
-	labels[labelLabel] = labelfValue
+	labels[labelLabel] = labelValue
 
 	rules := make([]entities.SecurityRule, 0)
 	rules = append(rules, CreateRule())

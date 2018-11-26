@@ -20,6 +20,8 @@ const applicationTablePK = "app_instance_id"
 const applicationDescriptorTable = "applicationdescriptors"
 const applicationDescriptorTablePK = "app_descriptor_id"
 
+const rowNotFound = "not found"
+
 type ScyllaApplicationProvider struct{
 	Address string
 	Keyspace string
@@ -70,7 +72,6 @@ func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescri
 	// check connection
 	err := sp.CheckConnection()
 	if err != nil {
-		log.Info().Msg("unable to add the application descriptor")
 		return err
 	}
 
@@ -80,7 +81,7 @@ func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescri
 		return conversions.ToDerror(err)
 	}
 	if exists {
-		return derrors.NewInvalidArgumentError("The descriptor already exists")
+		derrors.NewAlreadyExistsError(descriptor.AppDescriptorId)
 	}
 
 	// insert the application instance
@@ -101,7 +102,6 @@ func (sp *ScyllaApplicationProvider) GetDescriptor(appDescriptorID string) (* en
 
 	// check connection
 	if err := sp.CheckConnection(); err != nil {
-		log.Info().Msg("unable to add the descriptor")
 		return nil, err
 	}
 
@@ -114,7 +114,11 @@ func (sp *ScyllaApplicationProvider) GetDescriptor(appDescriptorID string) (* en
 
 	err := q.GetRelease(&descriptor)
 	if err != nil {
-		return nil, conversions.ToDerror(err)
+		if err.Error() == rowNotFound {
+			return nil, derrors.NewNotFoundError("descriptor").WithParams(appDescriptorID)
+		}else {
+			return nil, conversions.ToDerror(err)
+		}
 	}
 
 	return &descriptor, nil
@@ -132,10 +136,14 @@ func (sp *ScyllaApplicationProvider) DescriptorExists(appDescriptorID string) (b
 
 	err := q.GetRelease(&returnedId)
 	if err != nil {
-		return false, nil
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, conversions.ToDerror(err)
+		}
 	}
 
-	return returnedId == appDescriptorID, nil
+	return true, nil
 }
 
 // DeleteDescriptor removes a given descriptor from the system.
@@ -153,7 +161,7 @@ func (sp *ScyllaApplicationProvider) DeleteDescriptor(appDescriptorID string) de
 		return conversions.ToDerror(err)
 	}
 	if ! exists {
-		return derrors.NewInvalidArgumentError("Application descriptor does not exit")
+		return derrors.NewNotFoundError("descriptor").WithParams(appDescriptorID)
 	}
 
 	// delete app instance
@@ -161,7 +169,6 @@ func (sp *ScyllaApplicationProvider) DeleteDescriptor(appDescriptorID string) de
 	cqlErr := sp.Session.Query(stmt, appDescriptorID).Exec()
 
 	if cqlErr != nil {
-		log.Info().Str("trace", conversions.ToDerror(cqlErr).DebugReport()).Msg("failed to delete the application descriptor")
 		return conversions.ToDerror(cqlErr)
 	}
 
@@ -176,7 +183,6 @@ func (sp *ScyllaApplicationProvider) AddInstance(instance entities.AppInstance) 
 	// check connection
 	err := sp.CheckConnection()
 	if err != nil {
-		log.Info().Msg("unable to add the application instance")
 		return err
 	}
 
@@ -186,7 +192,7 @@ func (sp *ScyllaApplicationProvider) AddInstance(instance entities.AppInstance) 
 		return conversions.ToDerror(err)
 	}
 	if exists {
-		return derrors.NewInvalidArgumentError("The application already exists")
+		return derrors.NewAlreadyExistsError(instance.AppDescriptorId)
 	}
 
 	// insert the application instance
@@ -215,7 +221,11 @@ func (sp *ScyllaApplicationProvider) InstanceExists(appInstanceID string) (bool,
 
 	err := q.GetRelease(&returnedId)
 	if err != nil {
-		return false, nil
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else {
+			return false, conversions.ToDerror(err)
+		}
 	}
 
 	return true, nil
@@ -227,7 +237,6 @@ func (sp *ScyllaApplicationProvider) GetInstance(appInstanceID string) (* entiti
 
 	// check connection
 	if err := sp.CheckConnection(); err != nil {
-		log.Info().Msg("unable to add the application instance")
 		return nil, err
 	}
 
@@ -240,11 +249,15 @@ func (sp *ScyllaApplicationProvider) GetInstance(appInstanceID string) (* entiti
 
 	err := q.GetRelease(&app)
 	if err != nil {
-		return nil, conversions.ToDerror(err)
+		if err.Error() == rowNotFound {
+			return nil, derrors.NewNotFoundError("instance").WithParams(appInstanceID)
+		}else{
+			return nil, conversions.ToDerror(err)
+		}
 	}
 
 	return &app, nil
-	
+
 }
 
 // DeleteInstance removes a given instance from the system.
@@ -262,7 +275,7 @@ func (sp *ScyllaApplicationProvider) DeleteInstance(appInstanceID string) derror
 		return conversions.ToDerror(err)
 	}
 	if ! exists {
-		return derrors.NewInvalidArgumentError("Application instance does not exit")
+		return derrors.NewNotFoundError("instance").WithParams(appInstanceID)
 	}
 
 	// delete app instance
@@ -270,7 +283,6 @@ func (sp *ScyllaApplicationProvider) DeleteInstance(appInstanceID string) derror
 	cqlErr := sp.Session.Query(stmt, appInstanceID).Exec()
 
 	if cqlErr != nil {
-		log.Info().Str("trace", conversions.ToDerror(cqlErr).DebugReport()).Msg("failed to delete the application instance")
 		return conversions.ToDerror(cqlErr)
 	}
 
@@ -292,10 +304,10 @@ func (sp *ScyllaApplicationProvider) UpdateInstance(instance entities.AppInstanc
 		return conversions.ToDerror(err)
 	}
 	if ! exists {
-		return derrors.NewInvalidArgumentError("The application does not exist")
+		return derrors.NewNotFoundError("instance").WithParams(instance.AppInstanceId)
 	}
 
-	// insert the application instance
+	// update the application instance
 	stmt, names := qb.Update(applicationTable).Set("organization_id","app_descriptor_id",
 		"name","description","configuration_options","environment_variables",
 		"labels","rules","groups","services","status").Where(qb.Eq(applicationTablePK)).ToCql()
@@ -320,7 +332,7 @@ func (sp *ScyllaApplicationProvider) Clear() derrors.Error {
 	}
 
 	// delete app instances
-	err := sp.Session.Query("TRUNCATE TABLE applications").Exec()
+	err := sp.Session.Query("TRUNCATE TABLE applicationinstances").Exec()
 	if err != nil {
 		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the applications table")
 		return conversions.ToDerror(err)

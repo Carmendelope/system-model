@@ -13,7 +13,7 @@ func clearScyllaUsers(address string, keyspace string) derrors.Error{
 
 	}
 
-	sp.ClearTable()
+	sp.Clear()
 
 	return nil
 

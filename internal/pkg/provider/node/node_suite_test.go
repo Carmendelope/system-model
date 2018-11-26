@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestUserProviderPackage(t *testing.T){
+func TestNodeProviderPackage(t *testing.T){
 	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "UserProviders package suite")
+	ginkgo.RunSpecs(t, "NodeProviders package suite")
 }

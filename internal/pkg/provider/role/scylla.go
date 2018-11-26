@@ -6,17 +6,15 @@ import (
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/rs/zerolog/log"
+	"github.com/scylladb/gocqlx"
+	"github.com/scylladb/gocqlx/qb"
 )
 
-/*
-create table nalej.Roles (organization_id text, role_id text, name text, description text, created int, PRIMARY KEY (role_id));
-*/
+const roleTable = "roles"
+const roleTablePK = "role_id"
 
-const addRole = "INSERT INTO Roles (organization_id, role_id, name, description , created) VALUES (?, ?, ?, ?, ?)"
-const updateRole = "UPDATE Roles SET organization_id = ?, name = ?, description = ?, created = ? WHERE role_id = ?"
-const exitsRole = "SELECT role_id from Roles where role_id = ?"
-const selectRole = "SELECT organization_id, name, description , created from Roles where role_id = ?"
-const deleteRole = "delete  from Roles where role_id = ?"
+const rowNotFound = "not found"
+
 
 type ScyllaRoleProvider struct {
 	Address string
@@ -52,118 +50,164 @@ func (sp *ScyllaRoleProvider) Disconnect () {
 	}
 }
 
+func (sp *ScyllaRoleProvider) CheckConnection () derrors.Error {
+	if sp.Session == nil{
+		return derrors.NewGenericError("Session not created")
+	}
+	return nil
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 // Add a new role to the system.
 func (sp *ScyllaRoleProvider) Add(role entities.Role) derrors.Error {
 
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return err
+	}
+
 	// check if the role exists
 	exists, err := sp.Exists(role.RoleId)
-
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to add the role")
 		return conversions.ToDerror(err)
 	}
 	if  exists {
-		log.Info().Str("role_id", role.RoleId).Msg("unable to add the role, it alredy exists")
-		return derrors.NewInvalidArgumentError("Role alredy exists")
+		return derrors.NewAlreadyExistsError(role.RoleId)
 	}
 
-	// insert a user
-	cqlErr := sp.Session.Query(addRole,role.OrganizationId, role.RoleId, role.Name, role.Description, role.Created).Exec()
+	// insert a role
+	stmt, names := qb.Insert(roleTable).Columns("organization_id","role_id","name","description","created").ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(role)
+	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		log.Info().Str("trace", conversions.ToDerror(cqlErr).DebugReport()).Msg("failed to add the role")
 		return conversions.ToDerror(cqlErr)
 	}
 
 	return nil
 }
+
 // Update an existing role in the system
 func (sp *ScyllaRoleProvider) Update(role entities.Role) derrors.Error{
+
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return err
+	}
+
 	// check if the user exists
 	exists, err := sp.Exists(role.RoleId)
-
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Str("role", role.RoleId).Msg("unable to update the role")
 		return conversions.ToDerror(err)
 	}
 	if ! exists {
-		log.Info().Str("role", role.RoleId).Msg("unable to update the role, not exists")
-		return derrors.NewInvalidArgumentError("Role does not exit")
+		return derrors.NewNotFoundError(role.RoleId)
 	}
 
-	// insert a user
-	cqlErr := sp.Session.Query(updateRole, role.OrganizationId, role.Name, role.Description, role.Created, role.RoleId).Exec()
+	// update the role
+	stmt, names := qb.Update(roleTable).Set("organization_id","name","description","created").Where(qb.Eq(roleTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(role)
+	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		log.Info().Str("trace", conversions.ToDerror(cqlErr).DebugReport()).Msg("failed to update the role")
 		return conversions.ToDerror(cqlErr)
 	}
 
 	return nil
 }
+
 // Exists checks if a role exists on the system.
 func (sp *ScyllaRoleProvider) Exists(roleID string) (bool, derrors.Error){
 
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return false, err
+	}
+
 	// check if exists
-	var recoveredEmail string
-	err := sp.Session.Query(exitsRole, roleID).Scan(&recoveredEmail)
+	var recoveredRoleID string
+	stmt, names := qb.Select(roleTable).Columns(roleTablePK).Where(qb.Eq(roleTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		roleTablePK: roleID })
 
-	if err == gocql.ErrNotFound{
-		return false, nil
-	}
-
+	err := q.GetRelease(&recoveredRoleID)
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed role exists")
-		return false, conversions.ToDerror(err)
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, conversions.ToDerror(err)
+		}
 	}
-
 	return true, nil
 }
+
 // Get a role.
 func (sp *ScyllaRoleProvider) Get(roleID string) (* entities.Role, derrors.Error) {
-	// check if exists
-	var organizationId, name, description string
-	var created int64
-	err := sp.Session.Query(selectRole, roleID).Scan(&organizationId,  &name, &description, &created)
 
-	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed getting user")
-		return nil, conversions.ToDerror(err)
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return nil, err
 	}
 
-	return &entities.Role{OrganizationId:organizationId, Name:name, Description:description, RoleId:roleID, Created:created}, nil
+	var role entities.Role
+	stmt, names := qb.Select(roleTable).Where(qb.Eq(roleTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		roleTablePK: roleID,
+	})
+
+	err := q.GetRelease(&role)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return nil, conversions.ToDerror(err)
+		}else{
+			return nil, derrors.NewNotFoundError(roleID)
+		}
+	}
+
+	return &role, nil
 
 }
+
 // Remove a role
 func (sp *ScyllaRoleProvider) Remove(roleID string) derrors.Error {
 
-	// check if the user exists
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return err
+	}
+
+	// check if the role exists
 	exists, err := sp.Exists(roleID)
 
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Str("role", roleID).Msg("unable to remove the role")
 		return conversions.ToDerror(err)
 	}
 	if ! exists {
-		log.Info().Str("role", roleID).Msg("unable to remove the role, it not exists")
-		return derrors.NewInvalidArgumentError("Role does not exit")
+		return derrors.NewNotFoundError("role").WithParams(roleID)
 	}
 
-	// insert a user
-	cqlErr := sp.Session.Query(deleteRole, roleID).Exec()
+	// remove the role
+	stmt, _ := qb.Delete(roleTable).Where(qb.Eq(roleTablePK)).ToCql()
+	cqlErr := sp.Session.Query(stmt, roleID).Exec()
 
 	if cqlErr != nil {
-		log.Info().Str("trace", conversions.ToDerror(cqlErr).DebugReport()).Msg("failed to delete the role")
 		return conversions.ToDerror(cqlErr)
 	}
 
 	return nil
 }
 // Truncate the table
-func (sp *ScyllaRoleProvider) ClearTable() derrors.Error{
+
+func (sp *ScyllaRoleProvider) Clear() derrors.Error{
+
+	// check connection
+	if err := sp.CheckConnection(); err != nil {
+		return err
+	}
+
 	err := sp.Session.Query("TRUNCATE TABLE ROLES").Exec()
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the table")
 		return conversions.ToDerror(err)
 	}
 

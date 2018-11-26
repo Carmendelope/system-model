@@ -21,4 +21,6 @@ type Provider interface {
 	Get(nodeID string) (* entities.Node, derrors.Error)
 	// Remove a node
 	Remove(nodeID string) derrors.Error
+	// Clear nodes
+	Clear() derrors.Error
 }

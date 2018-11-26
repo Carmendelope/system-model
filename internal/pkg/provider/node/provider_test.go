@@ -8,16 +8,18 @@ import (
 
 func RunTest (provider Provider) {
 
-	var nodeOK = "nodeOK"
-	var nodeKO = "nodeKO"
 
 	labels := make(map[string]string)
 	labels["label1"] = "label1"
 
-	// AddProvider
+	ginkgo.BeforeEach(func() {
+		provider.Clear()
+	})
+
+	// Add
 	ginkgo.It("Should be able to add role", func(){
 
-		node := &entities.Node{OrganizationId:"org", ClusterId:"cluster_id", NodeId: nodeOK,
+		node := &entities.Node{OrganizationId:"org", ClusterId:"cluster_id", NodeId: "node",
 		Ip:"0.0.0.0", Labels:labels, Status:entities.InfraStatusRunning, State:0}
 
 		err := provider.Add(*node)
@@ -28,17 +30,25 @@ func RunTest (provider Provider) {
 	// Update
 	ginkgo.It("Should be able to update role", func(){
 
-		labels["label2"] = "label2"
-		node := &entities.Node{OrganizationId:"org", ClusterId:"clusterMODd", NodeId: nodeOK,
-			Ip:"127.0.0.1", Labels:labels, Status:entities.InfraStatusInstalling, State:1}
+		// add a role
+		node := &entities.Node{OrganizationId:"org", ClusterId:"cluster_id", NodeId: "node",
+			Ip:"0.0.0.0", Labels:labels, Status:entities.InfraStatusRunning, State:0}
 
-		err := provider.Update(*node)
+		err := provider.Add(*node)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		// uodate it
+		labels["label2"] = "label2"
+		node.OrganizationId = "org_MOD"
+		node.Labels = labels
+
+		err = provider.Update(*node)
 		gomega.Expect(err).To(gomega.Succeed())
 
 	})
 	ginkgo.It("Should not be able to update role", func(){
 
-		node := &entities.Node{OrganizationId:"org", ClusterId:"clusterMODD", NodeId: nodeKO,
+		node := &entities.Node{OrganizationId:"org", ClusterId:"clusterMODD", NodeId: "node",
 			Ip:"127.0.0.1", Labels:labels, Status:entities.InfraStatusInstalling, State:1}
 
 		err := provider.Update(*node)
@@ -49,7 +59,15 @@ func RunTest (provider Provider) {
 	// Exists
 	ginkgo.It("Should be able to find role", func(){
 
-		exits, err := provider.Exists(nodeOK)
+		// add a role
+		node := &entities.Node{OrganizationId:"org", ClusterId:"cluster_id", NodeId: "node",
+			Ip:"0.0.0.0", Labels:labels, Status:entities.InfraStatusRunning, State:0}
+
+		err := provider.Add(*node)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		// ask if it exists
+		exits, err := provider.Exists(node.NodeId)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(exits).To(gomega.BeTrue())
 
@@ -57,7 +75,7 @@ func RunTest (provider Provider) {
 
 	ginkgo.It("Should not be able to find role", func(){
 
-		exits, err := provider.Exists(nodeKO)
+		exits, err := provider.Exists("node")
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(exits).NotTo(gomega.BeTrue())
 
@@ -66,26 +84,42 @@ func RunTest (provider Provider) {
 	// Get
 	ginkgo.It("Should be able to get the role", func(){
 
-		node, err := provider.Get(nodeOK)
+		// add a role
+		node := &entities.Node{OrganizationId:"org", ClusterId:"cluster_id", NodeId: "node",
+			Ip:"0.0.0.0", Labels:labels, Status:entities.InfraStatusRunning, State:0}
+
+		err := provider.Add(*node)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		// ask for it
+		node, err = provider.Get(node.NodeId)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(node).NotTo(gomega.BeNil())
 	})
 	ginkgo.It("Should not be able to get the role", func(){
 
-		node, err := provider.Get(nodeKO)
+		node, err := provider.Get("node")
 		gomega.Expect(err).NotTo(gomega.Succeed())
 		gomega.Expect(node).To(gomega.BeNil())
 	})
 
 	// Remove
-	ginkgo.It("Should be able to find the role", func(){
+	ginkgo.It("Should be able to remove the role", func(){
 
-		err := provider.Remove(nodeOK)
+		// add a role
+		node := &entities.Node{OrganizationId:"org", ClusterId:"cluster_id", NodeId: "node",
+			Ip:"0.0.0.0", Labels:labels, Status:entities.InfraStatusRunning, State:0}
+
+		err := provider.Add(*node)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		// remove it
+		err = provider.Remove(node.NodeId)
 		gomega.Expect(err).To(gomega.Succeed())
 	})
-	ginkgo.It("Should not be able to find the role", func(){
+	ginkgo.It("Should not be able to remove the role", func(){
 
-		err := provider.Remove(nodeKO)
+		err := provider.Remove("node")
 		gomega.Expect(err).NotTo(gomega.Succeed())
 	})
 }

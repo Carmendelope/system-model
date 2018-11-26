@@ -21,4 +21,7 @@ type Provider interface {
 	Get(email string) (* entities.User, derrors.Error)
 	// Remove a user.
 	Remove(email string) derrors.Error
+	// Clear
+	Clear() derrors.Error
+
 }

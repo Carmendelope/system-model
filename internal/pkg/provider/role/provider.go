@@ -21,4 +21,6 @@ type Provider interface {
 	Get(roleID string) (* entities.Role, derrors.Error)
 	// Remove a role
 	Remove(roleID string) derrors.Error
+	//clear roles
+	Clear() derrors.Error
 }
