@@ -56,7 +56,7 @@ pipeline {
                         testResults = sh(returnStdout: true, script: "make test").trim()
                         if (env.CHANGE_ID) {
                             for (comment in pullRequest.comments) {
-                                if comment.user == "nalej-jarvis" {
+                                if (comment.user == "nalej-jarvis") {
                                     comment.delete()
                                 }
                             }
