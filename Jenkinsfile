@@ -48,6 +48,15 @@ pipeline {
                 }
             }
         }
+        stage("Dependency download") {
+            steps {
+                container("golang") {
+                    dir("${packagePath}") {
+                        sh "dep ensure -v"
+                    }
+                }
+            }
+        }
         stage("Unit tests") {
             steps {
                 container("golang") {
@@ -61,11 +70,7 @@ pipeline {
                                         comment.delete()
                                     }
                                 }
-                                commentContent = """
-                                J.A.R.V.I.S. CI Test results:
-
-                                ${testResults}
-                                """
+                                commentContent = "J.A.R.V.I.S. CI Test results:\n\n```${testResults}```"
                                 pullRequest.comment(commentContent)
                             }
                         }
@@ -89,11 +94,6 @@ pipeline {
                 def timestamp = currentBuild.startTimeInMillis.intdiv(1000)
                 def attachment = slackHelper.createSlackAttachment("success", "good", env.repoName, env.BRANCH_NAME, env.commitId, env.authorName, env.authorEmail, env.commitMsg, env.BUILD_URL, env.BUILD_NUMBER, timestamp)
                 slackSend attachments: attachment, message: ""
-                if (env.CHANGE_ID) {
-                    pullRequest.removeLabel("J.A.R.V.I.S. is happy")
-                    pullRequest.removeLabel("J.A.R.V.I.S. is sad")
-                    pullRequest.addLabel("J.A.R.V.I.S. is happy")
-                }
             }
         }
         failure {
@@ -101,11 +101,6 @@ pipeline {
                 def timestamp = currentBuild.startTimeInMillis.intdiv(1000)
                 def attachment = slackHelper.createSlackAttachment("failure", "danger", env.repoName, env.BRANCH_NAME, env.commitId, env.authorName, env.authorEmail, env.commitMsg, env.BUILD_URL, env.BUILD_NUMBER, timestamp)
                 slackSend attachments: attachment, message: ""
-                if (env.CHANGE_ID) {
-                    pullRequest.removeLabel("J.A.R.V.I.S. is happy")
-                    pullRequest.removeLabel("J.A.R.V.I.S. is sad")
-                    pullRequest.addLabel("J.A.R.V.I.S. is sad")
-                }
             }
         }
         aborted {
@@ -113,11 +108,6 @@ pipeline {
                 def timestamp = currentBuild.startTimeInMillis.intdiv(1000)
                 def attachment = slackHelper.createSlackAttachment("aborted", "warning", env.repoName, env.BRANCH_NAME, env.commitId, env.authorName, env.authorEmail, env.commitMsg, env.BUILD_URL, env.BUILD_NUMBER, timestamp)
                 slackSend attachments: attachment, message: ""
-                if (env.CHANGE_ID) {
-                    pullRequest.removeLabel("J.A.R.V.I.S. is happy")
-                    pullRequest.removeLabel("J.A.R.V.I.S. is sad")
-                    pullRequest.addLabel("J.A.R.V.I.S. is sad")
-                }
             }
         }
     }
