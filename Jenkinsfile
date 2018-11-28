@@ -26,7 +26,7 @@ pipeline {
                 script {
                     def timestamp = currentBuild.startTimeInMillis.intdiv(1000)
                     def attachment = slackHelper.createSlackAttachment("started", "", env.repoName, env.BRANCH_NAME, env.commitId, env.authorName, env.authorEmail, env.commitMsg, env.BUILD_URL, env.BUILD_NUMBER, timestamp)
-                    slackSend channel: "@rnunez", attachments: attachment, message: ""
+                    slackSend attachments: attachment, message: ""
                 }
             }
         }
@@ -52,10 +52,8 @@ pipeline {
             steps {
                 container("golang") {
                     dir("${packagePath}") {
-                        sh(script: """
-                        dep ensure -v && \" 
-                        make test
-                        """)
+                        sh "dep ensure -v"
+                        sh "make test"
                     }
                 }
             }
@@ -75,21 +73,21 @@ pipeline {
             script {
                 def timestamp = currentBuild.startTimeInMillis.intdiv(1000)
                 def attachment = slackHelper.createSlackAttachment("success", "good", env.repoName, env.BRANCH_NAME, env.commitId, env.authorName, env.authorEmail, env.commitMsg, env.BUILD_URL, env.BUILD_NUMBER, timestamp)
-                slackSend channel: "@rnunez", attachments: attachment, message: ""
+                slackSend attachments: attachment, message: ""
             }
         }
         failure {
             script {
                 def timestamp = currentBuild.startTimeInMillis.intdiv(1000)
                 def attachment = slackHelper.createSlackAttachment("failure", "danger", env.repoName, env.BRANCH_NAME, env.commitId, env.authorName, env.authorEmail, env.commitMsg, env.BUILD_URL, env.BUILD_NUMBER, timestamp)
-                slackSend channel: "@rnunez", attachments: attachment, message: ""
+                slackSend attachments: attachment, message: ""
             }
         }
         aborted {
             script {
                 def timestamp = currentBuild.startTimeInMillis.intdiv(1000)
                 def attachment = slackHelper.createSlackAttachment("aborted", "warning", env.repoName, env.BRANCH_NAME, env.commitId, env.authorName, env.authorEmail, env.commitMsg, env.BUILD_URL, env.BUILD_NUMBER, timestamp)
-                slackSend channel: "@rnunez", attachments: attachment, message: ""
+                slackSend attachments: attachment, message: ""
             }
         }
     }
