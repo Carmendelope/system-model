@@ -69,7 +69,7 @@ pipeline {
                                         comment.delete()
                                     }
                                 }
-                                commentContent = "J.A.R.V.I.S. CI Test results:\n\n```\n${testResults}\n```"
+                                commentContent = "### J.A.R.V.I.S. CI Test results\n\n```\n${testResults}\n```"
                                 pullRequest.comment(commentContent)
                             }
                         }
