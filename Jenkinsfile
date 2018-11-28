@@ -53,19 +53,21 @@ pipeline {
                 container("golang") {
                     dir("${packagePath}") {
                         sh "dep ensure -v"
-                        testResults = sh(returnStdout: true, script: "make test").trim()
-                        if (env.CHANGE_ID) {
-                            for (comment in pullRequest.comments) {
-                                if (comment.user == "nalej-jarvis") {
-                                    comment.delete()
+                        script {
+                            testResults = sh(returnStdout: true, script: "make test").trim()
+                            if (env.CHANGE_ID) {
+                                for (comment in pullRequest.comments) {
+                                    if (comment.user == "nalej-jarvis") {
+                                        comment.delete()
+                                    }
                                 }
-                            }
-                            commentContent = """
-                            J.A.R.V.I.S. CI Test results:
+                                commentContent = """
+                                J.A.R.V.I.S. CI Test results:
 
-                            ${testResults}
-                            """
-                            pullRequest.comment(commentContent)
+                                ${testResults}
+                                """
+                                pullRequest.comment(commentContent)
+                            }
                         }
                     }
                 }
