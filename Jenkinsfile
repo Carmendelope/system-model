@@ -61,7 +61,6 @@ pipeline {
             steps {
                 container("golang") {
                     dir("${packagePath}") {
-                        sh "dep ensure -v"
                         script {
                             testResults = sh(returnStdout: true, script: "make test").trim()
                             if (env.CHANGE_ID) {
@@ -70,7 +69,7 @@ pipeline {
                                         comment.delete()
                                     }
                                 }
-                                commentContent = "J.A.R.V.I.S. CI Test results:\n\n```${testResults}```"
+                                commentContent = "J.A.R.V.I.S. CI Test results:\n\n```\n${testResults}\n```"
                                 pullRequest.comment(commentContent)
                             }
                         }
