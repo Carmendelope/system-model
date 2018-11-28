@@ -49,7 +49,7 @@ pipeline {
             }
         }
         stage("Dependency download") {
-            steps {
+            steps {
                 container("golang") {
                     dir("${packagePath}") {
                         sh "dep ensure -v"
