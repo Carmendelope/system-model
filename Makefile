@@ -112,22 +112,15 @@ yaml:
 	done
 
 # Package all images and components
-.PHONY: image image-create-dir create-image
-image: build-linux image-create-dir create-image
-
-image-create-dir:
-	mkdir -p $(TARGET)/images
+.PHONY: image create-image
+image: build-linux create-image
 
 create-image:
-	$(info >>> Creating images ...)
+	@echo ">>> Creating docker images ..."
 	for app in $(APPS); do \
         echo Create image of app $$app ; \
         if [ -f components/"$$app"/Dockerfile ]; then \
-            mkdir -p $(TARGET)/images/"$$app" ; \
             docker build --no-cache -t $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app":$(VERSION) -f components/"$$app"/Dockerfile $(TARGET)/linux_amd64 ; \
-            docker save $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app" > $(TARGET)/images/"$$app"/image.tar ; \	
-            // docker rmi $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app":$(VERSION) ; \
-            cd $(TARGET)/images/"$$app"/ && tar cvzf "$$app".tar.gz * && cd - ; \
         else  \
             echo $$app has no Dockerfile ; \
         fi ; \
@@ -135,7 +128,7 @@ create-image:
 
 # Publish the image
 .PHONY: publish az-login az-logout publish-image
-publish: image publish-image
+publish: image az-login publish-image az-logout
 
 az-login:
 	@echo ">>> Logging in Azure and Azure Container Registry ..."
@@ -148,10 +141,5 @@ az-logout:
 publish-image:
 	@echo ">>> Publishing images into Azure Container Registry ..."
 	for app in $(APPS); do \
-	    if [ -f $(TARGET)/images/"$$app"/image.tar ]; then \
-	        docker push $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app":$(VERSION) ; \
-	    else \
-	        echo $$app has no image to be pushed ; \
-	    fi ; \
-   	    echo  Published image of app $$app ; \
+		docker push $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app":$(VERSION) || true ; \
     done ; \

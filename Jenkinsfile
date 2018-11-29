@@ -82,7 +82,7 @@ pipeline {
             steps {
                 container("golang") {
                     dir("${packagePath}") {
-                        sh "make build"
+                        sh "make build-linux"
                     }
                 }
             }
@@ -91,7 +91,12 @@ pipeline {
             when { branch 'master' }
             steps {
                 container("docker") {
-                    
+                    dir("${packagePath}") {
+                        script {
+                            sh "set +ex && echo \$REGISTRY_PASS | docker login --username \$REGISTRY_USER --password-stdin nalejregistry.azurecr.io"
+                            sh "make create-image publish-image"
+                        }
+                    }
                 }
             }
         }
