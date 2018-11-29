@@ -63,6 +63,7 @@ pipeline {
                     dir("${packagePath}") {
                         script {
                             testResults = sh(returnStdout: true, script: "make test").trim()
+                            echo testResults
                             if (env.CHANGE_ID) {
                                 for (comment in pullRequest.comments) {
                                     if (comment.user == "nalej-jarvis") {
@@ -83,6 +84,14 @@ pipeline {
                     dir("${packagePath}") {
                         sh "make build"
                     }
+                }
+            }
+        }
+        stage("Publish image to Docker") {
+            when { branch 'master' }
+            steps {
+                container("docker") {
+                    
                 }
             }
         }

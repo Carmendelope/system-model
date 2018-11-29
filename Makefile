@@ -125,7 +125,7 @@ create-image:
         if [ -f components/"$$app"/Dockerfile ]; then \
             mkdir -p $(TARGET)/images/"$$app" ; \
             docker build --no-cache -t $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app":$(VERSION) -f components/"$$app"/Dockerfile $(TARGET)/linux_amd64 ; \
-            docker save $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app" > $(TARGET)/images/"$$app"/image.tar ; \
+            docker save $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app" > $(TARGET)/images/"$$app"/image.tar ; \	
             // docker rmi $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app":$(VERSION) ; \
             cd $(TARGET)/images/"$$app"/ && tar cvzf "$$app".tar.gz * && cd - ; \
         else  \
@@ -134,14 +134,19 @@ create-image:
     done
 
 # Publish the image
+.PHONY: publish az-login az-logout publish-image
 publish: image publish-image
 
-publish-image:
-	$(info >>> Logging in Azure and Azure Container Registry ...)
+az-login:
+	@echo ">>> Logging in Azure and Azure Container Registry ..."
 	az login
 	az acr login --name $(AZURE_CR)
 
-	$(info >>> Publish images into Azure Container Registry ...)
+az-logout:
+	az logout
+
+publish-image:
+	@echo ">>> Publishing images into Azure Container Registry ..."
 	for app in $(APPS); do \
 	    if [ -f $(TARGET)/images/"$$app"/image.tar ]; then \
 	        docker push $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app":$(VERSION) ; \
@@ -150,4 +155,3 @@ publish-image:
 	    fi ; \
    	    echo  Published image of app $$app ; \
     done ; \
-    az logout ; \
