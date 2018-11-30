@@ -42,22 +42,22 @@ dep:
 	    echo ">>> Create vendor folder" ; \
 	    mkdir vendor ; \
 	fi ;
-	$(info >>> Updating dependencies...)
+	@echo ">>> Updating dependencies..."
 	dep ensure -v
 
 test-all: test test-race test-coverage
 
 .PHONY: test test-race test-coverage
 test:
-	$(info >>> Launching tests...)
+	@echo ">>> Launching tests..."
 	$(GOTEST) ./...
 
 test-race:
-	$(info >>> Launching tests... (Race detector enabled))
+	@echo ">>> Launching tests... (Race detector enabled)"
 	$(GOTEST) -race ./...
 
 test-coverage:
-	$(info >>> Launching tests... (Coverage enabled))
+	@echo ">>> Launching tests... (Coverage enabled)"
 	$(GOTEST) -coverprofile=$(COVERAGE_FILE) -covermode=atomic  ./...
 
 # Check the codestyle using gometalinter
@@ -68,12 +68,12 @@ checkstyle:
 # Run go formatter
 .PHONY: format
 format:
-	$(info >>> Formatting...)
+	@echo ">>> Formatting..."
 	gofmt -s -w .
 
 .PHONY: clean
 clean:
-	$(info >>> Cleaning project...)
+	@echo ">>> Cleaning project..."
 	$(GOCLEAN)
 	rm -Rf $(TARGET)
 
@@ -84,20 +84,24 @@ build-linux: dep linux
 
 # Local compilation
 local:
-	$(info >>> Building ...)
+	@echo ">>> Building ..."
 	for app in $(APPS); do \
+		if [ -d cmd/"$app" ]; then \
             $(GOBUILD) $(LDFLAGS) -o $(TARGET)/"$$app" ./cmd/"$$app" ; \
+		fi ; \
 	done
 
 # Cross compilation to obtain a linux binary
 linux:
-	$(info >>> Bulding for Linux...)
+	@echo ">>> Bulding for Linux..."
 	for app in $(APPS); do \
-    	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o $(TARGET)/linux_amd64/"$$app" ./cmd/"$$app" ; \
+		if [ -d cmd/"$app" ]; then \
+    		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o $(TARGET)/linux_amd64/"$$app" ./cmd/"$$app" ; \
+		fi ; \
 	done
 
 yaml:
-	$(info >>> Creating K8s files)
+	@echo ">>> Creating K8s files..."
 	for app in $(APPS); do \
 		if [ -d components/"$$app"/appcluster ]; then \
 			mkdir -p $(TARGET)/yaml/appcluster ; \
@@ -121,6 +125,7 @@ create-image:
         echo Create image of app $$app ; \
         if [ -f components/"$$app"/Dockerfile ]; then \
             docker build --no-cache -t $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app":$(VERSION) -f components/"$$app"/Dockerfile $(TARGET)/linux_amd64 ; \
+			echo Built $$app Docker image ; \
         else  \
             echo $$app has no Dockerfile ; \
         fi ; \
@@ -141,5 +146,7 @@ az-logout:
 publish-image:
 	@echo ">>> Publishing images into Azure Container Registry ..."
 	for app in $(APPS); do \
-		docker push $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app":$(VERSION) || true ; \
-    done ; \
+		if [ -f components/"$$app"/Dockerfile ]; then \
+			docker push $(DOCKER_REGISTRY)/$(DOCKER_REPO)/"$$app":$(VERSION) ; \
+		fi ; \
+    done
