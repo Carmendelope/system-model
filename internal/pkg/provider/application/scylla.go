@@ -68,13 +68,26 @@ func (sp *ScyllaApplicationProvider) CheckConnection () derrors.Error {
 	return nil
 }
 
+func (sp *ScyllaApplicationProvider) CheckAndConnect () derrors.Error{
+
+	err := sp.CheckConnection()
+	if err != nil {
+		log.Info().Msg("session no created, trying to reconnect...")
+		// try to reconnect
+		err = sp.Connect()
+		if err != nil  {
+			return err
+		}
+	}
+	return nil
+}
 // ---------------------------------------------------------------------------------------------------------------------
 
 // AddDescriptor adds a new application descriptor to the system
 func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescriptor) derrors.Error {
 
 	// check connection
-	err := sp.CheckConnection()
+	err := sp.CheckAndConnect()
 	if err != nil {
 		return err
 	}
@@ -105,7 +118,7 @@ func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescri
 func (sp *ScyllaApplicationProvider) GetDescriptor(appDescriptorID string) (* entities.AppDescriptor, derrors.Error) {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -131,6 +144,11 @@ func (sp *ScyllaApplicationProvider) GetDescriptor(appDescriptorID string) (* en
 // DescriptorExists checks if a given descriptor exists on the system.
 func (sp *ScyllaApplicationProvider) DescriptorExists(appDescriptorID string) (bool, derrors.Error) {
 
+	// check connection
+	if  err := sp.CheckAndConnect(); err != nil {
+		return false, err
+	}
+
 	var returnedId string
 
 	stmt, names := qb.Select(applicationDescriptorTable).Columns(applicationDescriptorTablePK).Where(qb.Eq(applicationDescriptorTablePK)).ToCql()
@@ -154,7 +172,7 @@ func (sp *ScyllaApplicationProvider) DescriptorExists(appDescriptorID string) (b
 func (sp *ScyllaApplicationProvider) DeleteDescriptor(appDescriptorID string) derrors.Error {
 
 	// check connection
-	err := sp.CheckConnection()
+	err := sp.CheckAndConnect()
 	if  err != nil {
 		return err
 	}
@@ -185,7 +203,7 @@ func (sp *ScyllaApplicationProvider) DeleteDescriptor(appDescriptorID string) de
 func (sp *ScyllaApplicationProvider) AddInstance(instance entities.AppInstance) derrors.Error {
 
 	// check connection
-	err := sp.CheckConnection()
+	err := sp.CheckAndConnect()
 	if err != nil {
 		return err
 	}
@@ -216,6 +234,11 @@ func (sp *ScyllaApplicationProvider) AddInstance(instance entities.AppInstance) 
 // InstanceExists checks if an application instance exists on the system.
 func (sp *ScyllaApplicationProvider) InstanceExists(appInstanceID string) (bool, derrors.Error) {
 
+	// check connection
+	if  err := sp.CheckAndConnect(); err != nil {
+		return false, err
+	}
+
 	var returnedId string
 
 	stmt, names := qb.Select(applicationTable).Columns(applicationTablePK).Where(qb.Eq(applicationTablePK)).ToCql()
@@ -240,7 +263,7 @@ func (sp *ScyllaApplicationProvider) InstanceExists(appInstanceID string) (bool,
 func (sp *ScyllaApplicationProvider) GetInstance(appInstanceID string) (* entities.AppInstance, derrors.Error) {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -268,7 +291,7 @@ func (sp *ScyllaApplicationProvider) GetInstance(appInstanceID string) (* entiti
 func (sp *ScyllaApplicationProvider) DeleteInstance(appInstanceID string) derrors.Error {
 
 	// check connection
-	err := sp.CheckConnection()
+	err := sp.CheckAndConnect()
 	if  err != nil {
 		return err
 	}
@@ -296,7 +319,7 @@ func (sp *ScyllaApplicationProvider) DeleteInstance(appInstanceID string) derror
 // UpdateInstance updates the information of an instance
 func (sp *ScyllaApplicationProvider) UpdateInstance(instance entities.AppInstance) derrors.Error {
 	// check connection
-	err := sp.CheckConnection()
+	err := sp.CheckAndConnect()
 	if err != nil {
 		log.Info().Msg("unable to update the application instance")
 		return err
@@ -331,7 +354,7 @@ func (sp *ScyllaApplicationProvider) UpdateInstance(instance entities.AppInstanc
 func (sp *ScyllaApplicationProvider) Clear() derrors.Error {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 

@@ -64,14 +64,27 @@ func (sp *ScyllaNodeProvider) CheckConnection () derrors.Error {
 	return nil
 }
 
+func (sp *ScyllaNodeProvider) CheckAndConnect () derrors.Error{
+
+	err := sp.CheckConnection()
+	if err != nil {
+		log.Info().Msg("session no created, trying to reconnect...")
+		// try to reconnect
+		err = sp.Connect()
+		if err != nil  {
+			return err
+		}
+	}
+	return nil
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 
 // Add a new node to the system.
 func (sp *ScyllaNodeProvider) Add (node entities.Node) derrors.Error {
 
-	//create table nalej.Nodes (organization_id text, cluster_id text, node_id text, ip text, labels map<text, text>, status int, state int, PRIMARY KEY(node_id))
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 
@@ -102,7 +115,7 @@ func (sp *ScyllaNodeProvider) Add (node entities.Node) derrors.Error {
 func (sp *ScyllaNodeProvider) Update(node entities.Node) derrors.Error {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 
@@ -134,7 +147,7 @@ func (sp *ScyllaNodeProvider) Exists(nodeID string) (bool, derrors.Error) {
 	var returnedId string
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -158,7 +171,7 @@ func (sp *ScyllaNodeProvider) Exists(nodeID string) (bool, derrors.Error) {
 func (sp *ScyllaNodeProvider) Get(nodeID string) (* entities.Node, derrors.Error) {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -184,7 +197,7 @@ func (sp *ScyllaNodeProvider) Get(nodeID string) (* entities.Node, derrors.Error
 func (sp *ScyllaNodeProvider) Remove(nodeID string) derrors.Error {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 
@@ -211,7 +224,7 @@ func (sp *ScyllaNodeProvider) Remove(nodeID string) derrors.Error {
 
 func (sp *ScyllaNodeProvider) Clear() derrors.Error {
 
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 

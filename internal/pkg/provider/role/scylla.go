@@ -62,13 +62,27 @@ func (sp *ScyllaRoleProvider) CheckConnection () derrors.Error {
 	return nil
 }
 
+func (sp *ScyllaRoleProvider) CheckAndConnect () derrors.Error{
+
+	err := sp.CheckConnection()
+	if err != nil {
+		log.Info().Msg("session no created, trying to reconnect...")
+		// try to reconnect
+		err = sp.Connect()
+		if err != nil  {
+			return err
+		}
+	}
+	return nil
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 
 // Add a new role to the system.
 func (sp *ScyllaRoleProvider) Add(role entities.Role) derrors.Error {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 
@@ -97,7 +111,7 @@ func (sp *ScyllaRoleProvider) Add(role entities.Role) derrors.Error {
 func (sp *ScyllaRoleProvider) Update(role entities.Role) derrors.Error{
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 
@@ -126,7 +140,7 @@ func (sp *ScyllaRoleProvider) Update(role entities.Role) derrors.Error{
 func (sp *ScyllaRoleProvider) Exists(roleID string) (bool, derrors.Error){
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -151,7 +165,7 @@ func (sp *ScyllaRoleProvider) Exists(roleID string) (bool, derrors.Error){
 func (sp *ScyllaRoleProvider) Get(roleID string) (* entities.Role, derrors.Error) {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -178,7 +192,7 @@ func (sp *ScyllaRoleProvider) Get(roleID string) (* entities.Role, derrors.Error
 func (sp *ScyllaRoleProvider) Remove(roleID string) derrors.Error {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 
@@ -207,7 +221,7 @@ func (sp *ScyllaRoleProvider) Remove(roleID string) derrors.Error {
 func (sp *ScyllaRoleProvider) Clear() derrors.Error{
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 

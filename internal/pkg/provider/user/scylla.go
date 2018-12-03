@@ -62,12 +62,26 @@ func (sp *ScyllaUserProvider) CheckConnection () derrors.Error {
 	return nil
 }
 
+func (sp *ScyllaUserProvider) CheckAndConnect () derrors.Error{
+
+	err := sp.CheckConnection()
+	if err != nil {
+		log.Info().Msg("session no created, trying to reconnect...")
+		// try to reconnect
+		err = sp.Connect()
+		if err != nil  {
+			return err
+		}
+	}
+	return nil
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 
 func (sp *ScyllaUserProvider) Add(user entities.User) derrors.Error{
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 
@@ -97,7 +111,7 @@ func (sp *ScyllaUserProvider) Add(user entities.User) derrors.Error{
 func (sp *ScyllaUserProvider) Update(user entities.User) derrors.Error {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 
@@ -128,7 +142,7 @@ func (sp *ScyllaUserProvider) Exists(email string) (bool, derrors.Error) {
 	var returnedEmail string
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -151,7 +165,7 @@ func (sp *ScyllaUserProvider) Exists(email string) (bool, derrors.Error) {
 func (sp *ScyllaUserProvider) Get(email string) (* entities.User, derrors.Error) {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -177,7 +191,7 @@ func (sp *ScyllaUserProvider) Get(email string) (* entities.User, derrors.Error)
 func (sp *ScyllaUserProvider) Remove(email string) derrors.Error {
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 
@@ -205,7 +219,7 @@ func (sp *ScyllaUserProvider) Remove(email string) derrors.Error {
 func (sp *ScyllaUserProvider) Clear() derrors.Error{
 
 	// check connection
-	if err := sp.CheckConnection(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return err
 	}
 
