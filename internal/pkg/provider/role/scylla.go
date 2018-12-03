@@ -18,12 +18,16 @@ const rowNotFound = "not found"
 
 type ScyllaRoleProvider struct {
 	Address string
+	Port int
 	Keyspace string
 	Session *gocql.Session
 }
 
-func NewSScyllaRoleProvider (address string, keyspace string) * ScyllaRoleProvider {
-	return &ScyllaRoleProvider{address, keyspace, nil}
+func NewSScyllaRoleProvider (address string, port int, keyspace string) * ScyllaRoleProvider {
+	provider := ScyllaRoleProvider{address, port,keyspace, nil}
+	provider.Connect()
+	return &provider
+
 }
 
 func (sp *ScyllaRoleProvider) Connect() derrors.Error {
@@ -31,10 +35,11 @@ func (sp *ScyllaRoleProvider) Connect() derrors.Error {
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
 	conf.Keyspace = sp.Keyspace
+	conf.Port = sp.Port
 
 	session, err := conf.CreateSession()
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
+		log.Error().Str("provider", "ScyllaRoleProvider").Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
 		return conversions.ToDerror(err)
 	}
 

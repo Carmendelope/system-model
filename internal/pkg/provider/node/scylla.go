@@ -17,12 +17,16 @@ const rowNotFound = "not found"
 
 type ScyllaNodeProvider struct {
 	Address string
+	Port int
 	Keyspace string
 	Session *gocql.Session
 }
 
-func NewScyllaNodeProvider (address string, keyspace string) * ScyllaNodeProvider {
-	return &ScyllaNodeProvider{ address, keyspace, nil}
+func NewScyllaNodeProvider (address string, port int, keyspace string) * ScyllaNodeProvider {
+	provider := ScyllaNodeProvider{ address,  port,keyspace, nil}
+	provider.Connect()
+	return &provider
+
 }
 
 // connect to the database
@@ -31,10 +35,11 @@ func (sp *ScyllaNodeProvider) Connect() derrors.Error {
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
 	conf.Keyspace = sp.Keyspace
+	conf.Port = sp.Port
 
 	session, err := conf.CreateSession()
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
+		log.Error().Str("provider", "ScyllaNodeProvider").Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
 		return conversions.ToDerror(err)
 	}
 

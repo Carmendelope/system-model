@@ -3,11 +3,12 @@ package user
 import (
 	"fmt"
 	"github.com/nalej/system-model/internal/pkg/entities"
-	"github.com/onsi/gomega"
 	"github.com/nalej/system-model/internal/pkg/utils"
 	"github.com/onsi/ginkgo"
+	"github.com/onsi/gomega"
 	"github.com/rs/zerolog/log"
 	"os"
+	"strconv"
 )
 /*
 IT_SCYLLA_HOST=127.0.0.1
@@ -31,7 +32,7 @@ create table nalej.Users (organization_id text, email text, name text, photo_url
 
 var _ = ginkgo.Describe("Scylla user provider", func(){
 
-	var numUsers = 2
+	var numUsers = 50
 
 	if ! utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
@@ -43,6 +44,12 @@ var _ = ginkgo.Describe("Scylla user provider", func(){
 		ginkgo.Fail("missing environment variables")
 	}
 
+	scyllaPort, _  := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
+
+	if scyllaPort <= 0 {
+		ginkgo.Fail("missing environment variables")
+	}
+
 	var nalejKeySpace = os.Getenv("IT_NALEJ_KEYSPACE")
 	if nalejKeySpace == "" {
 		ginkgo.Fail("missing environment variables")
@@ -50,12 +57,12 @@ var _ = ginkgo.Describe("Scylla user provider", func(){
 	}
 
 	// create a provider and connect it
-	sp := NewScyllaUserProvider(scyllaHost, nalejKeySpace)
-	err :=	sp.Connect()
+	sp := NewScyllaUserProvider(scyllaHost, scyllaPort, nalejKeySpace)
+	//err :=	sp.Connect()
 
-	if err != nil {
-		ginkgo.Fail("unable to connect")
-	}
+	//if err != nil {
+	//	ginkgo.Fail("unable to connect")
+	//}
 
 	// disconnect
 	ginkgo.AfterSuite(func() {

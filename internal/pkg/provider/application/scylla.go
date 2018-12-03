@@ -24,12 +24,15 @@ const rowNotFound = "not found"
 
 type ScyllaApplicationProvider struct{
 	Address string
+	Port int
 	Keyspace string
 	Session *gocql.Session
 }
 
-func NewScyllaApplicationProvider (address string, keyspace string) * ScyllaApplicationProvider {
-	return &ScyllaApplicationProvider{address, keyspace, nil}
+func NewScyllaApplicationProvider (address string, port int, keyspace string) * ScyllaApplicationProvider {
+	provider := ScyllaApplicationProvider{address, port, keyspace, nil}
+	provider.Connect()
+	return &provider
 }
 
 func (sp *ScyllaApplicationProvider) Connect() derrors.Error {
@@ -37,10 +40,11 @@ func (sp *ScyllaApplicationProvider) Connect() derrors.Error {
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
 	conf.Keyspace = sp.Keyspace
+	conf.Port = sp.Port
 
 	session, err := conf.CreateSession()
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
+		log.Error().Str("provider", "ScyllaApplicationProvider").Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
 		return conversions.ToDerror(err)
 	}
 
@@ -81,7 +85,7 @@ func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescri
 		return conversions.ToDerror(err)
 	}
 	if exists {
-		derrors.NewAlreadyExistsError(descriptor.AppDescriptorId)
+		return derrors.NewAlreadyExistsError(descriptor.AppDescriptorId)
 	}
 
 	// insert the application instance

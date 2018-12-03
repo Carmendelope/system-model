@@ -6,7 +6,7 @@ import (
 	"math/rand"
 )
 
-func CreateCluster (clusterID string) *entities.Cluster{
+func CreateTestCluster (clusterID string) *entities.Cluster{
 
 	id:= rand.Intn(200)
 

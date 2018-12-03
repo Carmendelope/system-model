@@ -15,7 +15,7 @@ func RunTest(provider Provider) {
 	// AddDescriptor
 	ginkgo.It("Should be able to add a descriptor", func() {
 
-		descriptor := CreateApplicationDescriptor("XX001")
+		descriptor := CreateTestApplicationDescriptor("XX001")
 
 		err := provider.AddDescriptor(*descriptor)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -24,7 +24,7 @@ func RunTest(provider Provider) {
 	// GetDescriptors
 	ginkgo.It("Should be able to get the Descriptor", func() {
 
-		descriptor := CreateApplicationDescriptor("xx0001")
+		descriptor := CreateTestApplicationDescriptor("xx0001")
 
 		// add the application
 		err := provider.AddDescriptor(*descriptor)
@@ -44,7 +44,7 @@ func RunTest(provider Provider) {
 	// DescriptorExists
 	ginkgo.It("Should be able to find the descriptor", func(){
 
-		descriptor := CreateApplicationDescriptor("xx0001")
+		descriptor := CreateTestApplicationDescriptor("xx0001")
 
 		// add the application
 		err := provider.AddDescriptor(*descriptor)
@@ -64,7 +64,7 @@ func RunTest(provider Provider) {
 	// DeleteDescriptor
 	ginkgo.It("Should be able to remove the descriptor", func() {
 
-		descriptor := CreateApplicationDescriptor("xx0001")
+		descriptor := CreateTestApplicationDescriptor("xx0001")
 
 		// add the application
 		err := provider.AddDescriptor(*descriptor)
@@ -84,7 +84,7 @@ func RunTest(provider Provider) {
 	// Add Application Instance
 	ginkgo.It("Should be able to add an application", func() {
 
-		app := CreateApplication("0001")
+		app := CreateTestApplication("0001")
 
 		err := provider.AddInstance(*app)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -94,7 +94,7 @@ func RunTest(provider Provider) {
 	// Update Application Instance
 	ginkgo.It("Should be able to udpate an application", func() {
 
-		app := CreateApplication("0001")
+		app := CreateTestApplication("0001")
 
 		// add the application
 		err := provider.AddInstance(*app)
@@ -102,7 +102,7 @@ func RunTest(provider Provider) {
 
 		// modify some fields
 		groups := make ([]entities.ServiceGroupInstance, 0)
-		groups = append(groups, CreateServiceGroupInstance("XXXXX"))
+		groups = append(groups, CreateTestServiceGroupInstance("XXXXX"))
 		app.Groups = groups
 
 		// and update it
@@ -112,7 +112,7 @@ func RunTest(provider Provider) {
 	})
 	ginkgo.It("Should not be able to udpate an application", func() {
 
-		app := CreateApplication("0001")
+		app := CreateTestApplication("0001")
 
 		// and update it
 		err := provider.UpdateInstance(*app)
@@ -123,7 +123,7 @@ func RunTest(provider Provider) {
 	// ExistsInstance
 	ginkgo.It("Should be able to find the appInstance", func(){
 
-		app := CreateApplication("0001")
+		app := CreateTestApplication("0001")
 
 		// add the application
 		err := provider.AddInstance(*app)
@@ -143,7 +143,7 @@ func RunTest(provider Provider) {
 	// 	GetInstance
 	ginkgo.It("Should be able to get the appInstance", func() {
 
-		app := CreateApplication("0001")
+		app := CreateTestApplication("0001")
 
 		// add the application
 		err := provider.AddInstance(*app)
@@ -163,7 +163,7 @@ func RunTest(provider Provider) {
 	// DeleteInstance
 	ginkgo.It("Should be able to remove the appInstance", func() {
 
-		app := CreateApplication("0001")
+		app := CreateTestApplication("0001")
 
 		// add the application
 		err := provider.AddInstance(*app)

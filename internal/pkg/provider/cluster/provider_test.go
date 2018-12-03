@@ -16,7 +16,7 @@ func RunTest (provider Provider) {
 	// AddCluster
 	ginkgo.It("Should be able to add a cluster", func(){
 
-		cluster := CreateCluster("ZZZ-0")
+		cluster := CreateTestCluster("ZZZ-0")
 
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -26,7 +26,7 @@ func RunTest (provider Provider) {
 	// UpdateCluster
 	ginkgo.It("Should be able to update the cluster", func() {
 
-		cluster := CreateCluster("UUUId-0")
+		cluster := CreateTestCluster("UUUId-0")
 
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -39,7 +39,7 @@ func RunTest (provider Provider) {
 	})
 	ginkgo.It("Should not be able to update the cluster", func() {
 
-		cluster := CreateCluster("UUUId-0")
+		cluster := CreateTestCluster("UUUId-0")
 
 		err := provider.Update(*cluster)
 		gomega.Expect(err).NotTo(gomega.Succeed())
@@ -48,7 +48,7 @@ func RunTest (provider Provider) {
 	// GetCluster
 	ginkgo.It("Should be able to get the cluster", func(){
 
-		cluster := CreateCluster("AAA-0")
+		cluster := CreateTestCluster("AAA-0")
 
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -71,7 +71,7 @@ func RunTest (provider Provider) {
 	// ExistsCluster
 	ginkgo.It("Should be able to find the cluster", func(){
 
-		cluster := CreateCluster("AAA-0")
+		cluster := CreateTestCluster("AAA-0")
 
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -94,7 +94,7 @@ func RunTest (provider Provider) {
 	// DeleteCluster
 	ginkgo.It("Should be able to delete the cluster", func(){
 
-		cluster := CreateCluster("AAA-0")
+		cluster := CreateTestCluster("AAA-0")
 
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -118,7 +118,7 @@ func RunTest (provider Provider) {
 	ginkgo.It("Should be able to add the node in the cluster", func() {
 
 		// add the cluster
-		cluster := CreateCluster("0001")
+		cluster := CreateTestCluster("0001")
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
 
@@ -142,7 +142,7 @@ func RunTest (provider Provider) {
 		nodeID := "node_0001"
 
 		// add the cluster
-		cluster := CreateCluster("0001")
+		cluster := CreateTestCluster("0001")
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
 
@@ -167,7 +167,7 @@ func RunTest (provider Provider) {
 	ginkgo.It("Should be able to return a list of nodes", func() {
 
 		// add the cluster
-		cluster := CreateCluster("0001")
+		cluster := CreateTestCluster("0001")
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
 
@@ -197,7 +197,7 @@ func RunTest (provider Provider) {
 	ginkgo.It("Should not be able to return a list of nodes", func() {
 
 		// add the cluster
-		cluster := CreateCluster("0001")
+		cluster := CreateTestCluster("0001")
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
 
@@ -211,7 +211,7 @@ func RunTest (provider Provider) {
 	// DeleteNode
 	ginkgo.It("Should be able to delete a Node in a cluster", func() {
 
-		cluster := CreateCluster("0001")
+		cluster := CreateTestCluster("0001")
 
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())

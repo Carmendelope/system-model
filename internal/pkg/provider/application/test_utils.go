@@ -28,7 +28,7 @@ var serviceName = "service name"
 var image = "../../image_path"
 
 
-func CreateConfigFile () entities.ConfigFile {
+func CreateTestConfigFile () entities.ConfigFile {
 
 	content := make([]byte, 0)
 	content = append(content, 0x00, 0x01, 0x02)
@@ -40,7 +40,7 @@ func CreateConfigFile () entities.ConfigFile {
 		MountPath: "../../path"}
 }
 
-func CreateServiceInstance (appInstanceId string) entities.ServiceInstance {
+func CreateTestServiceInstance (appInstanceId string) entities.ServiceInstance {
 
 	stores := make ([]entities.Storage, 0)
 	stores = append(stores, entities.Storage{Size:900, MountPath:"../../mount_path", Type:entities.StorageType(1)})
@@ -58,7 +58,7 @@ func CreateServiceInstance (appInstanceId string) entities.ServiceInstance {
 	envVariables["PORT"] = "PORT_VALUE"
 
 	confFile := make ([]entities.ConfigFile, 0)
-	confFile = append(confFile, CreateConfigFile())
+	confFile = append(confFile, CreateTestConfigFile())
 
 	labels := make (map[string]string, 0)
 	for i:=0; i<4; i++{
@@ -96,7 +96,7 @@ func CreateServiceInstance (appInstanceId string) entities.ServiceInstance {
 
 }
 
-func CreateService (appDescriptorId string) entities.Service {
+func CreateTestService (appDescriptorId string) entities.Service {
 
 	stores := make ([]entities.Storage, 0)
 	stores = append(stores, entities.Storage{Size:900, MountPath:"../../mount_path", Type:entities.StorageType(1)})
@@ -114,7 +114,7 @@ func CreateService (appDescriptorId string) entities.Service {
 	envVariables["PORT"] = "PORT_VALUE"
 
 	confFile := make ([]entities.ConfigFile, 0)
-	confFile = append(confFile, CreateConfigFile())
+	confFile = append(confFile, CreateTestConfigFile())
 
 	labels := make (map[string]string, 0)
 	for i:=0; i<4; i++{
@@ -149,7 +149,7 @@ func CreateService (appDescriptorId string) entities.Service {
 		DeployAfter: deployAfter}
 }
 
-func CreateServiceGroupInstance(appInstanceId string) entities.ServiceGroupInstance{
+func CreateTestServiceGroupInstance(appInstanceId string) entities.ServiceGroupInstance{
 
 	servicesInstances := make ([]string, 0)
 	for i:=0; i<5; i++{
@@ -167,7 +167,7 @@ func CreateServiceGroupInstance(appInstanceId string) entities.ServiceGroupInsta
 		Policy: entities.CollocationPolicy(1) }
 }
 
-func CreateServiceGroup(appDescriptorId string) entities.ServiceGroup{
+func CreateTestServiceGroup(appDescriptorId string) entities.ServiceGroup{
 
 	services := make ([]string, 0)
 	for i:=0; i<5; i++{
@@ -184,7 +184,7 @@ func CreateServiceGroup(appDescriptorId string) entities.ServiceGroup{
 		Policy: entities.CollocationPolicy(1) }
 }
 
-func CreateRule() entities.SecurityRule {
+func CreateTestRule() entities.SecurityRule {
 
 	id := rand.Intn(10) + 1
 	authServices := make ([]string, 0)
@@ -210,7 +210,7 @@ func CreateRule() entities.SecurityRule {
 	return rule
 }
 
-func CreateApplication(id string) *entities.AppInstance {
+func CreateTestApplication(id string) *entities.AppInstance {
 
 	appInstanceId := fmt.Sprintf("App instance Id_%s", id)
 	configurationOptions := make(map[string]string, 0)
@@ -223,13 +223,13 @@ func CreateApplication(id string) *entities.AppInstance {
 	labels[labelLabel] = labelValue
 
 	rules := make([]entities.SecurityRule, 0)
-	rules = append(rules, CreateRule())
+	rules = append(rules, CreateTestRule())
 
 	groups := make ([]entities.ServiceGroupInstance, 0)
-	groups = append(groups, CreateServiceGroupInstance(appInstanceId))
+	groups = append(groups, CreateTestServiceGroupInstance(appInstanceId))
 
 	services := make ([]entities.ServiceInstance, 0)
-	services = append(services, CreateServiceInstance(appInstanceId))
+	services = append(services, CreateTestServiceInstance(appInstanceId))
 
 	app := entities.AppInstance{
 		OrganizationId:organizationId,
@@ -248,7 +248,7 @@ func CreateApplication(id string) *entities.AppInstance {
 	return &app
 }
 
-func CreateApplicationDescriptor (id string) *entities.AppDescriptor {
+func CreateTestApplicationDescriptor (id string) *entities.AppDescriptor {
 
 	appDescriptor := fmt.Sprintf("App_descriptor_%s", id)
 
@@ -264,13 +264,13 @@ func CreateApplicationDescriptor (id string) *entities.AppDescriptor {
 	}
 
 	rules := make([]entities.SecurityRule, 0)
-	rules = append(rules, CreateRule())
+	rules = append(rules, CreateTestRule())
 
 	groups := make([]entities.ServiceGroup, 0)
-	groups = append(groups, CreateServiceGroup(appDescriptor))
+	groups = append(groups, CreateTestServiceGroup(appDescriptor))
 
 	services := make ([]entities.Service, 0)
-	services = append(services, CreateService(appDescriptor))
+	services = append(services, CreateTestService(appDescriptor))
 
 	descriptor := entities.AppDescriptor{
 		OrganizationId: organizationId,

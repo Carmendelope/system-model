@@ -22,3 +22,16 @@ A CLI has been added for convenience, use:
 ```
 $ ./bin/system-model-cli
 ```
+
+## Kubernetes deploy
+
+Before creating the system model tables, we should deploy scyllaDb with kubernetes (see scylla-deploy project)
+
+Create configMap:
+```
+$ create -f ./components/system-model/mngtcluster/systemmodel-scylla.configmap.yaml
+```
+and create the job responsible for the creation of tables
+```
+kubectl create -f components/system-model/mngtcluster/systemmodel-scylla.job.yaml
+```

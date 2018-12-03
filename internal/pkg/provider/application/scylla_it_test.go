@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"math/rand"
 	"os"
+	"strconv"
 )
 
 /*
@@ -56,9 +57,14 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 		ginkgo.Fail("missing environment variables")
 
 	}
+	scyllaPort, _ := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
+	if scyllaPort <= 0 {
+		ginkgo.Fail("missing environment variables")
+
+	}
 
 	// create a provider and connect it
-	sp := NewScyllaApplicationProvider(scyllaHost, nalejKeySpace)
+	sp := NewScyllaApplicationProvider(scyllaHost, scyllaPort, nalejKeySpace)
 	err :=	sp.Connect()
 
 	if err != nil {
@@ -77,7 +83,7 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 		for i := 0; i < numApps; i++ {
 			appId := fmt.Sprintf("00%d", i)
 
-			app := CreateApplication(appId)
+			app := CreateTestApplication(appId)
 
 			err := sp.AddInstance(*app)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -90,7 +96,7 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 		for i := 0; i < numApps; i++ {
 			appDescriptorId := fmt.Sprintf("00%d", i)
 
-			descriptor := CreateApplicationDescriptor(appDescriptorId)
+			descriptor := CreateTestApplicationDescriptor(appDescriptorId)
 
 			err := sp.AddDescriptor(*descriptor)
 			gomega.Expect(err).To(gomega.Succeed())

@@ -5,6 +5,7 @@ import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
 )
@@ -21,12 +22,16 @@ const organizationRoleTable = "Organization_Roles"
 const rowNotFound = "not found"
 type ScyllaOrganizationProvider struct {
 	Address string
+	Port int
 	Keyspace string
 	Session *gocql.Session
 }
 
-func NewScyllaOrganizationProvider (address string, keyspace string) * ScyllaOrganizationProvider {
-	return &ScyllaOrganizationProvider{ address, keyspace, nil}
+func NewScyllaOrganizationProvider (address string, port int, keyspace string) * ScyllaOrganizationProvider {
+	org := ScyllaOrganizationProvider{ address, port, keyspace, nil}
+	org.Connect()
+	//return &ScyllaOrganizationProvider{ address, port, keyspace, nil}
+	return &org
 }
 
 // connect to the database
@@ -35,9 +40,11 @@ func (sp *ScyllaOrganizationProvider) Connect() derrors.Error {
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
 	conf.Keyspace = sp.Keyspace
+	conf.Port = sp.Port
 
 	session, err := conf.CreateSession()
 	if err != nil {
+		log.Error().Str("provider", "ScyllaOrganizationProvider").Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
 		return conversions.ToDerror(err)
 	}
 
@@ -67,6 +74,7 @@ func (sp *ScyllaOrganizationProvider) CheckConnection () derrors.Error {
 // Add a new organization to the system.
 func (sp *ScyllaOrganizationProvider) Add(org entities.Organization) derrors.Error{
 
+	log.Info().Msg("Add Organization!")
 	// check connection
 	if err := sp.CheckConnection(); err != nil {
 		return err

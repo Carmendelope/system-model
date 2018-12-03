@@ -30,6 +30,10 @@ spec:
         args:
           - "run"
           - "--debug"
+          - "--useDBScyllaProviders=true"
+          - "--scyllaDBAddress=scylladb.nalej"
+          - "--scyllaDBKeyspace=nalej"
+          - "--scyllaDBPort=9042"
         securityContext:
           runAsUser: 2000
       imagePullSecrets:

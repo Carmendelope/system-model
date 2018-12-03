@@ -5,6 +5,7 @@ import (
 	"github.com/onsi/ginkgo"
 	"github.com/rs/zerolog/log"
 	"os"
+	"strconv"
 )
 
 /*
@@ -41,13 +42,13 @@ var _ = ginkgo.Describe("Scylla organization provider", func() {
 	if nalejKeySpace == "" {
 		ginkgo.Fail("missing environment variables")
 	}
+	scyllaPort, _ := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
+	if scyllaPort <= 0 {
+		ginkgo.Fail("missing environment variables")
+	}
 
 	// create a provider and connect it
-	sp := NewScyllaOrganizationProvider(scyllaHost, nalejKeySpace)
-	err := sp.Connect()
-	if err != nil {
-		ginkgo.Fail("unable to connect")
-	}
+	sp := NewScyllaOrganizationProvider(scyllaHost, scyllaPort, nalejKeySpace)
 
 	ginkgo.AfterSuite(func() {
 		sp.Disconnect()

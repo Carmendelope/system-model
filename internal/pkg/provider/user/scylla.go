@@ -18,12 +18,15 @@ const rowNotFound = "not found"
 // TODO: ask to Dani if we need cluster.Consistency = gocql.Quorum
 type ScyllaUserProvider struct {
 	Address string
+	Port int
 	Keyspace string
 	Session *gocql.Session
 }
 
-func NewScyllaUserProvider (address string, keyspace string) * ScyllaUserProvider {
-	return &ScyllaUserProvider{address, keyspace, nil}
+func NewScyllaUserProvider (address string, port int, keyspace string) * ScyllaUserProvider {
+	provider:= ScyllaUserProvider{address, port, keyspace, nil}
+	provider.Connect()
+	return &provider
 }
 
 func (sp *ScyllaUserProvider) Connect() derrors.Error {
@@ -31,9 +34,11 @@ func (sp *ScyllaUserProvider) Connect() derrors.Error {
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
 	conf.Keyspace = sp.Keyspace
+	conf.Port = sp.Port
 
 	session, err := conf.CreateSession()
 	if err != nil {
+		log.Error().Str("provider", "ScyllaUserProvider").Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
 		return conversions.ToDerror(err)
 	}
 

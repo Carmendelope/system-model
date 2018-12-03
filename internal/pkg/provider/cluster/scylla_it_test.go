@@ -7,6 +7,7 @@ import (
 	"github.com/onsi/gomega"
 	"github.com/rs/zerolog/log"
 	"os"
+	"strconv"
 )
 
 /*
@@ -37,13 +38,13 @@ var _ = ginkgo.Describe("Scylla cluster provider", func(){
 	if scyllaHost == "" {
 		ginkgo.Fail("missing environment variables")
 	}
+	scyllaPort, _ := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
+	if scyllaPort <= 0 {
+		ginkgo.Fail("missing environment variables")
+	}
 
 	// create a provider and connect it
-	sp := NewScyllaClusterProvider(scyllaHost, nalejKeySpace)
-	err := sp.Connect()
-	if err != nil {
-		ginkgo.Fail("unable to connect")
-	}
+	sp := NewScyllaClusterProvider(scyllaHost, scyllaPort, nalejKeySpace)
 
 	ginkgo.AfterSuite(func() {
 		sp.Disconnect()
@@ -57,7 +58,7 @@ var _ = ginkgo.Describe("Scylla cluster provider", func(){
 		for i:= 0; i<numClusters; i++ {
 
 			clusterId := fmt.Sprintf("ClusterId_XX%d", i)
-			cluster := CreateCluster(clusterId)
+			cluster := CreateTestCluster(clusterId)
 
 			err := sp.Add(*cluster)
 			gomega.Expect(err).To(gomega.Succeed())

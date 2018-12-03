@@ -17,14 +17,17 @@ const clusterNodeTable  = "Cluster_Nodes"
 
 type ScyllaClusterProvider struct {
 	Address string
+	Port int
 	Keyspace string
 	Session *gocql.Session
 }
 
 const rowNotFound = "not found"
 
-func NewScyllaClusterProvider (address string, keyspace string) * ScyllaClusterProvider {
-	return &ScyllaClusterProvider{ address, keyspace, nil}
+func NewScyllaClusterProvider (address string, port int, keyspace string) * ScyllaClusterProvider {
+	provider := ScyllaClusterProvider{ address, port,keyspace, nil}
+	provider.Connect()
+	return &provider
 }
 
 // connect to the database
@@ -33,10 +36,11 @@ func (sp *ScyllaClusterProvider) Connect() derrors.Error {
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
 	conf.Keyspace = sp.Keyspace
+	conf.Port = sp.Port
 
 	session, err := conf.CreateSession()
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
+		log.Error().Str("provider", "ScyllaClusterProvider").Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
 		return conversions.ToDerror(err)
 	}
 

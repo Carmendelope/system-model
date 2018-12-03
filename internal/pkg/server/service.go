@@ -79,10 +79,30 @@ func (s *Service) CreateInMemoryProviders() * Providers {
 	}
 }
 
+// CreateDBScyllaProviders returns a set of in-memory providers.
+func (s *Service) CreateDBScyllaProviders() * Providers {
+	return &Providers{
+		organizationProvider: orgProvider.NewScyllaOrganizationProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+		clusterProvider: clusterProvider.NewScyllaClusterProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+		nodeProvider: nodeProvider.NewScyllaNodeProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+		applicationProvider: appProvider.NewScyllaApplicationProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+		roleProvider: rProvider.NewSScyllaRoleProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+		userProvider: uProvider.NewScyllaUserProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+	}
+}
+
 // GetProviders builds the providers according to the selected backend.
 func (s *Service) GetProviders() * Providers {
 	if s.Configuration.UseInMemoryProviders {
 		return s.CreateInMemoryProviders()
+	} else if s.Configuration.UseDBScyllaProviders {
+		return s.CreateDBScyllaProviders()
 	}
 	log.Fatal().Msg("unsupported type of provider")
 	return nil

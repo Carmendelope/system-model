@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/onsi/gomega"
+	"strconv"
 
 	"github.com/nalej/system-model/internal/pkg/utils"
 	"github.com/onsi/ginkgo"
@@ -33,13 +34,13 @@ var _ = ginkgo.Describe("Scylla node provider", func(){
 	if scyllaHost == "" {
 		ginkgo.Fail("missing environment variables")
 	}
+	scyllaPort, _ := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
+	if scyllaPort <= 0 {
+		ginkgo.Fail("missing environment variables")
+	}
 
 	// create a provider and connect it
-	sp := NewScyllaNodeProvider(scyllaHost, nalejKeySpace)
-	err := sp.Connect()
-	if err != nil {
-		ginkgo.Fail("unable to connect")
-	}
+	sp := NewScyllaNodeProvider(scyllaHost, scyllaPort, nalejKeySpace)
 
 	ginkgo.AfterSuite(func() {
 		sp.Disconnect()
