@@ -13,17 +13,17 @@ import (
 type ClusterType int
 
 const (
-	KubernetesCluster  ClusterType = iota + 1
+	KubernetesCluster ClusterType = iota + 1
 	DockerCluster
 )
 
 var ClusterTypeToGRPC = map[ClusterType]grpc_infrastructure_go.ClusterType{
 	KubernetesCluster: grpc_infrastructure_go.ClusterType_KUBERNETES,
-	DockerCluster: grpc_infrastructure_go.ClusterType_DOCKER_NODE,
+	DockerCluster:     grpc_infrastructure_go.ClusterType_DOCKER_NODE,
 }
 
 var ClusterTypeFromGRPC = map[grpc_infrastructure_go.ClusterType]ClusterType{
-	grpc_infrastructure_go.ClusterType_KUBERNETES: KubernetesCluster,
+	grpc_infrastructure_go.ClusterType_KUBERNETES:  KubernetesCluster,
 	grpc_infrastructure_go.ClusterType_DOCKER_NODE: DockerCluster,
 }
 
@@ -31,6 +31,7 @@ var ClusterTypeFromGRPC = map[grpc_infrastructure_go.ClusterType]ClusterType{
 // if it is modeled as a boolean now, we leave the definition as an enumeration to support other types of multitenancy
 // like restrictions to parts of an organization, or priority based options.
 type MultitenantSupport int
+
 const (
 	MultitenantYes MultitenantSupport = iota + 1
 	MultitenantNo
@@ -38,12 +39,12 @@ const (
 
 var MultitenantSupportToGRPC = map[MultitenantSupport]grpc_infrastructure_go.MultitenantSupport{
 	MultitenantYes: grpc_infrastructure_go.MultitenantSupport_YES,
-	MultitenantNo: grpc_infrastructure_go.MultitenantSupport_NO,
+	MultitenantNo:  grpc_infrastructure_go.MultitenantSupport_NO,
 }
 
 var MultitenantSupportFromGRPC = map[grpc_infrastructure_go.MultitenantSupport]MultitenantSupport{
 	grpc_infrastructure_go.MultitenantSupport_YES: MultitenantYes,
-	grpc_infrastructure_go.MultitenantSupport_NO: MultitenantNo,
+	grpc_infrastructure_go.MultitenantSupport_NO:  MultitenantNo,
 }
 
 // InfraStatus enumeration defining the status of an element of the infrastructure.
@@ -60,14 +61,14 @@ const (
 
 var InfraStatusToGRPC = map[InfraStatus]grpc_infrastructure_go.InfraStatus{
 	InfraStatusInstalling: grpc_infrastructure_go.InfraStatus_INSTALLING,
-	InfraStatusRunning: grpc_infrastructure_go.InfraStatus_RUNNING,
-	InfraStatusError: grpc_infrastructure_go.InfraStatus_ERROR,
+	InfraStatusRunning:    grpc_infrastructure_go.InfraStatus_RUNNING,
+	InfraStatusError:      grpc_infrastructure_go.InfraStatus_ERROR,
 }
 
 var InfraStatusFromGRPC = map[grpc_infrastructure_go.InfraStatus]InfraStatus{
 	grpc_infrastructure_go.InfraStatus_INSTALLING: InfraStatusInstalling,
-	grpc_infrastructure_go.InfraStatus_RUNNING: InfraStatusRunning,
-	grpc_infrastructure_go.InfraStatus_ERROR: InfraStatusError,
+	grpc_infrastructure_go.InfraStatus_RUNNING:    InfraStatusRunning,
+	grpc_infrastructure_go.InfraStatus_ERROR:      InfraStatusError,
 }
 
 // Cluster entity representing a collection of nodes that supports applicaiton orchestration. This
@@ -85,6 +86,8 @@ type Cluster struct {
 	ClusterType ClusterType `json:"cluster_type,omitempty"`
 	// Hostname of the cluster master.
 	Hostname string `json:"hostname,omitempty"`
+	// ControlPlaneHostname with the hostname to access K8s API.
+	ControlPlaneHostname string `json:"control_plane_hostname,omitempty"`
 	// Multitenant support definition.
 	Multitenant MultitenantSupport `json:"multitenant,omitempty"`
 	// Status of the cluster based on monitoring information.
@@ -92,43 +95,44 @@ type Cluster struct {
 	// Labels for the cluster.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Cordon flags to signal conductor not to schedule apps in the cluster.
-	Cordon               bool     `json:"cordon,omitempty"`
+	Cordon bool `json:"cordon,omitempty"`
 }
 
-func NewCluster(organizationID string, name string, description string, hostname string) *Cluster {
+func NewCluster(organizationID string, name string, description string, hostname string, controlPlaneHostname string) *Cluster {
 	uuid := GenerateUUID()
 	return &Cluster{
-		OrganizationId: organizationID,
-		ClusterId:      uuid,
-		Name:           name,
-		Description:    description,
-		ClusterType:    KubernetesCluster,
-		Hostname: hostname,
-		Multitenant:    MultitenantYes,
-		Status:         InfraStatusInstalling,
-		Labels:         make(map[string]string, 0),
-		Cordon:         false,
+		OrganizationId:       organizationID,
+		ClusterId:            uuid,
+		Name:                 name,
+		Description:          description,
+		ClusterType:          KubernetesCluster,
+		Hostname:             hostname,
+		ControlPlaneHostname: controlPlaneHostname,
+		Multitenant:          MultitenantYes,
+		Status:               InfraStatusInstalling,
+		Labels:               make(map[string]string, 0),
+		Cordon:               false,
 	}
 }
-
 
 func NewClusterFromGRPC(addClusterRequest *grpc_infrastructure_go.AddClusterRequest) *Cluster {
 	uuid := GenerateUUID()
 	return &Cluster{
-		OrganizationId: addClusterRequest.OrganizationId,
-		ClusterId:      uuid,
-		Name:           addClusterRequest.Name,
-		Description:    addClusterRequest.Description,
-		ClusterType:    KubernetesCluster,
-		Hostname: addClusterRequest.Hostname,
-		Multitenant:    MultitenantYes,
-		Status:         InfraStatusInstalling,
-		Labels:         addClusterRequest.Labels,
-		Cordon:         false,
+		OrganizationId:       addClusterRequest.OrganizationId,
+		ClusterId:            uuid,
+		Name:                 addClusterRequest.Name,
+		Description:          addClusterRequest.Description,
+		ClusterType:          KubernetesCluster,
+		Hostname:             addClusterRequest.Hostname,
+		ControlPlaneHostname: addClusterRequest.ControlPlaneHostname,
+		Multitenant:          MultitenantYes,
+		Status:               InfraStatusInstalling,
+		Labels:               addClusterRequest.Labels,
+		Cordon:               false,
 	}
 }
 
-func (c * Cluster) ToGRPC() * grpc_infrastructure_go.Cluster {
+func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 	clusterType := ClusterTypeToGRPC[c.ClusterType]
 	multitenant := MultitenantSupportToGRPC[c.Multitenant]
 	status := InfraStatusToGRPC[c.Status]
@@ -138,7 +142,8 @@ func (c * Cluster) ToGRPC() * grpc_infrastructure_go.Cluster {
 		Name:                 c.Name,
 		Description:          c.Description,
 		ClusterType:          clusterType,
-		Hostname: c.Hostname,
+		Hostname:             c.Hostname,
+		ControlPlaneHostname: c.ControlPlaneHostname,
 		Multitenant:          multitenant,
 		Status:               status,
 		Labels:               c.Labels,
@@ -146,20 +151,20 @@ func (c * Cluster) ToGRPC() * grpc_infrastructure_go.Cluster {
 	}
 }
 
-func (c*Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateClusterRequest){
-	if updateRequest.UpdateName{
+func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateClusterRequest) {
+	if updateRequest.UpdateName {
 		c.Name = updateRequest.Name
 	}
-	if updateRequest.UpdateDescription{
+	if updateRequest.UpdateDescription {
 		c.Description = updateRequest.Description
 	}
-	if updateRequest.UpdateHostname{
+	if updateRequest.UpdateHostname {
 		c.Hostname = updateRequest.Hostname
 	}
-	if updateRequest.UpdateLabels{
+	if updateRequest.UpdateLabels {
 		c.Labels = updateRequest.Labels
 	}
-	if updateRequest.UpdateStatus{
+	if updateRequest.UpdateStatus {
 		c.Status = InfraStatusFromGRPC[updateRequest.Status]
 	}
 }
@@ -177,7 +182,7 @@ func ValidAddClusterRequest(addClusterRequest *grpc_infrastructure_go.AddCluster
 	return nil
 }
 
-func ValidUpdateClusterRequest(updateClusterRequest * grpc_infrastructure_go.UpdateClusterRequest) derrors.Error{
+func ValidUpdateClusterRequest(updateClusterRequest *grpc_infrastructure_go.UpdateClusterRequest) derrors.Error {
 	if updateClusterRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
 	}
@@ -187,7 +192,7 @@ func ValidUpdateClusterRequest(updateClusterRequest * grpc_infrastructure_go.Upd
 	return nil
 }
 
-func ValidRemoveClusterRequest(removeClusterRequest * grpc_infrastructure_go.RemoveClusterRequest) derrors.Error {
+func ValidRemoveClusterRequest(removeClusterRequest *grpc_infrastructure_go.RemoveClusterRequest) derrors.Error {
 	if removeClusterRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
 	}

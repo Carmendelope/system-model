@@ -7,14 +7,14 @@ import (
 	"github.com/onsi/gomega"
 )
 
-func RunTest (provider Provider) {
+func RunTest(provider Provider) {
 
 	ginkgo.BeforeEach(func() {
 		provider.Clear()
 	})
 
 	// AddCluster
-	ginkgo.It("Should be able to add a cluster", func(){
+	ginkgo.It("Should be able to add a cluster", func() {
 
 		cluster := CreateTestCluster("ZZZ-0")
 
@@ -46,7 +46,7 @@ func RunTest (provider Provider) {
 	})
 
 	// GetCluster
-	ginkgo.It("Should be able to get the cluster", func(){
+	ginkgo.It("Should be able to get the cluster", func() {
 
 		cluster := CreateTestCluster("AAA-0")
 
@@ -57,8 +57,12 @@ func RunTest (provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(cluster).NotTo(gomega.BeNil())
 
+		//NP-396 check that ControlPaneHostname exists.
+		gomega.Expect(cluster.ControlPlaneHostname).NotTo(gomega.BeNil())
+		gomega.Expect(cluster.ControlPlaneHostname).Should(gomega.Equal("cp_host_AAA-0"))
+
 	})
-	ginkgo.It("Should not be able to get the cluster", func(){
+	ginkgo.It("Should not be able to get the cluster", func() {
 
 		clusterId := "cluster"
 
@@ -69,7 +73,7 @@ func RunTest (provider Provider) {
 	})
 
 	// ExistsCluster
-	ginkgo.It("Should be able to find the cluster", func(){
+	ginkgo.It("Should be able to find the cluster", func() {
 
 		cluster := CreateTestCluster("AAA-0")
 
@@ -81,7 +85,7 @@ func RunTest (provider Provider) {
 		gomega.Expect(exists).To(gomega.BeTrue())
 
 	})
-	ginkgo.It("Should not be able to find the cluster", func(){
+	ginkgo.It("Should not be able to find the cluster", func() {
 
 		clusterId := "cluster"
 
@@ -92,7 +96,7 @@ func RunTest (provider Provider) {
 	})
 
 	// DeleteCluster
-	ginkgo.It("Should be able to delete the cluster", func(){
+	ginkgo.It("Should be able to delete the cluster", func() {
 
 		cluster := CreateTestCluster("AAA-0")
 
@@ -103,7 +107,7 @@ func RunTest (provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 
 	})
-	ginkgo.It("Should not be able to delete the cluster", func(){
+	ginkgo.It("Should not be able to delete the cluster", func() {
 
 		clusterId := "cluster"
 
@@ -173,7 +177,7 @@ func RunTest (provider Provider) {
 
 		// add the nodes in the cluster
 		clusterID := "cluster_0001"
-		for i:=0; i<10; i++ {
+		for i := 0; i < 10; i++ {
 			nodeID := fmt.Sprintf("Node_00%d", i)
 			err := provider.AddNode(clusterID, nodeID)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -183,7 +187,6 @@ func RunTest (provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(list).NotTo(gomega.BeNil())
 		gomega.Expect(list).NotTo(gomega.BeEmpty())
-
 
 	})
 	ginkgo.It("Should not be able to return a list of nodes (no cluster found)", func() {

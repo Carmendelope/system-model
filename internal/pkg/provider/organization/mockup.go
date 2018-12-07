@@ -13,7 +13,7 @@ import (
 type MockupOrganizationProvider struct {
 	sync.Mutex
 	// organizations contains the organization indexed per organization identifier.
-	organizations map[string] entities.Organization
+	organizations map[string]entities.Organization
 	// clusters attached to an organization.
 	clusters map[string][]string
 	// nodes attached to an organization
@@ -28,29 +28,28 @@ type MockupOrganizationProvider struct {
 	roles map[string][]string
 }
 
-
-func NewMockupOrganizationProvider() * MockupOrganizationProvider {
+func NewMockupOrganizationProvider() *MockupOrganizationProvider {
 	return &MockupOrganizationProvider{
-		organizations:make(map[string]entities.Organization, 0),
-		clusters:make(map[string][]string, 0),
-		nodes:make(map[string][]string, 0),
-		descriptors:make(map[string][]string, 0),
-		instances:make(map[string][]string, 0),
-		users:make(map[string][]string, 0),
-		roles:make(map[string][]string, 0),
+		organizations: make(map[string]entities.Organization, 0),
+		clusters:      make(map[string][]string, 0),
+		nodes:         make(map[string][]string, 0),
+		descriptors:   make(map[string][]string, 0),
+		instances:     make(map[string][]string, 0),
+		users:         make(map[string][]string, 0),
+		roles:         make(map[string][]string, 0),
 	}
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupOrganizationProvider) Clear() derrors.Error{
+func (m *MockupOrganizationProvider) Clear() derrors.Error {
 	m.Lock()
-	m.organizations = make(map[string] entities.Organization, 0)
-	m.clusters = make(map[string] []string, 0)
-	m.nodes = make(map[string] []string, 0)
-	m.descriptors = make(map[string] []string, 0)
-	m.instances = make(map[string] []string, 0)
-	m.users = make(map[string] []string, 0)
-	m.roles = make(map[string] []string, 0)
+	m.organizations = make(map[string]entities.Organization, 0)
+	m.clusters = make(map[string][]string, 0)
+	m.nodes = make(map[string][]string, 0)
+	m.descriptors = make(map[string][]string, 0)
+	m.instances = make(map[string][]string, 0)
+	m.users = make(map[string][]string, 0)
+	m.roles = make(map[string][]string, 0)
 	m.Unlock()
 	return nil
 }
@@ -102,7 +101,7 @@ func (m *MockupOrganizationProvider) unsafeExistsCluster(organizationID string, 
 func (m *MockupOrganizationProvider) unsafeExistsNode(organizationID string, nodeID string) bool {
 	nodeList, ok := m.nodes[organizationID]
 	if ok {
-		for _, nID := range  nodeList {
+		for _, nID := range nodeList {
 			if nID == nodeID {
 				return true
 			}
@@ -112,11 +111,10 @@ func (m *MockupOrganizationProvider) unsafeExistsNode(organizationID string, nod
 	return false
 }
 
-
 func (m *MockupOrganizationProvider) unsafeExistsUser(organizationID string, email string) bool {
 	userList, ok := m.users[organizationID]
 	if ok {
-		for _, e := range  userList {
+		for _, e := range userList {
 			if e == email {
 				return true
 			}
@@ -129,7 +127,7 @@ func (m *MockupOrganizationProvider) unsafeExistsUser(organizationID string, ema
 func (m *MockupOrganizationProvider) unsafeExistsRole(organizationID string, roleID string) bool {
 	roleList, ok := m.roles[organizationID]
 	if ok {
-		for _, rID := range  roleList {
+		for _, rID := range roleList {
 			if rID == roleID {
 				return true
 			}
@@ -139,12 +137,11 @@ func (m *MockupOrganizationProvider) unsafeExistsRole(organizationID string, rol
 	return false
 }
 
-
 // Add a new organization to the system.
 func (m *MockupOrganizationProvider) Add(org entities.Organization) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(org.ID){
+	if !m.unsafeExists(org.ID) {
 		m.organizations[org.ID] = org
 		return nil
 	}
@@ -167,6 +164,15 @@ func (m *MockupOrganizationProvider) Get(organizationID string) (*entities.Organ
 		return &org, nil
 	}
 	return nil, derrors.NewNotFoundError(organizationID)
+}
+
+// List the set of organizations.
+func (m *MockupOrganizationProvider) List() ([] entities.Organization, derrors.Error) {
+	result := make([] entities.Organization,0, len(m.organizations))
+	for _, value := range m.organizations {
+		result = append(result, value)
+	}
+	return result, nil
 }
 
 // AddCluster adds a new cluster ID to the organization.
@@ -394,7 +400,7 @@ func (m *MockupOrganizationProvider) DeleteInstance(organizationID string, appIn
 }
 
 // AddUser adds a new user to the organization.
-func (m *MockupOrganizationProvider) AddUser(organizationID string, email string) derrors.Error{
+func (m *MockupOrganizationProvider) AddUser(organizationID string, email string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 	if m.unsafeExists(organizationID) {
@@ -409,14 +415,14 @@ func (m *MockupOrganizationProvider) AddUser(organizationID string, email string
 }
 
 // UserExists checks if a user is linked to an organization.
-func (m *MockupOrganizationProvider) UserExists(organizationID string, email string) (bool, derrors.Error){
+func (m *MockupOrganizationProvider) UserExists(organizationID string, email string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExistsUser(organizationID, email), nil
 }
 
 // ListUser returns a list of users in an organization.
-func (m *MockupOrganizationProvider) ListUsers(organizationID string) ([]string, derrors.Error){
+func (m *MockupOrganizationProvider) ListUsers(organizationID string) ([]string, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -432,7 +438,7 @@ func (m *MockupOrganizationProvider) ListUsers(organizationID string) ([]string,
 }
 
 // DeleteUser removes a user from an organization.
-func (m *MockupOrganizationProvider) DeleteUser(organizationID string, email string) derrors.Error{
+func (m *MockupOrganizationProvider) DeleteUser(organizationID string, email string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 	if m.unsafeExistsUser(organizationID, email) {
@@ -450,7 +456,7 @@ func (m *MockupOrganizationProvider) DeleteUser(organizationID string, email str
 }
 
 // AddRole adds a new role ID to the organization.
-func (m *MockupOrganizationProvider) AddRole(organizationID string, roleID string) derrors.Error{
+func (m *MockupOrganizationProvider) AddRole(organizationID string, roleID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 	if m.unsafeExists(organizationID) {
@@ -465,14 +471,14 @@ func (m *MockupOrganizationProvider) AddRole(organizationID string, roleID strin
 }
 
 // RoleExists checks if a role is linked to an organization.
-func (m *MockupOrganizationProvider) RoleExists(organizationID string, roleID string) (bool, derrors.Error){
+func (m *MockupOrganizationProvider) RoleExists(organizationID string, roleID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExistsRole(organizationID, roleID), nil
 }
 
 // ListNodes returns a list of roles in an organization.
-func (m *MockupOrganizationProvider) ListRoles(organizationID string) ([]string, derrors.Error){
+func (m *MockupOrganizationProvider) ListRoles(organizationID string) ([]string, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -486,8 +492,9 @@ func (m *MockupOrganizationProvider) ListRoles(organizationID string) ([]string,
 	}
 	return make([]string, 0), nil
 }
+
 // DeleteRole removes a role from an organization.
-func (m *MockupOrganizationProvider) DeleteRole(organizationID string, roleID string) derrors.Error{
+func (m *MockupOrganizationProvider) DeleteRole(organizationID string, roleID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 	if m.unsafeExistsRole(organizationID, roleID) {
@@ -503,4 +510,3 @@ func (m *MockupOrganizationProvider) DeleteRole(organizationID string, roleID st
 	}
 	return derrors.NewNotFoundError("role").WithParams(organizationID, roleID)
 }
-
