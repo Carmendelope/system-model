@@ -16,9 +16,11 @@ type Provider interface {
 	// Update an existing node in the system
 	Update(node entities.Node) derrors.Error
 	// Exists checks if a node exists on the system.
-	Exists(nodeID string) bool
+	Exists(nodeID string) (bool, derrors.Error)
 	// Get a node.
 	Get(nodeID string) (* entities.Node, derrors.Error)
 	// Remove a node
 	Remove(nodeID string) derrors.Error
+	// Clear nodes
+	Clear() derrors.Error
 }

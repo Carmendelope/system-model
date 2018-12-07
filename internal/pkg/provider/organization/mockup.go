@@ -42,7 +42,7 @@ func NewMockupOrganizationProvider() * MockupOrganizationProvider {
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupOrganizationProvider) Clear() {
+func (m * MockupOrganizationProvider) Clear() derrors.Error{
 	m.Lock()
 	m.organizations = make(map[string] entities.Organization, 0)
 	m.clusters = make(map[string] []string, 0)
@@ -52,6 +52,7 @@ func (m * MockupOrganizationProvider) Clear() {
 	m.users = make(map[string] []string, 0)
 	m.roles = make(map[string] []string, 0)
 	m.Unlock()
+	return nil
 }
 
 func (m *MockupOrganizationProvider) unsafeExists(organizationID string) bool {
@@ -151,10 +152,10 @@ func (m *MockupOrganizationProvider) Add(org entities.Organization) derrors.Erro
 }
 
 // Check if an organization exists on the system.
-func (m *MockupOrganizationProvider) Exists(organizationID string) bool {
+func (m *MockupOrganizationProvider) Exists(organizationID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExists(organizationID)
+	return m.unsafeExists(organizationID), nil
 }
 
 // Get an organization.
@@ -184,10 +185,10 @@ func (m *MockupOrganizationProvider) AddCluster(organizationID string, clusterID
 }
 
 // ClusterExists checks if a cluster is linked to an organization.
-func (m *MockupOrganizationProvider) ClusterExists(organizationID string, clusterID string) bool {
+func (m *MockupOrganizationProvider) ClusterExists(organizationID string, clusterID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExistsCluster(organizationID, clusterID)
+	return m.unsafeExistsCluster(organizationID, clusterID), nil
 }
 
 // ListClusters returns a list of clusters in an organization.
@@ -240,10 +241,10 @@ func (m *MockupOrganizationProvider) AddNode(organizationID string, nodeID strin
 }
 
 // NodeExists checks if a node is linked to an organization.
-func (m *MockupOrganizationProvider) NodeExists(organizationID string, nodeID string) bool {
+func (m *MockupOrganizationProvider) NodeExists(organizationID string, nodeID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExistsNode(organizationID, nodeID)
+	return m.unsafeExistsNode(organizationID, nodeID), nil
 }
 
 // ListNodes returns a list of nodes in an organization.
@@ -296,10 +297,10 @@ func (m *MockupOrganizationProvider) AddDescriptor(organizationID string, appDes
 }
 
 // DescriptorExists checks if an application descriptor exists on the system.
-func (m *MockupOrganizationProvider) DescriptorExists(organizationID string, appDescriptorID string) bool {
+func (m *MockupOrganizationProvider) DescriptorExists(organizationID string, appDescriptorID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExistsAppDesc(organizationID, appDescriptorID)
+	return m.unsafeExistsAppDesc(organizationID, appDescriptorID), nil
 }
 
 // ListDescriptors returns the identifiers of the application descriptors associated with an organization.
@@ -352,10 +353,10 @@ func (m *MockupOrganizationProvider) AddInstance(organizationID string, appInsta
 }
 
 // InstanceExists checks if an application instance exists on the system.
-func (m *MockupOrganizationProvider) InstanceExists(organizationID string, appInstanceID string) bool {
+func (m *MockupOrganizationProvider) InstanceExists(organizationID string, appInstanceID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExistsAppInst(organizationID, appInstanceID)
+	return m.unsafeExistsAppInst(organizationID, appInstanceID), nil
 }
 
 // ListInstances returns a the identifiers associate with a given organization.
@@ -408,10 +409,10 @@ func (m *MockupOrganizationProvider) AddUser(organizationID string, email string
 }
 
 // UserExists checks if a user is linked to an organization.
-func (m *MockupOrganizationProvider) UserExists(organizationID string, email string) bool{
+func (m *MockupOrganizationProvider) UserExists(organizationID string, email string) (bool, derrors.Error){
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExistsUser(organizationID, email)
+	return m.unsafeExistsUser(organizationID, email), nil
 }
 
 // ListUser returns a list of users in an organization.
@@ -464,10 +465,10 @@ func (m *MockupOrganizationProvider) AddRole(organizationID string, roleID strin
 }
 
 // RoleExists checks if a role is linked to an organization.
-func (m *MockupOrganizationProvider) RoleExists(organizationID string, roleID string) bool{
+func (m *MockupOrganizationProvider) RoleExists(organizationID string, roleID string) (bool, derrors.Error){
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExistsRole(organizationID, roleID)
+	return m.unsafeExistsRole(organizationID, roleID), nil
 }
 
 // ListNodes returns a list of roles in an organization.

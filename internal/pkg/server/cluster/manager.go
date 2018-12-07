@@ -26,12 +26,15 @@ func NewManager(orgProvider organization.Provider, clusterProvider cluster.Provi
 
 // AddCluster adds a new cluster to the system.
 func (m * Manager) AddCluster(addClusterRequest *grpc_infrastructure_go.AddClusterRequest) (*entities.Cluster, derrors.Error) {
-	exists := m.OrgProvider.Exists(addClusterRequest.OrganizationId)
+	exists, err := m.OrgProvider.Exists(addClusterRequest.OrganizationId)
+	if err != nil{
+		return nil, err
+	}
 	if !exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addClusterRequest.OrganizationId)
 	}
 	toAdd := entities.NewClusterFromGRPC(addClusterRequest)
-	err := m.ClusterProvider.Add(*toAdd)
+	err = m.ClusterProvider.Add(*toAdd)
 	if err != nil {
 		return nil, err
 	}
@@ -44,11 +47,19 @@ func (m * Manager) AddCluster(addClusterRequest *grpc_infrastructure_go.AddClust
 }
 
 func (m * Manager) UpdateCluster(updateRequest * grpc_infrastructure_go.UpdateClusterRequest) (*entities.Cluster, derrors.Error){
-	if ! m.OrgProvider.Exists(updateRequest.OrganizationId){
+	exists, err := m.OrgProvider.Exists(updateRequest.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if ! exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(updateRequest.OrganizationId)
 	}
 
-	if !m.OrgProvider.ClusterExists(updateRequest.OrganizationId, updateRequest.ClusterId){
+	exists, err = m.OrgProvider.ClusterExists(updateRequest.OrganizationId, updateRequest.ClusterId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists{
 		return nil, derrors.NewNotFoundError("clusterID").WithParams(updateRequest.OrganizationId, updateRequest.ClusterId)
 	}
 	old, err := m.ClusterProvider.Get(updateRequest.ClusterId)
@@ -65,11 +76,19 @@ func (m * Manager) UpdateCluster(updateRequest * grpc_infrastructure_go.UpdateCl
 
 // GetCluster retrieves the cluster information.
 func (m * Manager) GetCluster(clusterID *grpc_infrastructure_go.ClusterId) (*entities.Cluster, derrors.Error) {
-	if ! m.OrgProvider.Exists(clusterID.OrganizationId){
+	exists, err := m.OrgProvider.Exists(clusterID.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if ! exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(clusterID.OrganizationId)
 	}
 
-	if !m.OrgProvider.ClusterExists(clusterID.OrganizationId, clusterID.ClusterId){
+	exists, err = m.OrgProvider.ClusterExists(clusterID.OrganizationId, clusterID.ClusterId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists{
 		return nil, derrors.NewNotFoundError("clusterID").WithParams(clusterID.OrganizationId, clusterID.ClusterId)
 	}
 	return m.ClusterProvider.Get(clusterID.ClusterId)
@@ -77,7 +96,11 @@ func (m * Manager) GetCluster(clusterID *grpc_infrastructure_go.ClusterId) (*ent
 
 // ListClusters obtains a list of the clusters in the organization.
 func (m * Manager) ListClusters(organizationID *grpc_organization_go.OrganizationId) ([] entities.Cluster, derrors.Error) {
-	if !m.OrgProvider.Exists(organizationID.OrganizationId){
+	exists, err	 := m.OrgProvider.Exists(organizationID.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(organizationID.OrganizationId)
 	}
 	clusters, err := m.OrgProvider.ListClusters(organizationID.OrganizationId)
@@ -98,15 +121,23 @@ func (m * Manager) ListClusters(organizationID *grpc_organization_go.Organizatio
 // RemoveCluster removes a cluster from an organization. Notice that removing a cluster implies draining the cluster
 // of running applications.
 func (m * Manager) RemoveCluster(removeClusterRequest *grpc_infrastructure_go.RemoveClusterRequest) derrors.Error {
-	if ! m.OrgProvider.Exists(removeClusterRequest.OrganizationId){
+	exists, err := m.OrgProvider.Exists(removeClusterRequest.OrganizationId)
+	if err != nil {
+		return err
+	}
+	if ! exists{
 		return derrors.NewNotFoundError("organizationID").WithParams(removeClusterRequest.OrganizationId)
 	}
 
-	if !m.OrgProvider.ClusterExists(removeClusterRequest.OrganizationId, removeClusterRequest.ClusterId){
+	exists, err = m.OrgProvider.ClusterExists(removeClusterRequest.OrganizationId, removeClusterRequest.ClusterId)
+	if err != nil {
+		return err
+	}
+	if !exists{
 		return derrors.NewNotFoundError("clusterID").WithParams(removeClusterRequest.OrganizationId, removeClusterRequest.ClusterId)
 	}
 
-	err := m.OrgProvider.DeleteCluster(removeClusterRequest.OrganizationId, removeClusterRequest.ClusterId)
+	err = m.OrgProvider.DeleteCluster(removeClusterRequest.OrganizationId, removeClusterRequest.ClusterId)
 	if err != nil {
 		return err
 	}

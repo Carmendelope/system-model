@@ -16,9 +16,12 @@ type Provider interface {
 	// Update an existing user in the system
 	Update(user entities.User) derrors.Error
 	// Exists checks if a user exists on the system.
-	Exists(email string) bool
+	Exists(email string) (bool, derrors.Error)
 	// Get a user.
 	Get(email string) (* entities.User, derrors.Error)
 	// Remove a user.
 	Remove(email string) derrors.Error
+	// Clear
+	Clear() derrors.Error
+
 }

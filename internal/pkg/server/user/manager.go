@@ -26,12 +26,15 @@ func NewManager(orgProvider organization.Provider, userProvider user.Provider) M
 
 // AddUser adds a new user to a given organization.
 func (m * Manager) AddUser(addUserRequest *grpc_user_go.AddUserRequest) (*entities.User, derrors.Error){
-	exists := m.OrgProvider.Exists(addUserRequest.OrganizationId)
+	exists, err := m.OrgProvider.Exists(addUserRequest.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
 	if !exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addUserRequest.OrganizationId)
 	}
 	toAdd := entities.NewUserFromGRPC(addUserRequest)
-	err := m.UserProvider.Add(*toAdd)
+	err = m.UserProvider.Add(*toAdd)
 	if err != nil {
 		return nil, err
 	}
@@ -44,11 +47,19 @@ func (m * Manager) AddUser(addUserRequest *grpc_user_go.AddUserRequest) (*entiti
 
 // GetUser returns an existing user.
 func (m * Manager) GetUser(userID *grpc_user_go.UserId) (*entities.User, derrors.Error){
-	if ! m.OrgProvider.Exists(userID.OrganizationId){
+	exists, err := m.OrgProvider.Exists(userID.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if ! exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(userID.OrganizationId)
 	}
 
-	if !m.OrgProvider.UserExists(userID.OrganizationId, userID.Email){
+	exists, err = m.OrgProvider.UserExists(userID.OrganizationId, userID.Email)
+	if err != nil {
+		return nil, err
+	}
+	if !exists{
 		return nil, derrors.NewNotFoundError("userID").WithParams(userID.OrganizationId, userID.Email)
 	}
 	return m.UserProvider.Get(userID.Email)
@@ -56,7 +67,11 @@ func (m * Manager) GetUser(userID *grpc_user_go.UserId) (*entities.User, derrors
 
 // GetUsers retrieves the list of users of a given organization.
 func (m * Manager) GetUsers(organizationID *grpc_organization_go.OrganizationId) ([]entities.User, derrors.Error){
-	if !m.OrgProvider.Exists(organizationID.OrganizationId){
+	exists, err := m.OrgProvider.Exists(organizationID.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(organizationID.OrganizationId)
 	}
 	users, err := m.OrgProvider.ListUsers(organizationID.OrganizationId)
@@ -76,15 +91,23 @@ func (m * Manager) GetUsers(organizationID *grpc_organization_go.OrganizationId)
 
 // RemoveUser removes a given user from an organization.
 func (m * Manager) RemoveUser(removeRequest *grpc_user_go.RemoveUserRequest) derrors.Error {
-	if ! m.OrgProvider.Exists(removeRequest.OrganizationId){
+	exists, err := m.OrgProvider.Exists(removeRequest.OrganizationId)
+	if err != nil {
+		return err
+	}
+	if !exists{
 		return derrors.NewNotFoundError("organizationID").WithParams(removeRequest.OrganizationId)
 	}
 
-	if !m.OrgProvider.UserExists(removeRequest.OrganizationId, removeRequest.Email){
+	exists, err = m.OrgProvider.UserExists(removeRequest.OrganizationId, removeRequest.Email)
+	if err != nil {
+		return err
+	}
+	if !exists{
 		return derrors.NewNotFoundError("userID").WithParams(removeRequest.OrganizationId, removeRequest.Email)
 	}
 
-	err := m.OrgProvider.DeleteUser(removeRequest.OrganizationId, removeRequest.Email)
+	err = m.OrgProvider.DeleteUser(removeRequest.OrganizationId, removeRequest.Email)
 	if err != nil {
 		return err
 	}

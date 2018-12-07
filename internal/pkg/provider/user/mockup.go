@@ -50,10 +50,10 @@ func (m * MockupUserProvider) Update(user entities.User) derrors.Error{
 }
 
 // Exists checks if a user exists on the system.
-func (m * MockupUserProvider) Exists(email string) bool{
+func (m * MockupUserProvider) Exists(email string) (bool, derrors.Error){
 	m.Lock()
 	defer m.Unlock()
-	return m.unsafeExists(email)
+	return m.unsafeExists(email), nil
 }
 
 // Get a user.
@@ -79,8 +79,9 @@ func (m * MockupUserProvider) Remove(email string) derrors.Error{
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupUserProvider) Clear() {
+func (m * MockupUserProvider) Clear() derrors.Error{
 	m.Lock()
 	m.users = make(map[string]entities.User, 0)
 	m.Unlock()
+	return nil
 }
