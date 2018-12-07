@@ -42,7 +42,10 @@ var _ = ginkgo.Describe("Scylla organization provider", func() {
 	if nalejKeySpace == "" {
 		ginkgo.Fail("missing environment variables")
 	}
-	scyllaPort, _ := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
+	scyllaPort, err := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
+	if err != nil {
+		ginkgo.Fail("error getting scylla port")
+	}
 	if scyllaPort <= 0 {
 		ginkgo.Fail("missing environment variables")
 	}
