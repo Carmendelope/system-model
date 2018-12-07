@@ -30,7 +30,6 @@ type ScyllaOrganizationProvider struct {
 func NewScyllaOrganizationProvider (address string, port int, keyspace string) * ScyllaOrganizationProvider {
 	org := ScyllaOrganizationProvider{ address, port, keyspace, nil}
 	org.Connect()
-	//return &ScyllaOrganizationProvider{ address, port, keyspace, nil}
 	return &org
 }
 
