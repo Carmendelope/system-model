@@ -12,26 +12,34 @@ import (
 )
 
 type Organization struct {
-	ID string `json:"id"`
-	Name string `json:"name"`
-	Created int64 `json:"created"`
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Created int64  `json:"created"`
 }
 
-func NewOrganization(name string) * Organization{
+func NewOrganization(name string) *Organization {
 	uuid := GenerateUUID()
 	return &Organization{uuid, name, time.Now().Unix()}
 }
 
-func (o * Organization) String() string {
+func (o *Organization) String() string {
 	return fmt.Sprintf("%#v", o)
 }
 
-func (o * Organization) ToGRPC() * grpc_organization_go.Organization {
+func (o *Organization) ToGRPC() *grpc_organization_go.Organization {
 	return &grpc_organization_go.Organization{
 		OrganizationId: o.ID,
-		Name: o.Name,
-		Created: o.Created,
+		Name:           o.Name,
+		Created:        o.Created,
 	}
+}
+
+func OrganizationListToGRPC(list []Organization) *grpc_organization_go.OrganizationList {
+	result := make([] *grpc_organization_go.Organization, 0, len(list))
+	for _, el := range list {
+		result = append(result, el.ToGRPC())
+	}
+	return &grpc_organization_go.OrganizationList{Organizations: result}
 }
 
 func ValidOrganizationID(organizationID *grpc_organization_go.OrganizationId) derrors.Error {
@@ -41,13 +49,13 @@ func ValidOrganizationID(organizationID *grpc_organization_go.OrganizationId) de
 	return nil
 }
 
-func ValidAddOrganizationRequest(toAdd * grpc_organization_go.AddOrganizationRequest) derrors.Error {
+func ValidAddOrganizationRequest(toAdd *grpc_organization_go.AddOrganizationRequest) derrors.Error {
 	if toAdd.Name != "" {
 		return nil
 	}
 	return derrors.NewInvalidArgumentError("organization required fields missing")
 }
 
-func ValidUpdateOrganization(toUpdate * grpc_organization_go.UpdateOrganizationRequest) derrors.Error {
+func ValidUpdateOrganization(toUpdate *grpc_organization_go.UpdateOrganizationRequest) derrors.Error {
 	return nil
 }
