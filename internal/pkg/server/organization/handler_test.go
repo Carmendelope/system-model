@@ -6,6 +6,7 @@ package organization
 
 import (
 	"context"
+	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/test"
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
@@ -13,7 +14,7 @@ import (
 	"github.com/onsi/gomega"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
-	)
+)
 
 func createOrganization(name string) * grpc_organization_go.AddOrganizationRequest {
 	return &grpc_organization_go.AddOrganizationRequest{
@@ -29,13 +30,15 @@ var _ = ginkgo.Describe("Organization service", func(){
 	// client
 	var client grpc_organization_go.OrganizationsClient
 
+	var orgProvider organization.Provider
+
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
 		server = grpc.NewServer()
 		test.LaunchServer(server, listener)
 
 		// Register the service
-		orgProvider := organization.NewMockupOrganizationProvider()
+		orgProvider = organization.NewMockupOrganizationProvider()
 		manager := NewManager(orgProvider)
 		handler := NewHandler(manager)
 		grpc_organization_go.RegisterOrganizationsServer(server, handler)
@@ -48,6 +51,10 @@ var _ = ginkgo.Describe("Organization service", func(){
 	ginkgo.AfterSuite(func(){
 		server.Stop()
 		listener.Close()
+	})
+
+	ginkgo.BeforeEach(func() {
+		orgProvider.Clear()
 	})
 
 	ginkgo.Context("adding organization", func(){
@@ -81,6 +88,32 @@ var _ = ginkgo.Describe("Organization service", func(){
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
 			gomega.Expect(retrieved).Should(gomega.Equal(org))
+		})
+
+		ginkgo.It("should recover a list of organizations", func(){
+			toAdd := createOrganization("org2")
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+
+			toAdd = createOrganization("org3")
+			org, err = client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			retrieved, err := client.ListOrganizations(context.Background(), new(grpc_common_go.Empty))
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+			gomega.Expect(retrieved.Organizations).ShouldNot(gomega.BeNil())
+			gomega.Expect(retrieved.Organizations).Should(gomega.HaveLen(2))
+		})
+
+		ginkgo.It("should recover a list empty", func(){
+			retrieved, err := client.ListOrganizations(context.Background(), new(grpc_common_go.Empty))
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+			gomega.Expect(retrieved.Organizations).Should(gomega.HaveLen(0))
 		})
 
 		ginkgo.It("should fail on none existing organization", func(){

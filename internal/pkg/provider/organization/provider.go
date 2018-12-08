@@ -16,6 +16,8 @@ type Provider interface {
 	Exists(organizationID string) (bool, derrors.Error)
 	// Get an organization.
 	Get(organizationID string) (* entities.Organization, derrors.Error)
+	// List the set of organizations.
+	List() ([] entities.Organization, derrors.Error)
 
 	// AddCluster adds a new cluster ID to the organization.
 	AddCluster(organizationID string, clusterID string) derrors.Error

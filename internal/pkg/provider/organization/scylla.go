@@ -159,6 +159,26 @@ func (sp *ScyllaOrganizationProvider) Get(organizationID string) (* entities.Org
 	return &org, nil
 }
 
+func (sp *ScyllaOrganizationProvider) List() ([] entities.Organization, derrors.Error) {
+	// check connection
+	if err := sp.CheckAndConnect(); err != nil {
+		return nil, err
+	}
+
+	stmt, names := qb.Select(organizationTable).ToCql()
+
+	q:= gocqlx.Query(sp.Session.Query(stmt), names)
+
+	organizations := make ([]entities.Organization, 0)
+	cqlErr := gocqlx.Select(&organizations, q.Query)
+
+	if cqlErr != nil {
+		return nil, conversions.ToDerror(cqlErr)
+	}
+
+	return organizations, nil
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 
 // AddCluster adds a new cluster ID to the organization.

@@ -46,6 +46,17 @@ func (h *Handler) GetOrganization(ctx context.Context, organizationID *grpc_orga
 	}
 	return retrieved.ToGRPC(), nil
 }
+
+// ListOrganizations returns the list of organizations in the system.
+func (h *Handler) ListOrganizations(ctx context.Context, _ *grpc_common_go.Empty) (*grpc_organization_go.OrganizationList, error){
+
+	retrieved, err := h.Manager.ListOrganization()
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return entities.OrganizationListToGRPC(retrieved), nil
+
+}
 // UpdateOrganization updates the public information of an organization.
 func (h *Handler) UpdateOrganization(ctx context.Context, updateOrganizationRequest *grpc_organization_go.UpdateOrganizationRequest) (*grpc_common_go.Success, error) {
 	notImplemented := derrors.NewUnimplementedError("update organization")

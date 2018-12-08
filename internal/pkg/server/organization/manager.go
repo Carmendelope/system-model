@@ -35,3 +35,8 @@ func (m *Manager) AddOrganization(toAdd grpc_organization_go.AddOrganizationRequ
 func (m *Manager) GetOrganization(orgID grpc_organization_go.OrganizationId) (* entities.Organization, derrors.Error) {
 	return m.Provider.Get(orgID.OrganizationId)
 }
+
+// ListOrganization retrieves the profile information of a given organization.
+func (m *Manager) ListOrganization() ([] entities.Organization, derrors.Error) {
+	return m.Provider.List()
+}

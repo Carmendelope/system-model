@@ -19,7 +19,7 @@ docker exec -it scylla cqlsh
 create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 use nalej;
 
-create table nalej.Clusters (organization_id text, cluster_id text, name text, description text, cluster_type int, hostname text, multitenant int, status int, labels map<text, text>, cordon boolean, PRIMARY KEY (cluster_id));
+create table nalej.Clusters (organization_id text, cluster_id text, name text, description text, cluster_type int, hostname text, control_plane_hostname text, multitenant int, status int, labels map<text, text>, cordon boolean, PRIMARY KEY (cluster_id));
 create table nalej.Cluster_Nodes (cluster_id text, node_id text, PRIMARY KEY (cluster_id, node_id));
  */
 
