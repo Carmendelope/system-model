@@ -22,7 +22,7 @@ import (
 )
 
 func createCluster(organizationID string, orgProvider orgProvider.Provider, clusProvider clusProvider.Provider) * entities.Cluster {
-	toAdd := entities.NewCluster(organizationID, "test cluster", "", "hostname")
+	toAdd := entities.NewCluster(organizationID, "test cluster", "", "hostname", "hostname")
 	err := clusProvider.Add(*toAdd)
 	gomega.Expect(err).To(gomega.Succeed())
 	err = orgProvider.AddCluster(organizationID, toAdd.ClusterId)
