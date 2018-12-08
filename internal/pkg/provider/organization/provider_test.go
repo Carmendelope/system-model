@@ -56,6 +56,17 @@ func RunTest(provider Provider) {
 
 	})
 
+	// List Organization
+	ginkgo.It("Should be able to recover a empty list of organizations", func() {
+
+
+		orgLst, err := provider.List()
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(orgLst).NotTo(gomega.BeNil())
+		gomega.Expect(orgLst).Should(gomega.HaveLen(0))
+
+	})
+
 	ginkgo.It("Should not be able to get a organization", func() {
 
 		_, err := provider.Get("Org_0001")
