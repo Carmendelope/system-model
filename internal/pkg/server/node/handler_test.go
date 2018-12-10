@@ -211,6 +211,37 @@ var _ = ginkgo.Describe("Node service", func() {
 			gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
 			gomega.Expect(len(retrieved.Nodes)).Should(gomega.Equal(0))
 		})
+		ginkgo.FIt("should not be able to remove an existing cluster", func() {
+			toAdd := createAddNodeRequest(targetOrganization.ID)
+			added, err := client.AddNode(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+			gomega.Expect(added.NodeId).ShouldNot(gomega.BeEmpty())
+
+			attach := &grpc_infrastructure_go.AttachNodeRequest{
+				RequestId:            "req",
+				OrganizationId:       targetOrganization.ID,
+				ClusterId:            targetCluster.ClusterId,
+				NodeId:               added.NodeId,
+			}
+			success, err := client.AttachNode(context.Background(), attach)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ToNot(gomega.BeNil())
+
+			err = clusterProvider.DeleteNode(targetCluster.ClusterId, added.NodeId)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			// Remove nodes
+			removeRequest := &grpc_infrastructure_go.RemoveNodesRequest{
+				RequestId:            "removeId",
+				OrganizationId:       targetOrganization.ID,
+				Nodes:            []string{added.NodeId},
+			}
+			_, err = client.RemoveNodes(context.Background(), removeRequest)
+			gomega.Expect(err).NotTo(gomega.Succeed())
+
+
+		})
 		ginkgo.It("should not be able to remove a none existing cluster", func(){
 			// Remove nodes
 			removeRequest := &grpc_infrastructure_go.RemoveNodesRequest{
