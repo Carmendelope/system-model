@@ -211,7 +211,7 @@ var _ = ginkgo.Describe("Node service", func() {
 			gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
 			gomega.Expect(len(retrieved.Nodes)).Should(gomega.Equal(0))
 		})
-		ginkgo.FIt("should not be able to remove an existing cluster", func() {
+		ginkgo.It("should not be able to remove an existing cluster", func() {
 			toAdd := createAddNodeRequest(targetOrganization.ID)
 			added, err := client.AddNode(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
