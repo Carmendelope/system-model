@@ -133,6 +133,30 @@ var _ = ginkgo.Describe("User service", func() {
 		gomega.Expect(success).ToNot(gomega.BeNil())
 	})
 
+	ginkgo.It("should be able to retrieve an existing user", func(){
+		toAdd := createAddUserRequest(targetOrganization.ID, "email@email.com")
+		added, err := client.AddUser(context.Background(), toAdd)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		updateReq := &grpc_user_go.UpdateUserRequest{
+			OrganizationId:       targetOrganization.ID,
+			Email:                added.Email,
+			Name: "newNameUpdate",
+		}
+		_,err = client.Update(context.Background(), updateReq)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		userID := &grpc_user_go.UserId{
+			OrganizationId:       targetOrganization.ID,
+			Email:                added.Email,
+		}
+		retrieved, err := client.GetUser(context.Background(), userID)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+		gomega.Expect(retrieved.Email).Should(gomega.Equal(added.Email))
+		gomega.Expect(retrieved.Name).Should(gomega.Equal("newNameUpdate"))
+	})
+
 })
 
 

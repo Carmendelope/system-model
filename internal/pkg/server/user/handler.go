@@ -15,7 +15,7 @@ import (
 )
 
 // Handler structure for the user requests.
-type Handler struct{
+type Handler struct {
 	Manager Manager
 }
 
@@ -25,15 +25,15 @@ func NewHandler(manager Manager) *Handler {
 }
 
 // AddUser adds a new user to a given organization.
-func (h*Handler) AddUser(ctx context.Context, addUserRequest *grpc_user_go.AddUserRequest) (*grpc_user_go.User, error){
+func (h *Handler) AddUser(ctx context.Context, addUserRequest *grpc_user_go.AddUserRequest) (*grpc_user_go.User, error) {
 	log.Debug().Str("organizationID", addUserRequest.OrganizationId).
 		Str("email", addUserRequest.Email).Msg("add user")
 	vErr := entities.ValidAddUserRequest(addUserRequest)
-	if vErr != nil{
+	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	added, err := h.Manager.AddUser(addUserRequest)
-	if err != nil{
+	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("organizationID", addUserRequest.OrganizationId).
@@ -41,8 +41,21 @@ func (h*Handler) AddUser(ctx context.Context, addUserRequest *grpc_user_go.AddUs
 	return added.ToGRPC(), nil
 }
 
+func (h *Handler) Update(ctx context.Context, request *grpc_user_go.UpdateUserRequest) (*grpc_common_go.Success, error) {
+
+	vErr := entities.ValidUpdateUserRequest(request)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	err := h.Manager.UpdateUser(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+}
+
 // GetUser returns an existing user.
-func (h*Handler) GetUser(ctx context.Context, userID *grpc_user_go.UserId) (*grpc_user_go.User, error){
+func (h *Handler) GetUser(ctx context.Context, userID *grpc_user_go.UserId) (*grpc_user_go.User, error) {
 	vErr := entities.ValidUserID(userID)
 	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
@@ -55,7 +68,7 @@ func (h*Handler) GetUser(ctx context.Context, userID *grpc_user_go.UserId) (*grp
 }
 
 // GetUsers retrieves the list of users of a given organization.
-func (h*Handler) GetUsers(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_user_go.UserList, error){
+func (h *Handler) GetUsers(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_user_go.UserList, error) {
 	log.Debug().Str("organizationID", organizationID.OrganizationId).Msg("list users")
 	vErr := entities.ValidOrganizationID(organizationID)
 	if vErr != nil {
@@ -70,21 +83,21 @@ func (h*Handler) GetUsers(ctx context.Context, organizationID *grpc_organization
 		userList = append(userList, u.ToGRPC())
 	}
 	result := &grpc_user_go.UserList{
-		Users:                userList,
+		Users: userList,
 	}
 	return result, nil
 }
 
 // RemoveUser removes a given user from an organization.
-func (h*Handler) RemoveUser(ctx context.Context, removeRequest *grpc_user_go.RemoveUserRequest) (*grpc_common_go.Success, error){
+func (h *Handler) RemoveUser(ctx context.Context, removeRequest *grpc_user_go.RemoveUserRequest) (*grpc_common_go.Success, error) {
 	log.Debug().Str("organizationID", removeRequest.OrganizationId).
 		Str("email", removeRequest.Email).Msg("remove user")
 	vErr := entities.ValidRemoveUserRequest(removeRequest)
-	if vErr != nil{
+	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	err := h.Manager.RemoveUser(removeRequest)
-	if err != nil{
+	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("organizationID", removeRequest.OrganizationId).

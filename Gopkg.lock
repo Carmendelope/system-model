@@ -64,38 +64,38 @@
 [[projects]]
   name = "github.com/nalej/grpc-application-go"
   packages = ["."]
-  revision = "23a1ba36c670f151715184c16a56189427db70e2"
-  version = "v0.0.33"
+  revision = "4765770cea92bde18df2c74ae5b3562ef00a87b4"
+  version = "v0.0.35"
 
 [[projects]]
   name = "github.com/nalej/grpc-common-go"
   packages = ["."]
-  revision = "c7ff82134ab49f98295d02a1d3d17b43706103d0"
-  version = "v0.0.25"
+  revision = "d05db38d063d5e1c74fbd99f1068680989385623"
+  version = "v0.0.27"
 
 [[projects]]
   name = "github.com/nalej/grpc-infrastructure-go"
   packages = ["."]
-  revision = "718711ac1f475ddd8a4cb2195375f1a4687228e4"
-  version = "v0.0.26"
+  revision = "802ed0c2d72e8a9c27354e7deb94db1a6d7fd758"
+  version = "v0.0.28"
 
 [[projects]]
   name = "github.com/nalej/grpc-organization-go"
   packages = ["."]
-  revision = "ee09eef6191a86022657075d72d70335ea403e2a"
-  version = "v0.0.24"
+  revision = "0efca14a572921077be45c982e69cb23a221f0e4"
+  version = "v0.0.26"
 
 [[projects]]
   name = "github.com/nalej/grpc-role-go"
   packages = ["."]
-  revision = "78fd20fbd8954f40043258cdb037f0544d22b716"
-  version = "v0.0.18"
+  revision = "390fa37025612b5c466d810a2486d6c12dba5b34"
+  version = "v0.0.20"
 
 [[projects]]
   name = "github.com/nalej/grpc-user-go"
   packages = ["."]
-  revision = "99c349ba763fae8a2c96dfb4b148c7447b733230"
-  version = "v0.0.22"
+  revision = "e6eb9a9f7aac71e72f88ac2cb46c2e6cf7c45ab3"
+  version = "v0.0.27"
 
 [[projects]]
   name = "github.com/nalej/grpc-utils"
@@ -104,8 +104,8 @@
     "pkg/test",
     "pkg/tools"
   ]
-  revision = "120443cfc0335f46d85293d471189625d8b70483"
-  version = "v1.2.0"
+  revision = "3763d699ec598000c8095dc4d2e86a3ec0a169ff"
+  version = "v1.3.1"
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
@@ -211,7 +211,7 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "70b957f3b65e069b4930ea94e2721eefa0f8f695"
+  revision = "2a47403f2ae58167c4d75973960ccc62b28cb0d8"
 
 [[projects]]
   name = "golang.org/x/text"
