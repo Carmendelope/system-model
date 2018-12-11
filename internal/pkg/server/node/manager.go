@@ -7,10 +7,12 @@ package node
 import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-infrastructure-go"
+	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/cluster"
 	"github.com/nalej/system-model/internal/pkg/provider/node"
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
+	"github.com/rs/zerolog/log"
 )
 
 // Manager structure with the required providers for node operations.
@@ -151,6 +153,7 @@ func (m * Manager) RemoveNodes(removeNodesRequest *grpc_infrastructure_go.Remove
 
 	for _, nID := range removeNodesRequest.Nodes {
 		node, err := m.NodeProvider.Get(nID)
+
 		if err != nil {
 			return derrors.NewNotFoundError("nodeID").WithParams(nID)
 		}
@@ -160,12 +163,39 @@ func (m * Manager) RemoveNodes(removeNodesRequest *grpc_infrastructure_go.Remove
 				return derrors.NewInternalError("cannot delete node from cluster").CausedBy(err).WithParams(node.ClusterId, node.NodeId)
 			}
 		}
+
 		err = m.OrgProvider.DeleteNode(node.OrganizationId, node.NodeId)
 		if err != nil {
-			return derrors.NewInternalError("cannot delete node from organization").CausedBy(err).WithParams(node.OrganizationId, node.NodeId)
+			log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing Node. Rollback!")
+
+			// add cluster - Node relation
+			rollbackError := m.ClusterProvider.AddNode(node.ClusterId, node.NodeId)
+			if rollbackError != nil {
+				log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).
+					Str("node.ClusterId", node.ClusterId).Str("node.NodeId", node.NodeId).
+					Msg("error in Rollback")
+			}
+			return err
 		}
 		err = m.NodeProvider.Remove(node.NodeId)
 		if err != nil {
+			log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing Node. Rollback!")
+			// add cluster - Node relation
+			if node.ClusterId != "" {
+				rollbackError := m.ClusterProvider.AddNode(node.ClusterId, node.NodeId)
+				if rollbackError != nil {
+					log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).
+						Str("node.ClusterId", node.ClusterId).Str("node.ClusterId", node.ClusterId).
+						Msg("error in Rollback")
+				}
+			}
+			// add Organization - Node relation
+			rollbackError := m.OrgProvider.AddNode(node.OrganizationId, node.NodeId)
+			if rollbackError != nil {
+				log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).
+					Str("node.OrganizationId", node.OrganizationId).Str("node.NodeId", node.NodeId).
+					Msg("error in Rollback")
+			}
 			return err
 		}
 	}

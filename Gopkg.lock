@@ -64,38 +64,38 @@
 [[projects]]
   name = "github.com/nalej/grpc-application-go"
   packages = ["."]
-  revision = "4765770cea92bde18df2c74ae5b3562ef00a87b4"
-  version = "v0.0.35"
+  revision = "06756283ba4fbcacb8d3283227bd515fd42cfcb4"
+  version = "v0.0.37"
 
 [[projects]]
   name = "github.com/nalej/grpc-common-go"
   packages = ["."]
-  revision = "d05db38d063d5e1c74fbd99f1068680989385623"
-  version = "v0.0.27"
+  revision = "3a819d5336e7dcdd6b103eb0c78aafd48a01e70c"
+  version = "v0.0.29"
 
 [[projects]]
   name = "github.com/nalej/grpc-infrastructure-go"
   packages = ["."]
-  revision = "802ed0c2d72e8a9c27354e7deb94db1a6d7fd758"
-  version = "v0.0.28"
+  revision = "7961bfc23a902158e985b182b3f3726ce07775f1"
+  version = "v0.0.30"
 
 [[projects]]
   name = "github.com/nalej/grpc-organization-go"
   packages = ["."]
-  revision = "0efca14a572921077be45c982e69cb23a221f0e4"
-  version = "v0.0.26"
+  revision = "c571882666c05213df408ae9da8ab08f71a7a7bb"
+  version = "v0.0.28"
 
 [[projects]]
   name = "github.com/nalej/grpc-role-go"
   packages = ["."]
-  revision = "390fa37025612b5c466d810a2486d6c12dba5b34"
-  version = "v0.0.20"
+  revision = "d4aa1db73ece1972e462a58d0ff6916a2d106aa5"
+  version = "v0.0.22"
 
 [[projects]]
   name = "github.com/nalej/grpc-user-go"
   packages = ["."]
-  revision = "e6eb9a9f7aac71e72f88ac2cb46c2e6cf7c45ab3"
-  version = "v0.0.27"
+  revision = "8ecd6a2ce62ad6167d10288c5decd043bfb0ac72"
+  version = "v0.0.29"
 
 [[projects]]
   name = "github.com/nalej/grpc-utils"
