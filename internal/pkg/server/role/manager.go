@@ -8,9 +8,11 @@ import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-role-go"
+	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
 	"github.com/nalej/system-model/internal/pkg/provider/role"
+	"github.com/rs/zerolog/log"
 )
 
 // Manager structure with the required providers for role operations.
@@ -111,5 +113,16 @@ func (m * Manager) RemoveRole(removeRoleRequest *grpc_role_go.RemoveRoleRequest)
 	if err != nil {
 		return err
 	}
-	return m.RoleProvider.Remove(removeRoleRequest.RoleId)
+	err = m.RoleProvider.Remove(removeRoleRequest.RoleId)
+	if err != nil {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing role. Rollback!")
+		rollbackError := m.OrgProvider.AddRole(removeRoleRequest.OrganizationId, removeRoleRequest.RoleId)
+		if rollbackError != nil {
+			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).
+				Str("removeRoleRequest.OrganizationId", removeRoleRequest.OrganizationId).
+				Str("removeRoleRequest.RoleId", removeRoleRequest.RoleId).
+				Msg("error in Rollback")
+		}
+	}
+	return err
 }
