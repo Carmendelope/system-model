@@ -118,7 +118,10 @@ func (m * Manager) RemoveRole(removeRoleRequest *grpc_role_go.RemoveRoleRequest)
 		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing role. Rollback!")
 		rollbackError := m.OrgProvider.AddRole(removeRoleRequest.OrganizationId, removeRoleRequest.RoleId)
 		if rollbackError != nil {
-			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).Msg("error in Rollback")
+			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).
+				Str("removeRoleRequest.OrganizationId", removeRoleRequest.OrganizationId).
+				Str("removeRoleRequest.RoleId", removeRoleRequest.RoleId).
+				Msg("error in Rollback")
 		}
 	}
 	return err

@@ -166,29 +166,35 @@ func (m * Manager) RemoveNodes(removeNodesRequest *grpc_infrastructure_go.Remove
 
 		err = m.OrgProvider.DeleteNode(node.OrganizationId, node.NodeId)
 		if err != nil {
-			log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing Node in organization. Rollback!")
+			log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing Node. Rollback!")
 
 			// add cluster - Node relation
 			rollbackError := m.ClusterProvider.AddNode(node.ClusterId, node.NodeId)
 			if rollbackError != nil {
-				log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).Msg("error in Rollback")
+				log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).
+					Str("node.ClusterId", node.ClusterId).Str("node.NodeId", node.NodeId).
+					Msg("error in Rollback")
 			}
 			return err
 		}
 		err = m.NodeProvider.Remove(node.NodeId)
 		if err != nil {
-			log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing Node in organization. Rollback!")
+			log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing Node. Rollback!")
 			// add cluster - Node relation
 			if node.ClusterId != "" {
 				rollbackError := m.ClusterProvider.AddNode(node.ClusterId, node.NodeId)
 				if rollbackError != nil {
-					log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).Msg("error in Rollback")
+					log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).
+						Str("node.ClusterId", node.ClusterId).Str("node.ClusterId", node.ClusterId).
+						Msg("error in Rollback")
 				}
 			}
 			// add Organization - Node relation
 			rollbackError := m.OrgProvider.AddNode(node.OrganizationId, node.NodeId)
 			if rollbackError != nil {
-				log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).Msg("error in Rollback")
+				log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).
+					Str("node.OrganizationId", node.OrganizationId).Str("node.NodeId", node.NodeId).
+					Msg("error in Rollback")
 			}
 			return err
 		}
