@@ -8,9 +8,11 @@ import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-organization-go"
+	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/application"
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
+	"github.com/rs/zerolog/log"
 )
 
 // Manager structure with the required providers for application operations.
@@ -110,7 +112,15 @@ func (m * Manager) RemoveAppDescriptor(appDescID *grpc_application_go.AppDescrip
 	if err != nil {
 		return err
 	}
-	return m.AppProvider.DeleteDescriptor(appDescID.AppDescriptorId)
+	err = m.AppProvider.DeleteDescriptor(appDescID.AppDescriptorId)
+	if err != nil {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing user. Rollback!")
+		rollbackError := m.OrgProvider.AddDescriptor(appDescID.OrganizationId, appDescID.AppDescriptorId)
+		if rollbackError != nil {
+			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).Msg("error in Rollback")
+		}
+	}
+	return err
 }
 
 // AddAppInstance adds a new application instance to a given organization.
@@ -266,5 +276,13 @@ func (m * Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceI
 	if err != nil {
 		return err
 	}
-	return m.AppProvider.DeleteInstance(appInstID.AppInstanceId)
+	err = m.AppProvider.DeleteInstance(appInstID.AppInstanceId)
+	if err != nil {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing user. Rollback!")
+		rollbackError := m.OrgProvider.AddInstance(appInstID.OrganizationId, appInstID.AppInstanceId)
+		if rollbackError != nil {
+			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).Msg("error in Rollback")
+		}
+	}
+	return err
 }

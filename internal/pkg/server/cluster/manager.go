@@ -8,9 +8,11 @@ import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-infrastructure-go"
 	"github.com/nalej/grpc-organization-go"
+	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/cluster"
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
+	"github.com/rs/zerolog/log"
 )
 
 // Manager structure with the required providers for cluster operations.
@@ -141,5 +143,13 @@ func (m * Manager) RemoveCluster(removeClusterRequest *grpc_infrastructure_go.Re
 	if err != nil {
 		return err
 	}
-	return m.ClusterProvider.Remove(removeClusterRequest.ClusterId)
+	err = m.ClusterProvider.Remove(removeClusterRequest.ClusterId)
+	if err != nil {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing role. Rollback!")
+		rollbackError := m.OrgProvider.AddCluster(removeClusterRequest.OrganizationId, removeClusterRequest.ClusterId)
+		if rollbackError != nil {
+			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).Msg("error in Rollback")
+		}
+	}
+	return err
 }

@@ -8,9 +8,11 @@ import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-user-go"
+	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
 	"github.com/nalej/system-model/internal/pkg/provider/user"
+	"github.com/rs/zerolog/log"
 )
 
 // Manager structure with the required providers for user operations.
@@ -111,6 +113,16 @@ func (m * Manager) RemoveUser(removeRequest *grpc_user_go.RemoveUserRequest) der
 	if err != nil {
 		return err
 	}
-	return m.UserProvider.Remove(removeRequest.Email)
+
+	err = m.UserProvider.Remove(removeRequest.Email)
+	if err != nil {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing user. Rollback!")
+		rollbackError := m.OrgProvider.AddUser(removeRequest.OrganizationId, removeRequest.Email)
+		if rollbackError != nil {
+			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).Msg("error in Rollback")
+		}
+	}
+	return err
+
 }
 
