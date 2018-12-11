@@ -790,10 +790,10 @@ func RunTest(provider Provider) {
 		err := provider.Add(*org)
 		gomega.Expect(err).To(gomega.Succeed())
 
-		err = provider.AddUser(organizationID, "developer")
+		err = provider.AddUser(organizationID, "mail@daisho.group")
 		gomega.Expect(err).To(gomega.Succeed())
 
-		err = provider.AddUser(organizationID, "developer")
+		err = provider.AddUser(organizationID, "mail@daisho.group")
 		gomega.Expect(err).NotTo(gomega.Succeed())
 
 	})

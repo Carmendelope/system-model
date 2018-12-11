@@ -170,7 +170,7 @@ func (sp *ScyllaOrganizationProvider) List() ([] entities.Organization, derrors.
 	q:= gocqlx.Query(sp.Session.Query(stmt), names)
 
 	organizations := make ([]entities.Organization, 0)
-	cqlErr := gocqlx.Select(&organizations, q.Query)
+	cqlErr := q.SelectRelease(&organizations)
 
 	if cqlErr != nil {
 		return nil, conversions.ToDerror(cqlErr)
@@ -262,7 +262,7 @@ func (sp *ScyllaOrganizationProvider) ListClusters(organizationID string) ([]str
 	})
 
 	clusters := make ([]string, 0)
-	cqlErr := gocqlx.Select(&clusters, q.Query)
+	cqlErr := q.SelectRelease(&clusters)
 
 	if cqlErr != nil {
 		return nil, conversions.ToDerror(cqlErr)
@@ -384,7 +384,7 @@ func (sp *ScyllaOrganizationProvider) ListNodes(organizationID string) ([]string
 	})
 
 	nodes := make ([]string, 0)
-	cqlErr := gocqlx.Select(&nodes, q.Query)
+	cqlErr := q.SelectRelease(&nodes)
 
 	if cqlErr != nil {
 		return nil, conversions.ToDerror(cqlErr)
@@ -506,8 +506,7 @@ func (sp *ScyllaOrganizationProvider) ListDescriptors(organizationID string) ([]
 	})
 
 	descriptors := make ([]string, 0)
-	cqlErr := gocqlx.Select(&descriptors, q.Query)
-
+	cqlErr := q.SelectRelease(&descriptors)
 	if cqlErr != nil {
 		return nil, conversions.ToDerror(cqlErr)
 	}
@@ -628,8 +627,7 @@ func (sp *ScyllaOrganizationProvider) ListInstances(organizationID string) ([]st
 	})
 
 	instances := make ([]string, 0)
-	cqlErr := gocqlx.Select(&instances, q.Query)
-
+	cqlErr := q.SelectRelease(&instances)
 	if cqlErr != nil {
 		return nil, conversions.ToDerror(cqlErr)
 	}
@@ -750,8 +748,7 @@ func (sp *ScyllaOrganizationProvider) ListUsers(organizationID string) ([]string
 	})
 
 	users := make ([]string, 0)
-	cqlErr := gocqlx.Select(&users, q.Query)
-
+	cqlErr := q.SelectRelease(&users)
 	if cqlErr != nil {
 		return nil, conversions.ToDerror(cqlErr)
 	}
@@ -871,14 +868,14 @@ func (sp *ScyllaOrganizationProvider) ListRoles(organizationID string) ([]string
 		"organization_id": organizationID,
 	})
 
-	users := make ([]string, 0)
-	cqlErr := gocqlx.Select(&users, q.Query)
+	roles := make ([]string, 0)
+	cqlErr := q.SelectRelease(&roles)
 
 	if cqlErr != nil {
 		return nil, conversions.ToDerror(cqlErr)
 	}
 
-	return users, nil
+	return roles, nil
 }
 // DeleteRole removes a role from an organization.
 func (sp *ScyllaOrganizationProvider) DeleteRole(organizationID string, roleID string) derrors.Error{
