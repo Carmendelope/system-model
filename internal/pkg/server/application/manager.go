@@ -278,10 +278,12 @@ func (m * Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceI
 	}
 	err = m.AppProvider.DeleteInstance(appInstID.AppInstanceId)
 	if err != nil {
-		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing user. Rollback!")
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing app Instance. Rollback!")
 		rollbackError := m.OrgProvider.AddInstance(appInstID.OrganizationId, appInstID.AppInstanceId)
 		if rollbackError != nil {
-			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).Msg("error in Rollback")
+			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).
+				Str("appInstID.OrganizationId", appInstID.OrganizationId).
+				Str("appInstID.AppInstanceId", appInstID.AppInstanceId).Msg("error in Rollback")
 		}
 	}
 	return err

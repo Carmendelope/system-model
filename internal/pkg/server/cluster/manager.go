@@ -145,10 +145,13 @@ func (m * Manager) RemoveCluster(removeClusterRequest *grpc_infrastructure_go.Re
 	}
 	err = m.ClusterProvider.Remove(removeClusterRequest.ClusterId)
 	if err != nil {
-		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing role. Rollback!")
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("Error removing cluster. Rollback!")
 		rollbackError := m.OrgProvider.AddCluster(removeClusterRequest.OrganizationId, removeClusterRequest.ClusterId)
 		if rollbackError != nil {
-			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).Msg("error in Rollback")
+			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).
+				Str("removeClusterRequest.OrganizationId",removeClusterRequest.OrganizationId).
+				Str("removeClusterRequest.ClusterId", removeClusterRequest.ClusterId).
+				Msg("error in Rollback")
 		}
 	}
 	return err
