@@ -68,6 +68,16 @@ func ValidAddUserRequest(addUserRequest *grpc_user_go.AddUserRequest) derrors.Er
 	return nil
 }
 
+func ValidUpdateUserRequest(request *grpc_user_go.UpdateUserRequest) derrors.Error {
+	if request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	if request.Email == "" {
+		return derrors.NewInvalidArgumentError(emptyEmail)
+	}
+	return nil
+}
+
 func ValidRemoveUserRequest(removeRequest *grpc_user_go.RemoveUserRequest) derrors.Error {
 	if removeRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
