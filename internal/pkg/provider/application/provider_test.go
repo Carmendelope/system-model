@@ -82,7 +82,7 @@ func RunTest(provider Provider) {
 	// ---------------------------------------------------------------------------------------------------------------------
 
 	// Add Application Instance
-	ginkgo.FIt("Should be able to add an application", func() {
+	ginkgo.It("Should be able to add an application", func() {
 
 		app := CreateTestApplication("0001")
 
