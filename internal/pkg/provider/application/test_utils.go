@@ -80,7 +80,8 @@ func CreateTestServiceInstance (appInstanceId string) entities.ServiceInstance {
 		Credentials: &entities.ImageCredentials{
 			Username: "carmen",
 			Password:"*****",
-			Email: "cdelope@daisho.group"},
+			Email: "cdelope@daisho.group",
+			DockerRepository: "DOCKER REPOSITORY!!!!!"},
 		// DeploySpecs with the resource specs required by the service.
 		Specs: &entities.DeploySpecs{
 			Cpu: 1239900,
@@ -92,7 +93,9 @@ func CreateTestServiceInstance (appInstanceId string) entities.ServiceInstance {
 		Configs: confFile,
 		Labels: labels,
 		DeployAfter: deployAfter,
-		Status: entities.ServiceStatus(1)}
+		Status: entities.ServiceStatus(1),
+		DeployedOnClusterId:"ClusterIDXXX",
+		Endpoints:make([]string,0)}
 
 }
 
@@ -243,7 +246,8 @@ func CreateTestApplication(id string) *entities.AppInstance {
 		Rules: rules,
 		Groups:groups,
 		Services: services,
-		Status: entities.ApplicationStatus(1)}
+		Status: entities.ApplicationStatus(1),
+		}
 
 	return &app
 }
