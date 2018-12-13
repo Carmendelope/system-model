@@ -246,6 +246,8 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
     for index, s := range toUpdate.Services {
         if s.ServiceId == updateRequest.ServiceId {
             toUpdate.Services[index].Status = entities.ServiceStatusFromGRPC[updateRequest.Status]
+            toUpdate.Services[index].Endpoints = updateRequest.Endpoints
+			toUpdate.Services[index].DeployedOnClusterId = updateRequest.DeployedOnClusterId
             err = m.AppProvider.UpdateInstance(*toUpdate)
             if err != nil {
                 return derrors.NewInternalError("impossible to update instance").CausedBy(err)

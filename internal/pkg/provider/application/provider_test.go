@@ -105,6 +105,14 @@ func RunTest(provider Provider) {
 		groups = append(groups, CreateTestServiceGroupInstance("XXXXX"))
 		app.Groups = groups
 
+		if app.Services != nil{
+			endpoint := make ([]string, 0)
+			endpoint = append(endpoint, "enndpoint_mod")
+			app.Services[0].DeployedOnClusterId = "Another cluster"
+			app.Services[0].Endpoints = endpoint
+			app.Services[0].Credentials.DockerRepository= "Another docker repo"
+		}
+
 		// and update it
 		err = provider.UpdateInstance(*app)
 		gomega.Expect(err).To(gomega.Succeed())

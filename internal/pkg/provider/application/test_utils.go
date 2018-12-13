@@ -138,7 +138,8 @@ func CreateTestService (appDescriptorId string) entities.Service {
 		Credentials: &entities.ImageCredentials{
 			Username: "carmen",
 			Password:"*****",
-			Email: "cdelope@daisho.group"},
+			Email: "cdelope@daisho.group",
+			DockerRepository:"DOCKER!!!"},
 		// DeploySpecs with the resource specs required by the service.
 		Specs: &entities.DeploySpecs{
 			Cpu: 1239900,
