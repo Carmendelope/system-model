@@ -40,7 +40,7 @@ func (sp *ScyllaNodeProvider) Connect() derrors.Error {
 	session, err := conf.CreateSession()
 	if err != nil {
 		log.Error().Str("provider", "ScyllaNodeProvider").Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot connect")
 	}
 
 	sp.Session = session
@@ -92,7 +92,7 @@ func (sp *ScyllaNodeProvider) Add (node entities.Node) derrors.Error {
 	exists, err := sp.Exists(node.NodeId)
 
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if  exists {
 		return derrors.NewAlreadyExistsError(node.NodeId)
@@ -105,7 +105,7 @@ func (sp *ScyllaNodeProvider) Add (node entities.Node) derrors.Error {
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add node")
 	}
 
 	return nil
@@ -123,7 +123,7 @@ func (sp *ScyllaNodeProvider) Update(node entities.Node) derrors.Error {
 	exists, err := sp.Exists(node.NodeId)
 
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError(node.NodeId)
@@ -135,7 +135,7 @@ func (sp *ScyllaNodeProvider) Update(node entities.Node) derrors.Error {
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot update node")
 	}
 
 	return nil
@@ -160,7 +160,7 @@ func (sp *ScyllaNodeProvider) Exists(nodeID string) (bool, derrors.Error) {
 		if err.Error() == rowNotFound {
 			return false, nil
 		}else{
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate if node exists")
 		}
 	}
 
@@ -184,9 +184,9 @@ func (sp *ScyllaNodeProvider) Get(nodeID string) (* entities.Node, derrors.Error
 	err := q.GetRelease(&node)
 	if err != nil {
 		if err.Error() == rowNotFound {
-			return nil, conversions.ToDerror(err)
-		}else{
 			return nil, derrors.NewNotFoundError(nodeID)
+		}else{
+			return nil, derrors.AsError(err, "cannot get node")
 		}
 	}
 
@@ -205,7 +205,7 @@ func (sp *ScyllaNodeProvider) Remove(nodeID string) derrors.Error {
 	exists, err := sp.Exists(nodeID)
 
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError("node").WithParams(nodeID)
@@ -216,7 +216,7 @@ func (sp *ScyllaNodeProvider) Remove(nodeID string) derrors.Error {
 	cqlErr := sp.Session.Query(stmt, nodeID).Exec()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot remove node")
 	}
 
 	return nil
@@ -230,8 +230,8 @@ func (sp *ScyllaNodeProvider) Clear() derrors.Error {
 
 	err := sp.Session.Query("TRUNCATE TABLE Nodes").Exec()
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the table")
-		return conversions.ToDerror(err)
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the table")
+		return derrors.AsError(err, "cannot truncate node table")
 	}
 
 	return nil
