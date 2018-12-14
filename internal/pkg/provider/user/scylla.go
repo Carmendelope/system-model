@@ -39,7 +39,7 @@ func (sp *ScyllaUserProvider) Connect() derrors.Error {
 	session, err := conf.CreateSession()
 	if err != nil {
 		log.Error().Str("provider", "ScyllaUserProvider").Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot connect")
 	}
 
 	sp.Session = session
@@ -89,7 +89,7 @@ func (sp *ScyllaUserProvider) Add(user entities.User) derrors.Error{
 	exists, err := sp.Exists(user.Email)
 
 	if err != nil {
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot add user")
 	}
 	if  exists {
 		return derrors.NewAlreadyExistsError(user.Email)
@@ -102,7 +102,7 @@ func (sp *ScyllaUserProvider) Add(user entities.User) derrors.Error{
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add user")
 	}
 
 	return nil
@@ -119,7 +119,7 @@ func (sp *ScyllaUserProvider) Update(user entities.User) derrors.Error {
 	exists, err := sp.Exists(user.Email)
 
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError(user.Email)
@@ -131,7 +131,7 @@ func (sp *ScyllaUserProvider) Update(user entities.User) derrors.Error {
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot update user")
 	}
 
 	return nil
@@ -155,7 +155,7 @@ func (sp *ScyllaUserProvider) Exists(email string) (bool, derrors.Error) {
 		if err.Error() == rowNotFound {
 			return false, nil
 		}else{
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate if user exists")
 		}
 	}
 
@@ -178,9 +178,9 @@ func (sp *ScyllaUserProvider) Get(email string) (* entities.User, derrors.Error)
 	err := q.GetRelease(&user)
 	if err != nil {
 		if err.Error() == rowNotFound {
-			return nil, conversions.ToDerror(err)
-		}else{
 			return nil, derrors.NewNotFoundError(email)
+		}else{
+			return nil, derrors.AsError(err, "cannot get user")
 		}
 	}
 
@@ -199,7 +199,7 @@ func (sp *ScyllaUserProvider) Remove(email string) derrors.Error {
 	exists, err := sp.Exists(email)
 
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError("user").WithParams(email)
@@ -210,7 +210,7 @@ func (sp *ScyllaUserProvider) Remove(email string) derrors.Error {
 	cqlErr := sp.Session.Query(stmt, email).Exec()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot remove user")
 	}
 
 	return nil
@@ -225,8 +225,8 @@ func (sp *ScyllaUserProvider) Clear() derrors.Error{
 
 	err := sp.Session.Query("TRUNCATE TABLE USERS").Exec()
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the table")
-		return conversions.ToDerror(err)
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the table")
+		return derrors.AsError(err, "cannot truncate users table")
 	}
 
 	return nil

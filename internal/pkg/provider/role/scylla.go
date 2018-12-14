@@ -40,7 +40,7 @@ func (sp *ScyllaRoleProvider) Connect() derrors.Error {
 	session, err := conf.CreateSession()
 	if err != nil {
 		log.Error().Str("provider", "ScyllaRoleProvider").Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot connect")
 	}
 
 	sp.Session = session
@@ -89,7 +89,7 @@ func (sp *ScyllaRoleProvider) Add(role entities.Role) derrors.Error {
 	// check if the role exists
 	exists, err := sp.Exists(role.RoleId)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if  exists {
 		return derrors.NewAlreadyExistsError(role.RoleId)
@@ -101,7 +101,7 @@ func (sp *ScyllaRoleProvider) Add(role entities.Role) derrors.Error {
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add role")
 	}
 
 	return nil
@@ -118,7 +118,7 @@ func (sp *ScyllaRoleProvider) Update(role entities.Role) derrors.Error{
 	// check if the user exists
 	exists, err := sp.Exists(role.RoleId)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError(role.RoleId)
@@ -130,7 +130,7 @@ func (sp *ScyllaRoleProvider) Update(role entities.Role) derrors.Error{
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot update role")
 	}
 
 	return nil
@@ -155,7 +155,7 @@ func (sp *ScyllaRoleProvider) Exists(roleID string) (bool, derrors.Error){
 		if err.Error() == rowNotFound {
 			return false, nil
 		}else{
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate if role exists")
 		}
 	}
 	return true, nil
@@ -178,9 +178,9 @@ func (sp *ScyllaRoleProvider) Get(roleID string) (* entities.Role, derrors.Error
 	err := q.GetRelease(&role)
 	if err != nil {
 		if err.Error() == rowNotFound {
-			return nil, conversions.ToDerror(err)
-		}else{
 			return nil, derrors.NewNotFoundError(roleID)
+		}else{
+			return nil, derrors.AsError(err, "cannot get role")
 		}
 	}
 
@@ -200,7 +200,7 @@ func (sp *ScyllaRoleProvider) Remove(roleID string) derrors.Error {
 	exists, err := sp.Exists(roleID)
 
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError("role").WithParams(roleID)
@@ -211,7 +211,7 @@ func (sp *ScyllaRoleProvider) Remove(roleID string) derrors.Error {
 	cqlErr := sp.Session.Query(stmt, roleID).Exec()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot remove role")
 	}
 
 	return nil
@@ -227,7 +227,7 @@ func (sp *ScyllaRoleProvider) Clear() derrors.Error{
 
 	err := sp.Session.Query("TRUNCATE TABLE ROLES").Exec()
 	if err != nil {
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot truncate roles table")
 	}
 
 	return nil

@@ -44,7 +44,7 @@ func (sp *ScyllaOrganizationProvider) Connect() derrors.Error {
 	session, err := conf.CreateSession()
 	if err != nil {
 		log.Error().Str("provider", "ScyllaOrganizationProvider").Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot connect")
 	}
 
 	sp.Session = session
@@ -95,7 +95,7 @@ func (sp *ScyllaOrganizationProvider) Add(org entities.Organization) derrors.Err
 	// check if the organization exists
 	exists, err := sp.Exists(org.ID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if exists {
 		return derrors.NewAlreadyExistsError(org.ID)
@@ -107,7 +107,7 @@ func (sp *ScyllaOrganizationProvider) Add(org entities.Organization) derrors.Err
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add organization")
 	}
 
 	return nil
@@ -128,7 +128,7 @@ func (sp *ScyllaOrganizationProvider) Exists(organizationID string) (bool, derro
 		if err.Error() == rowNotFound {
 			return false, nil
 		}else{
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate if organization exists")
 		}
 	}
 
@@ -152,7 +152,7 @@ func (sp *ScyllaOrganizationProvider) Get(organizationID string) (* entities.Org
 		if cqlErr.Error() == rowNotFound{
 			return nil, derrors.NewNotFoundError(organizationID)
 		}else {
-			return nil, conversions.ToDerror(cqlErr)
+			return nil, derrors.AsError(cqlErr, "cannot get organization")
 		}
 	}
 
@@ -173,7 +173,7 @@ func (sp *ScyllaOrganizationProvider) List() ([] entities.Organization, derrors.
 	cqlErr := q.SelectRelease(&organizations)
 
 	if cqlErr != nil {
-		return nil, conversions.ToDerror(cqlErr)
+		return nil, derrors.AsError(cqlErr, "cannot list organization")
 	}
 
 	return organizations, nil
@@ -190,16 +190,16 @@ func (sp *ScyllaOrganizationProvider) AddCluster(organizationID string, clusterI
 
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return conversions.ToDerror(err)
+		return err
 	}
 	if !exists{
-		return derrors.NewAlreadyExistsError("organization").WithParams(organizationID)
+		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
 	// check if the organization exists
 	exists, err = sp.ClusterExists(organizationID, clusterID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if exists {
 		return derrors.NewAlreadyExistsError("cluster").WithParams(organizationID, clusterID)
@@ -214,7 +214,7 @@ func (sp *ScyllaOrganizationProvider) AddCluster(organizationID string, clusterI
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add cluster")
 	}
 
 	return nil
@@ -238,7 +238,7 @@ func (sp *ScyllaOrganizationProvider) ClusterExists(organizationID string, clust
 		if err.Error() == rowNotFound {
 			return false, nil
 		}else{
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate if cluster exists")
 		}
 	}
 
@@ -250,7 +250,7 @@ func (sp *ScyllaOrganizationProvider) ListClusters(organizationID string) ([]str
 	// 1.-Check if the organization exists
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return nil, conversions.ToDerror(err)
+		return nil, err
 	}
 	if !exists{
 		return nil, derrors.NewNotFoundError("organization").WithParams(organizationID)
@@ -265,7 +265,7 @@ func (sp *ScyllaOrganizationProvider) ListClusters(organizationID string) ([]str
 	cqlErr := q.SelectRelease(&clusters)
 
 	if cqlErr != nil {
-		return nil, conversions.ToDerror(cqlErr)
+		return nil, derrors.AsError(cqlErr, "cannot list clusters")
 	}
 
 	return clusters, nil
@@ -282,7 +282,7 @@ func (sp *ScyllaOrganizationProvider) DeleteCluster(organizationID string, clust
 	// check if the cluster exists in the organization
 	exists, err := sp.ClusterExists(organizationID, clusterID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError("cluster").WithParams(organizationID, clusterID)
@@ -293,7 +293,7 @@ func (sp *ScyllaOrganizationProvider) DeleteCluster(organizationID string, clust
 	cqlErr := sp.Session.Query(stmt, organizationID, clusterID).Exec()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot delete cluster")
 	}
 
 	return nil
@@ -311,16 +311,16 @@ func (sp *ScyllaOrganizationProvider) AddNode(organizationID string, nodeID stri
 
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return conversions.ToDerror(err)
+		return err
 	}
 	if !exists{
-		return derrors.NewAlreadyExistsError("organization").WithParams(organizationID)
+		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
 	// check if the organization exists
 	exists, err = sp.NodeExists(organizationID, nodeID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if exists {
 		return derrors.NewAlreadyExistsError("node").WithParams(organizationID, nodeID)
@@ -335,7 +335,7 @@ func (sp *ScyllaOrganizationProvider) AddNode(organizationID string, nodeID stri
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add node")
 	}
 
 	return nil
@@ -359,7 +359,7 @@ func (sp *ScyllaOrganizationProvider) NodeExists(organizationID string, nodeID s
 		if err.Error() == rowNotFound{
 			return false, nil
 		}else{
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate if node exists")
 		}
 	}
 
@@ -372,7 +372,7 @@ func (sp *ScyllaOrganizationProvider) ListNodes(organizationID string) ([]string
 	// 1.-Check if the organization exists
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return nil, conversions.ToDerror(err)
+		return nil, err
 	}
 	if !exists{
 		return nil, derrors.NewNotFoundError("organization").WithParams(organizationID)
@@ -387,7 +387,7 @@ func (sp *ScyllaOrganizationProvider) ListNodes(organizationID string) ([]string
 	cqlErr := q.SelectRelease(&nodes)
 
 	if cqlErr != nil {
-		return nil, conversions.ToDerror(cqlErr)
+		return nil, derrors.AsError(cqlErr, "cannot list nodes")
 	}
 
 	return nodes, nil
@@ -404,7 +404,7 @@ func (sp *ScyllaOrganizationProvider) DeleteNode(organizationID string, nodeID s
 	// check if the node exists in the organization
 	exists, err := sp.NodeExists(organizationID, nodeID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError("node").WithParams(organizationID, nodeID)
@@ -415,7 +415,7 @@ func (sp *ScyllaOrganizationProvider) DeleteNode(organizationID string, nodeID s
 	cqlErr := sp.Session.Query(stmt, organizationID, nodeID).Exec()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot delete node")
 	}
 
 	return nil
@@ -433,16 +433,16 @@ func (sp *ScyllaOrganizationProvider) AddDescriptor(organizationID string, appDe
 
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return conversions.ToDerror(err)
+		return err
 	}
 	if !exists{
-		return derrors.NewAlreadyExistsError("organization").WithParams(organizationID)
+		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
 	// check if the descriptor exists
 	exists, err = sp.DescriptorExists(organizationID, appDescriptorID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if exists {
 		return derrors.NewAlreadyExistsError("appDescriptor").WithParams(organizationID, appDescriptorID)
@@ -457,7 +457,7 @@ func (sp *ScyllaOrganizationProvider) AddDescriptor(organizationID string, appDe
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add descriptor")
 	}
 
 	return nil
@@ -481,7 +481,7 @@ func (sp *ScyllaOrganizationProvider) DescriptorExists(organizationID string, ap
 		if err.Error() == rowNotFound{
 			return false, nil
 		}else{
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate if descriptor exists")
 		}
 	}
 
@@ -494,7 +494,7 @@ func (sp *ScyllaOrganizationProvider) ListDescriptors(organizationID string) ([]
 	// 1.-Check if the organization exists
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return nil, conversions.ToDerror(err)
+		return nil, err
 	}
 	if !exists{
 		return nil, derrors.NewNotFoundError("organization").WithParams(organizationID)
@@ -508,7 +508,7 @@ func (sp *ScyllaOrganizationProvider) ListDescriptors(organizationID string) ([]
 	descriptors := make ([]string, 0)
 	cqlErr := q.SelectRelease(&descriptors)
 	if cqlErr != nil {
-		return nil, conversions.ToDerror(cqlErr)
+		return nil, derrors.AsError(cqlErr, "cannot list descriptors")
 	}
 
 	return descriptors, nil
@@ -525,7 +525,7 @@ func (sp *ScyllaOrganizationProvider) DeleteDescriptor(organizationID string, ap
 	// check if the descriptor exists in the organization
 	exists, err := sp.DescriptorExists(organizationID, appDescriptorID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError("app descriptor").WithParams(organizationID, appDescriptorID)
@@ -536,7 +536,7 @@ func (sp *ScyllaOrganizationProvider) DeleteDescriptor(organizationID string, ap
 	cqlErr := sp.Session.Query(stmt, organizationID, appDescriptorID).Exec()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot delete descriptor")
 	}
 
 	return nil
@@ -554,16 +554,16 @@ func (sp *ScyllaOrganizationProvider) AddInstance(organizationID string, appInst
 
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return conversions.ToDerror(err)
+		return err
 	}
 	if !exists{
-		return derrors.NewAlreadyExistsError("organization").WithParams(organizationID)
+		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
 	// check if the instance exists
 	exists, err = sp.InstanceExists(organizationID, appInstanceID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if exists {
 		return derrors.NewAlreadyExistsError("app_instance").WithParams(organizationID, appInstanceID)
@@ -578,7 +578,7 @@ func (sp *ScyllaOrganizationProvider) AddInstance(organizationID string, appInst
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add instance")
 	}
 
 	return nil
@@ -602,7 +602,7 @@ func (sp *ScyllaOrganizationProvider) InstanceExists(organizationID string, appI
 		if err.Error() == rowNotFound{
 			return false, nil
 		}else{
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate id instance exists")
 		}
 	}
 
@@ -615,7 +615,7 @@ func (sp *ScyllaOrganizationProvider) ListInstances(organizationID string) ([]st
 	// 1.-Check if the organization exists
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return nil, conversions.ToDerror(err)
+		return nil, err
 	}
 	if !exists{
 		return nil, derrors.NewNotFoundError("organization").WithParams(organizationID)
@@ -629,7 +629,7 @@ func (sp *ScyllaOrganizationProvider) ListInstances(organizationID string) ([]st
 	instances := make ([]string, 0)
 	cqlErr := q.SelectRelease(&instances)
 	if cqlErr != nil {
-		return nil, conversions.ToDerror(cqlErr)
+		return nil, derrors.AsError(cqlErr, "cannot list instances")
 	}
 
 	return instances, nil
@@ -646,7 +646,7 @@ func (sp *ScyllaOrganizationProvider) DeleteInstance(organizationID string, appI
 	// check if the instance exists in the organization
 	exists, err := sp.InstanceExists(organizationID, appInstanceID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError("app descriptor").WithParams(organizationID, appInstanceID)
@@ -657,7 +657,7 @@ func (sp *ScyllaOrganizationProvider) DeleteInstance(organizationID string, appI
 	cqlErr := sp.Session.Query(stmt, organizationID, appInstanceID).Exec()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot delete instance")
 	}
 
 	return nil
@@ -675,16 +675,16 @@ func (sp *ScyllaOrganizationProvider) AddUser(organizationID string, email strin
 
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return conversions.ToDerror(err)
+		return err
 	}
 	if !exists{
-		return derrors.NewAlreadyExistsError("organization").WithParams(organizationID)
+		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
 	// check if the user exists
 	exists, err = sp.UserExists(organizationID, email)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if exists {
 		return derrors.NewAlreadyExistsError("user").WithParams(organizationID, email)
@@ -699,7 +699,7 @@ func (sp *ScyllaOrganizationProvider) AddUser(organizationID string, email strin
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add user")
 	}
 
 	return nil
@@ -723,7 +723,7 @@ func (sp *ScyllaOrganizationProvider) UserExists(organizationID string, email st
 		if err.Error() == rowNotFound{
 			return false, nil
 		}else{
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate if user exists")
 		}
 	}
 
@@ -736,7 +736,7 @@ func (sp *ScyllaOrganizationProvider) ListUsers(organizationID string) ([]string
 	// 1.-Check if the organization exists
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return nil, conversions.ToDerror(err)
+		return nil, err
 	}
 	if !exists{
 		return nil, derrors.NewNotFoundError("organization").WithParams(organizationID)
@@ -750,7 +750,7 @@ func (sp *ScyllaOrganizationProvider) ListUsers(organizationID string) ([]string
 	users := make ([]string, 0)
 	cqlErr := q.SelectRelease(&users)
 	if cqlErr != nil {
-		return nil, conversions.ToDerror(cqlErr)
+		return nil, derrors.AsError(cqlErr, "cannot list users")
 	}
 
 	return users, nil
@@ -767,7 +767,7 @@ func (sp *ScyllaOrganizationProvider) DeleteUser(organizationID string, email st
 	// check if the user exists in the organization
 	exists, err := sp.UserExists(organizationID, email)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError("user").WithParams(organizationID, email)
@@ -778,7 +778,7 @@ func (sp *ScyllaOrganizationProvider) DeleteUser(organizationID string, email st
 	cqlErr := sp.Session.Query(stmt, organizationID, email).Exec()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot delete user")
 	}
 
 	return nil
@@ -796,16 +796,16 @@ func (sp *ScyllaOrganizationProvider) AddRole(organizationID string, roleID stri
 
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return conversions.ToDerror(err)
+		return err
 	}
 	if !exists{
-		return derrors.NewAlreadyExistsError("organization").WithParams(organizationID)
+		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
 	// check if the role exists
 	exists, err = sp.RoleExists(organizationID, roleID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if exists {
 		return derrors.NewAlreadyExistsError("role").WithParams(organizationID, roleID)
@@ -820,7 +820,7 @@ func (sp *ScyllaOrganizationProvider) AddRole(organizationID string, roleID stri
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add role")
 	}
 
 	return nil
@@ -844,7 +844,7 @@ func (sp *ScyllaOrganizationProvider) RoleExists(organizationID string, roleID s
 		if err.Error() == rowNotFound{
 			return false, nil
 		}else{
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate if role exists")
 		}
 	}
 
@@ -857,7 +857,7 @@ func (sp *ScyllaOrganizationProvider) ListRoles(organizationID string) ([]string
 	// 1.-Check if the organization exists
 	exists, err := sp.Exists(organizationID)
 	if err != nil{
-		return nil, conversions.ToDerror(err)
+		return nil, err
 	}
 	if !exists{
 		return nil, derrors.NewNotFoundError("organization").WithParams(organizationID)
@@ -872,7 +872,7 @@ func (sp *ScyllaOrganizationProvider) ListRoles(organizationID string) ([]string
 	cqlErr := q.SelectRelease(&roles)
 
 	if cqlErr != nil {
-		return nil, conversions.ToDerror(cqlErr)
+		return nil, derrors.AsError(cqlErr, "cannot list roles")
 	}
 
 	return roles, nil
@@ -889,7 +889,7 @@ func (sp *ScyllaOrganizationProvider) DeleteRole(organizationID string, roleID s
 	// check if the role exists in the organization
 	exists, err := sp.RoleExists(organizationID, roleID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError("role").WithParams(organizationID, roleID)
@@ -900,7 +900,7 @@ func (sp *ScyllaOrganizationProvider) DeleteRole(organizationID string, roleID s
 	cqlErr := sp.Session.Query(stmt, organizationID, roleID).Exec()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot delete role")
 	}
 
 	return nil
@@ -917,43 +917,44 @@ func (sp *ScyllaOrganizationProvider) Clear() derrors.Error{
 	// delete organizations table
 	err := sp.Session.Query("TRUNCATE TABLE organizations").Exec()
 	if err != nil {
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot truncate organizations table")
 	}
 
 	// delete organization-cluster table
 	err = sp.Session.Query("TRUNCATE TABLE organization_clusters").Exec()
 	if err != nil {
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot truncate organization_cluster table")
 	}
 
 	// delete organization-nodes table
 	err = sp.Session.Query("TRUNCATE TABLE organization_nodes").Exec()
 	if err != nil {
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot truncate organization_nodes cluster")
 	}
 
 	// delete organization-descriptors table
 	err = sp.Session.Query("TRUNCATE TABLE organization_appdescriptors").Exec()
 	if err != nil {
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot truncate organization_appdescriptors table")
 	}
 
 	// delete organization-instances table
 	err = sp.Session.Query("TRUNCATE TABLE organization_appinstances").Exec()
 	if err != nil {
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot truncate organization_appinstances table")
 	}
 
 	// delete organization-users table
 	err = sp.Session.Query("TRUNCATE TABLE organization_users").Exec()
 	if err != nil {
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot truncate organization_users table")
 	}
 
 	// delete organization-roles table
 	err = sp.Session.Query("TRUNCATE TABLE organization_roles").Exec()
 	if err != nil {
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot truncate organization_roles table")
 	}
-		return nil
+
+	return nil
 }

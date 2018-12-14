@@ -40,7 +40,7 @@ func (sp *ScyllaClusterProvider) Connect() derrors.Error {
 	session, err := conf.CreateSession()
 	if err != nil {
 		log.Error().Str("provider", "ScyllaClusterProvider").Str("trace", conversions.ToDerror(err).DebugReport()).Msg("unable to connect")
-		return conversions.ToDerror(err)
+		return derrors.AsError(err, "cannot connect")
 	}
 
 	sp.Session = session
@@ -91,7 +91,7 @@ func (sp *ScyllaClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 	// check if the luster exists
 	exists, err := sp.Exists(cluster.ClusterId)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if exists {
 		return derrors.NewAlreadyExistsError(cluster.ClusterId)
@@ -104,7 +104,7 @@ func (sp *ScyllaClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add cluster")
 	}
 
 	return nil
@@ -122,7 +122,7 @@ func (sp *ScyllaClusterProvider) Update(cluster entities.Cluster) derrors.Error 
 	// check if the cluster exists
 	exists, err := sp.Exists(cluster.ClusterId)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError(cluster.ClusterId)
@@ -136,7 +136,7 @@ func (sp *ScyllaClusterProvider) Update(cluster entities.Cluster) derrors.Error 
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(err,"cannot update cluster")
 	}
 
 	return nil
@@ -160,7 +160,7 @@ func (sp *ScyllaClusterProvider) Exists(clusterID string) (bool, derrors.Error) 
 		if err.Error() == rowNotFound {
 			return false, nil
 		} else {
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate if cluster exists")
 		}
 	}
 
@@ -186,7 +186,7 @@ func (sp *ScyllaClusterProvider) Get(clusterID string) (*entities.Cluster, derro
 		if err.Error() == rowNotFound {
 			return nil, derrors.NewNotFoundError("cluster").WithParams(clusterID)
 		} else {
-			return nil, conversions.ToDerror(err)
+			return nil, derrors.AsError(err, "cannot get cluster")
 		}
 	}
 
@@ -199,7 +199,7 @@ func (sp *ScyllaClusterProvider) Remove(clusterID string) derrors.Error {
 	// check if the cluster exists
 	exists, err := sp.Exists(clusterID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError(clusterID)
@@ -210,7 +210,7 @@ func (sp *ScyllaClusterProvider) Remove(clusterID string) derrors.Error {
 	cqlErr := sp.Session.Query(stmt, clusterID).Exec()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot remove cluster")
 	}
 
 	return nil
@@ -223,7 +223,7 @@ func (sp *ScyllaClusterProvider) AddNode(clusterID string, nodeID string) derror
 
 	exists, err := sp.Exists(clusterID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if !exists {
 		return derrors.NewNotFoundError("node").WithParams(clusterID)
@@ -232,7 +232,7 @@ func (sp *ScyllaClusterProvider) AddNode(clusterID string, nodeID string) derror
 	// check if the node exists in the cluster
 	exists, err = sp.NodeExists(clusterID, nodeID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if exists {
 		return derrors.NewAlreadyExistsError("node").WithParams(clusterID, nodeID)
@@ -247,7 +247,7 @@ func (sp *ScyllaClusterProvider) AddNode(clusterID string, nodeID string) derror
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot add node")
 	}
 
 	return nil
@@ -273,7 +273,7 @@ func (sp *ScyllaClusterProvider) NodeExists(clusterID string, nodeID string) (bo
 		if err.Error() == rowNotFound {
 			return false, nil
 		} else {
-			return false, conversions.ToDerror(err)
+			return false, derrors.AsError(err, "cannot determinate if node exists")
 		}
 	}
 
@@ -285,7 +285,7 @@ func (sp *ScyllaClusterProvider) ListNodes(clusterID string) ([]string, derrors.
 
 	exists, err := sp.Exists(clusterID)
 	if err != nil {
-		return nil, conversions.ToDerror(err)
+		return nil, err
 	}
 	if !exists {
 		return nil, derrors.NewNotFoundError("cluster").WithParams(clusterID)
@@ -300,7 +300,7 @@ func (sp *ScyllaClusterProvider) ListNodes(clusterID string) ([]string, derrors.
 	cqlErr := gocqlx.Select(&nodes, q.Query)
 
 	if cqlErr != nil {
-		return nil, conversions.ToDerror(cqlErr)
+		return nil, derrors.AsError(cqlErr, "cannot list nodes")
 	}
 
 	return nodes, nil
@@ -319,7 +319,7 @@ func (sp *ScyllaClusterProvider) DeleteNode(clusterID string, nodeID string) der
 	// check if the node exists in the cluster
 	exists, err := sp.NodeExists(clusterID, nodeID)
 	if err != nil {
-		return conversions.ToDerror(err)
+		return err
 	}
 	if ! exists {
 		return derrors.NewNotFoundError("node").WithParams(clusterID, nodeID)
@@ -330,7 +330,7 @@ func (sp *ScyllaClusterProvider) DeleteNode(clusterID string, nodeID string) der
 	cqlErr := sp.Session.Query(stmt, clusterID, nodeID).Exec()
 
 	if cqlErr != nil {
-		return conversions.ToDerror(cqlErr)
+		return derrors.AsError(cqlErr, "cannot delete node")
 	}
 
 	return nil
@@ -346,14 +346,14 @@ func (sp *ScyllaClusterProvider) Clear() derrors.Error {
 	// delete clusters table
 	err := sp.Session.Query("TRUNCATE TABLE clusters").Exec()
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the clusters table")
-		return conversions.ToDerror(err)
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the clusters table")
+		return derrors.AsError(err, "cannot truncate cluster table")
 	}
 
 	err = sp.Session.Query("TRUNCATE TABLE cluster_nodes").Exec()
 	if err != nil {
-		log.Info().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the cluster_nodes table")
-		return conversions.ToDerror(err)
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the cluster_nodes table")
+		return derrors.AsError(err, "cannot truncate node table")
 	}
 
 	return nil
