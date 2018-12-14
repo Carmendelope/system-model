@@ -216,6 +216,7 @@ type ImageCredentials struct {
 	Username string `json:"username,omitempty" cql:"username"`
 	Password string `json:"password,omitempty" cql:"password"`
 	Email    string `json:"email,omitempty" cql:"email"`
+	DockerRepository  string   `json:"docker_repository,omitempty" cql:"docker_repository"`
 }
 
 func NewImageCredentialsFromGRPC(credentials * grpc_application_go.ImageCredentials) *ImageCredentials {
@@ -226,6 +227,7 @@ func NewImageCredentialsFromGRPC(credentials * grpc_application_go.ImageCredenti
 		Username: credentials.Username,
 		Password: credentials.Password,
 		Email:    credentials.Email,
+		DockerRepository: credentials.DockerRepository,
 	}
 }
 
@@ -237,6 +239,7 @@ func (ic *ImageCredentials) ToGRPC() *grpc_application_go.ImageCredentials {
 		Username: ic.Username,
 		Password: ic.Password,
 		Email:    ic.Email,
+		DockerRepository: ic.DockerRepository,
 	}
 }
 
@@ -626,6 +629,10 @@ type ServiceInstance struct {
 	DeployAfter []string `json:"deploy_after,omitempty" cql:"deploy_after"`
 	// Status of the deployed service
 	Status ServiceStatus `json:"status,omitempty" cql:"status"`
+	// Endpoints exposed to the users by the service.
+	Endpoints []string `json:"endpoints,omitempty" cql:"endpoints"`
+	// DeployedOnClusterId specifies which is the cluster where the service is running.
+	DeployedOnClusterId  string  `json:"deployed_on_cluster_id,omitempty" cql:"deployed_on_cluster_id"`
 
 }
 
@@ -662,6 +669,8 @@ func (si *ServiceInstance) ToGRPC() *grpc_application_go.ServiceInstance {
 		Labels:               si.Labels,
 		DeployAfter:          si.DeployAfter,
 		Status:               serviceStatus,
+		Endpoints:            si.Endpoints,
+		DeployedOnClusterId:  si.DeployedOnClusterId,
 
 	}
 

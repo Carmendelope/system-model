@@ -32,6 +32,12 @@ func generateRandomSpecs() * grpc_application_go.DeploySpecs {
 }
 
 func generateRandomService(orgID string, index int) * grpc_application_go.Service {
+	credentials := &grpc_application_go.ImageCredentials{
+		Username: "username",
+		Password: "****",
+		Email : "email@company.com",
+		DockerRepository: "repo",
+	}
 	endpoints := make([]*grpc_application_go.Endpoint, 0)
 	endpoints = append(endpoints, &grpc_application_go.Endpoint{
 		Type: grpc_application_go.EndpointType_REST,
@@ -53,6 +59,7 @@ func generateRandomService(orgID string, index int) * grpc_application_go.Servic
 		Image: fmt.Sprintf("image:v%d", rand.Intn(10)),
 		Specs: generateRandomSpecs(),
 		ExposedPorts: ports,
+		Credentials: credentials,
 	}
 }
 
@@ -106,11 +113,15 @@ func generateUpdateAppInstance(organizationID string, appInstanceID string,
 
 func generateUpdateServiceStatus(organizationID string, appInstanceID string, serviceID string,
     appDescriptorID string, status grpc_application_go.ServiceStatus) * grpc_application_go.UpdateServiceStatusRequest {
+    endpoint := make([]string,0)
+    endpoint = append(endpoint, "enpoint1")
     return &grpc_application_go.UpdateServiceStatusRequest{
         OrganizationId: organizationID,
         AppInstanceId: appInstanceID,
         ServiceId: serviceID,
         Status: status,
+		Endpoints: endpoint,
+		DeployedOnClusterId: fmt.Sprintf("Deploy on cluster - %d", rand.Int31n(100)),
     }
 }
 
@@ -446,6 +457,8 @@ var _ = ginkgo.Describe("Applications", func(){
                 gomega.Expect(err).Should(gomega.BeNil())
                 gomega.Expect(recovered.AppInstanceId).To(gomega.Equal(added.AppInstanceId))
                 gomega.Expect(recovered.Services[0].Status).To(gomega.Equal(grpc_application_go.ServiceStatus_SERVICE_RUNNING))
+                gomega.Expect(recovered.Services[0].Endpoints).To(gomega.HaveLen(1))
+                gomega.Expect(recovered.Services[0].DeployedOnClusterId).NotTo(gomega.BeNil())
             })
         })
 
