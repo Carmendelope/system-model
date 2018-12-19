@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
+	"sync"
 )
 
 const clusterTable = "Clusters"
@@ -19,18 +20,19 @@ type ScyllaClusterProvider struct {
 	Port     int
 	Keyspace string
 	Session  *gocql.Session
+	sync.Mutex
 }
 
 const rowNotFound = "not found"
 
 func NewScyllaClusterProvider(address string, port int, keyspace string) *ScyllaClusterProvider {
-	provider := ScyllaClusterProvider{address, port, keyspace, nil}
-	provider.Connect()
+	provider := ScyllaClusterProvider{ Address: address, Port: port, Keyspace: keyspace, Session: nil}
+	provider.connect()
 	return &provider
 }
 
 // connect to the database
-func (sp *ScyllaClusterProvider) Connect() derrors.Error {
+func (sp *ScyllaClusterProvider) connect() derrors.Error {
 
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
@@ -51,26 +53,30 @@ func (sp *ScyllaClusterProvider) Connect() derrors.Error {
 // disconnect from the database
 func (sp *ScyllaClusterProvider) Disconnect() {
 
-	if sp != nil {
+	sp.Lock()
+	defer sp.Unlock()
+
+	if sp.Session != nil {
 		sp.Session.Close()
+		sp.Session = nil
 	}
 }
 
 // check that the session is created
-func (sp *ScyllaClusterProvider) CheckConnection() derrors.Error {
+func (sp *ScyllaClusterProvider) checkConnection() derrors.Error {
 	if sp.Session == nil {
 		return derrors.NewGenericError("Session not created")
 	}
 	return nil
 }
 
-func (sp *ScyllaClusterProvider) CheckAndConnect() derrors.Error {
+func (sp *ScyllaClusterProvider) checkAndConnect() derrors.Error {
 
-	err := sp.CheckConnection()
+	err := sp.checkConnection()
 	if err != nil {
 		log.Info().Msg("session no created, trying to reconnect...")
 		// try to reconnect
-		err = sp.Connect()
+		err = sp.connect()
 		if err != nil {
 			return err
 		}
@@ -78,18 +84,63 @@ func (sp *ScyllaClusterProvider) CheckAndConnect() derrors.Error {
 	return nil
 }
 
+func (sp *ScyllaClusterProvider) unsafeExists(clusterID string) (bool, derrors.Error) {
+
+	var returnedId string
+
+	stmt, names := qb.Select(clusterTable).Columns(clusterTablePK).Where(qb.Eq(clusterTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		clusterTablePK: clusterID})
+
+	err := q.GetRelease(&returnedId)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		} else {
+			return false, derrors.AsError(err, "cannot determinate if cluster exists")
+		}
+	}
+
+	return true, nil
+}
+
+func (sp *ScyllaClusterProvider) unsafeNodeExists(clusterID string, nodeID string) (bool, derrors.Error) {
+
+	var returnedId string
+
+	stmt, names := qb.Select(clusterNodeTable).Columns("node_id").Where(qb.Eq("cluster_id")).
+		Where(qb.Eq("node_id")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"cluster_id": clusterID,
+		"node_id":    nodeID})
+
+	err := q.GetRelease(&returnedId)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		} else {
+			return false, derrors.AsError(err, "cannot determinate if node exists")
+		}
+	}
+
+	return true, nil
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 
 // Add a new cluster to the system.
 func (sp *ScyllaClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
 	// check if the luster exists
-	exists, err := sp.Exists(cluster.ClusterId)
+	exists, err := sp.unsafeExists(cluster.ClusterId)
 	if err != nil {
 		return err
 	}
@@ -113,14 +164,17 @@ func (sp *ScyllaClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 // Update an existing cluster in the system
 func (sp *ScyllaClusterProvider) Update(cluster entities.Cluster) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	err := sp.CheckAndConnect()
+	err := sp.checkAndConnect()
 	if err != nil {
 		return err
 	}
 
 	// check if the cluster exists
-	exists, err := sp.Exists(cluster.ClusterId)
+	exists, err := sp.unsafeExists(cluster.ClusterId)
 	if err != nil {
 		return err
 	}
@@ -145,7 +199,10 @@ func (sp *ScyllaClusterProvider) Update(cluster entities.Cluster) derrors.Error 
 // Exists checks if a cluster exists on the system.
 func (sp *ScyllaClusterProvider) Exists(clusterID string) (bool, derrors.Error) {
 
-	if err := sp.CheckAndConnect(); err != nil {
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -170,8 +227,11 @@ func (sp *ScyllaClusterProvider) Exists(clusterID string) (bool, derrors.Error) 
 // Get a cluster.
 func (sp *ScyllaClusterProvider) Get(clusterID string) (*entities.Cluster, derrors.Error) {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -196,8 +256,15 @@ func (sp *ScyllaClusterProvider) Get(clusterID string) (*entities.Cluster, derro
 // Remove a cluster
 func (sp *ScyllaClusterProvider) Remove(clusterID string) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.checkAndConnect(); err != nil {
+		return err
+	}
+
 	// check if the cluster exists
-	exists, err := sp.Exists(clusterID)
+	exists, err := sp.unsafeExists(clusterID)
 	if err != nil {
 		return err
 	}
@@ -221,7 +288,14 @@ func (sp *ScyllaClusterProvider) Remove(clusterID string) derrors.Error {
 // AddNode adds a new node ID to the cluster.
 func (sp *ScyllaClusterProvider) AddNode(clusterID string, nodeID string) derrors.Error {
 
-	exists, err := sp.Exists(clusterID)
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.checkAndConnect(); err != nil {
+		return err
+	}
+
+	exists, err := sp.unsafeExists(clusterID)
 	if err != nil {
 		return err
 	}
@@ -230,7 +304,7 @@ func (sp *ScyllaClusterProvider) AddNode(clusterID string, nodeID string) derror
 	}
 
 	// check if the node exists in the cluster
-	exists, err = sp.NodeExists(clusterID, nodeID)
+	exists, err = sp.unsafeNodeExists(clusterID, nodeID)
 	if err != nil {
 		return err
 	}
@@ -256,7 +330,10 @@ func (sp *ScyllaClusterProvider) AddNode(clusterID string, nodeID string) derror
 // NodeExists checks if a node is linked to a cluster.
 func (sp *ScyllaClusterProvider) NodeExists(clusterID string, nodeID string) (bool, derrors.Error) {
 
-	if err := sp.CheckAndConnect(); err != nil {
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -283,7 +360,14 @@ func (sp *ScyllaClusterProvider) NodeExists(clusterID string, nodeID string) (bo
 // ListNodes returns a list of nodes in a cluster.
 func (sp *ScyllaClusterProvider) ListNodes(clusterID string) ([]string, derrors.Error) {
 
-	exists, err := sp.Exists(clusterID)
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.checkAndConnect(); err != nil {
+		return nil, err
+	}
+
+	exists, err := sp.unsafeExists(clusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -310,14 +394,17 @@ func (sp *ScyllaClusterProvider) ListNodes(clusterID string) ([]string, derrors.
 // DeleteNode removes a node from a cluster.
 func (sp *ScyllaClusterProvider) DeleteNode(clusterID string, nodeID string) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	err := sp.CheckAndConnect()
+	err := sp.checkAndConnect()
 	if err != nil {
 		return err
 	}
 
 	// check if the node exists in the cluster
-	exists, err := sp.NodeExists(clusterID, nodeID)
+	exists, err := sp.unsafeNodeExists(clusterID, nodeID)
 	if err != nil {
 		return err
 	}
@@ -338,8 +425,11 @@ func (sp *ScyllaClusterProvider) DeleteNode(clusterID string, nodeID string) der
 
 func (sp *ScyllaClusterProvider) Clear() derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
