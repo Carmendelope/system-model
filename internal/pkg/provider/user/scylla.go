@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
+	"sync"
 )
 
 const userTable = "users"
@@ -20,16 +21,17 @@ type ScyllaUserProvider struct {
 	Address string
 	Port int
 	Keyspace string
+	sync.Mutex
 	Session *gocql.Session
 }
 
 func NewScyllaUserProvider (address string, port int, keyspace string) * ScyllaUserProvider {
-	provider:= ScyllaUserProvider{address, port, keyspace, nil}
-	provider.Connect()
+	provider:= ScyllaUserProvider{Address: address, Port: port, Keyspace: keyspace, Session:nil}
+	provider.connect()
 	return &provider
 }
 
-func (sp *ScyllaUserProvider) Connect() derrors.Error {
+func (sp *ScyllaUserProvider) connect() derrors.Error {
 
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
@@ -49,26 +51,52 @@ func (sp *ScyllaUserProvider) Connect() derrors.Error {
 
 func (sp *ScyllaUserProvider) Disconnect () {
 
-	if sp != nil {
+	sp.Lock()
+	defer sp.Unlock()
+
+	if sp.Session != nil {
 		sp.Session.Close()
+		sp.Session = nil
 	}
+
+}
+
+func (sp *ScyllaUserProvider) unsafeExists(email string) (bool, derrors.Error) {
+
+	var returnedEmail string
+
+
+	stmt, names := qb.Select(userTable).Columns(userTablePK).Where(qb.Eq(userTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		userTablePK: email })
+
+	err := q.GetRelease(&returnedEmail)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, derrors.AsError(err, "cannot determinate if user exists")
+		}
+	}
+
+	return true, nil
 }
 
 // check if the session is created
-func (sp *ScyllaUserProvider) CheckConnection () derrors.Error {
+func (sp *ScyllaUserProvider) checkConnection () derrors.Error {
 	if sp.Session == nil{
 		return derrors.NewGenericError("Session not created")
 	}
 	return nil
 }
 
-func (sp *ScyllaUserProvider) CheckAndConnect () derrors.Error{
+func (sp *ScyllaUserProvider) checkAndConnect () derrors.Error{
 
-	err := sp.CheckConnection()
+	err := sp.checkConnection()
 	if err != nil {
 		log.Info().Msg("session no created, trying to reconnect...")
 		// try to reconnect
-		err = sp.Connect()
+		err = sp.connect()
 		if err != nil  {
 			return err
 		}
@@ -80,13 +108,16 @@ func (sp *ScyllaUserProvider) CheckAndConnect () derrors.Error{
 
 func (sp *ScyllaUserProvider) Add(user entities.User) derrors.Error{
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
 	// check if the user exists
-	exists, err := sp.Exists(user.Email)
+	exists, err := sp.unsafeExists(user.Email)
 
 	if err != nil {
 		return derrors.AsError(err, "cannot add user")
@@ -110,13 +141,16 @@ func (sp *ScyllaUserProvider) Add(user entities.User) derrors.Error{
 // Update an existing user in the system
 func (sp *ScyllaUserProvider) Update(user entities.User) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
 	// check if the user exists
-	exists, err := sp.Exists(user.Email)
+	exists, err := sp.unsafeExists(user.Email)
 
 	if err != nil {
 		return err
@@ -139,10 +173,13 @@ func (sp *ScyllaUserProvider) Update(user entities.User) derrors.Error {
 // Exists checks if a user exists on the system.
 func (sp *ScyllaUserProvider) Exists(email string) (bool, derrors.Error) {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	var returnedEmail string
 
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -164,8 +201,11 @@ func (sp *ScyllaUserProvider) Exists(email string) (bool, derrors.Error) {
 // Get a user.
 func (sp *ScyllaUserProvider) Get(email string) (* entities.User, derrors.Error) {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -190,13 +230,16 @@ func (sp *ScyllaUserProvider) Get(email string) (* entities.User, derrors.Error)
 // Remove a user.
 func (sp *ScyllaUserProvider) Remove(email string) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
 	// check if the user exists
-	exists, err := sp.Exists(email)
+	exists, err := sp.unsafeExists(email)
 
 	if err != nil {
 		return err
@@ -218,8 +261,11 @@ func (sp *ScyllaUserProvider) Remove(email string) derrors.Error {
 
 func (sp *ScyllaUserProvider) Clear() derrors.Error{
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 

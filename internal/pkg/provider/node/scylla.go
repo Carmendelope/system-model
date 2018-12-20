@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
+	"sync"
 )
 
 const nodeTable = "nodes"
@@ -20,17 +21,18 @@ type ScyllaNodeProvider struct {
 	Port int
 	Keyspace string
 	Session *gocql.Session
+	sync.Mutex
 }
 
 func NewScyllaNodeProvider (address string, port int, keyspace string) * ScyllaNodeProvider {
-	provider := ScyllaNodeProvider{ address,  port,keyspace, nil}
-	provider.Connect()
+	provider := ScyllaNodeProvider{Address: address, Port:  port, Keyspace: keyspace, Session: nil}
+	provider.connect()
 	return &provider
 
 }
 
 // connect to the database
-func (sp *ScyllaNodeProvider) Connect() derrors.Error {
+func (sp *ScyllaNodeProvider) connect() derrors.Error {
 
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
@@ -51,26 +53,55 @@ func (sp *ScyllaNodeProvider) Connect() derrors.Error {
 // disconnect from the database
 func (sp *ScyllaNodeProvider) Disconnect () {
 
-	if sp != nil {
+	sp.Lock()
+	defer sp.Unlock()
+
+	if sp.Session != nil {
 		sp.Session.Close()
+		sp.Session = nil
 	}
 }
 
+func (sp *ScyllaNodeProvider) unsafeExists(nodeID string) (bool, derrors.Error) {
+
+	var returnedId string
+
+	// check connection
+	if err := sp.checkAndConnect(); err != nil {
+		return false, err
+	}
+
+	stmt, names := qb.Select(nodeTable).Columns(nodeTablePK).Where(qb.Eq(nodeTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		nodeTablePK: nodeID })
+
+	err := q.GetRelease(&returnedId)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, derrors.AsError(err, "cannot determinate if node exists")
+		}
+	}
+
+	return true, nil
+}
+
 // check that the session is created
-func (sp *ScyllaNodeProvider) CheckConnection () derrors.Error {
+func (sp *ScyllaNodeProvider) checkConnection () derrors.Error {
 	if sp.Session == nil{
 		return derrors.NewGenericError("Session not created")
 	}
 	return nil
 }
 
-func (sp *ScyllaNodeProvider) CheckAndConnect () derrors.Error{
+func (sp *ScyllaNodeProvider) checkAndConnect () derrors.Error{
 
-	err := sp.CheckConnection()
+	err := sp.checkConnection()
 	if err != nil {
 		log.Info().Msg("session no created, trying to reconnect...")
 		// try to reconnect
-		err = sp.Connect()
+		err = sp.connect()
 		if err != nil  {
 			return err
 		}
@@ -83,13 +114,16 @@ func (sp *ScyllaNodeProvider) CheckAndConnect () derrors.Error{
 // Add a new node to the system.
 func (sp *ScyllaNodeProvider) Add (node entities.Node) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
 	// check if the user exists
-	exists, err := sp.Exists(node.NodeId)
+	exists, err := sp.unsafeExists(node.NodeId)
 
 	if err != nil {
 		return err
@@ -114,13 +148,16 @@ func (sp *ScyllaNodeProvider) Add (node entities.Node) derrors.Error {
 // Update an existing node in the system
 func (sp *ScyllaNodeProvider) Update(node entities.Node) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
 	// check if the user exists
-	exists, err := sp.Exists(node.NodeId)
+	exists, err := sp.unsafeExists(node.NodeId)
 
 	if err != nil {
 		return err
@@ -144,10 +181,13 @@ func (sp *ScyllaNodeProvider) Update(node entities.Node) derrors.Error {
 // Exists checks if a node exists on the system.
 func (sp *ScyllaNodeProvider) Exists(nodeID string) (bool, derrors.Error) {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	var returnedId string
 
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -170,8 +210,11 @@ func (sp *ScyllaNodeProvider) Exists(nodeID string) (bool, derrors.Error) {
 // Get a node.
 func (sp *ScyllaNodeProvider) Get(nodeID string) (* entities.Node, derrors.Error) {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -196,13 +239,16 @@ func (sp *ScyllaNodeProvider) Get(nodeID string) (* entities.Node, derrors.Error
 // Remove a node
 func (sp *ScyllaNodeProvider) Remove(nodeID string) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
 	// check if the user exists
-	exists, err := sp.Exists(nodeID)
+	exists, err := sp.unsafeExists(nodeID)
 
 	if err != nil {
 		return err
@@ -224,7 +270,10 @@ func (sp *ScyllaNodeProvider) Remove(nodeID string) derrors.Error {
 
 func (sp *ScyllaNodeProvider) Clear() derrors.Error {
 
-	if err := sp.CheckAndConnect(); err != nil {
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 

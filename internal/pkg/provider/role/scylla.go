@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
+	"sync"
 )
 
 const roleTable = "roles"
@@ -21,16 +22,17 @@ type ScyllaRoleProvider struct {
 	Port int
 	Keyspace string
 	Session *gocql.Session
+	sync.Mutex
 }
 
 func NewSScyllaRoleProvider (address string, port int, keyspace string) * ScyllaRoleProvider {
-	provider := ScyllaRoleProvider{address, port,keyspace, nil}
-	provider.Connect()
+	provider := ScyllaRoleProvider{Address:address, Port: port, Keyspace: keyspace, Session: nil}
+	provider.connect()
 	return &provider
 
 }
 
-func (sp *ScyllaRoleProvider) Connect() derrors.Error {
+func (sp *ScyllaRoleProvider) connect() derrors.Error {
 
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
@@ -50,25 +52,51 @@ func (sp *ScyllaRoleProvider) Connect() derrors.Error {
 
 func (sp *ScyllaRoleProvider) Disconnect () {
 
-	if sp != nil {
+	sp.Lock()
+	defer sp.Unlock()
+
+	if sp.Session != nil {
 		sp.Session.Close()
+		sp.Session = nil
 	}
 }
 
-func (sp *ScyllaRoleProvider) CheckConnection () derrors.Error {
+
+// Exists checks if a role exists on the system.
+func (sp *ScyllaRoleProvider) unsafeExists(roleID string) (bool, derrors.Error){
+
+
+	// check if exists
+	var recoveredRoleID string
+	stmt, names := qb.Select(roleTable).Columns(roleTablePK).Where(qb.Eq(roleTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		roleTablePK: roleID })
+
+	err := q.GetRelease(&recoveredRoleID)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, derrors.AsError(err, "cannot determinate if role exists")
+		}
+	}
+	return true, nil
+}
+
+func (sp *ScyllaRoleProvider) checkConnection () derrors.Error {
 	if sp.Session == nil{
 		return derrors.NewGenericError("Session not created")
 	}
 	return nil
 }
 
-func (sp *ScyllaRoleProvider) CheckAndConnect () derrors.Error{
+func (sp *ScyllaRoleProvider) checkAndConnect () derrors.Error{
 
-	err := sp.CheckConnection()
+	err := sp.checkConnection()
 	if err != nil {
 		log.Info().Msg("session no created, trying to reconnect...")
 		// try to reconnect
-		err = sp.Connect()
+		err = sp.connect()
 		if err != nil  {
 			return err
 		}
@@ -81,13 +109,16 @@ func (sp *ScyllaRoleProvider) CheckAndConnect () derrors.Error{
 // Add a new role to the system.
 func (sp *ScyllaRoleProvider) Add(role entities.Role) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
 	// check if the role exists
-	exists, err := sp.Exists(role.RoleId)
+	exists, err := sp.unsafeExists(role.RoleId)
 	if err != nil {
 		return err
 	}
@@ -110,13 +141,16 @@ func (sp *ScyllaRoleProvider) Add(role entities.Role) derrors.Error {
 // Update an existing role in the system
 func (sp *ScyllaRoleProvider) Update(role entities.Role) derrors.Error{
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
 	// check if the user exists
-	exists, err := sp.Exists(role.RoleId)
+	exists, err := sp.unsafeExists(role.RoleId)
 	if err != nil {
 		return err
 	}
@@ -139,8 +173,11 @@ func (sp *ScyllaRoleProvider) Update(role entities.Role) derrors.Error{
 // Exists checks if a role exists on the system.
 func (sp *ScyllaRoleProvider) Exists(roleID string) (bool, derrors.Error){
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -164,8 +201,11 @@ func (sp *ScyllaRoleProvider) Exists(roleID string) (bool, derrors.Error){
 // Get a role.
 func (sp *ScyllaRoleProvider) Get(roleID string) (* entities.Role, derrors.Error) {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -191,13 +231,16 @@ func (sp *ScyllaRoleProvider) Get(roleID string) (* entities.Role, derrors.Error
 // Remove a role
 func (sp *ScyllaRoleProvider) Remove(roleID string) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
 	// check if the role exists
-	exists, err := sp.Exists(roleID)
+	exists, err := sp.unsafeExists(roleID)
 
 	if err != nil {
 		return err
@@ -220,8 +263,11 @@ func (sp *ScyllaRoleProvider) Remove(roleID string) derrors.Error {
 
 func (sp *ScyllaRoleProvider) Clear() derrors.Error{
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 

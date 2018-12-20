@@ -65,11 +65,6 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 
 	// create a provider and connect it
 	sp := NewScyllaApplicationProvider(scyllaHost, scyllaPort, nalejKeySpace)
-	err :=	sp.Connect()
-
-	if err != nil {
-		ginkgo.Fail("unable to connect")
-	}
 
 	// disconnect
 	ginkgo.AfterSuite(func() {

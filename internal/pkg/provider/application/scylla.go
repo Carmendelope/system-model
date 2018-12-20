@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
+	"sync"
 )
 
 
@@ -27,15 +28,16 @@ type ScyllaApplicationProvider struct{
 	Port int
 	Keyspace string
 	Session *gocql.Session
+	sync.Mutex
 }
 
 func NewScyllaApplicationProvider (address string, port int, keyspace string) * ScyllaApplicationProvider {
-	provider := ScyllaApplicationProvider{address, port, keyspace, nil}
-	provider.Connect()
+	provider := ScyllaApplicationProvider{Address:address, Port: port, Keyspace: keyspace, Session: nil}
+	provider.connect()
 	return &provider
 }
 
-func (sp *ScyllaApplicationProvider) Connect() derrors.Error {
+func (sp *ScyllaApplicationProvider) connect() derrors.Error {
 
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
@@ -55,45 +57,96 @@ func (sp *ScyllaApplicationProvider) Connect() derrors.Error {
 
 func (sp *ScyllaApplicationProvider) Disconnect () {
 
-	if sp != nil {
+	sp.Lock()
+	defer sp.Unlock()
+
+	if sp.Session != nil {
 		sp.Session.Close()
+		sp.Session = nil
 	}
 }
 
 // check if the session is created
-func (sp *ScyllaApplicationProvider) CheckConnection () derrors.Error {
+func (sp *ScyllaApplicationProvider) checkConnection () derrors.Error {
 	if sp.Session == nil{
 		return derrors.NewGenericError("Session not created")
 	}
 	return nil
 }
 
-func (sp *ScyllaApplicationProvider) CheckAndConnect () derrors.Error{
+func (sp *ScyllaApplicationProvider) checkAndConnect () derrors.Error{
 
-	err := sp.CheckConnection()
+	err := sp.checkConnection()
 	if err != nil {
 		log.Info().Msg("session no created, trying to reconnect...")
 		// try to reconnect
-		err = sp.Connect()
+		err = sp.connect()
 		if err != nil  {
 			return err
 		}
 	}
 	return nil
 }
+
+func (sp *ScyllaApplicationProvider) unsafeDescriptorExists(appDescriptorID string) (bool, derrors.Error) {
+
+
+	var returnedId string
+
+	stmt, names := qb.Select(applicationDescriptorTable).Columns(applicationDescriptorTablePK).Where(qb.Eq(applicationDescriptorTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		applicationDescriptorTablePK: appDescriptorID,
+	})
+
+	err := q.GetRelease(&returnedId)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, derrors.AsError(err, "cannot determinate if appDescriptor exists")
+		}
+	}
+
+	return true, nil
+}
+
+func (sp *ScyllaApplicationProvider) unsafeInstanceExists(appInstanceID string) (bool, derrors.Error) {
+
+	var returnedId string
+
+	stmt, names := qb.Select(applicationTable).Columns(applicationTablePK).Where(qb.Eq(applicationTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		applicationTablePK: appInstanceID,
+	})
+
+	err := q.GetRelease(&returnedId)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else {
+			return false, derrors.AsError(err, "cannot determinate if appInstance exists")
+		}
+	}
+
+	return true, nil
+
+}
 // ---------------------------------------------------------------------------------------------------------------------
 
 // AddDescriptor adds a new application descriptor to the system
 func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescriptor) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	err := sp.CheckAndConnect()
+	err := sp.checkAndConnect()
 	if err != nil {
 		return err
 	}
 
 	// check if the application exists
-	exists, err := sp.DescriptorExists(descriptor.AppDescriptorId)
+	exists, err := sp.unsafeDescriptorExists(descriptor.AppDescriptorId)
 	if err != nil {
 		return err
 	}
@@ -117,8 +170,11 @@ func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescri
 // GetDescriptors retrieves an application descriptor.
 func (sp *ScyllaApplicationProvider) GetDescriptor(appDescriptorID string) (* entities.AppDescriptor, derrors.Error) {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -144,8 +200,11 @@ func (sp *ScyllaApplicationProvider) GetDescriptor(appDescriptorID string) (* en
 // DescriptorExists checks if a given descriptor exists on the system.
 func (sp *ScyllaApplicationProvider) DescriptorExists(appDescriptorID string) (bool, derrors.Error) {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if  err := sp.CheckAndConnect(); err != nil {
+	if  err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -171,14 +230,17 @@ func (sp *ScyllaApplicationProvider) DescriptorExists(appDescriptorID string) (b
 // DeleteDescriptor removes a given descriptor from the system.
 func (sp *ScyllaApplicationProvider) DeleteDescriptor(appDescriptorID string) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	err := sp.CheckAndConnect()
+	err := sp.checkAndConnect()
 	if  err != nil {
 		return err
 	}
 
 	// check if the application exists
-	exists, err := sp.DescriptorExists(appDescriptorID)
+	exists, err := sp.unsafeDescriptorExists(appDescriptorID)
 	if err != nil {
 		return err
 	}
@@ -202,14 +264,17 @@ func (sp *ScyllaApplicationProvider) DeleteDescriptor(appDescriptorID string) de
 // AddInstance adds a new application instance to the system
 func (sp *ScyllaApplicationProvider) AddInstance(instance entities.AppInstance) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	err := sp.CheckAndConnect()
+	err := sp.checkAndConnect()
 	if err != nil {
 		return err
 	}
 
 	// check if the application exists
-	exists, err := sp.InstanceExists(instance.AppInstanceId)
+	exists, err := sp.unsafeInstanceExists(instance.AppInstanceId)
 	if err != nil {
 		return err
 	}
@@ -234,8 +299,11 @@ func (sp *ScyllaApplicationProvider) AddInstance(instance entities.AppInstance) 
 // InstanceExists checks if an application instance exists on the system.
 func (sp *ScyllaApplicationProvider) InstanceExists(appInstanceID string) (bool, derrors.Error) {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if  err := sp.CheckAndConnect(); err != nil {
+	if  err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -262,8 +330,11 @@ func (sp *ScyllaApplicationProvider) InstanceExists(appInstanceID string) (bool,
 // GetInstance retrieves an application instance.
 func (sp *ScyllaApplicationProvider) GetInstance(appInstanceID string) (* entities.AppInstance, derrors.Error) {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -290,14 +361,17 @@ func (sp *ScyllaApplicationProvider) GetInstance(appInstanceID string) (* entiti
 // DeleteInstance removes a given instance from the system.
 func (sp *ScyllaApplicationProvider) DeleteInstance(appInstanceID string) derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	err := sp.CheckAndConnect()
+	err := sp.checkAndConnect()
 	if  err != nil {
 		return err
 	}
 
 	// check if the application exists
-	exists, err := sp.InstanceExists(appInstanceID)
+	exists, err := sp.unsafeInstanceExists(appInstanceID)
 	if err != nil {
 		return err
 	}
@@ -318,14 +392,18 @@ func (sp *ScyllaApplicationProvider) DeleteInstance(appInstanceID string) derror
 
 // UpdateInstance updates the information of an instance
 func (sp *ScyllaApplicationProvider) UpdateInstance(instance entities.AppInstance) derrors.Error {
+
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	err := sp.CheckAndConnect()
+	err := sp.checkAndConnect()
 	if err != nil {
 		return err
 	}
 
 	// check if the application exists
-	exists, err := sp.InstanceExists(instance.AppInstanceId)
+	exists, err := sp.unsafeInstanceExists(instance.AppInstanceId)
 	if err != nil {
 		return err
 	}
@@ -352,8 +430,11 @@ func (sp *ScyllaApplicationProvider) UpdateInstance(instance entities.AppInstanc
 // Clear descriptors and instances
 func (sp *ScyllaApplicationProvider) Clear() derrors.Error {
 
+	sp.Lock()
+	defer sp.Unlock()
+
 	// check connection
-	if err := sp.CheckAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
