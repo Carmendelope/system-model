@@ -5,7 +5,7 @@ metadata:
   labels:
     cluster: management
     component: system-model
-  namespace: nalej
+  namespace: __NPH_NAMESPACE
 spec:
   selector:
     cluster: management
