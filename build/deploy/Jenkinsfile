@@ -1,8 +1,8 @@
-String packageName = "scylla-deploy"
+String packageName = "system-model"
 String packagePath = "src/github.com/nalej/" + packageName
 String yamlPath = packagePath + "/bin/yaml/mngtcluster"
 String[] appsList = [
-    "scylla"
+    "system-model"
 ]
 
 pipeline {
@@ -29,8 +29,8 @@ pipeline {
                         waitUntil {
                             script {
                                 def k8sGet = new org.daisho.k8s.Get()
-                                expected = k8sGet.filterByJSONPath(params.namespace, "statefulset", "scylladb", "'{.spec.replicas}'")
-                                ready = k8sGet.filterByJSONPath(params.namespace, "statefulset", "scylladb", "'{.status.readyReplicas}'")
+                                expected = k8sGet.filterByJSONPath(params.namespace, "deployment", "system-model", "'{.spec.replicas}'")
+                                ready = k8sGet.filterByJSONPath(params.namespace, "deployment", "system-model", "'{.status.readyReplicas}'")
                                 echo "Expected: ${expected}"
                                 echo "Ready: ${ready}"
                                 ok = (ready == expected)
