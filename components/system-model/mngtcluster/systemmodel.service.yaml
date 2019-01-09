@@ -10,9 +10,8 @@ spec:
   selector:
     cluster: management
     component: system-model
-  type: NodePort
+  type: ClusterIP
   ports:
   - protocol: TCP
     port: 8800
     targetPort: 8800
-    nodePort: 31089
