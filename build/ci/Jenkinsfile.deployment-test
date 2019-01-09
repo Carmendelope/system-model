@@ -25,13 +25,13 @@ pipeline {
             }
         }
     }
-    // post {
-    //     always {
-    //         container("kubectl") {
-    //             script {
-    //                 nsHelper.deleteNamespace(env.namespaceName)
-    //             }
-    //         }
-    //     }
-    // }
+    post {
+        always {
+            container("kubectl") {
+                script {
+                    nsHelper.deleteNamespace(env.namespaceName)
+                }
+            }
+        }
+    }
 }
