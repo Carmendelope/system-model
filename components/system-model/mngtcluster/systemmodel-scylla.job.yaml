@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: scylla-systemmodel
-  namespace: nalej
+  namespace: __NPH_NAMESPACE
 spec:
   template:
     metadata:
