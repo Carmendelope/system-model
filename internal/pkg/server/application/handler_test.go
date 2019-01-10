@@ -9,10 +9,9 @@ import (
 	"fmt"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
-	"github.com/nalej/system-model/internal/pkg/server/testhelpers"
-
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
 	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
+	"github.com/nalej/system-model/internal/pkg/server/testhelpers"
 
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-utils/pkg/test"
@@ -50,6 +49,8 @@ func generateRandomService(orgID string, index int) * grpc_application_go.Servic
 		ExposedPort: 80,
 		Endpoints: endpoints,
 	})
+	arguments := make ([]string, 0)
+	arguments = append (arguments, "arg1")
 	return &grpc_application_go.Service{
 		OrganizationId: orgID,
 		ServiceId: fmt.Sprintf("s%d", index),
@@ -60,6 +61,7 @@ func generateRandomService(orgID string, index int) * grpc_application_go.Servic
 		Specs: generateRandomSpecs(),
 		ExposedPorts: ports,
 		Credentials: credentials,
+		RunArguments: arguments,
 	}
 }
 

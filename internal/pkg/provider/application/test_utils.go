@@ -127,6 +127,9 @@ func CreateTestService (appDescriptorId string) entities.Service {
 	deployAfter := make([]string, 0)
 	deployAfter = append(deployAfter, "deploy after this", "and this")
 
+	runArguments := make([] string, 0)
+	runArguments = append(runArguments, "arg1", "arg2", "arg3", "arg4")
+
 	return entities.Service{
 		OrganizationId: organizationId,
 		AppDescriptorId: appDescriptorId,
@@ -150,7 +153,9 @@ func CreateTestService (appDescriptorId string) entities.Service {
 		EnvironmentVariables: envVariables,
 		Configs: confFile,
 		Labels: labels,
-		DeployAfter: deployAfter}
+		DeployAfter: deployAfter,
+		RunArguments:runArguments,
+	}
 }
 
 func CreateTestServiceGroupInstance(appInstanceId string) entities.ServiceGroupInstance{
