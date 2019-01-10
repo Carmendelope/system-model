@@ -9,7 +9,7 @@ metadata:
     cluster: management
     component: system-model
   name: system-model
-  namespace: nalej
+  namespace: __NPH_NAMESPACE
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -25,13 +25,13 @@ spec:
     spec:
       containers:
       - name: system-model
-        image: nalejregistry.azurecr.io/nalej/system-model:VERSION
+        image: nalejregistry.azurecr.io/nalej/system-model:__NPH_VERSION
         imagePullPolicy: IfNotPresent
         args:
           - "run"
           - "--debug"
           - "--useDBScyllaProviders=true"
-          - "--scyllaDBAddress=scylladb.nalej"
+          - "--scyllaDBAddress=scylladb.__NPH_NAMESPACE"
           - "--scyllaDBKeyspace=nalej"
           - "--scyllaDBPort=9042"
         securityContext:
