@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"math/rand"
+	"github.com/google/uuid"
+
 )
 
 var organizationId = fmt.Sprintf("organization_%d", rand.Intn(100)+1)
@@ -127,6 +129,12 @@ func CreateTestService (appDescriptorId string) entities.Service {
 	deployAfter := make([]string, 0)
 	deployAfter = append(deployAfter, "deploy after this", "and this")
 
+	runArguments := make([] string, 0)
+	for i:=0; i<4; i++ {
+		runArguments = append(runArguments, uuid.New().String())
+	}
+
+
 	return entities.Service{
 		OrganizationId: organizationId,
 		AppDescriptorId: appDescriptorId,
@@ -150,7 +158,9 @@ func CreateTestService (appDescriptorId string) entities.Service {
 		EnvironmentVariables: envVariables,
 		Configs: confFile,
 		Labels: labels,
-		DeployAfter: deployAfter}
+		DeployAfter: deployAfter,
+		RunArguments:runArguments,
+	}
 }
 
 func CreateTestServiceGroupInstance(appInstanceId string) entities.ServiceGroupInstance{

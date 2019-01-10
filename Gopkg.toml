@@ -1,4 +1,4 @@
-                                                                       [[constraint]]
+[[constraint]]
     name="github.com/rs/zerolog"
     version="v1.8.0"
 
@@ -20,7 +20,7 @@
 
 [[constraint]]
     name="github.com/nalej/grpc-application-go"
-    version="v0.0.23"
+    version="v0.0.40"
 
 [[constraint]]
     name="github.com/nalej/grpc-infrastructure-go"
