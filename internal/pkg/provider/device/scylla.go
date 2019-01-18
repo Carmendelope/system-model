@@ -1,6 +1,7 @@
 package device
 
 import (
+	"fmt"
 	"github.com/gocql/gocql"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-utils/pkg/conversions"
@@ -285,7 +286,6 @@ func (sp * ScyllaDeviceProvider) unsafeExistsDevice (organizationID string, devi
 
 	return true, nil
 }
-
 // AddDevice adds a new device group
 func (sp *ScyllaDeviceProvider) AddDevice (device device.Device) derrors.Error {
 
@@ -407,9 +407,6 @@ func (sp *ScyllaDeviceProvider) ListDevice(organizationID string, deviceGroupID 
 	if cqlErr != nil {
 		return nil, derrors.AsError(cqlErr, "cannot list devices of a group")
 	}
-	if len(devices) == 0 {
-		return nil, derrors.NewNotFoundError("unable to recover the devices list").WithParams(organizationID, deviceGroupID)
-	}
 
 	return devices, nil
 }
@@ -440,6 +437,34 @@ func (sp *ScyllaDeviceProvider) RemoveDevice(organizationID string, deviceGroupI
 
 	if cqlErr != nil {
 		return derrors.AsError(cqlErr, "cannot delete device group")
+	}
+
+	return nil
+}
+
+// -------------------------------------------------------------------------------------------------------------------
+
+func (sp *ScyllaDeviceProvider)  Clear() derrors.Error{
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	if err := sp.checkAndConnect(); err != nil {
+		return err
+	}
+
+	// delete clusters table
+	err := sp.Session.Query(fmt.Sprintf("TRUNCATE TABLE %s", deviceGroupTable)).Exec()
+	if err != nil {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the device group table")
+		return derrors.AsError(err, "cannot truncate device group table")
+	}
+
+	err = sp.Session.Query(fmt.Sprintf("TRUNCATE TABLE %s", deviceTable)).Exec()
+	if err != nil {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the device table")
+		return derrors.AsError(err, "cannot truncate device table")
 	}
 
 	return nil

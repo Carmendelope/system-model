@@ -7,6 +7,10 @@ import (
 
 func RunTest (provider Provider) {
 
+	ginkgo.AfterEach(func() {
+		provider.Clear()
+	})
+
 	ginkgo.Context("device group tests", func(){
 		ginkgo.It("Should be able to add device group", func() {
 
@@ -187,12 +191,13 @@ func RunTest (provider Provider) {
 			gomega.Expect(list).To(gomega.HaveLen(3))
 
 		})
-		ginkgo.It("Should not be able to get the devices of a group", func(){
+		ginkgo.It("Should be able to get empty list of devices of a group ", func(){
 			helper := NewDeviceTestHepler()
 
 			toAdd := helper.CreateDevice()
-			_, err := provider.ListDevice(toAdd.OrganizationId, toAdd.DeviceGroupId)
-			gomega.Expect(err).NotTo(gomega.Succeed())
+			list, err := provider.ListDevice(toAdd.OrganizationId, toAdd.DeviceGroupId)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(len(list)).Should(gomega.Equal(0))
 
 		})
 		ginkgo.It("Should be able to remove a device", func() {

@@ -23,6 +23,8 @@ func NewMockupDeviceProvider () * MockupDeviceProvider {
 	}
 }
 
+// ----------------------------------------------------------------------------------------------------
+
 func (m * MockupDeviceProvider) unsafeExistsGroup (organizationID string, deviceGroupID string) bool {
 	groups, exists := m.deviceGroups[organizationID]
 
@@ -65,7 +67,6 @@ func (m * MockupDeviceProvider) ExistsDeviceGroup(organizationID string, deviceG
 	return m.unsafeExistsGroup(organizationID, deviceGroupID), nil
 }
 
-
 func (m * MockupDeviceProvider) GetDeviceGroup(organizationID string, deviceGroupID string) (* device.DeviceGroup, derrors.Error) {
 
 	m.Lock()
@@ -99,6 +100,7 @@ func (m * MockupDeviceProvider) ListDeviceGroups(organizationID string) ([]devic
 	return list, nil
 
 }
+
 func (m * MockupDeviceProvider) RemoveDeviceGroup(organizationID string, deviceGroupID string) derrors.Error {
 
 	m.Lock()
@@ -108,7 +110,11 @@ func (m * MockupDeviceProvider) RemoveDeviceGroup(organizationID string, deviceG
 	if  exists {
 		group , exists := groups[deviceGroupID]
 		if exists{
-			delete(groups, group.DeviceGroupId)
+			if len(groups) == 1 {
+				delete(m.deviceGroups, organizationID)
+			}else {
+				delete(groups, group.DeviceGroupId)
+			}
 			return nil
 		}
 	}
@@ -189,25 +195,28 @@ func (m * MockupDeviceProvider) GetDevice(organizationID string, deviceGroupID s
 	return nil, derrors.NewNotFoundError("device").WithParams(organizationID, deviceGroupID, deviceID)
 
 }
+
 func (m * MockupDeviceProvider) ListDevice(organizationID string, deviceGroupID string) ([]device.Device, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
 	key := CreateDeviceIndex(organizationID, deviceGroupID)
+	devList := make([]device.Device, 0)
 
 	devices, exists := m.devices[key]
 
 	if exists{
-		devList := make([]device.Device, 0)
 		for _, dev := range devices{
 			devList = append(devList, dev)
 		}
-		return devList, nil
-	}
 
-	return nil, derrors.NewNotFoundError("devices list").WithParams(organizationID, deviceGroupID)
+	}
+	return devList, nil
+
+	// return nil, derrors.NewNotFoundError("devices list").WithParams(organizationID, deviceGroupID)
 
 }
+
 func (m * MockupDeviceProvider) RemoveDevice(organizationID string, deviceGroupID string, deviceID string) derrors.Error{
 	m.Lock()
 	defer m.Unlock()
@@ -218,9 +227,22 @@ func (m * MockupDeviceProvider) RemoveDevice(organizationID string, deviceGroupI
 	if  exists {
 		dev , exists := devices[deviceID]
 		if exists{
-			delete(devices, dev.DeviceId)
+			if len(devices) == 1 {
+				delete(m.devices, key)
+			}else {
+				delete(devices, dev.DeviceId)
+			}
 			return nil
 		}
 	}
 	return derrors.NewNotFoundError("device").WithParams(organizationID, deviceGroupID, deviceID)
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+func (m * MockupDeviceProvider) Clear()  derrors.Error{
+	m.devices = make(map[string]map[string]device.Device, 0)
+	m.deviceGroups = make(map[string]map[string]device.DeviceGroup, 0)
+
+	return nil
 }

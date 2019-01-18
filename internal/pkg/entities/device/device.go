@@ -24,6 +24,16 @@ type DeviceGroup struct {
 	Labels			map[string]string
 }
 
+func NewDeviceGroup (organizationID string, deviceGroupID string, name string, labels map[string]string) * DeviceGroup {
+	return &DeviceGroup{
+		OrganizationId:organizationID,
+		DeviceGroupId: deviceGroupID,
+		Name : name,
+		Created: time.Now().Unix(),
+		Labels: labels,
+	}
+}
+
 
 // ----------- Device Group ----------- //
 func NewDeviceGroupFromGRPC (addRequest * grpc_device_go.AddDeviceGroupRequest) * DeviceGroup {
@@ -84,19 +94,11 @@ func ValidRemoveDeviceGroupRequest (removeRequest * grpc_device_go.RemoveDeviceG
 }
 
 // ----------- Device ----------- //
-/*type Device struct {
-	OrganizationId	string
-	DeviceGroupId 	string
-	DeviceId 		string
-	RegisterSince	int64
-	Labels			map[string]string
-}*/
-
-func NewDeviceFromGRPC (addRequest grpc_device_go.AddDeviceRequest) * Device{
+func NewDeviceFromGRPC (addRequest * grpc_device_go.AddDeviceRequest) * Device{
 	return &Device{
 		OrganizationId: addRequest.OrganizationId,
 		DeviceGroupId: addRequest.DeviceGroupId,
-		//DeviceId:     addRequest.DeviceId
+		DeviceId:     addRequest.DeviceId,
 		Labels:			addRequest.Labels,
 		RegisterSince: time.Now().Unix(),
 	}
@@ -112,7 +114,7 @@ func (d * Device) ToGRPC() *grpc_device_go.Device {
 	}
 }
 
- func ValidDeviceID (device * grpc_device_go.Device) derrors.Error {
+func ValidDeviceID (device * grpc_device_go.DeviceId) derrors.Error {
 
 	if device.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("organization_id cannot be empty")

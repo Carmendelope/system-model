@@ -9,14 +9,24 @@ import (
 )
 
 /*
+// --- Run Scylla docker image
 docker run --name scylla -p 9042:9042 -d scylladb/scylla
 docker exec -it scylla cqlsh
 
+// -- create database
+
 create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-use nalej;
 
 create table IF NOT EXISTS nalej.Devices (organization_id text, device_group_id text, device_id text, register_since int, labels map<text, text>, PRIMARY KEY ( (organization_id, device_group_id), device_id));
 create table IF NOT EXISTS nalej.DeviceGroups (organization_id text, device_group_id text, name text, created int, labels map<text, text>, primary KEY (organization_id, device_group_id));
+
+// -- Environment variables
+
+IT_SCYLLA_HOST=127.0.0.1
+RUN_INTEGRATION_TEST=true
+IT_NALEJ_KEYSPACE=nalej
+IT_SCYLLA_PORT=9042
+
 */
 
 var _ = ginkgo.Describe("Scylla cluster provider", func() {
@@ -46,4 +56,5 @@ var _ = ginkgo.Describe("Scylla cluster provider", func() {
 	})
 
 	RunTest(sp)
+
 })

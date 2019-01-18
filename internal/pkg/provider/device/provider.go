@@ -29,4 +29,6 @@ type Provider interface {
 	// Remove a device
 	RemoveDevice(organizationID string, deviceGroupID string, deviceID string) derrors.Error
 
+	Clear() derrors.Error
+
 }
