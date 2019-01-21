@@ -25,7 +25,7 @@ type Provider interface {
 	// GetDevice returns a device .
 	GetDevice(organizationID string, deviceGroupID string, deviceID string) (* device.Device, derrors.Error)
 	// ListDevice returns a list of device in a group.
-	ListDevice(organizationID string, deviceGroupID string) ([]device.Device, derrors.Error)
+	ListDevices(organizationID string, deviceGroupID string) ([]device.Device, derrors.Error)
 	// Remove a device
 	RemoveDevice(organizationID string, deviceGroupID string, deviceID string) derrors.Error
 

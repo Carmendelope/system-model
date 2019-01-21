@@ -196,7 +196,7 @@ func (m * MockupDeviceProvider) GetDevice(organizationID string, deviceGroupID s
 
 }
 
-func (m * MockupDeviceProvider) ListDevice(organizationID string, deviceGroupID string) ([]device.Device, derrors.Error) {
+func (m * MockupDeviceProvider) ListDevices(organizationID string, deviceGroupID string) ([]device.Device, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 

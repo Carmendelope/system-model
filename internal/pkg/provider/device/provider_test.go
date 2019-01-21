@@ -186,7 +186,7 @@ func RunTest (provider Provider) {
 			err = provider.AddDevice(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			list, err := provider.ListDevice(toAdd.OrganizationId, toAdd.DeviceGroupId)
+			list, err := provider.ListDevices(toAdd.OrganizationId, toAdd.DeviceGroupId)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(list).To(gomega.HaveLen(3))
 
@@ -195,7 +195,7 @@ func RunTest (provider Provider) {
 			helper := NewDeviceTestHepler()
 
 			toAdd := helper.CreateDevice()
-			list, err := provider.ListDevice(toAdd.OrganizationId, toAdd.DeviceGroupId)
+			list, err := provider.ListDevices(toAdd.OrganizationId, toAdd.DeviceGroupId)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(len(list)).Should(gomega.Equal(0))
 

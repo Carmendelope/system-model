@@ -383,7 +383,7 @@ func (sp *ScyllaDeviceProvider) GetDevice(organizationID string, deviceGroupID s
 	return &device, nil
 }
 // ListDevice returns a list of device in a group.
-func (sp *ScyllaDeviceProvider) ListDevice(organizationID string, deviceGroupID string) ([]device.Device, derrors.Error) {
+func (sp *ScyllaDeviceProvider) ListDevices(organizationID string, deviceGroupID string) ([]device.Device, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
