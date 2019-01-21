@@ -36,7 +36,7 @@ func DeleteGroups(devProvider devProvider.Provider, organizationID string){
 	gomega.Expect(err).To(gomega.Succeed())
 
 	for _, group := range groups {
-		list, err := devProvider.ListDevice(organizationID, group.DeviceGroupId)
+		list, err := devProvider.ListDevices(organizationID, group.DeviceGroupId)
 		gomega.Expect(err).To(gomega.Succeed())
 
 		for _, device := range list{
