@@ -148,7 +148,7 @@ func (m *Manager) ListDevices(deviceGroupID *grpc_device_go.DeviceGroupId) ([] d
 		return nil, derrors.NewNotFoundError("device group").WithParams(deviceGroupID.OrganizationId, deviceGroupID.DeviceGroupId)
 	}
 
-	groups, err := m.DevProvider.ListDevice(deviceGroupID.OrganizationId, deviceGroupID.DeviceGroupId)
+	groups, err := m.DevProvider.ListDevices(deviceGroupID.OrganizationId, deviceGroupID.DeviceGroupId)
 	if err != nil {
 		return nil, err
 	}
