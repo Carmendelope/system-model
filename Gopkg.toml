@@ -38,6 +38,10 @@
     name="github.com/nalej/grpc-common-go"
     version="v0.0.15"
 
+[[constraint]]
+    name="github.com/nalej/grpc-device-go"
+    version="v0.0.29"
+
 [[override]]
   source = "https://github.com/fsnotify/fsnotify/archive/v1.4.7.tar.gz"
   name = "gopkg.in/fsnotify.v1"
