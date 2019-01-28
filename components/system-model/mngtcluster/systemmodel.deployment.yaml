@@ -26,7 +26,7 @@ spec:
       containers:
       - name: system-model
         image: nalejregistry.azurecr.io/nalej/system-model:__NPH_VERSION
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         args:
           - "run"
           - "--debug"

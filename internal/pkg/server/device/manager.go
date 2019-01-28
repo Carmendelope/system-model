@@ -75,7 +75,7 @@ func (m *Manager) GetDeviceGroup(deviceGroupID *grpc_device_go.DeviceGroupId) (*
 	return m.DevProvider.GetDeviceGroup(deviceGroupID.OrganizationId, deviceGroupID.DeviceGroupId)
 }
 // RemoveDeviceGroup removes a device group
-func (m *Manager) RemoveServiceGroup(removeRequest *grpc_device_go.RemoveDeviceGroupRequest) (derrors.Error){
+func (m *Manager) RemoveDeviceGroup(removeRequest *grpc_device_go.RemoveDeviceGroupRequest) (derrors.Error){
 
 	exists, err := m.OrgProvider.Exists(removeRequest.OrganizationId)
 	if err != nil {

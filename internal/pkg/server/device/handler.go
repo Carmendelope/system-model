@@ -67,13 +67,13 @@ func (h *Handler) GetDeviceGroup(ctx context.Context, DeviceGroupID *grpc_device
 	return group.ToGRPC(), nil
 }
 // RemoveDeviceGroup removes a device group
-func (h *Handler) RemoveServiceGroup(ctx context.Context, removeRequest *grpc_device_go.RemoveDeviceGroupRequest) (*grpc_common_go.Success, error){
+func (h *Handler) RemoveDeviceGroup(ctx context.Context, removeRequest *grpc_device_go.RemoveDeviceGroupRequest) (*grpc_common_go.Success, error){
 
 	err := device.ValidRemoveDeviceGroupRequest(removeRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
-	err = h.Manager.RemoveServiceGroup(removeRequest)
+	err = h.Manager.RemoveDeviceGroup(removeRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
