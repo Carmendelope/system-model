@@ -147,7 +147,8 @@ func CreateTestService (appDescriptorId string) entities.Service {
 		Specs: &entities.DeploySpecs{
 			Cpu: 1239900,
 			Memory:2000,
-			Replicas:2},
+			Replicas:2,
+			MultiClusterReplicaSet: false},
 		Storage: stores,
 		ExposedPorts: ports,
 		EnvironmentVariables: envVariables,

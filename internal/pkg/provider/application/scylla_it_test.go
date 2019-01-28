@@ -22,7 +22,7 @@ use nalej;
 create type nalej.security_rule (organization_id text, app_descriptor_id text, rule_id text, name text, source_service_id text, source_port int, access int, auth_services list<text>, device_groups list<text>);
 create type nalej.service_group_instance (organization_id text, app_descriptor_id text, app_instance_id text, service_group_id text, name text, description text, service_instances list<text>, policy int);
 create type nalej.credential (username text, password text, email text);
-create type nalej.deploy_spec (cpu bigint, memory bigint, replicas int);
+create type nalej.deploy_spec (cpu bigint, memory bigint, replicas int, multi_cluster_replica_set boolean);
 create type nalej.storage (size bigint, mount_path text, type int);
 create type nalej.endpoint (type int, path text);
 create type nalej.port (name text, internal_port int, exposed_port int, endpoint list<FROZEN<endpoint>>);
