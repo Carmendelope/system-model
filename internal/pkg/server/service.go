@@ -6,10 +6,12 @@ package server
 
 import (
 	"fmt"
+	"github.com/nalej/grpc-device-go"
 	"github.com/nalej/grpc-infrastructure-go"
 	"github.com/nalej/grpc-role-go"
 	"github.com/nalej/grpc-user-go"
 	"github.com/nalej/system-model/internal/pkg/server/cluster"
+	"github.com/nalej/system-model/internal/pkg/server/device"
 	"github.com/nalej/system-model/internal/pkg/server/node"
 	"github.com/nalej/system-model/internal/pkg/server/role"
 	"github.com/nalej/system-model/internal/pkg/server/user"
@@ -27,6 +29,7 @@ import (
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
 	rProvider "github.com/nalej/system-model/internal/pkg/provider/role"
 	uProvider "github.com/nalej/system-model/internal/pkg/provider/user"
+	devProvider "github.com/nalej/system-model/internal/pkg/provider/device"
 
 	"github.com/nalej/system-model/internal/pkg/server/organization"
 	"github.com/nalej/system-model/internal/pkg/server/application"
@@ -55,6 +58,7 @@ type Providers struct {
 	applicationProvider appProvider.Provider
 	roleProvider rProvider.Provider
 	userProvider uProvider.Provider
+	deviceProvider devProvider.Provider
 }
 
 // Name of the service.
@@ -76,6 +80,7 @@ func (s *Service) CreateInMemoryProviders() * Providers {
 		applicationProvider: appProvider.NewMockupOrganizationProvider(),
 		roleProvider: rProvider.NewMockupRoleProvider(),
 		userProvider: uProvider.NewMockupUserProvider(),
+		deviceProvider: devProvider.NewMockupDeviceProvider(),
 	}
 }
 
@@ -93,6 +98,8 @@ func (s *Service) CreateDBScyllaProviders() * Providers {
 		roleProvider: rProvider.NewSScyllaRoleProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 		userProvider: uProvider.NewScyllaUserProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+		deviceProvider: devProvider.NewScyllaDeviceProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 	}
 }
@@ -134,6 +141,10 @@ func (s *Service) Run() error {
 	// users
 	userManager := user.NewManager(p.organizationProvider, p.userProvider)
 	userHandler := user.NewHandler(userManager)
+	//device
+	deviceManager := device.NewManager(p.deviceProvider, p.organizationProvider)
+	deviceHandler := device.NewHandler(deviceManager)
+
 
 	grpcServer := grpc.NewServer()
 	grpc_organization_go.RegisterOrganizationsServer(grpcServer, organizationHandler)
@@ -142,6 +153,7 @@ func (s *Service) Run() error {
 	grpc_application_go.RegisterApplicationsServer(grpcServer, applicationHandler)
 	grpc_role_go.RegisterRolesServer(grpcServer, roleHandler)
 	grpc_user_go.RegisterUsersServer(grpcServer, userHandler)
+	grpc_device_go.RegisterDevicesServer(grpcServer, deviceHandler)
 
 	// Register reflection service on gRPC server.
 	reflection.Register(grpcServer)
