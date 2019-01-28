@@ -195,7 +195,7 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(err).Should(gomega.Succeed())
 
 				// remove group
-				removed, err := client.RemoveServiceGroup(context.Background(), &grpc_device_go.RemoveDeviceGroupRequest{
+				removed, err := client.RemoveDeviceGroup(context.Background(), &grpc_device_go.RemoveDeviceGroupRequest{
 					OrganizationId: targetOrganization.ID,
 					DeviceGroupId: group.DeviceGroupId,
 				})
@@ -206,7 +206,7 @@ var _ = ginkgo.Describe("Applications", func(){
 			ginkgo.It("Should not be able to remove a group on a non existing organization", func(){
 
 				// remove group
-				removed, err := client.RemoveServiceGroup(context.Background(), &grpc_device_go.RemoveDeviceGroupRequest{
+				removed, err := client.RemoveDeviceGroup(context.Background(), &grpc_device_go.RemoveDeviceGroupRequest{
 					OrganizationId: "does not exists",
 					DeviceGroupId: "device_id",
 				})
@@ -217,7 +217,7 @@ var _ = ginkgo.Describe("Applications", func(){
 			ginkgo.It("Should not be able to remove a non existing group", func(){
 
 				// remove group
-				removed, err := client.RemoveServiceGroup(context.Background(), &grpc_device_go.RemoveDeviceGroupRequest{
+				removed, err := client.RemoveDeviceGroup(context.Background(), &grpc_device_go.RemoveDeviceGroupRequest{
 					OrganizationId: targetOrganization.ID,
 					DeviceGroupId: "does not exists",
 				})
