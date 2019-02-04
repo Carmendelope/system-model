@@ -9,6 +9,23 @@ import (
 	"github.com/nalej/grpc-application-go"
 )
 
+// Enumerate with the type of instances we can deploy in the system.
+type InstanceType int32
+
+const (
+	ServiceInstanceType InstanceType = iota + 1
+	ServiceGroupInstanceType
+)
+
+var InstanceTypeToGRPC = map[InstanceType]grpc_application_go.InstanceType{
+	ServiceInstanceType : grpc_application_go.InstanceType_SERVICE_INSTANCE,
+	ServiceGroupInstanceType : grpc_application_go.InstanceType_SERVICE_GROUP_INSTANCE,
+}
+
+var InstanceTypeFromGRPC = map[grpc_application_go.InstanceType]InstanceType {
+	grpc_application_go.InstanceType_SERVICE_INSTANCE:ServiceInstanceType,
+	grpc_application_go.InstanceType_SERVICE_GROUP_INSTANCE:ServiceGroupInstanceType,
+}
 
 type PortAccess int
 
@@ -104,6 +121,13 @@ func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
 	}
 }
 
+type ServiceGroupDeploymentSpecs struct {
+	// How many times this service group must be replicated
+	NumReplicas int32 `json:"num_replicas,omitempty" cql:"num_replicas"`
+	// Indicate if this service group must be replicated in every cluster
+	MultiClusterReplica  bool     `json:"multi_cluster_replica,omitempty" cql:"multi_cluster_replica"`
+}
+
 type ServiceGroup struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
@@ -119,8 +143,16 @@ type ServiceGroup struct {
 	Services []string `json:"services,omitempty" cql:"services"`
 	// Policy indicating the deployment collocation policy.
 	Policy CollocationPolicy `json:"policy,omitempty" cql:"policy"`
+	// Particular deployment specs for this service
+	Specs  *ServiceGroupDeploymentSpecs `json:"specs,omitempty" cql:"specs"`
 }
 
+func NewServiceGroupDeploymentSpecsFromGRPC(specs * grpc_application_go.ServiceGroupDeploymentSpecs) * ServiceGroupDeploymentSpecs{
+	return &ServiceGroupDeploymentSpecs{
+		NumReplicas:         specs.NumReplicas,
+		MultiClusterReplica: specs.MultiClusterReplica,
+	}
+}
 
 func NewServiceGroupFromGRPC(appDescriptorID string, group * grpc_application_go.ServiceGroup) * ServiceGroup {
 	if group == nil {
@@ -135,6 +167,14 @@ func NewServiceGroupFromGRPC(appDescriptorID string, group * grpc_application_go
 		Description: group.Description,
 		Services: group.Services,
 		Policy: policy,
+		Specs: NewServiceGroupDeploymentSpecsFromGRPC(group.Specs),
+	}
+}
+
+func (sp * ServiceGroupDeploymentSpecs) ToGRPC() *grpc_application_go.ServiceGroupDeploymentSpecs  {
+	return &grpc_application_go.ServiceGroupDeploymentSpecs{
+		NumReplicas:          sp.NumReplicas,
+		MultiClusterReplica:  sp.MultiClusterReplica,
 	}
 }
 
@@ -148,10 +188,34 @@ func (sg *ServiceGroup) ToGRPC() *grpc_application_go.ServiceGroup {
 		Description:     sg.Description,
 		Services:        sg.Services,
 		Policy:          policy,
+		Specs:           sg.Specs.ToGRPC(),
 	}
 }
 
-func (sg * ServiceGroup) ToServiceGroupInstance(appInstID string) * ServiceGroupInstance {
+// TODO:
+//func (s * Service) ToServiceInstance(appInstanceID string) * ServiceInstance {
+func (sg * ServiceGroup) GetService(serviceId string, descriptor * AppDescriptor) * Service {
+
+	for _, service := range descriptor.Services {
+		if service.ServiceId == serviceId {
+			return &service
+		}
+	}
+
+	return nil
+}
+
+func (sg * ServiceGroup) ToServiceGroupInstance(appInstID string, descriptor * AppDescriptor) * ServiceGroupInstance {
+
+	// get Services from descriptor
+	serviceInstances := make([]ServiceInstance, 0)
+	for _,serviceId := range sg.Services {
+		service := sg.GetService(serviceId, descriptor)
+		if service != nil {
+			serviceInstances = append(serviceInstances, *service.ToServiceInstance(appInstID))
+		}
+	}
+
 	return &ServiceGroupInstance{
 		OrganizationId:   sg.OrganizationId,
 		AppDescriptorId:  sg.AppDescriptorId,
@@ -159,9 +223,34 @@ func (sg * ServiceGroup) ToServiceGroupInstance(appInstID string) * ServiceGroup
 		ServiceGroupId:   sg.ServiceGroupId,
 		Name:             sg.Name,
 		Description:      sg.Description,
-		ServiceInstances: sg.Services,
+		ServiceInstances: serviceInstances,
 		Policy:           sg.Policy,
 	}
+}
+
+	type InstanceMetadata struct {
+	// OrganizationId with the organization identifier.
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
+	// AppDescriptorId with the application descriptor identifier.
+	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
+	// AppInstanceId with the application instance identifier.
+	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
+	// Identifier of the monitored entity
+	MonitoredInstanceId string `json:"monitored_instance_id,omitempty" cql:"monitored_instance_id"`
+	// Type of instance this metadata refers to
+	Type InstanceType `json:"type,omitempty" cql:"type"`
+	// List of instances supervised byu this metadata structure
+	InstancesId []string `json:"instances_id,omitempty" cql:"instance_id"`
+	// Number of desired replicas specified in the descriptor
+	DesiredReplicas int32 `json:"desired_replicas,omitempty" cql:"desired_replicas"`
+	// Number of available replicas for this instance
+	AvailableReplicas int32 `json:"available_replicas,omitempty" cql:"available_replicas"`
+	// Number of unavaiable replicas for this descriptor
+	UnavailableReplicas int32 `json:"unavailable_replicas,omitempty" cql:"unavailable_replicas"`
+	// Status of every item monitored by this metadata entry
+	Status map[string]ServiceStatus `json:"status,omitempty" cql:"status"`
+	// Relevant information for every monitored instance
+	Info map[string]string `json:"info,omitempty" cql:"info"`
 }
 
 type ServiceGroupInstance struct {
@@ -178,12 +267,24 @@ type ServiceGroupInstance struct {
 	// Description of the service group.
 	Description string `json:"description,omitempty" cql:"description"`
 	// ServicesInstances defining a list of service identifiers that belong to the group.
-	ServiceInstances []string `json:"service_instances,omitempty" cql:"service_instances"`
+	ServiceInstances []ServiceInstance `json:"service_instances,omitempty" cql:"service_instances"`
 	// Policy indicating the deployment collocation policy.
 	Policy               CollocationPolicy `json:"policy,omitempty" cql:"policy"`
+	// The status for this service group instance will be the worst status of its services
+	Status ServiceStatus `json:"status,omitempty" cql:"status"`
+	// Metadata for this service group
+	Metadata * InstanceMetadata `json:"metadata,omitempty" cql:"metadata"`
+	// Particular deployment specs for this service
+	Specs                *ServiceGroupDeploymentSpecs `json:"specs,omitempty" cql:"specs""`
 }
 
 func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInstance {
+
+	services := make ([]*grpc_application_go.ServiceInstance, 0)
+	for _, instance := range sgi.ServiceInstances {
+		services = append(services, instance.ToGRPC() )
+	}
+
 	policy, _ := CollocationPolicyToGRPC[sgi.Policy]
 	return &grpc_application_go.ServiceGroupInstance{
 		OrganizationId:       sgi.OrganizationId,
@@ -192,11 +293,62 @@ func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInsta
 		ServiceGroupId:       sgi.ServiceGroupId,
 		Name:                 sgi.Name,
 		Description:          sgi.Description,
-		ServiceInstances:     sgi.ServiceInstances,
+		ServiceInstances:     services,
 		Policy:               policy,
+		Status:				  ServiceStatusToGRPC[sgi.Status],
+		Metadata:			  sgi.Metadata.ToGRPC(),
+		Specs: 				  sgi.Specs.ToGRPC(),
 	}
 }
 
+func (md *InstanceMetadata) ToGRPC() *grpc_application_go.InstanceMetadata {
+	if md == nil {
+		return nil
+	}
+	status := make (map[string]grpc_application_go.ServiceStatus, 0)
+	for key, value := range md.Status{
+		status[key] = ServiceStatusToGRPC[value]
+	}
+
+	return &grpc_application_go.InstanceMetadata{
+		OrganizationId: md.OrganizationId,
+		AppDescriptorId: md.AppDescriptorId,
+		AppInstanceId: md.AppInstanceId,
+		MonitoredInstanceId: md.MonitoredInstanceId,
+		Type: InstanceTypeToGRPC[md.Type],
+		InstancesId: md.InstancesId,
+		DesiredReplicas: md.DesiredReplicas,
+		AvailableReplicas: md.AvailableReplicas,
+		UnavailableReplicas: md.UnavailableReplicas,
+		Status: status,
+		Info: md.Info,
+	}
+}
+
+func NewMetadataFromGRPC (metadata * grpc_application_go.InstanceMetadata) * InstanceMetadata {
+	if metadata == nil {
+		return nil
+	}
+
+	status := make (map[string]ServiceStatus, 0)
+	for key, value := range metadata.Status{
+		status[key] = ServiceStatusFromGRPC[value]
+	}
+
+	return &InstanceMetadata{
+		OrganizationId: metadata.OrganizationId,
+		AppDescriptorId: metadata.AppDescriptorId,
+		AppInstanceId: metadata.AppInstanceId,
+		MonitoredInstanceId: metadata.MonitoredInstanceId,
+		Type: InstanceTypeFromGRPC[metadata.Type],
+		InstancesId: metadata.InstancesId,
+		DesiredReplicas: metadata.DesiredReplicas,
+		AvailableReplicas: metadata.AvailableReplicas,
+		UnavailableReplicas: metadata.UnavailableReplicas,
+		Status: status,
+		Info: metadata.Info,
+	}
+}
 
 type ServiceType int32
 
@@ -247,7 +399,6 @@ type DeploySpecs struct {
 	Cpu      int64 `json:"cpu,omitempty" cql:"cpu"`
 	Memory   int64 `json:"memory,omitempty" cql:"memory"`
 	Replicas int32 `json:"replicas,omitempty" cql:"replicas"`
-	MultiClusterReplicaSet bool `json:"multi_cluster_replica_set,omitempty" cql:"multi_cluster_replica_set"`
 }
 
 func NewDeploySpecsFromGRPC(specs * grpc_application_go.DeploySpecs) * DeploySpecs {
@@ -258,7 +409,6 @@ func NewDeploySpecsFromGRPC(specs * grpc_application_go.DeploySpecs) * DeploySpe
 		Cpu:      specs.Cpu,
 		Memory:   specs.Memory,
 		Replicas: specs.Replicas,
-		MultiClusterReplicaSet: specs.MultiClusterReplicaSet,
 	}
 }
 
@@ -267,7 +417,6 @@ func (ds *DeploySpecs) ToGRPC() *grpc_application_go.DeploySpecs {
 		Cpu:      ds.Cpu,
 		Memory:   ds.Memory,
 		Replicas: ds.Replicas,
-		MultiClusterReplicaSet: ds.MultiClusterReplicaSet,
 	}
 }
 
@@ -643,6 +792,7 @@ type ServiceInstance struct {
 	DeployedOnClusterId  string  `json:"deployed_on_cluster_id,omitempty" cql:"deployed_on_cluster_id"`
 	// RunArguments containts a list of arguments
 	RunArguments [] string `json:"run_arguments" cql:"run_arguments"`
+	Info                 string   `json:"info,omitempty" cql:"info"`
 
 }
 
@@ -667,7 +817,6 @@ func (si *ServiceInstance) ToGRPC() *grpc_application_go.ServiceInstance {
 		AppInstanceId:        si.AppInstanceId,
 		ServiceId:           si.ServiceId,
 		Name:                 si.Name,
-		Description:          si.Description,
 		Type:                 serviceType,
 		Image:                si.Image,
 		Credentials:          si.Credentials.ToGRPC(),
@@ -694,8 +843,6 @@ type AppDescriptor struct {
 	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
 	// Name of the application.
 	Name string `json:"name,omitempty" cql:"name"`
-	// Description of the application.
-	Description string `json:"description,omitempty" cql:"description"`
 	// ConfigurationOptions defines a key-value map of configuration options.
 	ConfigurationOptions map[string]string `json:"configuration_options,omitempty" cql:"configuration_options"`
 	// EnvironmentVariables defines a key-value map of environment variables and values that will be passed to all
@@ -711,13 +858,13 @@ type AppDescriptor struct {
 	Services []Service `json:"services,omitempty" cql:"services"`
 }
 
-func NewAppDescriptor(organizationID string, appDescriptorID string, name string, description string,
+func NewAppDescriptor(organizationID string, appDescriptorID string, name string,
 	configOptions map[string]string, envVars map[string]string,
 	labels map[string]string,
 	rules []SecurityRule, groups []ServiceGroup, services []Service) *AppDescriptor {
 	return &AppDescriptor{
 		organizationID, appDescriptorID,
-		name, description,
+		name,
 		configOptions,
 		envVars,
 		labels,
@@ -752,7 +899,6 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 		addRequest.OrganizationId,
 		uuid,
 		addRequest.Name,
-		addRequest.Description,
 		addRequest.ConfigurationOptions,
 		addRequest.EnvironmentVariables,
 		addRequest.Labels,
@@ -778,7 +924,6 @@ func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
 		OrganizationId:       d.OrganizationId,
 		AppDescriptorId:      d.AppDescriptorId,
 		Name:                 d.Name,
-		Description:          d.Description,
 		ConfigurationOptions: d.ConfigurationOptions,
 		EnvironmentVariables: d.EnvironmentVariables,
 		Labels:               d.Labels,
@@ -863,8 +1008,6 @@ type AppInstance struct {
 	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
 	// Name of the application.
 	Name string `json:"name,omitempty" cql:"name"`
-	// Description of the application.
-	Description string `json:"description,omitempty" cql:"description"`
 	// ConfigurationOptions defines a key-value map of configuration options.
 	ConfigurationOptions map[string]string `json:"configuration_options,omitempty" cql:"configuration_options"`
 	// EnvironmentVariables defines a key-value map of environment variables and values that will be passed to all
@@ -876,10 +1019,11 @@ type AppInstance struct {
 	Rules []SecurityRule `json:"rules,omitempty" cql:"rules"`
 	// Groups with the Service collocation strategies.
 	Groups []ServiceGroupInstance `json:"groups,omitempty" cql:"groups"`
-	// Services of the application.
-	Services []ServiceInstance `json:"services,omitempty" cql:"services"`
 	// Status of the deployed instance.
 	Status  ApplicationStatus `json:"status,omitempty" cql:"status"`
+	// Metadata descriptor for the instances triggered by this app
+	Metadata []InstanceMetadata `json:"metadata,omitempty" cql:"metadata"`
+
 }
 
 func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceRequest, descriptor * AppDescriptor) * AppInstance {
@@ -887,25 +1031,20 @@ func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceReque
 
 	groups := make([]ServiceGroupInstance, 0)
 	for _, g := range descriptor.Groups {
-		groups = append(groups, *g.ToServiceGroupInstance(uuid))
+		groups = append(groups, *g.ToServiceGroupInstance(uuid, descriptor))
 	}
-	services := make([]ServiceInstance, 0)
-	for _, s := range descriptor.Services {
-		services = append(services, *s.ToServiceInstance(uuid))
-	}
+
 
 	return &AppInstance{
 		OrganizationId:       addRequest.OrganizationId,
 		AppDescriptorId:      addRequest.AppDescriptorId,
 		AppInstanceId:        uuid,
 		Name:                 addRequest.Name,
-		Description:          addRequest.Description,
 		ConfigurationOptions: descriptor.ConfigurationOptions,
 		EnvironmentVariables: descriptor.EnvironmentVariables,
 		Labels:               descriptor.Labels,
 		Rules:                descriptor.Rules,
 		Groups:               groups,
-		Services:             services,
 		Status: Queued,
 	}
 }
@@ -919,9 +1058,9 @@ func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
 	for _, g := range i.Groups {
 		groups = append(groups, g.ToGRPC())
 	}
-	services := make([]*grpc_application_go.ServiceInstance, 0)
-	for _, s := range i.Services {
-		services = append(services, s.ToGRPC())
+	metadata := make ([]*grpc_application_go.InstanceMetadata, 0)
+	for _, md := range i.Metadata {
+		metadata = append(metadata, md.ToGRPC())
 	}
 
 	status, _ := AppStatusToGRPC[i.Status]
@@ -931,14 +1070,13 @@ func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
 		AppDescriptorId:      i.AppDescriptorId,
 		AppInstanceId:        i.AppInstanceId,
 		Name:                 i.Name,
-		Description:          i.Description,
 		ConfigurationOptions: i.ConfigurationOptions,
 		EnvironmentVariables: i.EnvironmentVariables,
 		Labels:               i.Labels,
 		Rules:                rules,
 		Groups:               groups,
-		Services:             services,
 		Status:               status,
+		Metadata:             metadata,
 	}
 }
 
