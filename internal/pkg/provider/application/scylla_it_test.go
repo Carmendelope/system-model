@@ -2,6 +2,7 @@ package application
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/nalej/system-model/internal/pkg/utils"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -75,10 +76,12 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 
 	ginkgo.It("Should be able to add Applications", func(){
 
+		id := uuid.New().String()
+
 		for i := 0; i < numApps; i++ {
 			appId := fmt.Sprintf("00%d", i)
 
-			app := CreateTestApplication(appId)
+			app := CreateTestApplication(id, appId)
 
 			err := sp.AddInstance(*app)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -89,9 +92,8 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 	ginkgo.It("Should be able to add Descriptors", func(){
 
 		for i := 0; i < numApps; i++ {
-			appDescriptorId := fmt.Sprintf("00%d", i)
 
-			descriptor := CreateTestApplicationDescriptor(appDescriptorId)
+			descriptor := CreateTestApplicationDescriptor(uuid.New().String())
 
 			err := sp.AddDescriptor(*descriptor)
 			gomega.Expect(err).To(gomega.Succeed())
