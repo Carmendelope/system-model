@@ -2,6 +2,7 @@ package application
 
 import (
 	"github.com/google/uuid"
+	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 )
@@ -97,13 +98,26 @@ func RunTest(provider Provider) {
 		})
 
 		// Update Application Instance
-		ginkgo.PIt("Should be able to udpate an application", func() {
+		ginkgo.It("Should be able to update an application", func() {
+			app := CreateTestApplication(uuid.New().String(), uuid.New().String())
 
+			err := provider.AddInstance(*app)
+			gomega.Expect(err).To(gomega.Succeed())
 
+			app.Status = entities.Deploying
+			err = provider.UpdateInstance(*app)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			recovered, err := provider.GetInstance(app.AppInstanceId)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(recovered).NotTo(gomega.BeNil())
+			gomega.Expect(recovered.Status).Should(gomega.Equal(entities.Deploying))
 
 		})
-		ginkgo.PIt("Should not be able to udpate an application", func() {
-
+		ginkgo.It("Should not be able to update an application", func() {
+			app := CreateTestApplication(uuid.New().String(), uuid.New().String())
+			err := provider.UpdateInstance(*app)
+			gomega.Expect(err).NotTo(gomega.Succeed())
 
 		})
 

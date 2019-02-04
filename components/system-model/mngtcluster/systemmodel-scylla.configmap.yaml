@@ -48,7 +48,7 @@ data:
     create table IF NOT EXISTS nalej.ApplicationDescriptors (organization_id text, app_descriptor_id text, name text, configuration_options map<text, text>, environment_variables map<text, text>, labels map <text, text>, rules list<FROZEN<security_rule>>, groups list<FROZEN<service_group>>, services list <FROZEN<service>>, PRIMARY KEY (app_descriptor_id));
     create table IF NOT EXISTS nalej.Devices (organization_id text, device_group_id text, device_id text, register_since bigint, labels map<text, text>, PRIMARY KEY ( (organization_id, device_group_id), device_id));
     create table IF NOT EXISTS nalej.DeviceGroups (organization_id text, device_group_id text, name text, created bigint, labels map<text, text>, primary KEY (organization_id, device_group_id));
-    
+
   node_alive.sh: |
     #!/bin/bash
     echo 'executing script...'
