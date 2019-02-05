@@ -74,7 +74,7 @@ var _ = ginkgo.Describe("Organization service", func(){
 			gomega.Expect(org).Should(gomega.BeNil())
 		})
 
-		ginkgo.FIt("should fail if the organization name already exists", func() {
+		ginkgo.It("should fail if the organization name already exists", func() {
 			toAdd := createOrganization("org_test")
 			org, err := client.AddOrganization(context.Background(), toAdd)
 			gomega.Expect(err).Should(gomega.Succeed())
