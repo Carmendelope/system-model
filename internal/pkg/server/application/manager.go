@@ -228,22 +228,24 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 }
 
 // UpdateService updates an application service.
+// TODO: wait until JuanMa has the conductor implemented
 func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServiceStatusRequest) error {
+	/*
 	exists, err := m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId)
+
 	if err != nil {
 		return err
 	}
     if !exists{
         return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppInstanceId)
     }
-
     toUpdate, err := m.AppProvider.GetInstance(updateRequest.AppInstanceId)
     if err != nil {
         return derrors.NewInternalError("impossible to get parent instance", err)
     }
 
     // find the service instance
-    for index, s := range toUpdate.Services {
+    for index, s := range toUpdate.Groups {
         if s.ServiceId == updateRequest.ServiceId {
             toUpdate.Services[index].Status = entities.ServiceStatusFromGRPC[updateRequest.Status]
             toUpdate.Services[index].Endpoints = updateRequest.Endpoints
@@ -255,7 +257,10 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
             return nil
         }
     }
+
     return derrors.NewInternalError("service not found")
+    */
+    return derrors.NewUnimplementedError("not implemented yet!")
 }
 
 // RemoveAppInstance removes an application instance

@@ -148,11 +148,15 @@ type ServiceGroup struct {
 }
 
 func NewServiceGroupDeploymentSpecsFromGRPC(specs * grpc_application_go.ServiceGroupDeploymentSpecs) * ServiceGroupDeploymentSpecs{
+	if specs == nil {
+		return nil
+	}
 	return &ServiceGroupDeploymentSpecs{
 		NumReplicas:         specs.NumReplicas,
 		MultiClusterReplica: specs.MultiClusterReplica,
 	}
 }
+
 
 func NewServiceGroupFromGRPC(appDescriptorID string, group * grpc_application_go.ServiceGroup) * ServiceGroup {
 	if group == nil {
@@ -172,6 +176,9 @@ func NewServiceGroupFromGRPC(appDescriptorID string, group * grpc_application_go
 }
 
 func (sp * ServiceGroupDeploymentSpecs) ToGRPC() *grpc_application_go.ServiceGroupDeploymentSpecs  {
+	if sp == nil {
+		return nil
+	}
 	return &grpc_application_go.ServiceGroupDeploymentSpecs{
 		NumReplicas:          sp.NumReplicas,
 		MultiClusterReplica:  sp.MultiClusterReplica,
@@ -225,6 +232,7 @@ func (sg * ServiceGroup) ToServiceGroupInstance(appInstID string, descriptor * A
 		Description:      sg.Description,
 		ServiceInstances: serviceInstances,
 		Policy:           sg.Policy,
+		Specs:			  sg.Specs,
 	}
 }
 
