@@ -19,6 +19,8 @@ const organizationDescriptorTable = "organization_appdescriptors"
 const organizationInstanceTable = "Organization_appinstances"
 const organizationUserTable = "Organization_Users"
 const organizationRoleTable = "Organization_Roles"
+const organizationTableIndex = "name"
+
 
 const rowNotFound = "not found"
 type ScyllaOrganizationProvider struct {
@@ -109,6 +111,27 @@ func (sp *ScyllaOrganizationProvider) unsafeExists(organizationID string) (bool,
 
 	return true, nil
 }
+
+func (sp *ScyllaOrganizationProvider) unsafeExistsByName(name string) (bool, derrors.Error){
+
+	var returnedId string
+
+	stmt, names := qb.Select(organizationTable).Columns(organizationTableIndex).Where(qb.Eq(organizationTableIndex)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		organizationTableIndex: name })
+
+	err := q.GetRelease(&returnedId)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, derrors.AsError(err, "cannot determinate if organization exists")
+		}
+	}
+
+	return true, nil
+}
+
 
 func (sp *ScyllaOrganizationProvider) unsafeClusterExists(organizationID string, clusterID string) (bool, derrors.Error){
 
@@ -261,6 +284,13 @@ func (sp *ScyllaOrganizationProvider) Add(org entities.Organization) derrors.Err
 	if exists {
 		return derrors.NewAlreadyExistsError(org.ID)
 	}
+	exists, err = sp.unsafeExistsByName(org.Name)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return derrors.NewAlreadyExistsError(org.Name)
+	}
 
 	// insert the organization instance
 	stmt, names := qb.Insert(organizationTable).Columns("id", "name", "created").ToCql()
@@ -299,6 +329,33 @@ func (sp *ScyllaOrganizationProvider) Exists(organizationID string) (bool, derro
 
 	return true, nil
 }
+
+func (sp *ScyllaOrganizationProvider) ExistsByName(name string) (bool, derrors.Error){
+
+	var returnedName string
+
+	if err := sp.checkAndConnect(); err != nil {
+		return false, err
+	}
+
+	stmt, names := qb.Select(organizationTable).Columns(organizationTableIndex).Where(qb.Eq(organizationTableIndex)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		organizationTableIndex: name })
+
+	err := q.GetRelease(&returnedName)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, conversions.ToDerror(err)
+		}
+	}
+
+	return true, nil
+
+}
+
+
 // Get an organization.
 func (sp *ScyllaOrganizationProvider) Get(organizationID string) (* entities.Organization, derrors.Error){
 

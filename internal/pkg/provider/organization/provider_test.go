@@ -93,6 +93,24 @@ func RunTest(provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(exists).NotTo(gomega.BeTrue())
 	})
+	ginkgo.It("Should be able to find a organization by name", func(){
+
+		org := &entities.Organization{ID:"Org_0001", Name:"organization 0001", Created:12}
+
+		err := provider.Add(*org)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		exists, err := provider.ExistsByName(org.Name)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(exists).To(gomega.BeTrue())
+
+	})
+	ginkgo.It("Should not be able to find a organization by name", func(){
+
+		exists, err := provider.ExistsByName("Org_0001")
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(exists).NotTo(gomega.BeTrue())
+	})
 
 	// --------------------------------------------------------------------------------------------------------------------
 

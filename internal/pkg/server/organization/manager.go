@@ -24,7 +24,16 @@ func NewManager(provider organization.Provider) Manager{
 // AddOrganization adds a new organization to the system.
 func (m *Manager) AddOrganization(toAdd grpc_organization_go.AddOrganizationRequest) (* entities.Organization, derrors.Error) {
 	newOrg := entities.NewOrganization(toAdd.Name)
-	err := m.Provider.Add(*newOrg)
+
+	exists, err := m.Provider.ExistsByName(newOrg.Name)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, derrors.NewAlreadyExistsError(newOrg.Name)
+	}
+
+	err = m.Provider.Add(*newOrg)
 	if err != nil {
 		return nil, err
 	}

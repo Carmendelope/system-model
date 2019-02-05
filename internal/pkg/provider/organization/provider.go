@@ -14,6 +14,8 @@ type Provider interface {
 	Add(org entities.Organization) derrors.Error
 	// Check if an organization exists on the system.
 	Exists(organizationID string) (bool, derrors.Error)
+	// Check if an organization with this name exists on the system
+	ExistsByName(name string) (bool, derrors.Error)
 	// Get an organization.
 	Get(organizationID string) (* entities.Organization, derrors.Error)
 	// List the set of organizations.
