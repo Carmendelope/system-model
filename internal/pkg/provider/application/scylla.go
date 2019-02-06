@@ -156,7 +156,7 @@ func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescri
 
 	// insert the application instance
 	stmt, names := qb.Insert(applicationDescriptorTable).Columns("organization_id","app_descriptor_id", "name",
-		"description","configuration_options","environment_variables","labels","rules","groups","services").ToCql()
+		"configuration_options","environment_variables","labels","rules","groups").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(descriptor)
 	cqlErr := q.ExecRelease()
 
@@ -284,7 +284,7 @@ func (sp *ScyllaApplicationProvider) AddInstance(instance entities.AppInstance) 
 
 	// insert the application instance
 	stmt, names := qb.Insert(applicationTable).Columns("organization_id","app_descriptor_id","app_instance_id",
-		"name","description","configuration_options","environment_variables","labels","rules","groups","services","status").ToCql()
+		"name","configuration_options","environment_variables","labels","rules","groups", "status").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(instance)
 	cqlErr := q.ExecRelease()
 
@@ -413,8 +413,7 @@ func (sp *ScyllaApplicationProvider) UpdateInstance(instance entities.AppInstanc
 
 	// update the application instance
 	stmt, names := qb.Update(applicationTable).Set("organization_id","app_descriptor_id",
-		"name","description","configuration_options","environment_variables",
-		"labels","rules","groups","services","status").Where(qb.Eq(applicationTablePK)).ToCql()
+		"name","configuration_options","environment_variables","labels","rules","groups", "status").Where(qb.Eq(applicationTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(instance)
 	cqlErr := q.ExecRelease()
 

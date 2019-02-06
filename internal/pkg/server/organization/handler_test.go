@@ -73,6 +73,18 @@ var _ = ginkgo.Describe("Organization service", func(){
 			gomega.Expect(err).Should(gomega.HaveOccurred())
 			gomega.Expect(org).Should(gomega.BeNil())
 		})
+
+		ginkgo.It("should fail if the organization name already exists", func() {
+			toAdd := createOrganization("org_test")
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			sameNameOrg := createOrganization("org_test")
+			_, err = client.AddOrganization(context.Background(), sameNameOrg)
+			gomega.Expect(err).NotTo(gomega.Succeed())
+		})
+
 	})
 
 	ginkgo.Context("retrieve organization", func(){

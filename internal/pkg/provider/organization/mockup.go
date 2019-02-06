@@ -26,6 +26,8 @@ type MockupOrganizationProvider struct {
 	users map[string][]string
 	// Roles contains the role ids per orgnanization.
 	roles map[string][]string
+	// Organization Names in ths system
+	organizationNames map[string]bool
 }
 
 func NewMockupOrganizationProvider() *MockupOrganizationProvider {
@@ -37,6 +39,7 @@ func NewMockupOrganizationProvider() *MockupOrganizationProvider {
 		instances:     make(map[string][]string, 0),
 		users:         make(map[string][]string, 0),
 		roles:         make(map[string][]string, 0),
+		organizationNames: make (map[string]bool, 0),
 	}
 }
 
@@ -50,8 +53,14 @@ func (m *MockupOrganizationProvider) Clear() derrors.Error {
 	m.instances = make(map[string][]string, 0)
 	m.users = make(map[string][]string, 0)
 	m.roles = make(map[string][]string, 0)
+	m.organizationNames = make(map[string]bool, 0)
 	m.Unlock()
 	return nil
+}
+
+func (m *MockupOrganizationProvider) unsafeExistsByName(name string) bool {
+	_, exists := m.organizationNames[name]
+	return exists
 }
 
 func (m *MockupOrganizationProvider) unsafeExists(organizationID string) bool {
@@ -141,8 +150,9 @@ func (m *MockupOrganizationProvider) unsafeExistsRole(organizationID string, rol
 func (m *MockupOrganizationProvider) Add(org entities.Organization) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(org.ID) {
+	if !m.unsafeExists(org.ID) && !m.unsafeExistsByName(org.Name){
 		m.organizations[org.ID] = org
+		m.organizationNames[org.Name] = true
 		return nil
 	}
 	return derrors.NewAlreadyExistsError(org.ID)
@@ -153,6 +163,12 @@ func (m *MockupOrganizationProvider) Exists(organizationID string) (bool, derror
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExists(organizationID), nil
+}
+
+func (m *MockupOrganizationProvider) ExistsByName(name string) (bool, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+	return m.unsafeExistsByName(name), nil
 }
 
 // Get an organization.

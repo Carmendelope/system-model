@@ -2,63 +2,71 @@ package application
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/nalej/system-model/internal/pkg/entities"
-	"math/rand"
 )
 
-var organizationId = fmt.Sprintf("organization_%d", rand.Intn(100)+1)
-var appDescriptorId = fmt.Sprintf("app_descriptor_%d", rand.Intn(100)+1)
-var name = "Application name"
-var description = "Application description"
-var confLabel = "Conf"
-var confValue = "Conf_value"
-var envLabel = "Env"
-var envValue = "Env_value"
-var labelLabel = "lab1"
-var labelValue = "LABEL1"
-var ruleId = "rule id 1"
-var ruleName = "Rule name"
-var sourceServiceId = "SourceServiceId1"
-var serviceGroupId = "service_group_id1"
-var serviceGroupName = "service_group name"
-var serviceGroupDescription = "service_group description"
-var serviceId = "service id_1"
-var serviceDescription = "service description"
-var serviceName = "service name"
-var image = "../../image_path"
 
-
-func CreateTestConfigFile () entities.ConfigFile {
+func CreateTestConfigFile (organizationID string, appDescriptorID string) entities.ConfigFile {
 
 	content := make([]byte, 0)
 	content = append(content, 0x00, 0x01, 0x02)
 	return entities.ConfigFile{
-		OrganizationId: organizationId,
-		AppDescriptorId:appDescriptorId,
+		OrganizationId: organizationID,
+		AppDescriptorId:appDescriptorID,
 		ConfigFileId: "Config file",
 		Content: content,
 		MountPath: "../../path"}
 }
 
-func CreateTestServiceInstance (appInstanceId string) entities.ServiceInstance {
+func CreateTestInstanceMetadata(organizationID string, AppDescriptorID string, AppInstanceID string ) entities.InstanceMetadata {
 
+	return entities.InstanceMetadata{
+		OrganizationId: organizationID,
+		AppDescriptorId: AppDescriptorID,
+		AppInstanceId: AppInstanceID,
+		MonitoredInstanceId: uuid.New().String(),
+		Type: entities.ServiceGroupInstanceType,
+		InstancesId: []string{"instance1", "instance2", "instance3"},
+		DesiredReplicas: 2,
+		AvailableReplicas: 2,
+		UnavailableReplicas: 0,
+		Status: map[string]entities.ServiceStatus{"instance1": entities.ServiceScheduled, "instance2": entities.ServiceError},
+		Info: map[string]string{"info1": "value1(InstanceMetadata)", "info2": "value2(InstanceMetadata)"},
+	}
+}
+
+func CreateTestServiceInstance (organizationID string, appDescriptorID string, appInstanceId string,
+	serviceGroupId string, ServiceGroupInstanceId string) entities.ServiceInstance {
+
+	id := uuid.New().String()
 	stores := make ([]entities.Storage, 0)
 	stores = append(stores, entities.Storage{Size:900, MountPath:"../../mount_path", Type:entities.StorageType(1)})
 
-	endpoints := make ([]entities.Endpoint, 0)
-	endpoints = append(endpoints, entities.Endpoint {Type:entities.EndpointType(1),Path:"../../endpoint" })
-
-	ports := make ([]entities.Port, 0)
-	for i:=0; i<5; i++{
-		ports = append(ports, entities.Port{Name:fmt.Sprintf("port%d", i), InternalPort:int32(i), ExposedPort:int32(i), Endpoints:endpoints})
+	endpoints := make ([]entities.EndpointInstance, 0)
+	endpoints = []entities.EndpointInstance {
+		{
+			EndpointInstanceId: uuid.New().String(),
+			Fqdn:"../Fqdn_path",
+			Type: entities.IsAlive,
+		},
 	}
 
-	envVariables := make(map[string]string, 0)
-	envVariables["HOST"] = "HOST_VALUE"
-	envVariables["PORT"] = "PORT_VALUE"
+	ports := make ([]entities.Port, 0)
+	ports = append(ports, entities.Port{
+			Name:"port name",
+			InternalPort:80,
+			ExposedPort:80,
+			Endpoints:[]entities.Endpoint{
+				{
+					Path: "../enpoint_path",
+					Type: entities.IsAlive,
+				},
+			}})
+
 
 	confFile := make ([]entities.ConfigFile, 0)
-	confFile = append(confFile, CreateTestConfigFile())
+	confFile = append(confFile, CreateTestConfigFile(organizationID, appDescriptorID))
 
 	labels := make (map[string]string, 0)
 	for i:=0; i<4; i++{
@@ -69,231 +77,228 @@ func CreateTestServiceInstance (appInstanceId string) entities.ServiceInstance {
 	deployAfter = append(deployAfter, "deploy after this", "and this")
 
 	return entities.ServiceInstance{
-		OrganizationId: organizationId,
-		AppDescriptorId: appDescriptorId,
+		OrganizationId: organizationID,
+		AppDescriptorId: appDescriptorID,
 		AppInstanceId: appInstanceId,
-		ServiceId: serviceId,
-		Name: serviceName,
-		Description: serviceDescription,
-		Type: entities.ServiceType(1),
-		Image: image,
+		ServiceGroupId: serviceGroupId,
+		ServiceGroupInstanceId: ServiceGroupInstanceId,
+		ServiceId: id,
+		ServiceInstanceId: uuid.New().String(),
+		Name: "Service Instance Name",
+		Type: entities.DockerService,
+		Image: "../image.txt",
 		Credentials: &entities.ImageCredentials{
 			Username: "carmen",
 			Password:"*****",
 			Email: "cdelope@daisho.group",
-			DockerRepository: "DOCKER REPOSITORY!!!!!"},
-		// DeploySpecs with the resource specs required by the service.
+			DockerRepository: "Docker Repository"},
 		Specs: &entities.DeploySpecs{
 			Cpu: 1239900,
 			Memory:2000,
 			Replicas:2},
 		Storage: stores,
 		ExposedPorts: ports,
-		EnvironmentVariables: envVariables,
+		EnvironmentVariables: map[string]string{"env1": "env1(serviceInstance)", "env2":"env2(ServiceInstance)"},
 		Configs: confFile,
-		Labels: labels,
-		DeployAfter: deployAfter,
-		Status: entities.ServiceStatus(1),
-		DeployedOnClusterId:"ClusterIDXXX",
-		Endpoints:make([]string,0)}
+		Labels: map[string]string{"label1": "label1(serviceInstance)"},
+		DeployAfter:  []string{"this", "and this"},
+		Status: entities.ServiceScheduled,
+		DeployedOnClusterId:"Cluster id",
+		Endpoints:endpoints,
+		RunArguments: []string{"arg1, agr2"},
+		Info: "info",
+	}
 
 }
 
-func CreateTestService (appDescriptorId string) entities.Service {
+func CreateTestService (organizationID string, appDescriptorId string, serviceGroupId string) entities.Service {
 
-	stores := make ([]entities.Storage, 0)
-	stores = append(stores, entities.Storage{Size:900, MountPath:"../../mount_path", Type:entities.StorageType(1)})
+	 serviceID := uuid.New().String()
 
-	endpoints := make ([]entities.Endpoint, 0)
-	endpoints = append(endpoints, entities.Endpoint {Type:entities.EndpointType(1),Path:"../../endpoint" })
+	 endpoints := []entities.Endpoint {
+		{
+			Type:entities.EndpointType(1),
+			Path:"../../endpoint",
+		},
+	 }
 
 	ports := make ([]entities.Port, 0)
 	for i:=0; i<5; i++{
 		ports = append(ports, entities.Port{Name:fmt.Sprintf("port%d", i), InternalPort:int32(i), ExposedPort:int32(i), Endpoints:endpoints})
 	}
 
-	envVariables := make(map[string]string, 0)
-	envVariables["HOST"] = "HOST_VALUE"
-	envVariables["PORT"] = "PORT_VALUE"
-
 	confFile := make ([]entities.ConfigFile, 0)
-	confFile = append(confFile, CreateTestConfigFile())
-
-	labels := make (map[string]string, 0)
-	for i:=0; i<4; i++{
-		labels[fmt.Sprintf("label%d", i)] = fmt.Sprintf("value_%d", i)
-	}
-
-	deployAfter := make([]string, 0)
-	deployAfter = append(deployAfter, "deploy after this", "and this")
-
-	runArguments := make([] string, 0)
-	runArguments = append(runArguments, "arg1", "arg2", "arg3", "arg4")
+	confFile = append(confFile, CreateTestConfigFile(organizationID, appDescriptorId))
 
 	return entities.Service{
-		OrganizationId: organizationId,
+		OrganizationId: organizationID,
 		AppDescriptorId: appDescriptorId,
-		ServiceId: serviceId,
-		Name: serviceName,
-		Description: serviceDescription,
-		Type: entities.ServiceType(1),
-		Image: image,
+		ServiceGroupId: serviceGroupId,
+		ServiceId: serviceID,
+		Name: "Service name",
+		Type: entities.DockerService,
+		Image: "../image.txt",
 		Credentials: &entities.ImageCredentials{
 			Username: "carmen",
 			Password:"*****",
 			Email: "cdelope@daisho.group",
-			DockerRepository:"DOCKER!!!"},
-		// DeploySpecs with the resource specs required by the service.
+			DockerRepository:"Docker_repo"},
 		Specs: &entities.DeploySpecs{
 			Cpu: 1239900,
 			Memory:2000,
 			Replicas:2,
-			MultiClusterReplicaSet: false},
-		Storage: stores,
+		},
+		Storage: [] entities.Storage{
+			{
+				Size:900,
+				MountPath:"../../mount_path",
+				Type:entities.StorageType(1),
+			},
+		},
 		ExposedPorts: ports,
-		EnvironmentVariables: envVariables,
+		EnvironmentVariables: map[string]string{"HOST":"HOST_VALUE", "PORT":"PORT_VALUE"},
 		Configs: confFile,
-		Labels: labels,
-		DeployAfter: deployAfter,
-		RunArguments:runArguments,
+		Labels: map[string]string{"eti1": "label1(Service)", "eti2": "label2(Service)"},
+		DeployAfter: []string{"deploy after this", "and this"},
+		RunArguments:[] string{"arg1", "arg2", "arg3", "arg4"},
 	}
 }
 
-func CreateTestServiceGroupInstance(appInstanceId string) entities.ServiceGroupInstance{
+func CreateTestServiceGroupInstance(organizationID string, appDescriptorID string, appInstanceId string) entities.ServiceGroupInstance{
 
-	servicesInstances := make ([]string, 0)
-	for i:=0; i<5; i++{
-		servicesInstances = append(servicesInstances, fmt.Sprintf("servicesInstances-%d",i ))
+	id := uuid.New().String()
+	id2 := uuid.New().String()
+	servicesInstances := make ([]entities.ServiceInstance, 0)
+	for i:=0; i<1; i++{
+		servicesInstances = append(servicesInstances, CreateTestServiceInstance(organizationID, appDescriptorID, appInstanceId, id, id2))
 	}
 
 	return entities.ServiceGroupInstance{
-		OrganizationId: organizationId,
-		AppDescriptorId: appDescriptorId,
+		OrganizationId: organizationID,
+		AppDescriptorId: appDescriptorID,
 		AppInstanceId:  appInstanceId,
-		ServiceGroupId: serviceGroupId,
-		Name: serviceGroupName,
-		Description: serviceGroupDescription,
-		ServiceInstances:servicesInstances,
-		Policy: entities.CollocationPolicy(1) }
+		ServiceGroupId: id,
+		ServiceGroupInstanceId: id2,
+		Name: "Service group Instance name",
+		Policy: entities.SameCluster,
+		ServiceInstances: servicesInstances,
+		Status: entities.ServiceScheduled,
+		Metadata: &entities.InstanceMetadata{
+			OrganizationId: organizationID,
+			AppDescriptorId: appDescriptorID,
+			AppInstanceId:  appInstanceId,
+			MonitoredInstanceId: uuid.New().String(),
+			Type: entities.ServiceGroupInstanceType,
+			InstancesId: []string{"inst1", "inst2", "inst3"},
+			DesiredReplicas: 3,
+			AvailableReplicas:3,
+			UnavailableReplicas: 0,
+			Status: map[string]entities.ServiceStatus {"status1": entities.ServiceError, "status2": entities.ServiceDeploying},
+			Info:map[string]string{"sgInfo1": "info1"},
+		},
+		Specs: &entities.ServiceGroupDeploymentSpecs{
+			NumReplicas: 3,
+			MultiClusterReplica: true,
+		},
+		Labels: map[string]string {"label1": "label1(servicegroupinstance)"},
+	}
 }
 
-func CreateTestServiceGroup(appDescriptorId string) entities.ServiceGroup{
+func CreateTestServiceGroup(organizationID string, appDescriptorId string) entities.ServiceGroup{
 
-	services := make ([]string, 0)
-	for i:=0; i<5; i++{
-		services = append(services, fmt.Sprintf("services-%d",i ))
+	serviceGroupID := uuid.New().String()
+
+	services := make ([]entities.Service, 0)
+	for i:=0; i<1; i++{
+		services = append(services, CreateTestService(organizationID, appDescriptorId, serviceGroupID))
+	}
+
+	specs := &entities.ServiceGroupDeploymentSpecs {
+		NumReplicas: 5,
+		MultiClusterReplica: false,
 	}
 
 	return entities.ServiceGroup{
-		OrganizationId: organizationId,
+		OrganizationId: organizationID,
 		AppDescriptorId: appDescriptorId,
-		ServiceGroupId: serviceGroupId,
-		Name: serviceGroupName,
-		Description: serviceGroupDescription,
+		ServiceGroupId: serviceGroupID,
+		Name: "Service Group Test",
 		Services:services,
-		Policy: entities.CollocationPolicy(1) }
+		Policy: entities.CollocationPolicy(1),
+		Specs: specs,
+		Labels: map[string]string {"label1":"value1(ServiceGroup)"},
+	}
 }
 
-func CreateTestRule() entities.SecurityRule {
-
-	id := rand.Intn(10) + 1
-	authServices := make ([]string, 0)
-	for i:=0; i<10; i++{
-		authServices = append(authServices, fmt.Sprintf("auth%d",i ))
-	}
-	devices := make ([]string, 0)
-	for i:=0; i<6; i++{
-		devices = append(devices, fmt.Sprintf("device%d",i ))
-	}
+func CreateTestRule(organizationID string, appDescriptorID string) entities.SecurityRule {
+	id := uuid.New().String()
 
 	rule := entities.SecurityRule{
-		OrganizationId:organizationId,
-		AppDescriptorId:appDescriptorId,
-		RuleId: fmt.Sprintf("ruleId_%d", id),
-		Name: ruleName,
-		SourceServiceId: sourceServiceId,
-		SourcePort: 80,
-		Access: 0,
-		AuthServices: authServices,
-		DeviceGroups: devices}
+		OrganizationId:organizationID,
+		AppDescriptorId:appDescriptorID,
+		RuleId: id,
+		Name: "Rule name",
+		TargetServiceGroupName: "target service group name",
+		TargetServiceName: "target service name",
+		TargetPort: 80,
+		Access: entities.AllAppServices,
+		AuthServiceGroupName: "auth service group name",
+		AuthServices: []string{"authService1", "authService2"},
+		DeviceGroups: []string{"deviceGroup1", "deviceGroup2"}}
 
 	return rule
 }
 
-func CreateTestApplication(id string) *entities.AppInstance {
+func CreateTestApplication(organizationID string, appDescriptorID string) *entities.AppInstance {
 
-	appInstanceId := fmt.Sprintf("App instance Id_%s", id)
-	configurationOptions := make(map[string]string, 0)
-	configurationOptions[confLabel] = confValue
-
-	environmentVariables := make(map[string]string, 0)
-	environmentVariables[envLabel] = envValue
-
-	labels := make(map[string]string, 0)
-	labels[labelLabel] = labelValue
+	id:= uuid.New().String()
 
 	rules := make([]entities.SecurityRule, 0)
-	rules = append(rules, CreateTestRule())
+	rules = append(rules, CreateTestRule(organizationID, appDescriptorID))
 
 	groups := make ([]entities.ServiceGroupInstance, 0)
-	groups = append(groups, CreateTestServiceGroupInstance(appInstanceId))
+	groups = append(groups, CreateTestServiceGroupInstance(organizationID, appDescriptorID, id))
 
-	services := make ([]entities.ServiceInstance, 0)
-	services = append(services, CreateTestServiceInstance(appInstanceId))
+	metadata := make ([]entities.InstanceMetadata, 0)
+	metadata = append(metadata, CreateTestInstanceMetadata(organizationID, appDescriptorID , id))
 
 	app := entities.AppInstance{
-		OrganizationId:organizationId,
-		AppDescriptorId: appDescriptorId,
-		AppInstanceId: appInstanceId,
-		Name: name,
-		Description: description,
-		ConfigurationOptions: configurationOptions,
-		EnvironmentVariables:environmentVariables,
-		Labels:labels,
+		OrganizationId:organizationID,
+		AppDescriptorId: appDescriptorID,
+		AppInstanceId: id,
+		Name: "App instance Name",
+		ConfigurationOptions: map[string]string {"conf1":"value1(appInstance)", "conf2":"value2(appInstance)","conf3":"value3(appInstance)"},
+		EnvironmentVariables:map[string]string {"env01":"value1(appInstance)", "env02":"value2(appInstance)"},
+		Labels:map[string]string{"label1":"value1(appInstance)", "label2":"value2(appInstance)","label3":"value3(appInstance)", "label4":"value4(appInstance)"},
 		Rules: rules,
 		Groups:groups,
-		Services: services,
-		Status: entities.ApplicationStatus(1),
+		Status: entities.Queued,
+		Metadata: metadata,
 		}
 
 	return &app
 }
 
-func CreateTestApplicationDescriptor (id string) *entities.AppDescriptor {
+func CreateTestApplicationDescriptor (organizationID string) *entities.AppDescriptor {
 
-	appDescriptor := fmt.Sprintf("App_descriptor_%s", id)
-
-	tam := rand.Intn(4) + 1
-	configurationOptions := make(map[string]string, 0)
-	environmentVariables := make(map[string]string, 0)
-	labels := make(map[string]string, 0)
-
-	for i:= 0; i< tam; i++{
-		configurationOptions[fmt.Sprintf("conf-%d", i)] = fmt.Sprintf("conf_value-%d", i)
-		environmentVariables[fmt.Sprintf("env-%d", i)] = fmt.Sprintf("env_value-%d", i)
-		labels[fmt.Sprintf("label-%d", i)] = fmt.Sprintf("label_value-%d", i)
-	}
+	id := uuid.New().String()
 
 	rules := make([]entities.SecurityRule, 0)
-	rules = append(rules, CreateTestRule())
+	rules = append(rules, CreateTestRule(organizationID, id))
 
 	groups := make([]entities.ServiceGroup, 0)
-	groups = append(groups, CreateTestServiceGroup(appDescriptor))
-
-	services := make ([]entities.Service, 0)
-	services = append(services, CreateTestService(appDescriptor))
+	groups = append(groups, CreateTestServiceGroup(organizationID,id))
 
 	descriptor := entities.AppDescriptor{
-		OrganizationId: organizationId,
-		AppDescriptorId:appDescriptor,
-		Name: fmt.Sprintf("%s name", appDescriptor),
-		Description: fmt.Sprintf("%s description", appDescriptor),
-		ConfigurationOptions:configurationOptions,
-		EnvironmentVariables:environmentVariables,
-		Labels:labels,
+		OrganizationId: organizationID,
+		AppDescriptorId: id,
+		Name: "App descriptor Test",
+		ConfigurationOptions:map[string]string{"conf1":"value1", "conf2":"value2"},
+		EnvironmentVariables:map[string]string{"env1":"value1", "env2":"value2"},
+		Labels:map[string]string{"label1":"value1", "label2":"value2", "label3":"value3"},
 		Rules:rules,
 		Groups: groups,
-		Services: services}
+	}
 
 	return &descriptor
 
