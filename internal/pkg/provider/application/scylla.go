@@ -156,7 +156,7 @@ func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescri
 
 	// insert the application instance
 	stmt, names := qb.Insert(applicationDescriptorTable).Columns("organization_id","app_descriptor_id", "name",
-		"configuration_options","environment_variables","labels","rules","groups","services").ToCql()
+		"configuration_options","environment_variables","labels","rules","groups").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(descriptor)
 	cqlErr := q.ExecRelease()
 

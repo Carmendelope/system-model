@@ -30,7 +30,7 @@ func generateRandomSpecs() * grpc_application_go.DeploySpecs {
 	}
 }
 
-func generateRandomService(orgID string, index int) * grpc_application_go.Service {
+func generateRandomService(index int) * grpc_application_go.Service {
 	credentials := &grpc_application_go.ImageCredentials{
 		Username: "username",
 		Password: "****",
@@ -58,50 +58,39 @@ func generateRandomService(orgID string, index int) * grpc_application_go.Servic
 	})
 	configs := make ([]*grpc_application_go.ConfigFile, 0)
 	configs = append(configs, &grpc_application_go.ConfigFile{
-		OrganizationId:orgID,
-		ConfigFileId:"configFileID",
+		Name: "Config file name",
 		Content: []byte{0x00, 0x01, 0x02},
 		MountPath:"./path..",
 	})
 
-	arguments := make ([]string, 0)
-	arguments = append (arguments, "arg1")
 	return &grpc_application_go.Service{
-		OrganizationId: orgID,
-		ServiceId: fmt.Sprintf("s%d", index),
 		Name: fmt.Sprintf("Service %d", index),
-		Description : fmt.Sprintf("Description s%d", index),
 		Type: grpc_application_go.ServiceType_DOCKER,
 		Image: fmt.Sprintf("image:v%d", rand.Intn(10)),
 		Specs: generateRandomSpecs(),
 		ExposedPorts: ports,
 		Credentials: credentials,
-		RunArguments: arguments,
 		Storage: storage,
 		EnvironmentVariables: map[string]string{"env01":"env01Label", "env02":"env02Label"},
 		DeployAfter: []string{"after1", "after2"},
 		Labels: map[string]string {"label1":"service label 1","label2":"service label 2"},
 		Configs: configs,
+		RunArguments: []string{"arg1", "arg2", "arg3"},
 	}
 }
 
-func generateServiceGroup(organizationID string, services []*grpc_application_go.Service) * grpc_application_go.ServiceGroup{
-	serviceIds := make([]string, 0)
-	for i:=0; i< len(services); i++ {
-		serviceIds = append(serviceIds, services[i].ServiceId)
-	}
+func generateServiceGroup(services []*grpc_application_go.Service) * grpc_application_go.ServiceGroup{
+
 
 	return &grpc_application_go.ServiceGroup{
-		OrganizationId:  organizationID,
-		ServiceGroupId:  "Service Group ID",
 		Name:            "Service Group",
-		Description:     "description!",
-		Services: serviceIds,
+		Services: services,
 		Policy: grpc_application_go.CollocationPolicy_SEPARATE_CLUSTERS,
 		Specs: &grpc_application_go.ServiceGroupDeploymentSpecs{
 			NumReplicas: 5,
 			MultiClusterReplica: false,
 		},
+		Labels:map[string]string{"label1":"sg_label1", "label2":"sg_label2", "label3":"sg_label3"},
 	}
 }
 
@@ -110,33 +99,33 @@ func generateServiceGroup(organizationID string, services []*grpc_application_go
 func generateAddAppDescriptor(orgID string, numServices int) * grpc_application_go.AddAppDescriptorRequest {
 	services := make([]*grpc_application_go.Service, 0)
 	for i := 0; i < numServices; i++ {
-		services = append(services, generateRandomService(orgID, i))
+		services = append(services, generateRandomService(i))
 	}
 	securityRules := make([]*grpc_application_go.SecurityRule, 0)
 	for i := 0; i < (numServices ); i++ {
 		securityRules = append(securityRules, &grpc_application_go.SecurityRule{
-			OrganizationId: orgID,
 			RuleId : fmt.Sprintf("r%d", i),
 			Name: fmt.Sprintf("%d -> %d", i, i+1),
-			SourceServiceId: fmt.Sprintf("s%d", i),
-			SourcePort: 80,
+			TargetServiceGroupName: fmt.Sprintf("targetServiceGroupName-%d", i),
+			TargetServiceName: fmt.Sprintf("targetServiceName-%d", i),
+			TargetPort: 80,
 			Access: grpc_application_go.PortAccess_APP_SERVICES,
+			AuthServiceGroupName: fmt.Sprintf("AuthServiceGroupName-%d", i),
 			AuthServices: []string{fmt.Sprintf("s%d", i+1)},
 			DeviceGroups:[]string{"device_1", "device_2"},
 		})
 	}
 	groups := make ([]*grpc_application_go.ServiceGroup, 0)
-	groups = append(groups, generateServiceGroup(orgID, services))
-	envVars := make(map[string]string, 0)
-	envVars["VAR1"] = "VALUE1"
+	groups = append(groups, generateServiceGroup(services))
+
 	return &grpc_application_go.AddAppDescriptorRequest{
 		RequestId:"request_id",
 		OrganizationId:orgID,
 		Name: "new app",
-		EnvironmentVariables: envVars,
+		ConfigurationOptions: map[string]string{"conf1":"conf1", "conf2":"conf2"},
+		EnvironmentVariables: map[string]string{"var1":"env1"},
 		Labels: map[string]string{"label1":"eti1"},
 		Rules: securityRules,
-		Services: services,
 		Groups: groups,
 	}
 }
@@ -165,9 +154,8 @@ func generateUpdateServiceStatus(organizationID string, appInstanceID string, se
     return &grpc_application_go.UpdateServiceStatusRequest{
         OrganizationId: organizationID,
         AppInstanceId: appInstanceID,
-        ServiceId: serviceID,
         Status: status,
-		Endpoints: endpoint,
+		//Endpoints: endpoint,
 		DeployedOnClusterId: fmt.Sprintf("Deploy on cluster - %d", rand.Int31n(100)),
     }
 }
@@ -175,7 +163,7 @@ func generateUpdateServiceStatus(organizationID string, appInstanceID string, se
 
 var _ = ginkgo.Describe("Applications", func(){
 
-	const numServices = 1
+	const numServices = 2
 
 	// gRPC server
 	var server * grpc.Server
@@ -236,7 +224,7 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(app).ShouldNot(gomega.BeNil())
 				gomega.Expect(app.AppDescriptorId).ShouldNot(gomega.BeNil())
 				gomega.Expect(app.Name).Should(gomega.Equal(toAdd.Name))
-				gomega.Expect(len(toAdd.Services)).Should(gomega.Equal(len(app.Services)))
+				gomega.Expect(len(toAdd.Groups)).Should(gomega.Equal(len(app.Groups)))
 			})
 			ginkgo.It("should fail on an empty request", func(){
 				toAdd := &grpc_application_go.AddAppDescriptorRequest{}
@@ -468,46 +456,11 @@ var _ = ginkgo.Describe("Applications", func(){
 	    })
 		ginkgo.Context("update application instance", func(){
 			ginkgo.PIt("should update instance and return the new values", func(){
-				toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
-				added, err := client.AddAppInstance(context.Background(), toAdd)
-				gomega.Expect(err).Should(gomega.Succeed())
-				gomega.Expect(added).ShouldNot(gomega.BeNil())
-				gomega.Expect(added.AppInstanceId).ShouldNot(gomega.BeEmpty())
-				// update
-				req := generateUpdateAppInstance(targetOrganization.ID, added.AppInstanceId,
-					grpc_application_go.ApplicationStatus_RUNNING)
-				_, err = client.UpdateAppStatus(context.Background(), req)
-				gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-				// recover and check the changes
-				recovered, err := client.GetAppInstance(context.Background(),
-					&grpc_application_go.AppInstanceId{OrganizationId:req.OrganizationId,AppInstanceId:req.AppInstanceId})
-				gomega.Expect(recovered.Status).To(gomega.Equal(req.Status))
-				gomega.Expect(recovered.AppInstanceId).To(gomega.Equal(req.AppInstanceId))
-
 			})
 		})
 
 		ginkgo.Context("update service status in application instance", func(){
 		    ginkgo.PIt("should update instance and return the new values", func(){
-                toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
-                added, err := client.AddAppInstance(context.Background(), toAdd)
-                gomega.Expect(err).Should(gomega.Succeed())
-                gomega.Expect(added).ShouldNot(gomega.BeNil())
-                gomega.Expect(added.AppInstanceId).ShouldNot(gomega.BeEmpty())
-                // update it
-                /*
-                req := generateUpdateServiceStatus(added.OrganizationId, added.AppInstanceId,
-                     added.Services[0].ServiceId, added.AppDescriptorId, grpc_application_go.ServiceStatus_SERVICE_RUNNING)
-                _, err = client.UpdateServiceStatus(context.Background(), req)
-                // recover changes
-                recovered, err := client.GetAppInstance(context.Background(),
-                    &grpc_application_go.AppInstanceId{OrganizationId:added.OrganizationId,AppInstanceId:added.AppInstanceId})
-                gomega.Expect(err).Should(gomega.BeNil())
-                gomega.Expect(recovered.AppInstanceId).To(gomega.Equal(added.AppInstanceId))
-                gomega.Expect(recovered.Services[0].Status).To(gomega.Equal(grpc_application_go.ServiceStatus_SERVICE_RUNNING))
-                gomega.Expect(recovered.Services[0].Endpoints).To(gomega.HaveLen(1))
-                gomega.Expect(recovered.Services[0].DeployedOnClusterId).NotTo(gomega.BeNil())
-                */
             })
         })
 

@@ -73,7 +73,7 @@ func (m * Manager) ListDescriptors(orgID * grpc_organization_go.OrganizationId) 
 	return result, nil
 }
 
-// GetDescriptor retrieves a single application descriptor.
+// GetDescriptor retrieves a single application 0,descriptor.
 func (m * Manager) GetDescriptor(appDescID * grpc_application_go.AppDescriptorId) (* entities.AppDescriptor, derrors.Error){
 	exists, err := m.OrgProvider.Exists(appDescID.OrganizationId)
 	if err != nil {
@@ -228,7 +228,7 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 }
 
 // UpdateService updates an application service.
-// TODO: wait until JuanMa has the conductor implemented
+// TODO: wait for the conductor to be implemented
 func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServiceStatusRequest) error {
 	/*
 	exists, err := m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId)
