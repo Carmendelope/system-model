@@ -119,8 +119,6 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(added).ShouldNot(gomega.BeNil())
 			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 
-			newLabels := make(map[string]string, 0)
-			newLabels["nk"]="nv"
 			updateClusterReq := &grpc_infrastructure_go.UpdateClusterRequest{
 				OrganizationId:       targetOrganization.ID,
 				ClusterId:            added.ClusterId,
@@ -130,8 +128,6 @@ var _ = ginkgo.Describe("Cluster service", func() {
 				Description:          "newDescription",
 				UpdateHostname:       true,
 				Hostname:             "newHostname",
-				UpdateLabels:         true,
-				Labels:               newLabels,
 				UpdateStatus:         true,
 				Status:               grpc_infrastructure_go.InfraStatus_RUNNING,
 			}
@@ -140,8 +136,49 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(updated.Name).Should(gomega.Equal(updateClusterReq.Name))
 			gomega.Expect(updated.Description).Should(gomega.Equal(updateClusterReq.Description))
 			gomega.Expect(updated.Hostname).Should(gomega.Equal(updateClusterReq.Hostname))
-			gomega.Expect(updated.Labels).Should(gomega.Equal(updateClusterReq.Labels))
 			gomega.Expect(updated.Status).Should(gomega.Equal(updateClusterReq.Status))
+		})
+		ginkgo.It("should be able to add labels to a cluster", func(){
+			toAdd := createAddClusterRequest(targetOrganization.ID)
+			added, err := client.AddCluster(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
+
+			newLabels := make(map[string]string, 0)
+			newLabels["nk"]="nv"
+			updateClusterReq := &grpc_infrastructure_go.UpdateClusterRequest{
+				OrganizationId:       targetOrganization.ID,
+				ClusterId:            added.ClusterId,
+				AddLabels:         true,
+				Labels:               newLabels,
+			}
+			updated, err := client.UpdateCluster(context.Background(), updateClusterReq)
+			gomega.Expect(err).To(gomega.Succeed())
+			expectedLabels := toAdd.Labels
+			expectedLabels["nk"] = "nv"
+			gomega.Expect(updated.Labels).Should(gomega.Equal(expectedLabels))
+		})
+		ginkgo.It("should be able to remove labels from a cluster", func(){
+			toAdd := createAddClusterRequest(targetOrganization.ID)
+			added, err := client.AddCluster(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
+
+			newLabels := make(map[string]string, 0)
+			newLabels["k1"]="v1"
+			updateClusterReq := &grpc_infrastructure_go.UpdateClusterRequest{
+				OrganizationId:       targetOrganization.ID,
+				ClusterId:            added.ClusterId,
+				RemoveLabels:         true,
+				Labels:               newLabels,
+			}
+			updated, err := client.UpdateCluster(context.Background(), updateClusterReq)
+			gomega.Expect(err).To(gomega.Succeed())
+			expectedLabels := toAdd.Labels
+			delete(expectedLabels, "k1")
+			gomega.Expect(updated.Labels).Should(gomega.Equal(expectedLabels))
 		})
 		ginkgo.It("should be able to list clusters", func(){
 			toAdd := createAddClusterRequest(targetOrganization.ID)
