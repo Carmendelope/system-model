@@ -36,3 +36,14 @@ and create the job responsible for the creation of tables
 ```
 kubectl create -f components/system-model/mngtcluster/systemmodel-scylla.job.yaml
 ```
+
+## Local integration tests
+
+You can run ScyllaDB tests using the following approach:
+
+```
+docker run --name scylla -p 9042:9042 -d scylladb/scylla
+docker exec -it scylla cqlsh
+```
+
+Load the data

@@ -227,6 +227,36 @@ func (sp *ScyllaApplicationProvider) DescriptorExists(appDescriptorID string) (b
 	return true, nil
 }
 
+// UpdateDescriptor updates the information of an application descriptor.
+func (sp *ScyllaApplicationProvider) UpdateDescriptor(descriptor entities.AppDescriptor) derrors.Error {
+	sp.Lock()
+	defer sp.Unlock()
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return err
+	}
+	// check if the descriptor exists
+	exists, err := sp.unsafeDescriptorExists(descriptor.AppDescriptorId)
+	if err != nil {
+		return err
+	}
+	if ! exists {
+		return derrors.NewNotFoundError(descriptor.AppDescriptorId)
+	}
+	// insert the application instance
+	stmt, names := qb.Update(applicationDescriptorTable).Set("organization_id", "name",
+		"configuration_options","environment_variables","labels","rules","groups").Where(qb.Eq(applicationDescriptorTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(descriptor)
+	cqlErr := q.ExecRelease()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot update appDescriptor")
+	}
+
+	return nil
+}
+
 // DeleteDescriptor removes a given descriptor from the system.
 func (sp *ScyllaApplicationProvider) DeleteDescriptor(appDescriptorID string) derrors.Error {
 

@@ -969,6 +969,19 @@ func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
 	}
 }
 
+func (d * AppDescriptor) ApplyUpdate(request grpc_application_go.UpdateAppDescriptorRequest){
+	if request.AddLabels {
+		for k, v := range request.Labels {
+			d.Labels[k] = v
+		}
+	}
+	if request.RemoveLabels {
+		for k, _ := range request.Labels {
+			delete(d.Labels, k)
+		}
+	}
+}
+
 func ValidGroup(group * grpc_application_go.ServiceGroup) derrors.Error {
 	if group.Name == "" {
 		return derrors.NewInvalidArgumentError("expecting name")
@@ -1006,6 +1019,15 @@ func ValidAddAppDescriptorRequest(toAdd * grpc_application_go.AddAppDescriptorRe
 	return nil
 }
 
+func ValidUpdateAppDescriptorRequest(request * grpc_application_go.UpdateAppDescriptorRequest) derrors.Error{
+	if request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	if request.AppDescriptorId == ""{
+		return derrors.NewInvalidArgumentError(emptyAppDescriptorId)
+	}
+	return nil
+}
 
 
 type ApplicationStatus int
