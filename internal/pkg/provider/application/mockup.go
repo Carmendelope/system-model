@@ -61,6 +61,18 @@ func (m *MockupApplicationProvider) DescriptorExists(appDescriptorID string) (bo
 	return m.unsafeExistsAppDesc(appDescriptorID), nil
 }
 
+// UpdateDescriptor updates the information of an application descriptor.
+func (m *MockupApplicationProvider) UpdateDescriptor(descriptor entities.AppDescriptor) derrors.Error{
+	m.Lock()
+	defer m.Unlock()
+	if !m.unsafeExistsAppDesc(descriptor.AppDescriptorId){
+		return derrors.NewNotFoundError(descriptor.AppDescriptorId)
+	}
+	m.appDescriptors[descriptor.AppDescriptorId] = descriptor
+	return nil
+}
+
+
 // GetDescriptors retrieves an application descriptor.
 func (m *MockupApplicationProvider) GetDescriptor(appDescriptorID string) (*entities.AppDescriptor, derrors.Error) {
 	m.Lock()

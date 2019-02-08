@@ -64,6 +64,19 @@ func (h *Handler) GetAppDescriptor(ctx context.Context, appDescID *grpc_applicat
 	return descriptor.ToGRPC(), nil
 }
 
+// UpdateAppDescriptor allows the user to update the information of a registered descriptor.
+func (h *Handler) UpdateAppDescriptor(ctx context.Context, request *grpc_application_go.UpdateAppDescriptorRequest) (*grpc_application_go.AppDescriptor, error){
+	err := entities.ValidUpdateAppDescriptorRequest(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	updated, err := h.Manager.UpdateAppDescriptor(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return updated.ToGRPC(), nil
+}
+
 // RemoveAppDescriptor removes an application descriptor.
 func (h *Handler) RemoveAppDescriptor(ctx context.Context, appDescID *grpc_application_go.AppDescriptorId) (*grpc_common_go.Success, error){
 	err := h.Manager.RemoveAppDescriptor(appDescID)

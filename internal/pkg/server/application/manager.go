@@ -92,6 +92,27 @@ func (m * Manager) GetDescriptor(appDescID * grpc_application_go.AppDescriptorId
 	return m.AppProvider.GetDescriptor(appDescID.AppDescriptorId)
 }
 
+// UpdateAppDescriptor allows the user to update the information of a registered descriptor.
+func (m *Manager) UpdateAppDescriptor(request *grpc_application_go.UpdateAppDescriptorRequest) (*entities.AppDescriptor, derrors.Error) {
+	exists, err := m.OrgProvider.Exists(request.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if ! exists{
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
+	}
+	old, err := m.AppProvider.GetDescriptor(request.AppDescriptorId)
+	if err != nil{
+		return nil, err
+	}
+	old.ApplyUpdate(*request)
+	err = m.AppProvider.UpdateDescriptor(*old)
+	if err != nil{
+		return nil, err
+	}
+	return old, nil
+}
+
 // RemoveAppDescriptor removes an application descriptor.
 func (m * Manager) RemoveAppDescriptor(appDescID *grpc_application_go.AppDescriptorId) derrors.Error {
 	exists, err := m.OrgProvider.Exists(appDescID.OrganizationId)

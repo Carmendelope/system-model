@@ -20,6 +20,9 @@ type Provider interface {
 	// DescriptorExists checks if a given descriptor exists on the system.
 	DescriptorExists(appDescriptorID string) (bool, derrors.Error)
 
+	// UpdateDescriptor updates the information of an application descriptor.
+	UpdateDescriptor(descriptor entities.AppDescriptor) derrors.Error
+
 	// DeleteDescriptor removes a given descriptor from the system.
 	DeleteDescriptor(appDescriptorID string) derrors.Error
 

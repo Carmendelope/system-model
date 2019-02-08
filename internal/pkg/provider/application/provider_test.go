@@ -65,6 +65,22 @@ func RunTest(provider Provider) {
 			gomega.Expect(exists).NotTo(gomega.BeTrue())
 		})
 
+		ginkgo.It("should be able to update a descriptor", func(){
+			descriptor := CreateTestApplicationDescriptor(uuid.New().String())
+			// add the application
+			err := provider.AddDescriptor(*descriptor)
+			gomega.Expect(err).To(gomega.Succeed())
+			// update
+			descriptor.Name = "newName"
+			err = provider.UpdateDescriptor(*descriptor)
+			gomega.Expect(err).To(gomega.Succeed())
+			// check the update
+			descriptor, err = provider.GetDescriptor(descriptor.AppDescriptorId)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(descriptor).NotTo(gomega.BeNil())
+			gomega.Expect(descriptor.Name).Should(gomega.Equal(descriptor.Name))
+		})
+
 		// DeleteDescriptor
 		ginkgo.It("Should be able to remove the descriptor", func() {
 
