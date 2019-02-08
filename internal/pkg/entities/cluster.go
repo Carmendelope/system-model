@@ -161,8 +161,15 @@ func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateCluster
 	if updateRequest.UpdateHostname {
 		c.Hostname = updateRequest.Hostname
 	}
-	if updateRequest.UpdateLabels {
-		c.Labels = updateRequest.Labels
+	if updateRequest.AddLabels {
+		for k, v := range updateRequest.Labels {
+			c.Labels[k] = v
+		}
+	}
+	if updateRequest.RemoveLabels {
+		for k, _ := range updateRequest.Labels {
+			delete(c.Labels, k)
+		}
 	}
 	if updateRequest.UpdateStatus {
 		c.Status = InfraStatusFromGRPC[updateRequest.Status]

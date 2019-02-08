@@ -79,8 +79,15 @@ func (n * Node) ToGRPC() * grpc_infrastructure_go.Node {
 }
 
 func (n * Node) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateNodeRequest){
-	if updateRequest.UpdateLabels{
-		n.Labels = updateRequest.Labels
+	if updateRequest.AddLabels {
+		for k, v := range updateRequest.Labels {
+			n.Labels[k] = v
+		}
+	}
+	if updateRequest.RemoveLabels {
+		for k, _ := range updateRequest.Labels {
+			delete(n.Labels, k)
+		}
 	}
 	if updateRequest.UpdateStatus{
 		n.Status = InfraStatusFromGRPC[updateRequest.Status]

@@ -12,7 +12,7 @@
 
 [[constraint]]
     name="github.com/nalej/grpc-utils"
-    version="v1.1.0"
+    version="v1.3.1"
 
 [[constraint]]
     name="github.com/nalej/grpc-organization-go"
@@ -24,7 +24,7 @@
 
 [[constraint]]
     name="github.com/nalej/grpc-infrastructure-go"
-    version="v0.0.30"
+    version="v0.0.31"
 
 [[constraint]]
     name="github.com/nalej/grpc-user-go"

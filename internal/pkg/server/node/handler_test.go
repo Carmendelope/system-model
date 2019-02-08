@@ -116,21 +116,55 @@ var _ = ginkgo.Describe("Node service", func() {
 			added, err := client.AddNode(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(added).ShouldNot(gomega.BeNil())
+			updateNodeRequest := &grpc_infrastructure_go.UpdateNodeRequest{
+				OrganizationId:       added.OrganizationId,
+				NodeId:               added.NodeId,
+				UpdateStatus:         true,
+				Status:               grpc_infrastructure_go.InfraStatus_RUNNING,
+			}
+			updated, err := client.UpdateNode(context.Background(), updateNodeRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(updated.Status).Should(gomega.Equal(updateNodeRequest.Status))
+		})
+		ginkgo.It("should be able to add labels to nodes", func(){
+			toAdd := createAddNodeRequest(targetOrganization.ID)
+			added, err := client.AddNode(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
 
 			newLabels := make(map[string]string, 0)
 			newLabels["nk"]="nv"
 			updateNodeRequest := &grpc_infrastructure_go.UpdateNodeRequest{
 				OrganizationId:       added.OrganizationId,
 				NodeId:               added.NodeId,
-				UpdateLabels:         true,
+				AddLabels:         true,
 				Labels:               newLabels,
-				UpdateStatus:         true,
-				Status:               grpc_infrastructure_go.InfraStatus_RUNNING,
 			}
 			updated, err := client.UpdateNode(context.Background(), updateNodeRequest)
 			gomega.Expect(err).To(gomega.Succeed())
-			gomega.Expect(updated.Labels).Should(gomega.Equal(updateNodeRequest.Labels))
-			gomega.Expect(updated.Status).Should(gomega.Equal(updateNodeRequest.Status))
+			expectedLabels := toAdd.Labels
+			expectedLabels["nk"] = "nv"
+			gomega.Expect(updated.Labels).Should(gomega.Equal(expectedLabels))
+		})
+		ginkgo.It("should be able to remove the labels from a node", func(){
+			toAdd := createAddNodeRequest(targetOrganization.ID)
+			added, err := client.AddNode(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+
+			newLabels := make(map[string]string, 0)
+			newLabels["k1"]="v1"
+			updateNodeRequest := &grpc_infrastructure_go.UpdateNodeRequest{
+				OrganizationId:       added.OrganizationId,
+				NodeId:               added.NodeId,
+				RemoveLabels:         true,
+				Labels:               newLabels,
+			}
+			updated, err := client.UpdateNode(context.Background(), updateNodeRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			expectedLabels := toAdd.Labels
+			delete(expectedLabels, "k1")
+			gomega.Expect(updated.Labels).Should(gomega.Equal(expectedLabels))
 		})
 		ginkgo.It("should be able to list nodes", func(){
 			toAdd := createAddNodeRequest(targetOrganization.ID)
