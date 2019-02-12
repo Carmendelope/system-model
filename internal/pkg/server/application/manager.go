@@ -251,7 +251,7 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 // UpdateService updates an application service.
 // TODO: wait for the conductor to be implemented
 func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServiceStatusRequest) error {
-	/*
+
 	exists, err := m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId)
 
 	if err != nil {
@@ -266,22 +266,33 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
     }
 
     // find the service instance
-    for index, s := range toUpdate.Groups {
-        if s.ServiceId == updateRequest.ServiceId {
-            toUpdate.Services[index].Status = entities.ServiceStatusFromGRPC[updateRequest.Status]
-            toUpdate.Services[index].Endpoints = updateRequest.Endpoints
-			toUpdate.Services[index].DeployedOnClusterId = updateRequest.DeployedOnClusterId
-            err = m.AppProvider.UpdateInstance(*toUpdate)
-            if err != nil {
-                return derrors.NewInternalError("impossible to update instance").CausedBy(err)
-            }
-            return nil
-        }
+    for indexGroup, g := range toUpdate.Groups {
+    	// find the group
+        if g.ServiceGroupInstanceId == updateRequest.ServiceGroupInstanceId {
+        	// find the service
+        	for indexService, serviceInstance := range g.ServiceInstances {
+        		if serviceInstance.ServiceInstanceId == updateRequest.ServiceInstanceId {
+        			// found and updated
+        			// build the endpoint instances
+        			endpoints := make([]entities.EndpointInstance,len(updateRequest.Endpoints))
+        			for i, ep := range updateRequest.Endpoints {
+        				endpoints[i] = entities.EndpointInstanceFromGRPC(ep)
+					}
+        			toUpdate.Groups[indexGroup].ServiceInstances[indexService].Status = entities.ServiceStatusFromGRPC[updateRequest.Status]
+					toUpdate.Groups[indexGroup].ServiceInstances[indexService].Endpoints = endpoints
+					toUpdate.Groups[indexGroup].ServiceInstances[indexService].DeployedOnClusterId = updateRequest.DeployedOnClusterId
+					err = m.AppProvider.UpdateInstance(*toUpdate)
+					if err != nil {
+						return derrors.NewInternalError("impossible to update instance").CausedBy(err)
+					}
+					return nil
+				}
+			}
+			return derrors.NewInternalError("service not found")
+		}
     }
 
-    return derrors.NewInternalError("service not found")
-    */
-    return derrors.NewUnimplementedError("not implemented yet!")
+    return derrors.NewInternalError("group not found")
 }
 
 // RemoveAppInstance removes an application instance
