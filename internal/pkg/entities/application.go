@@ -339,6 +339,7 @@ func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInsta
 		AppDescriptorId:    sgi.AppDescriptorId,
 		AppInstanceId:      sgi.AppInstanceId,
 		ServiceGroupId:     sgi.ServiceGroupId,
+		ServiceGroupInstanceId: sgi.ServiceGroupInstanceId,
 		Name:               sgi.Name,
 		ServiceInstances:	services,
 		Policy:             policy,
@@ -1124,6 +1125,24 @@ func (sg * ServiceGroup) ToServiceGroupInstance(appInstanceID string) *ServiceGr
 	}
 }
 
+func (sg * ServiceGroup) ToEmptyServiceGroupInstance(appInstanceID string) *ServiceGroupInstance {
+	serviceGroupInstanceID := uuid.New().String()
+
+	return &ServiceGroupInstance{
+		OrganizationId: 		sg.OrganizationId,
+		AppDescriptorId: 		sg.AppDescriptorId,
+		AppInstanceId: 			appInstanceID,
+		ServiceGroupId: 		sg.ServiceGroupId,
+		ServiceGroupInstanceId: serviceGroupInstanceID,
+		Name: 					sg.Name,
+		ServiceInstances:		make ([]ServiceInstance, 0),
+		Policy: 				sg.Policy,
+		Status: 				ServiceScheduled,
+		Specs: 					sg.Specs,
+		Labels: 				sg.Labels,
+	}
+}
+
 func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceRequest, descriptor * AppDescriptor) * AppInstance {
 	uuid := GenerateUUID()
 
@@ -1195,6 +1214,24 @@ func ValidUpdateServiceStatusRequest (updateRequest *grpc_application_go.UpdateS
 		updateRequest.ServiceGroupInstanceId == "" || updateRequest.ServiceInstanceId == "" {
 			return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, app_service_instance_id " +
 				"and service_instance_id")
+	}
+	return nil
+}
+
+func ValidAddServiceGroupInstanceRequest (request *grpc_application_go.AddServiceGroupInstanceRequest) derrors.Error {
+	if request.OrganizationId == "" || request.AppDescriptorId == "" ||
+		request.AppInstanceId == "" || request.ServiceGroupId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_descriptor_id, app_instance_id, service_group_id")
+	}
+	return nil
+}
+
+func ValidAddServiceInstanceRequest(request *grpc_application_go.AddServiceInstanceRequest) derrors.Error {
+	if request.OrganizationId == "" || request.AppDescriptorId == "" ||
+		request.AppInstanceId == "" || request.ServiceGroupId == "" ||
+		request.ServiceGroupInstanceId == "" || request.ServiceId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_descriptor_id, app_instance_id, " +
+			"service_group_id, service_group_instance_id, service_id")
 	}
 	return nil
 }

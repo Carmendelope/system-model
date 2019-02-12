@@ -104,7 +104,6 @@ func NewCluster(organizationID string, name string, description string, hostname
 		OrganizationId:       organizationID,
 		ClusterId:            uuid,
 		Name:                 name,
-		Description:          description,
 		ClusterType:          KubernetesCluster,
 		Hostname:             hostname,
 		ControlPlaneHostname: controlPlaneHostname,
@@ -121,7 +120,6 @@ func NewClusterFromGRPC(addClusterRequest *grpc_infrastructure_go.AddClusterRequ
 		OrganizationId:       addClusterRequest.OrganizationId,
 		ClusterId:            uuid,
 		Name:                 addClusterRequest.Name,
-		Description:          addClusterRequest.Description,
 		ClusterType:          KubernetesCluster,
 		Hostname:             addClusterRequest.Hostname,
 		ControlPlaneHostname: addClusterRequest.ControlPlaneHostname,
@@ -140,7 +138,6 @@ func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 		OrganizationId:       c.OrganizationId,
 		ClusterId:            c.ClusterId,
 		Name:                 c.Name,
-		Description:          c.Description,
 		ClusterType:          clusterType,
 		Hostname:             c.Hostname,
 		ControlPlaneHostname: c.ControlPlaneHostname,
@@ -154,9 +151,6 @@ func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateClusterRequest) {
 	if updateRequest.UpdateName {
 		c.Name = updateRequest.Name
-	}
-	if updateRequest.UpdateDescription {
-		c.Description = updateRequest.Description
 	}
 	if updateRequest.UpdateHostname {
 		c.Hostname = updateRequest.Hostname

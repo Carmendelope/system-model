@@ -162,3 +162,32 @@ func (h *Handler) RemoveAppInstance(ctx context.Context, appInstID *grpc_applica
 	}
 	return &grpc_common_go.Success{},nil
 }
+
+// AddServiceGroupInstance to an already existing application instance
+func (h *Handler) AddServiceGroupInstance(ctx context.Context, addRequest *grpc_application_go.AddServiceGroupInstanceRequest) (*grpc_application_go.ServiceGroupInstance, error){
+	err := entities.ValidAddServiceGroupInstanceRequest(addRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	service, err := h.Manager.AddServiceGroupInstance(addRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	return service.ToGRPC(), nil
+}
+// AddServiceInstance to an already existing service group instance
+func (h *Handler) AddServiceInstance(ctx context.Context, addRequest *grpc_application_go.AddServiceInstanceRequest) (*grpc_application_go.ServiceInstance, error) {
+	err := entities.ValidAddServiceInstanceRequest(addRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	serviceInstance, err := h.Manager.AddServiceInstance(addRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	return serviceInstance.ToGRPC(), nil
+}

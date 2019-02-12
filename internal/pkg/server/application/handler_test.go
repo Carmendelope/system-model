@@ -7,6 +7,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
@@ -506,5 +507,107 @@ var _ = ginkgo.Describe("Applications", func(){
 			})
 		})
 
+		ginkgo.Context("Adding ServiceGroupInstance ", func() {
+			ginkgo.It("should be able to add a service group instance", func() {
+				toAdd := generateAddAppInstance(targetDescriptor.OrganizationId, targetDescriptor.AppDescriptorId)
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+
+				sgToAdd := &grpc_application_go.AddServiceGroupInstanceRequest{
+					OrganizationId:  targetDescriptor.OrganizationId,
+					AppDescriptorId: targetDescriptor.AppDescriptorId,
+					AppInstanceId:   added.AppInstanceId,
+					ServiceGroupId:  added.Groups[0].ServiceGroupId,
+				}
+
+				sgReceived, err := client.AddServiceGroupInstance(context.Background(), sgToAdd)
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(sgReceived.ServiceGroupId).Should(gomega.Equal(sgToAdd.ServiceGroupId))
+			})
+			ginkgo.It("should not be able to add a service group instance of a non existing group", func() {
+				toAdd := generateAddAppInstance(targetDescriptor.OrganizationId, targetDescriptor.AppDescriptorId)
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+
+				sgToAdd := &grpc_application_go.AddServiceGroupInstanceRequest{
+					OrganizationId:  targetDescriptor.OrganizationId,
+					AppDescriptorId: targetDescriptor.AppDescriptorId,
+					AppInstanceId:   added.AppInstanceId,
+					ServiceGroupId:  uuid.New().String(),
+				}
+
+				_, err = client.AddServiceGroupInstance(context.Background(), sgToAdd)
+				gomega.Expect(err).NotTo(gomega.Succeed())
+			})
+
+		})
+
+		ginkgo.Context("Adding ServiceInstance ", func() {
+			ginkgo.It("should be able to add a service instance", func() {
+				toAdd := generateAddAppInstance(targetDescriptor.OrganizationId, targetDescriptor.AppDescriptorId)
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+
+				sgToAdd := &grpc_application_go.AddServiceGroupInstanceRequest{
+					OrganizationId:  targetDescriptor.OrganizationId,
+					AppDescriptorId: targetDescriptor.AppDescriptorId,
+					AppInstanceId:   added.AppInstanceId,
+					ServiceGroupId:  added.Groups[0].ServiceGroupId,
+				}
+
+				sgReceived, err := client.AddServiceGroupInstance(context.Background(), sgToAdd)
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(sgReceived.ServiceGroupId).Should(gomega.Equal(sgToAdd.ServiceGroupId))
+
+				sToAdd := &grpc_application_go.AddServiceInstanceRequest{
+					OrganizationId:  targetDescriptor.OrganizationId,
+					AppDescriptorId: targetDescriptor.AppDescriptorId,
+					AppInstanceId:   added.AppInstanceId,
+					ServiceGroupId:  sgReceived.ServiceGroupId,
+					ServiceGroupInstanceId: sgReceived.ServiceGroupInstanceId,
+					ServiceId: added.Groups[0].ServiceInstances[0].ServiceId,
+				}
+
+				serviceInstance, err := client.AddServiceInstance(context.Background(), sToAdd)
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(serviceInstance.ServiceId).Should(gomega.Equal(sToAdd.ServiceId))
+				gomega.Expect(serviceInstance.ServiceInstanceId).NotTo(gomega.BeNil())
+
+			})
+			ginkgo.It("should not be able to add a service instance (service instance no exists)", func() {
+				toAdd := generateAddAppInstance(targetDescriptor.OrganizationId, targetDescriptor.AppDescriptorId)
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+
+				sgToAdd := &grpc_application_go.AddServiceGroupInstanceRequest{
+					OrganizationId:  targetDescriptor.OrganizationId,
+					AppDescriptorId: targetDescriptor.AppDescriptorId,
+					AppInstanceId:   added.AppInstanceId,
+					ServiceGroupId:  added.Groups[0].ServiceGroupId,
+				}
+
+				sgReceived, err := client.AddServiceGroupInstance(context.Background(), sgToAdd)
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(sgReceived.ServiceGroupId).Should(gomega.Equal(sgToAdd.ServiceGroupId))
+
+				sToAdd := &grpc_application_go.AddServiceInstanceRequest{
+					OrganizationId:  targetDescriptor.OrganizationId,
+					AppDescriptorId: targetDescriptor.AppDescriptorId,
+					AppInstanceId:   added.AppInstanceId,
+					ServiceGroupId:  sgReceived.ServiceGroupId,
+					ServiceGroupInstanceId: sgReceived.ServiceGroupInstanceId,
+					ServiceId: uuid.New().String(),
+				}
+
+				_, err = client.AddServiceInstance(context.Background(), sToAdd)
+				gomega.Expect(err).NotTo(gomega.Succeed())
+
+			})
+
+		})
 	})
 })
