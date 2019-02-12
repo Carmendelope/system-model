@@ -29,7 +29,6 @@ func createAddClusterRequest(organizationID string) *grpc_infrastructure_go.AddC
 		RequestId:            uuid.NewV4().String(),
 		OrganizationId:       organizationID,
 		Name:                 "name",
-		Description:          "description",
 		Hostname: "hostname",
 		Labels:               labels,
 	}
@@ -124,8 +123,6 @@ var _ = ginkgo.Describe("Cluster service", func() {
 				ClusterId:            added.ClusterId,
 				UpdateName:           true,
 				Name:                 "newName",
-				UpdateDescription:    true,
-				Description:          "newDescription",
 				UpdateHostname:       true,
 				Hostname:             "newHostname",
 				UpdateStatus:         true,
@@ -134,7 +131,6 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			updated, err := client.UpdateCluster(context.Background(), updateClusterReq)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(updated.Name).Should(gomega.Equal(updateClusterReq.Name))
-			gomega.Expect(updated.Description).Should(gomega.Equal(updateClusterReq.Description))
 			gomega.Expect(updated.Hostname).Should(gomega.Equal(updateClusterReq.Hostname))
 			gomega.Expect(updated.Status).Should(gomega.Equal(updateClusterReq.Status))
 		})
