@@ -31,7 +31,6 @@ func RunTest(provider Provider) {
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
 
-		cluster.Description = "Modified description"
 		cluster.Multitenant = entities.MultitenantSupport(1)
 
 		err = provider.Update(*cluster)

@@ -15,6 +15,7 @@ const clusterTable = "Clusters"
 const clusterTablePK = "cluster_id"
 const clusterNodeTable = "Cluster_Nodes"
 
+
 type ScyllaClusterProvider struct {
 	Address  string
 	Port     int
@@ -149,7 +150,7 @@ func (sp *ScyllaClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 	}
 
 	// insert the cluster instance
-	stmt, names := qb.Insert(clusterTable).Columns("organization_id", "cluster_id", "name", "description",
+	stmt, names := qb.Insert(clusterTable).Columns("organization_id", "cluster_id", "name",
 		"cluster_type", "hostname", "control_plane_hostname", "multitenant", "status", "labels", "cordon").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(cluster)
 	cqlErr := q.ExecRelease()
@@ -183,7 +184,7 @@ func (sp *ScyllaClusterProvider) Update(cluster entities.Cluster) derrors.Error 
 	}
 
 	// insert the cluster instance
-	stmt, names := qb.Update(clusterTable).Set("organization_id", "name", "description",
+	stmt, names := qb.Update(clusterTable).Set("organization_id", "name",
 		"cluster_type", "hostname", "multitenant", "control_plane_hostname", "status", "labels", "cordon").
 		Where(qb.Eq(clusterTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(cluster)
@@ -236,7 +237,8 @@ func (sp *ScyllaClusterProvider) Get(clusterID string) (*entities.Cluster, derro
 	}
 
 	var cluster entities.Cluster
-	stmt, names := qb.Select(clusterTable).Where(qb.Eq(clusterTablePK)).ToCql()
+	stmt, names := qb.Select(clusterTable).Columns("organization_id", "cluster_id", "name","cluster_type", "hostname",
+		"control_plane_hostname", "multitenant", "status", "labels", "cordon").Where(qb.Eq(clusterTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		clusterTablePK: clusterID,
 	})

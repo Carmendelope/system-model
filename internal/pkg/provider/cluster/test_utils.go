@@ -20,7 +20,6 @@ func CreateTestCluster (clusterID string) *entities.Cluster{
 		OrganizationId: fmt.Sprintf("organization_%d", id),
 		ClusterId: fmt.Sprintf("cluster_%s", clusterID),
 		Name: fmt.Sprintf("name_%d", id),
-		Description: "cluster description",
 		ClusterType: entities.ClusterType(1),
 		Hostname: fmt.Sprintf("host_%s", clusterID),
 		ControlPlaneHostname: fmt.Sprintf("cp_host_%s", clusterID),
