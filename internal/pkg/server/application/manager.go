@@ -359,6 +359,7 @@ func (m * Manager) AddServiceGroupInstance(request *grpc_application_go.AddServi
 	for _, sg := range appDesc.Groups {
 		if sg.ServiceGroupId == request.ServiceGroupId {
 			serviceGroup = &sg
+			break
 		}
 	}
 	if serviceGroup == nil {
@@ -407,6 +408,7 @@ func (m * Manager) AddServiceInstance(request *grpc_application_go.AddServiceIns
 	for _, sg := range appDesc.Groups {
 		if sg.ServiceGroupId == request.ServiceGroupId {
 			serviceGroup = &sg
+			break
 		}
 	}
 	if serviceGroup == nil {
