@@ -327,3 +327,132 @@ func (m * Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceI
 	}
 	return err
 }
+
+func (m * Manager) AddServiceGroupInstance(request *grpc_application_go.AddServiceGroupInstanceRequest) (*entities.ServiceGroupInstance, derrors.Error){
+
+	// check if the app instance exists (for this organization)
+	exists, err := m.OrgProvider.InstanceExists(request.OrganizationId, request.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	if ! exists {
+		return nil, derrors.NewNotFoundError("appInstanceId").WithParams(request.OrganizationId, request.AppInstanceId)
+	}
+
+	// Check if the app descriptor exists (for this organization)
+	exists, err = m.OrgProvider.DescriptorExists(request.OrganizationId, request.AppDescriptorId)
+	if err != nil {
+		return nil, err
+	}
+	if ! exists {
+		return nil, derrors.NewNotFoundError("appDescriptorId").WithParams(request.OrganizationId, request.AppDescriptorId)
+	}
+
+	// get the app_descriptor
+	appDesc, err := m.AppProvider.GetDescriptor(request.AppDescriptorId)
+	if err != nil {
+		return nil, err
+	}
+
+	// get the service_group in the app descriptor
+	var serviceGroup *entities.ServiceGroup
+	for _, sg := range appDesc.Groups {
+		if sg.ServiceGroupId == request.ServiceGroupId {
+			serviceGroup = &sg
+		}
+	}
+	if serviceGroup == nil {
+		return nil, derrors.NewNotFoundError("ServiceGroupId").WithParams(request.ServiceGroupId)
+	}
+
+	// serviceGroupInstance
+	sgInst := serviceGroup.ToEmptyServiceGroupInstance(request.AppInstanceId)
+
+	// get the app instance
+	retrieved, err := m.AppProvider.GetInstance(request.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	// add the new service group into the instance groups
+	retrieved.Groups = append (retrieved.Groups, *sgInst)
+
+	// update
+	err = m.AppProvider.UpdateInstance(*retrieved)
+	if err != nil {
+		return nil, err
+	}
+
+	return sgInst, nil
+}
+
+func (m * Manager) AddServiceInstance(request *grpc_application_go.AddServiceInstanceRequest) (*entities.ServiceInstance, derrors.Error) {
+	// Check if the app descriptor exists (for this organization)
+	exists, err := m.OrgProvider.DescriptorExists(request.OrganizationId, request.AppDescriptorId)
+	if err != nil {
+		return nil, err
+	}
+	if ! exists {
+		return nil, derrors.NewNotFoundError("appDescriptorId").WithParams(request.OrganizationId, request.AppDescriptorId)
+	}
+
+	// get the app_descriptor
+	appDesc, err := m.AppProvider.GetDescriptor(request.AppDescriptorId)
+	if err != nil {
+		return nil, err
+	}
+
+	// get the service_group in the app descriptor
+	var serviceGroup *entities.ServiceGroup
+	for _, sg := range appDesc.Groups {
+		if sg.ServiceGroupId == request.ServiceGroupId {
+			serviceGroup = &sg
+		}
+	}
+	if serviceGroup == nil {
+		return nil, derrors.NewNotFoundError("ServiceGroupId").WithParams(request.ServiceGroupId)
+	}
+
+	// get the service in the service_group
+	var service *entities.Service
+	for _, serv := range serviceGroup.Services {
+		if serv.ServiceId == request.ServiceId {
+			service = &serv
+			break
+		}
+	}
+	if service == nil {
+		return nil, derrors.NewNotFoundError("serviceID").WithParams(request.ServiceId)
+	}
+
+	// Instance creation
+	serviceInstance := service.ToServiceInstance(request.AppInstanceId, request.ServiceGroupInstanceId)
+
+	// get the instance
+	retrieved, err := m.AppProvider.GetInstance(request.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	// look for the service_group_instance and add the new service into service group
+	found := false // boolean to control if the service group has been found
+	for i:= 0; i < len(retrieved.Groups); i++ {
+		if retrieved.Groups[i].ServiceGroupId == request.ServiceGroupId &&
+			retrieved.Groups[i].ServiceGroupInstanceId == request.ServiceGroupInstanceId{
+			retrieved.Groups[i].ServiceInstances = append(retrieved.Groups[i].ServiceInstances, *serviceInstance)
+			found = true
+			break
+		}
+	}
+	if ! found {
+		return nil, derrors.NewNotFoundError("ServiceGroupInstanceId").WithParams(request.ServiceGroupInstanceId)
+	}
+
+	// update the instance
+	err = m.AppProvider.UpdateInstance(*retrieved)
+	if err != nil {
+		return nil, err
+	}
+
+	return serviceInstance, nil
+}
