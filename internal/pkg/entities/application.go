@@ -760,6 +760,14 @@ func (ep * EndpointInstance) ToGRPC () *grpc_application_go.EndpointInstance {
 	}
 }
 
+func EndpointInstanceFromGRPC(endpoint *grpc_application_go.EndpointInstance) EndpointInstance{
+	return EndpointInstance{
+		EndpointInstanceId: endpoint.EndpointInstanceId,
+		Fqdn: endpoint.Fqdn,
+		Type: EndpointTypeFromGRPC[endpoint.Type],
+	}
+}
+
 type ServiceStatus int
 
 const (

@@ -143,7 +143,7 @@ func (h *Handler) UpdateAppStatus(ctx context.Context, updateAppStatus *grpc_app
 
 // UpdateServiceStatus updates the status of an application instance service.
 func (h *Handler) UpdateServiceStatus(ctx context.Context, updateServiceStatus *grpc_application_go.UpdateServiceStatusRequest) (*grpc_common_go.Success, error) {
-    err := entities.ValidUpdateServiceStatusRequest(updateServiceStatus)
+	err := entities.ValidUpdateServiceStatusRequest(updateServiceStatus)
 	if err != nil {
 	    return nil, conversions.ToGRPCError(err)
     }
