@@ -150,7 +150,6 @@ func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateCluster
 	if updateRequest.UpdateName {
 		c.Name = updateRequest.Name
 	}
-
 	if updateRequest.UpdateHostname {
 		c.Hostname = updateRequest.Hostname
 	}
