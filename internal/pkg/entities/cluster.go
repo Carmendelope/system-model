@@ -80,8 +80,6 @@ type Cluster struct {
 	ClusterId string `json:"cluster_id,omitempty"`
 	// Name of the cluster.
 	Name string `json:"name,omitempty"`
-	// Description of the cluster.
-	Description string `json:"description,omitempty"`
 	// Type of cluster.
 	ClusterType ClusterType `json:"cluster_type,omitempty"`
 	// Hostname of the cluster master.
