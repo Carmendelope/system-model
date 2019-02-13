@@ -77,6 +77,7 @@ func generateRandomService(index int) * grpc_application_go.Service {
 		Labels: map[string]string {"label1":"service label 1","label2":"service label 2"},
 		Configs: configs,
 		RunArguments: []string{"arg1", "arg2", "arg3"},
+		DeploymentSelectors:map[string]string{"clusterDeployment": "EDGE"},
 	}
 }
 
@@ -211,6 +212,7 @@ var _ = ginkgo.Describe("Applications", func(){
 		ginkgo.By("cleaning the mockups", func(){
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			applicationProvider.(*appProvider.MockupApplicationProvider).Clear()
+
 			// Initial data
 			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
 		})
