@@ -15,7 +15,7 @@ func RunTest(provider Provider) {
 
 	ginkgo.Context("Descriptor", func() {
 		// AddDescriptor
-		ginkgo.It("Should be able to add a descriptor", func() {
+		ginkgo.FIt("Should be able to add a descriptor", func() {
 
 			descriptor := CreateTestApplicationDescriptor(uuid.New().String())
 

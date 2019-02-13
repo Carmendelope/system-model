@@ -638,6 +638,8 @@ type Service struct {
 	DeployAfter []string `json:"deploy_after,omitempty" cql:"deploy_after"`
 	// RunArguments contains the list of arguments
 	RunArguments [] string `json:"run_arguments" cql:"run_arguments"`
+	// DeploymentSelectors defines a key-value map of deployment selectors
+	DeploymentSelectors  map[string]string `json:"deployment_selectors,omitempty" cql:"deployment_selectors"`
 }
 
 func NewServiceFromGRPC(organizationID string, appDescriptorID string, serviceGroupId string, service *grpc_application_go.Service) * Service {
@@ -678,6 +680,7 @@ func NewServiceFromGRPC(organizationID string, appDescriptorID string, serviceGr
 		Labels:               service.Labels,
 		DeployAfter:          service.DeployAfter,
 		RunArguments: 		  service.RunArguments,
+		DeploymentSelectors:  service.DeploymentSelectors,
 	}
 }
 
@@ -698,6 +701,7 @@ func (s *Service) ToGRPC() *grpc_application_go.Service {
 	return &grpc_application_go.Service{
 		OrganizationId:       s.OrganizationId,
 		AppDescriptorId:      s.AppDescriptorId,
+		ServiceGroupId:       s.ServiceGroupId,
 		ServiceId:            s.ServiceId,
 		Name:                 s.Name,
 		Type:                 serviceType,
@@ -711,6 +715,7 @@ func (s *Service) ToGRPC() *grpc_application_go.Service {
 		Labels:               s.Labels,
 		DeployAfter:          s.DeployAfter,
 		RunArguments:         s.RunArguments,
+		DeploymentSelectors:  s.DeploymentSelectors,
 	}
 }
 
@@ -738,6 +743,7 @@ func (s * Service) ToServiceInstance(appInstanceID string, serviceGroupInstanceI
 		DeployAfter:          s.DeployAfter,
 		Status:               ServiceWaiting,
 		RunArguments:         s.RunArguments,
+		DeploymentSelectors:  s.DeploymentSelectors,
 	}
 }
 
@@ -747,7 +753,7 @@ type EndpointInstance struct {
 	// EndpointInstanceId unique id for this endpoint
 	EndpointInstanceId string `json:"endpoint_instance_id,omitempty" cql:"endpoint_instance_id"`
 	// Type of endpoint
-	Type EndpointType `json:"type,omitempty" cql"type"`
+	Type EndpointType `json:"type,omitempty" cql:"type"`
 	// FQDN to be accessed by any client
 	Fqdn string   `json:"fqdn,omitempty" cql:"fqdn"`
 }
@@ -841,7 +847,10 @@ type ServiceInstance struct {
 	DeployedOnClusterId  string  `json:"deployed_on_cluster_id,omitempty" cql:"deployed_on_cluster_id"`
 	// RunArguments containts a list of arguments
 	RunArguments [] string `json:"run_arguments" cql:"run_arguments"`
+	// Relevant information about this instance
 	Info string   `json:"info,omitempty" cql:"info"`
+	// DeploymentSelectors defines a key-value map of deployment selectors
+	DeploymentSelectors  map[string]string `json:"deployment_selectors,omitempty" cql:"deployment_selectors"`
 
 }
 
@@ -888,6 +897,7 @@ func (si *ServiceInstance) ToGRPC() *grpc_application_go.ServiceInstance {
 		DeployedOnClusterId:  	si.DeployedOnClusterId,
 		RunArguments: 		  	si.RunArguments,
 		Info:            		si.Info,
+		DeploymentSelectors:    si.DeploymentSelectors,
 
 	}
 
