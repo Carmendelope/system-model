@@ -189,10 +189,8 @@ var _ = ginkgo.Describe("Applications", func(){
 
 
 		// Create providers
-		//organizationProvider = orgProvider.NewMockupOrganizationProvider()
-		organizationProvider = orgProvider.NewScyllaOrganizationProvider("192.168.99.100", 32277, "nalej")
-		//applicationProvider = appProvider.NewMockupOrganizationProvider()
-		applicationProvider = appProvider.NewScyllaApplicationProvider("192.168.99.100", 32277, "nalej")
+		organizationProvider = orgProvider.NewMockupOrganizationProvider()
+		applicationProvider = appProvider.NewMockupOrganizationProvider()
 
 		manager := NewManager(organizationProvider, applicationProvider)
 		handler := NewHandler(manager)
@@ -212,11 +210,9 @@ var _ = ginkgo.Describe("Applications", func(){
 
 	ginkgo.BeforeEach(func(){
 		ginkgo.By("cleaning the mockups", func(){
-			//organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
-			//applicationProvider.(*appProvider.MockupApplicationProvider).Clear()
+			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
+			applicationProvider.(*appProvider.MockupApplicationProvider).Clear()
 
-			organizationProvider.(*orgProvider.ScyllaOrganizationProvider).Clear()
-			applicationProvider.(*appProvider.ScyllaApplicationProvider).Clear()
 			// Initial data
 			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
 		})
