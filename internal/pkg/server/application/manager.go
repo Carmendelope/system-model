@@ -265,6 +265,8 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
         return derrors.NewInternalError("impossible to get parent instance", err)
     }
 
+    aux := toUpdate
+
     // find the service instance
     for indexGroup, g := range toUpdate.Groups {
     	// find the group
@@ -278,10 +280,10 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
         			for i, ep := range updateRequest.Endpoints {
         				endpoints[i] = entities.EndpointInstanceFromGRPC(ep)
 					}
-        			toUpdate.Groups[indexGroup].ServiceInstances[indexService].Status = entities.ServiceStatusFromGRPC[updateRequest.Status]
-					toUpdate.Groups[indexGroup].ServiceInstances[indexService].Endpoints = endpoints
-					toUpdate.Groups[indexGroup].ServiceInstances[indexService].DeployedOnClusterId = updateRequest.DeployedOnClusterId
-					err = m.AppProvider.UpdateInstance(*toUpdate)
+        			aux.Groups[indexGroup].ServiceInstances[indexService].Status = entities.ServiceStatusFromGRPC[updateRequest.Status]
+					aux.Groups[indexGroup].ServiceInstances[indexService].Endpoints = endpoints
+					aux.Groups[indexGroup].ServiceInstances[indexService].DeployedOnClusterId = updateRequest.DeployedOnClusterId
+					err = m.AppProvider.UpdateInstance(*aux)
 					if err != nil {
 						return derrors.NewInternalError("impossible to update instance").CausedBy(err)
 					}
