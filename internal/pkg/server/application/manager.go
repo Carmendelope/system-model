@@ -272,6 +272,7 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
     	// find the group
         if g.ServiceGroupInstanceId == updateRequest.ServiceGroupInstanceId {
         	// find the service
+			changed := false
         	for indexService, serviceInstance := range g.ServiceInstances {
         		if serviceInstance.ServiceInstanceId == updateRequest.ServiceInstanceId {
         			// found and updated
@@ -283,18 +284,23 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
         			aux.Groups[indexGroup].ServiceInstances[indexService].Status = entities.ServiceStatusFromGRPC[updateRequest.Status]
 					aux.Groups[indexGroup].ServiceInstances[indexService].Endpoints = endpoints
 					aux.Groups[indexGroup].ServiceInstances[indexService].DeployedOnClusterId = updateRequest.DeployedOnClusterId
-					err = m.AppProvider.UpdateInstance(*aux)
-					if err != nil {
-						return derrors.NewInternalError("impossible to update instance").CausedBy(err)
-					}
-					return nil
+					changed = true
 				}
 			}
-			return derrors.NewInternalError("service not found")
+        	if !changed {
+				return derrors.NewInternalError("update service failed. Not all the entries were found.")
+			}
 		}
     }
 
-    return derrors.NewInternalError("group not found")
+
+	err = m.AppProvider.UpdateInstance(*aux)
+	if err != nil {
+		return derrors.NewInternalError("impossible to update instance").CausedBy(err)
+	}
+
+	return nil
+
 }
 
 // RemoveAppInstance removes an application instance
