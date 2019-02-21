@@ -124,8 +124,9 @@ func CreateTestService (organizationID string, appDescriptorId string, serviceGr
 	 }
 
 	ports := make ([]entities.Port, 0)
+	// port number should be greater than zero
 	for i:=0; i<5; i++{
-		ports = append(ports, entities.Port{Name:fmt.Sprintf("port%d", i), InternalPort:int32(i), ExposedPort:int32(i), Endpoints:endpoints})
+		ports = append(ports, entities.Port{Name:fmt.Sprintf("port%d", i), InternalPort:int32(i+1), ExposedPort:int32(i+1), Endpoints:endpoints})
 	}
 
 	confFile := make ([]entities.ConfigFile, 0)
@@ -136,7 +137,7 @@ func CreateTestService (organizationID string, appDescriptorId string, serviceGr
 		AppDescriptorId: appDescriptorId,
 		ServiceGroupId: serviceGroupId,
 		ServiceId: serviceID,
-		Name: "Service name",
+		Name: "service-name",
 		Type: entities.DockerService,
 		Image: "../image.txt",
 		Credentials: &entities.ImageCredentials{
@@ -305,4 +306,33 @@ func CreateTestApplicationDescriptor (organizationID string) *entities.AppDescri
 
 	return &descriptor
 
+}
+
+func InjectBadServiceName(descriptor *entities.AppDescriptor) {
+	for g, group := range descriptor.Groups {
+		for s,service := range group.Services {
+			descriptor.Groups[g].Services[s].Name = fmt.Sprintf("%s #*",service.Name)
+		}
+	}
+}
+
+func InjectBadPortName(descriptor *entities.AppDescriptor) {
+	for g, group := range descriptor.Groups {
+		for s,service := range group.Services {
+			for p,port := range service.ExposedPorts {
+				descriptor.Groups[g].Services[s].ExposedPorts[p].Name = fmt.Sprintf("%s12345678912345678",port.Name)
+			}
+		}
+	}
+}
+
+func InjectBadPortNumber(descriptor *entities.AppDescriptor) {
+	for g, group := range descriptor.Groups {
+		for s,service := range group.Services {
+			for p,port := range service.ExposedPorts {
+				descriptor.Groups[g].Services[s].ExposedPorts[p].ExposedPort = port.ExposedPort+65536
+				descriptor.Groups[g].Services[s].ExposedPorts[p].InternalPort = port.InternalPort+65536
+			}
+		}
+	}
 }

@@ -8,7 +8,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
+    "k8s.io/apimachinery/pkg/util/validation"
 	"sync"
+	"fmt"
 )
 
 
@@ -136,8 +138,15 @@ func (sp *ScyllaApplicationProvider) unsafeInstanceExists(appInstanceID string) 
 // AddDescriptor adds a new application descriptor to the system
 func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescriptor) derrors.Error {
 
-	sp.Lock()
+    // No need to lock for validation
+    errs := ValidateDescriptor(descriptor)
+    if len(errs) > 0 {
+        err := derrors.NewFailedPreconditionError(fmt.Sprintf("%s: %v","App descriptor validation failed",errs))
+        return err
+    }
+    sp.Lock()
 	defer sp.Unlock()
+
 
 	// check connection
 	err := sp.checkAndConnect()
@@ -288,6 +297,7 @@ func (sp *ScyllaApplicationProvider) DeleteDescriptor(appDescriptorID string) de
 
 	return nil
 }
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -485,3 +495,38 @@ func (sp *ScyllaApplicationProvider) Clear() derrors.Error {
 
 }
 
+
+// ValidateDescriptor checks validity of object names, ports meeting Kubernetes specs.
+func  ValidateDescriptor(descriptor entities.AppDescriptor) []string {
+    var errs []string
+    // for each group
+    for _, group := range descriptor.Groups {
+        for _,service := range group.Services {
+            // Validate service name
+            kerr := validation.IsDNS1123Label(service.Name)
+            if len(kerr) > 0 {
+            	errs = append(errs, "serviceName", service.Name)
+            	errs = append(errs, kerr...)
+            }
+            // validate Exposed Port Name and Number
+            for _,port := range service.ExposedPorts {
+                kerr = validation.IsValidPortName(port.Name)
+                if len(kerr) > 0 {
+					errs = append(errs,"PortName", port.Name)
+                    errs = append(errs, kerr...)
+                }
+                kerr = validation.IsValidPortNum(int(port.ExposedPort))
+                if len(kerr) > 0 {
+					errs = append(errs, "ExposedPort")
+                    errs = append(errs, kerr...)
+                }
+                kerr = validation.IsValidPortNum(int(port.InternalPort))
+                if len(kerr) > 0 {
+					errs = append(errs, "InternalPort")
+                    errs = append(errs, kerr...)
+                }
+            }
+        }
+    }
+    return errs
+}

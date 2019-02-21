@@ -603,6 +603,7 @@ func (cf *ConfigFile) ToGRPC() *grpc_application_go.ConfigFile {
 	}
 }
 
+
 // -- Service -- //
 type Service struct {
 	// OrganizationId with the organization identifier.

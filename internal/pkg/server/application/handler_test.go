@@ -45,7 +45,7 @@ func generateRandomService(index int) * grpc_application_go.Service {
 	})
 	ports := make([]*grpc_application_go.Port, 0)
 	ports = append(ports, &grpc_application_go.Port{
-		Name : "simple endpoint",
+		Name : "simple-endpoint",
 		InternalPort: 80,
 		ExposedPort: 80,
 		Endpoints: endpoints,
@@ -65,7 +65,7 @@ func generateRandomService(index int) * grpc_application_go.Service {
 	})
 
 	return &grpc_application_go.Service{
-		Name: fmt.Sprintf("Service %d", index),
+		Name: fmt.Sprintf("service-%d", index),
 		Type: grpc_application_go.ServiceType_DOCKER,
 		Image: fmt.Sprintf("image:v%d", rand.Intn(10)),
 		Specs: generateRandomSpecs(),
