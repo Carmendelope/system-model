@@ -154,6 +154,9 @@ func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateCluster
 		c.Hostname = updateRequest.Hostname
 	}
 	if updateRequest.AddLabels {
+		if c.Labels == nil {
+			c.Labels = make(map[string]string, 0)
+		}
 		for k, v := range updateRequest.Labels {
 			c.Labels[k] = v
 		}
