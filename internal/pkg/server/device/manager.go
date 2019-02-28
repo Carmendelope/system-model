@@ -218,3 +218,18 @@ func (m *Manager) RemoveDevice(removeRequest *grpc_device_go.RemoveDeviceRequest
 
 	return nil
 }
+
+func (m *Manager) UpdateDevice(deviceRequest *grpc_device_go.UpdateDeviceRequest) (* devEnt.Device, derrors.Error){
+
+	device, err := m.DevProvider.GetDevice(deviceRequest.OrganizationId, deviceRequest.DeviceGroupId, deviceRequest.DeviceId)
+	if err != nil{
+		return nil, err
+	}
+	device.ApplyUpdate(*deviceRequest)
+	err = m.DevProvider.UpdateDevice(*device)
+	if err != nil{
+		return nil, err
+	}
+	return device, nil
+
+}

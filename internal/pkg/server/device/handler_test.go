@@ -3,6 +3,7 @@ package device
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/nalej/grpc-device-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/test"
@@ -345,7 +346,7 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(len(retrieved.Devices)).Should(gomega.Equal(0))
 			})
 		})
-		ginkgo.Context("removing device group", func() {
+		ginkgo.Context("removing device", func() {
 			ginkgo.It("Should remove a device", func(){
 				toAdd := GenerateAddDevice(targetOrganization.ID, targetDeviceGroup.DeviceGroupId)
 				group, err := client.AddDevice(context.Background(), toAdd)
@@ -393,6 +394,76 @@ var _ = ginkgo.Describe("Applications", func(){
 				})
 				gomega.Expect(err).NotTo(gomega.Succeed())
 				gomega.Expect(removed).Should(gomega.BeNil())
+
+			})
+		})
+		ginkgo.Context("update device group", func() {
+			ginkgo.FIt("Should update a device", func(){
+				toAdd := GenerateAddDevice(targetOrganization.ID, targetDeviceGroup.DeviceGroupId)
+				toAdd.Labels = nil
+				group, err := client.AddDevice(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+
+				// update device (add label)
+				updated, err := client.UpdateDevice(context.Background(), &grpc_device_go.UpdateDeviceRequest{
+					OrganizationId: targetOrganization.ID,
+					DeviceGroupId: group.DeviceGroupId,
+					DeviceId: toAdd.DeviceId,
+					AddLabels: true,
+					RemoveLabels: false,
+					Labels: map[string]string{"label1":"value1"},
+
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(updated).ShouldNot(gomega.BeNil())
+
+				// get the device to check the updated works
+				retrieved, err := client.GetDevice(context.Background(), &grpc_device_go.DeviceId{
+					OrganizationId: targetOrganization.ID,
+					DeviceGroupId: group.DeviceGroupId,
+					DeviceId: toAdd.DeviceId,
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+				gomega.Expect(len(retrieved.Labels)).Should(gomega.Equal(1))
+
+				// removeLabel
+				updated, err = client.UpdateDevice(context.Background(), &grpc_device_go.UpdateDeviceRequest{
+					OrganizationId: targetOrganization.ID,
+					DeviceGroupId: group.DeviceGroupId,
+					DeviceId: toAdd.DeviceId,
+					AddLabels: false,
+					RemoveLabels: true,
+					Labels: map[string]string{"label1":"value1"},
+
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(updated).ShouldNot(gomega.BeNil())
+
+				// get the device to check the updated works
+				retrieved, err = client.GetDevice(context.Background(), &grpc_device_go.DeviceId{
+					OrganizationId: targetOrganization.ID,
+					DeviceGroupId: group.DeviceGroupId,
+					DeviceId: toAdd.DeviceId,
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+				gomega.Expect(retrieved.Labels).Should(gomega.BeNil())
+
+
+			})
+			ginkgo.It("Should not be able to update a device on a non existing organization", func(){
+
+				_, err := client.UpdateDevice(context.Background(), &grpc_device_go.UpdateDeviceRequest{
+					OrganizationId: targetOrganization.ID,
+					DeviceGroupId: uuid.New().String(),
+					DeviceId: uuid.New().String(),
+					AddLabels: false,
+					RemoveLabels: true,
+					Labels: map[string]string{"label1":"value1"},
+
+				})
+				gomega.Expect(err).NotTo(gomega.Succeed())
 
 			})
 		})
