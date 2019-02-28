@@ -114,6 +114,23 @@ func (d * Device) ToGRPC() *grpc_device_go.Device {
 	}
 }
 
+func (d *Device) ApplyUpdate(updateRequest grpc_device_go.UpdateDeviceRequest) {
+
+	if updateRequest.AddLabels {
+		if d.Labels == nil {
+			d.Labels = make(map[string]string, 0)
+		}
+		for k, v := range updateRequest.Labels {
+			d.Labels[k] = v
+		}
+	}
+	if updateRequest.RemoveLabels {
+		for k, _ := range updateRequest.Labels {
+			delete(d.Labels, k)
+		}
+	}
+}
+
 func ValidDeviceID (device * grpc_device_go.DeviceId) derrors.Error {
 
 	if device.OrganizationId == "" {
@@ -155,3 +172,27 @@ func ValidRemoveDeviceRequest (request * grpc_device_go.RemoveDeviceRequest) der
 	}
 	return nil
  }
+
+func ValidUpdateDeviceRequest(request * grpc_device_go.UpdateDeviceRequest) derrors.Error {
+	if request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
+	}
+	if request.DeviceGroupId == "" {
+		return derrors.NewInvalidArgumentError("device_group_id cannot be empty")
+	}
+	if request.DeviceId == "" {
+		return derrors.NewInvalidArgumentError("device_id cannot be empty")
+	}
+	if request.AddLabels && request.RemoveLabels {
+		return derrors.NewInvalidArgumentError("add_labels and remove_labels can not be true at the same time")
+	}
+	if ! request.AddLabels && !request.RemoveLabels {
+		return derrors.NewInvalidArgumentError("add_labels and remove_labels cannot be false at the same time")
+	}
+	if request == nil || len(request.Labels) == 0{
+		return derrors.NewInvalidArgumentError("labels cannot be empty")
+	}
+
+	return nil
+}
+

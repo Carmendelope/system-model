@@ -140,3 +140,16 @@ func (h *Handler) RemoveDevice(ctx context.Context, removeRequest *grpc_device_g
 	}
 	return &grpc_common_go.Success{}, nil
 }
+// UpdateDEvice updates the device info (labels)
+func (h *Handler) UpdateDevice(ctx context.Context, deviceRequest *grpc_device_go.UpdateDeviceRequest) (*grpc_device_go.Device, error){
+	err := device.ValidUpdateDeviceRequest(deviceRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	device, err := h.Manager.UpdateDevice(deviceRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return device.ToGRPC(), nil
+
+}

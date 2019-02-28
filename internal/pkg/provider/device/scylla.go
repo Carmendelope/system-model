@@ -442,6 +442,35 @@ func (sp *ScyllaDeviceProvider) RemoveDevice(organizationID string, deviceGroupI
 	return nil
 }
 
+func (sp * ScyllaDeviceProvider) UpdateDevice(device device.Device) derrors.Error{
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check if the device exists
+	exists, err := sp.unsafeExistsDevice(device.OrganizationId, device.DeviceGroupId, device.DeviceId)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return derrors.NewNotFoundError("device").WithParams(device.OrganizationId, device.DeviceGroupId, device.DeviceId)
+	}
+
+	// insert the cluster instance
+	stmt, names := qb.Update(deviceTable).Set("labels").
+		Where(qb.Eq(organizationIdField)).
+		Where(qb.Eq(deviceGroupIdField)).
+		Where(qb.Eq(deviceIdField)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(device)
+	cqlErr := q.ExecRelease()
+
+	if cqlErr != nil {
+		return derrors.AsError(err,"cannot update device labels")
+	}
+
+	return nil
+
+}
+
 // -------------------------------------------------------------------------------------------------------------------
 
 func (sp *ScyllaDeviceProvider)  Clear() derrors.Error{

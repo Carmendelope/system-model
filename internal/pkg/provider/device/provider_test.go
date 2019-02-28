@@ -218,6 +218,52 @@ func RunTest (provider Provider) {
 
 		})
 
+		ginkgo.It("Should be able to update a device", func(){
+			toAdd := NewDeviceTestHepler().CreateDevice()
+
+			err := provider.AddDevice(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			// remove labels
+			toAdd.Labels = nil
+			err = provider.UpdateDevice(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			// check the update
+			retrieve, err := provider.GetDevice(toAdd.OrganizationId, toAdd.DeviceGroupId, toAdd.DeviceId)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(retrieve).NotTo(gomega.BeNil())
+			gomega.Expect(retrieve.Labels).To(gomega.BeNil())
+
+
+		})
+
+		ginkgo.It("Should be able to update a device", func(){
+			toAdd := NewDeviceTestHepler().CreateDevice()
+
+			err := provider.AddDevice(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			// remove labels
+			toAdd.Labels["label3"] = "value3"
+			err = provider.UpdateDevice(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			// check the update
+			retrieve, err := provider.GetDevice(toAdd.OrganizationId, toAdd.DeviceGroupId, toAdd.DeviceId)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(retrieve).NotTo(gomega.BeNil())
+			gomega.Expect(len(retrieve.Labels)).Should(gomega.Equal(3))
+
+
+		})
+		ginkgo.It("Should not be able to update a non existing device", func(){
+			toAdd := NewDeviceTestHepler().CreateDevice()
+
+			err := provider.UpdateDevice(*toAdd)
+			gomega.Expect(err).NotTo(gomega.Succeed())
+		})
+
 	})
 }
 

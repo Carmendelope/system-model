@@ -28,6 +28,8 @@ type Provider interface {
 	ListDevices(organizationID string, deviceGroupID string) ([]device.Device, derrors.Error)
 	// Remove a device
 	RemoveDevice(organizationID string, deviceGroupID string, deviceID string) derrors.Error
+	//UpdateDevice updates the device information
+	UpdateDevice(device device.Device) derrors.Error
 
 	Clear() derrors.Error
 

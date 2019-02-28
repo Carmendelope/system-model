@@ -238,6 +238,21 @@ func (m * MockupDeviceProvider) RemoveDevice(organizationID string, deviceGroupI
 	return derrors.NewNotFoundError("device").WithParams(organizationID, deviceGroupID, deviceID)
 }
 
+func (m * MockupDeviceProvider)	UpdateDevice(device device.Device) derrors.Error {
+
+	m.Lock()
+	defer m.Unlock()
+
+	if !m.unsafeExistsDevice(device.OrganizationId, device.DeviceGroupId, device.DeviceId){
+		return derrors.NewNotFoundError("device").WithParams(device.OrganizationId, device.DeviceGroupId, device.DeviceId)
+	}
+	key := CreateDeviceIndex(device.OrganizationId, device.DeviceGroupId)
+	devices := m.devices[key]
+	devices[device.DeviceId] = device
+
+	return nil
+}
+
 // ----------------------------------------------------------------------------------------------------
 
 func (m * MockupDeviceProvider) Clear()  derrors.Error{
