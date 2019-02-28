@@ -398,7 +398,7 @@ var _ = ginkgo.Describe("Applications", func(){
 			})
 		})
 		ginkgo.Context("update device group", func() {
-			ginkgo.FIt("Should update a device", func(){
+			ginkgo.It("Should update a device", func(){
 				toAdd := GenerateAddDevice(targetOrganization.ID, targetDeviceGroup.DeviceGroupId)
 				toAdd.Labels = nil
 				group, err := client.AddDevice(context.Background(), toAdd)
