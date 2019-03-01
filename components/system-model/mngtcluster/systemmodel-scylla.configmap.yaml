@@ -54,6 +54,7 @@ data:
     -- INDEX --
     -----------
     create index IF NOT EXISTS organizationName ON nalej.organizations (name);
+    create index IF NOT EXISTS deviceGroupName ON nalej.DeviceGroups (name);
 
 
   node_alive.sh: |

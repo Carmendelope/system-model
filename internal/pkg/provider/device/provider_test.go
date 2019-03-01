@@ -1,6 +1,7 @@
 package device
 
 import (
+	"github.com/google/uuid"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 )
@@ -118,6 +119,43 @@ func RunTest (provider Provider) {
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
 		})
+		ginkgo.It("should be able to get devices groups by name", func() {
+			names := make ([]string, 0)
+			helper := NewDeviceTestHepler()
+			organizationID := uuid.New().String()
+
+			for i:= 0; i<5; i++ {
+				toAdd := helper.CreateOrganizationDeviceGroup(organizationID)
+				err := provider.AddDeviceGroup(*toAdd)
+				gomega.Expect(err).To(gomega.Succeed())
+				names = append(names, toAdd.Name)
+			}
+
+			deviceGroups, err := provider.GetDeviceGroupsByName(organizationID, names)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(deviceGroups).NotTo(gomega.BeEmpty())
+			gomega.Expect(len(deviceGroups)).Should(gomega.Equal(5))
+
+		})
+		ginkgo.It("should be able to get an empty devices groups by name", func() {
+			names := make ([]string, 0)
+			organizationID := uuid.New().String()
+
+			deviceGroups, err := provider.GetDeviceGroupsByName(organizationID, names)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(deviceGroups).To(gomega.BeEmpty())
+
+		})
+		ginkgo.It("should Not be able to get devices groups by wrong name", func() {
+			names := []string{"name_error"}
+			organizationID := uuid.New().String()
+
+
+			_, err := provider.GetDeviceGroupsByName(organizationID, names)
+			gomega.Expect(err).NotTo(gomega.Succeed())
+
+		})
+
 
 	})
 	ginkgo.Context("Device tests", func(){

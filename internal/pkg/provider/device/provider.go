@@ -15,6 +15,8 @@ type Provider interface {
 	GetDeviceGroup(organizationID string, deviceGroupID string) (* device.DeviceGroup, derrors.Error)
 	// ListDeviceGroups returns a list of device groups in a organization.
 	ListDeviceGroups(organizationID string) ([]device.DeviceGroup, derrors.Error)
+	// GetDeviceGroupsByName returns a list o devices which names are in groupName list
+	GetDeviceGroupsByName(organizationID string, groupNames []string) ([]device.DeviceGroup, derrors.Error)
 	// Remove a device group
 	RemoveDeviceGroup(organizationID string, deviceGroup string) derrors.Error
 
