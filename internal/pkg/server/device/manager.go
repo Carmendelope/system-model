@@ -31,6 +31,11 @@ func (m *Manager) AddDeviceGroup(addRequest *grpc_device_go.AddDeviceGroupReques
 	if !exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
 	}
+
+	// check if a group with that name already exists
+
+
+
 	group := devEnt.NewDeviceGroupFromGRPC(addRequest)
 	err = m.DevProvider.AddDeviceGroup(*group)
 	if err != nil {

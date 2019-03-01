@@ -73,6 +73,16 @@ func (m * MockupDeviceProvider) ExistsDeviceGroup(organizationID string, deviceG
 	return m.unsafeExistsGroup(organizationID, deviceGroupID), nil
 }
 
+func (m * MockupDeviceProvider) ExistsDeviceGroupByName(organizationID string, name string) (bool, derrors.Error){
+	m.Lock()
+	defer m.Unlock()
+
+	_, exists := m.deviceGroupsByName[fmt.Sprintf("%s#%s", organizationID, name)]
+
+	return exists, nil
+
+}
+
 func (m * MockupDeviceProvider) GetDeviceGroup(organizationID string, deviceGroupID string) (* device.DeviceGroup, derrors.Error) {
 
 	m.Lock()
@@ -136,6 +146,8 @@ func (m * MockupDeviceProvider) RemoveDeviceGroup(organizationID string, deviceG
 	if  exists {
 		group , exists := groups[deviceGroupID]
 		if exists{
+			delete (m.deviceGroupsByName, fmt.Sprintf("%s#%s", organizationID, group.Name))
+
 			if len(groups) == 1 {
 				delete(m.deviceGroups, organizationID)
 			}else {
@@ -144,6 +156,8 @@ func (m * MockupDeviceProvider) RemoveDeviceGroup(organizationID string, deviceG
 			return nil
 		}
 	}
+
+
 	return derrors.NewNotFoundError("device group").WithParams(organizationID, deviceGroupID)
 
 }

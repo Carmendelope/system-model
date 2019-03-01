@@ -144,6 +144,10 @@ func (sp *ScyllaDeviceProvider) AddDeviceGroup (deviceGroup device.DeviceGroup) 
 }
 // ExistsDeviceGroup checks if a group exists on the system.
 func (sp *ScyllaDeviceProvider) ExistsDeviceGroup(organizationID string, deviceGroupID string) (bool, derrors.Error) {
+
+	sp.Lock()
+	defer sp.Unlock()
+
 	if err := sp.checkAndConnect(); err != nil{
 		return false, err
 	}
@@ -169,6 +173,37 @@ func (sp *ScyllaDeviceProvider) ExistsDeviceGroup(organizationID string, deviceG
 	return true, nil
 
 }
+
+func (sp * ScyllaDeviceProvider)ExistsDeviceGroupByName(organizationID string, name string) (bool, derrors.Error){
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.checkAndConnect(); err != nil{
+		return false, err
+	}
+
+	var returnedId string
+
+	stmt, names := qb.Select(deviceGroupTable).Columns(organizationIdField).Where(qb.Eq("name")).
+		Where(qb.Eq(organizationIdField)).ToCql()
+
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		organizationIdField: organizationID,
+		"name":name})
+
+	err := q.GetRelease(&returnedId)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, derrors.AsError(err, "cannot determinate if device group exists by name")
+		}
+	}
+
+	return true, nil
+}
+
 // GetDeviceGroup returns a device Group.
 func (sp *ScyllaDeviceProvider) GetDeviceGroup(organizationID string, deviceGroupID string) (* device.DeviceGroup, derrors.Error) {
 

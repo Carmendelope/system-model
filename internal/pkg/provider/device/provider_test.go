@@ -67,6 +67,24 @@ func RunTest (provider Provider) {
 			gomega.Expect(exists).NotTo(gomega.BeTrue())
 
 		})
+		ginkgo.It("Should be able to find a device group by name", func(){
+			toAdd := NewDeviceTestHepler().CreateDeviceGroup()
+			err := provider.AddDeviceGroup(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			exists, err := provider.ExistsDeviceGroupByName(toAdd.OrganizationId, toAdd.Name)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(exists).To(gomega.BeTrue())
+
+		})
+		ginkgo.It("Should not be able to find a device group by name", func(){
+			toAdd := NewDeviceTestHepler().CreateDeviceGroup()
+
+			exists, err := provider.ExistsDeviceGroup(toAdd.OrganizationId, toAdd.Name)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(exists).NotTo(gomega.BeTrue())
+
+		})
 		ginkgo.It("Should be able to list a device groups", func(){
 			helper := NewDeviceTestHepler()
 
