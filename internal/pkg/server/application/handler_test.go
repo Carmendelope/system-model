@@ -11,6 +11,7 @@ import (
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
+	devProvider "github.com/nalej/system-model/internal/pkg/provider/device"
 	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
 	"github.com/nalej/system-model/internal/pkg/server/testhelpers"
 
@@ -114,9 +115,14 @@ func generateAddAppDescriptor(orgID string, numServices int) * grpc_application_
 			Access: grpc_application_go.PortAccess_APP_SERVICES,
 			AuthServiceGroupName: fmt.Sprintf("AuthServiceGroupName-%d", i),
 			AuthServices: []string{fmt.Sprintf("s%d", i+1)},
-			DeviceGroups:[]string{"device_1", "device_2"},
+			DeviceGroupNames:[]string{"dg1", "dg2"},
 		})
 	}
+	// update the deviceGroupsNames to be different
+	if len(securityRules) > 0 {
+		securityRules[0].DeviceGroupNames = []string{"dg3"}
+	}
+
 	groups := make ([]*grpc_application_go.ServiceGroup, 0)
 	groups = append(groups, generateServiceGroup(services))
 
@@ -176,12 +182,14 @@ var _ = ginkgo.Describe("Applications", func(){
 
 	// Target organization.
 	var targetOrganization * entities.Organization
+	//var targetDeviceGroup * device.DeviceGroup
 
 	var targetDescriptor * grpc_application_go.AppDescriptor
 
 	// Organization Provider
 	var organizationProvider orgProvider.Provider
 	var applicationProvider appProvider.Provider
+	var deviceProvider devProvider.Provider
 
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
@@ -191,8 +199,9 @@ var _ = ginkgo.Describe("Applications", func(){
 		// Create providers
 		organizationProvider = orgProvider.NewMockupOrganizationProvider()
 		applicationProvider = appProvider.NewMockupOrganizationProvider()
+		deviceProvider = devProvider.NewMockupDeviceProvider()
 
-		manager := NewManager(organizationProvider, applicationProvider)
+		manager := NewManager(organizationProvider, applicationProvider, deviceProvider)
 		handler := NewHandler(manager)
 		grpc_application_go.RegisterApplicationsServer(server, handler)
 
@@ -212,9 +221,16 @@ var _ = ginkgo.Describe("Applications", func(){
 		ginkgo.By("cleaning the mockups", func(){
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			applicationProvider.(*appProvider.MockupApplicationProvider).Clear()
+			deviceProvider.(*devProvider.MockupDeviceProvider).Clear()
 
 			// Initial data
 			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
+
+			// generate deviceGroups
+			testhelpers.CreateDeviceGroup(deviceProvider, targetOrganization.ID, "dg1")
+			testhelpers.CreateDeviceGroup(deviceProvider, targetOrganization.ID, "dg2")
+			testhelpers.CreateDeviceGroup(deviceProvider, targetOrganization.ID, "dg3")
+
 		})
 	})
 
@@ -244,6 +260,13 @@ var _ = ginkgo.Describe("Applications", func(){
 			})
 			ginkgo.It("should fail on a descriptor without services", func(){
 				toAdd := generateAddAppDescriptor(targetOrganization.ID, 0)
+				app, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.HaveOccurred())
+				gomega.Expect(app).Should(gomega.BeNil())
+			})
+			ginkgo.It("should fail on a descriptor with a wrong device", func(){
+				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
+				toAdd.Rules[0].DeviceGroupNames = []string{"dg5"}
 				app, err := client.AddAppDescriptor(context.Background(), toAdd)
 				gomega.Expect(err).Should(gomega.HaveOccurred())
 				gomega.Expect(app).Should(gomega.BeNil())

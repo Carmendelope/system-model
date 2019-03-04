@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
+	"github.com/rs/zerolog/log"
 )
 
 // Enumerate with the type of instances we can deploy in the system.
@@ -90,14 +91,30 @@ type SecurityRule struct {
 	AuthServiceGroupName string `json:"auth_service_group_name,omitempty" cql:"auth_service_group_name"`
 	// AuthServices defining a list of services that can access the port.
 	AuthServices []string `json:"auth_services,omitempty" cql:"auth_services"`
-	// DeviceGroups defining a list of device groups that can access the port.
-	DeviceGroups []string `json:"device_groups,omitempty" cql:"device_groups"`
+	// DeviceGroupIds defining a list of device groups that can access the port.
+	DeviceGroupIds []string `json:"device_groups,omitempty" cql:"device_group_ids"`
+	// DeviceGroupIds defining a list of device groups that can access the port.
+	DeviceGroupNames []string `json:"device_group_names,omitempty" cql:"device_group_names"`
 }
 
-func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule *grpc_application_go.SecurityRule) *SecurityRule {
+// NewSecurityRuleFromGRPC converts a grpc_application_go.SecurityRule into SecurityRule
+// deviceGroupIds is a map of deviceGroupIds indexed by deviceGroupNames (it contains ALL the devices in the appDescriptor)
+func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule *grpc_application_go.SecurityRule, deviceGroupIds map[string]string) (*SecurityRule, derrors.Error) {
 	if rule == nil {
-		return nil
+		return nil, nil
 	}
+
+	ids := make ([]string, 0)
+	for _, name := range rule.DeviceGroupNames{
+		deviceGroupId, exists := deviceGroupIds[name]
+		if ! exists {
+			log.Error().Str("deviceName", name).Msg("Device id not found")
+			return nil, derrors.NewNotFoundError("device group id").WithParams(name)
+		}else{
+			ids = append(ids, deviceGroupId)
+		}
+	}
+
 	uuid := GenerateUUID()
 	access := PortAccessFromGRPC[rule.Access]
 	return &SecurityRule{
@@ -111,8 +128,9 @@ func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule
 		Access:          		access,
 		AuthServiceGroupName: 	rule.TargetServiceGroupName,
 		AuthServices:    		rule.AuthServices,
-		DeviceGroups:    		rule.DeviceGroups,
-	}
+		DeviceGroupNames:  		rule.DeviceGroupNames,
+		DeviceGroupIds:         ids,
+	}, nil
 }
 
 func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
@@ -128,7 +146,8 @@ func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
 		Access:       			access,
 		AuthServiceGroupName: 	sr.TargetServiceGroupName,
 		AuthServices: 			sr.AuthServices,
-		DeviceGroups: 			sr.DeviceGroups,
+		DeviceGroupNames:		sr.DeviceGroupNames,
+		DeviceGroupIds:  		sr.DeviceGroupIds,
 	}
 }
 
@@ -941,17 +960,21 @@ func NewAppDescriptor(organizationID string, appDescriptorID string, name string
 		}
 }
 
-func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorRequest) * AppDescriptor {
+func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorRequest, deviceGroupIds map[string]string) (*AppDescriptor, derrors.Error) {
 
 	if addRequest == nil {
-		return nil
+		return nil, nil
 	}
 
 	uuid := GenerateUUID()
 
 	rules := make([]SecurityRule, 0)
 	for _, r := range addRequest.Rules {
-		rules = append(rules, *NewSecurityRuleFromGRPC(addRequest.OrganizationId, uuid, r))
+		rule, err := NewSecurityRuleFromGRPC(addRequest.OrganizationId, uuid, r, deviceGroupIds)
+		if err != nil {
+			return nil, err
+		}
+		rules = append(rules, *rule)
 	}
 	groups := make([]ServiceGroup, 0)
 	for _, sg := range addRequest.Groups{
@@ -964,7 +987,7 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 		addRequest.ConfigurationOptions,
 		addRequest.EnvironmentVariables,
 		addRequest.Labels,
-		rules, groups)
+		rules, groups), nil
 }
 
 func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {

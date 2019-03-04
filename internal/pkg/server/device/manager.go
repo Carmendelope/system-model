@@ -31,6 +31,17 @@ func (m *Manager) AddDeviceGroup(addRequest *grpc_device_go.AddDeviceGroupReques
 	if !exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
 	}
+
+	// check if a group with that name already exists
+	exists, err = m.DevProvider.ExistsDeviceGroupByName(addRequest.OrganizationId, addRequest.Name)
+	if err != nil{
+		return nil, err
+	}
+	if exists{
+		return nil, derrors.NewAlreadyExistsError("device group").WithParams(addRequest.OrganizationId, addRequest.Name)
+	}
+
+
 	group := devEnt.NewDeviceGroupFromGRPC(addRequest)
 	err = m.DevProvider.AddDeviceGroup(*group)
 	if err != nil {
@@ -100,7 +111,20 @@ func (m *Manager) RemoveDeviceGroup(removeRequest *grpc_device_go.RemoveDeviceGr
 
 	return nil
 }
-
+func (m *Manager) GetDeviceGroupsByNames(request *grpc_device_go.GetDeviceGroupsRequest)  ([] devEnt.DeviceGroup, derrors.Error) {
+	exists, err := m.OrgProvider.Exists(request.OrganizationId)
+	if err != nil{
+		return nil, err
+	}
+	if !exists{
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
+	}
+	groups, err := m.DevProvider.GetDeviceGroupsByName(request.OrganizationId, request.DeviceGroupNames)
+	if err != nil {
+		return nil, err
+	}
+	return groups, nil
+}
 // ---------------------------------------------------------------------------------------------------------
 // AddDevice adds a new group to the system
 func (m *Manager) AddDevice(addRequest *grpc_device_go.AddDeviceRequest) (* devEnt.Device, derrors.Error){

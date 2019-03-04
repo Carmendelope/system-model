@@ -11,6 +11,8 @@ type MockupDeviceProvider struct {
 	sync.Mutex
 	// deviceGroup indexed by organization_id -> device_group_id
 	deviceGroups map[string]map[string]device.DeviceGroup
+	// deviceGroupsByName indexed by organization_id#device_group_name
+	deviceGroupsByName map[string]device.DeviceGroup
 	// devices indexed by (organization_id#device_group_id) -> device_id
 	devices 	 map[string]map[string]device.Device
 
@@ -19,6 +21,7 @@ type MockupDeviceProvider struct {
 func NewMockupDeviceProvider () * MockupDeviceProvider {
 	return &MockupDeviceProvider{
 		deviceGroups:	make (map[string]map[string]device.DeviceGroup, 0),
+		deviceGroupsByName:	make (map[string]device.DeviceGroup, 0),
 		devices: 		make (map[string]map[string]device.Device, 0),
 	}
 }
@@ -57,6 +60,9 @@ func (m * MockupDeviceProvider) AddDeviceGroup (deviceGroup device.DeviceGroup) 
 	} else{
 		return derrors.NewAlreadyExistsError("Add device group").WithParams(deviceGroup.OrganizationId, deviceGroup.DeviceGroupId)
 	}
+
+	//
+	m.deviceGroupsByName[fmt.Sprintf("%s#%s", deviceGroup.OrganizationId, deviceGroup.Name)] = deviceGroup
 	return nil
 }
 
@@ -65,6 +71,16 @@ func (m * MockupDeviceProvider) ExistsDeviceGroup(organizationID string, deviceG
 	defer m.Unlock()
 
 	return m.unsafeExistsGroup(organizationID, deviceGroupID), nil
+}
+
+func (m * MockupDeviceProvider) ExistsDeviceGroupByName(organizationID string, name string) (bool, derrors.Error){
+	m.Lock()
+	defer m.Unlock()
+
+	_, exists := m.deviceGroupsByName[fmt.Sprintf("%s#%s", organizationID, name)]
+
+	return exists, nil
+
 }
 
 func (m * MockupDeviceProvider) GetDeviceGroup(organizationID string, deviceGroupID string) (* device.DeviceGroup, derrors.Error) {
@@ -81,6 +97,25 @@ func (m * MockupDeviceProvider) GetDeviceGroup(organizationID string, deviceGrou
 	}
 
 	return  nil, derrors.NewNotFoundError("device group").WithParams(organizationID, deviceGroupID)
+}
+
+func (m * MockupDeviceProvider) GetDeviceGroupsByName(organizationID string, groupNames []string) ([]device.DeviceGroup, derrors.Error){
+
+	m.Lock()
+	defer m.Unlock()
+
+	deviceGroups := make([]device.DeviceGroup, 0)
+
+	for _, name := range groupNames {
+		group, exists := m.deviceGroupsByName[fmt.Sprintf("%s#%s", organizationID, name)]
+
+		if exists {
+			deviceGroups = append(deviceGroups, group)
+		}
+
+	}
+
+	return deviceGroups, nil
 }
 
 func (m * MockupDeviceProvider) ListDeviceGroups(organizationID string) ([]device.DeviceGroup, derrors.Error) {
@@ -110,6 +145,8 @@ func (m * MockupDeviceProvider) RemoveDeviceGroup(organizationID string, deviceG
 	if  exists {
 		group , exists := groups[deviceGroupID]
 		if exists{
+			delete (m.deviceGroupsByName, fmt.Sprintf("%s#%s", organizationID, group.Name))
+
 			if len(groups) == 1 {
 				delete(m.deviceGroups, organizationID)
 			}else {
@@ -118,6 +155,8 @@ func (m * MockupDeviceProvider) RemoveDeviceGroup(organizationID string, deviceG
 			return nil
 		}
 	}
+
+
 	return derrors.NewNotFoundError("device group").WithParams(organizationID, deviceGroupID)
 
 }

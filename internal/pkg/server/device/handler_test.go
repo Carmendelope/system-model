@@ -30,7 +30,7 @@ func GenerateAddDeviceGroup(organizationID string) * grpc_device_go.AddDeviceGro
 	return &grpc_device_go.AddDeviceGroupRequest{
 		RequestId: "request_id",
 		OrganizationId: organizationID,
-		Name: "organization_test",
+		Name: fmt.Sprintf("organization_test-%s", uuid.New().String()),
 		Labels:labels,
 	}
 }
@@ -230,7 +230,7 @@ var _ = ginkgo.Describe("Applications", func(){
 	})
 	ginkgo.Context("Devices", func() {
 		ginkgo.BeforeEach(func() {
-			targetDeviceGroup = testhelpers.CreateDeviceGroup(deviceProvider, targetOrganization.ID)
+			targetDeviceGroup = testhelpers.CreateDeviceGroup(deviceProvider, targetOrganization.ID, "dgName")
 		})
 		ginkgo.Context("adding device", func() {
 			ginkgo.It("should add an device group", func() {
