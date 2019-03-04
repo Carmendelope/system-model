@@ -8,9 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
-    "k8s.io/apimachinery/pkg/util/validation"
 	"sync"
-	"fmt"
 )
 
 
@@ -138,13 +136,7 @@ func (sp *ScyllaApplicationProvider) unsafeInstanceExists(appInstanceID string) 
 // AddDescriptor adds a new application descriptor to the system
 func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescriptor) derrors.Error {
 
-    // No need to lock for validation
-    errs := ValidateDescriptor(descriptor)
-    if len(errs) > 0 {
-        err := derrors.NewFailedPreconditionError(fmt.Sprintf("%s: %v","App descriptor validation failed",errs))
-        return err
-    }
-    sp.Lock()
+	sp.Lock()
 	defer sp.Unlock()
 
 
@@ -495,7 +487,7 @@ func (sp *ScyllaApplicationProvider) Clear() derrors.Error {
 
 }
 
-
+/*
 // ValidateDescriptor checks validity of object names, ports meeting Kubernetes specs.
 func  ValidateDescriptor(descriptor entities.AppDescriptor) []string {
     var errs []string
@@ -530,3 +522,4 @@ func  ValidateDescriptor(descriptor entities.AppDescriptor) []string {
     }
     return errs
 }
+*/

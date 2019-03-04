@@ -168,6 +168,35 @@ func generateUpdateServiceStatus(organizationID string, appInstanceID string, se
     }
 }
 
+func InjectBadServiceName(descriptor *grpc_application_go.AddAppDescriptorRequest) {
+	for g, group := range descriptor.Groups {
+		for s,service := range group.Services {
+			descriptor.Groups[g].Services[s].Name = fmt.Sprintf("%s #*",service.Name)
+		}
+	}
+}
+
+func InjectBadPortName(descriptor *grpc_application_go.AddAppDescriptorRequest) {
+	for g, group := range descriptor.Groups {
+		for s,service := range group.Services {
+			for p,port := range service.ExposedPorts {
+				descriptor.Groups[g].Services[s].ExposedPorts[p].Name = fmt.Sprintf("%s12345678912345678",port.Name)
+			}
+		}
+	}
+}
+
+func InjectBadPortNumber(descriptor *grpc_application_go.AddAppDescriptorRequest) {
+	for g, group := range descriptor.Groups {
+		for s,service := range group.Services {
+			for p,port := range service.ExposedPorts {
+				descriptor.Groups[g].Services[s].ExposedPorts[p].ExposedPort = port.ExposedPort+65536
+				descriptor.Groups[g].Services[s].ExposedPorts[p].InternalPort = port.InternalPort+65536
+			}
+		}
+	}
+}
+
 
 var _ = ginkgo.Describe("Applications", func(){
 
@@ -271,6 +300,31 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(err).Should(gomega.HaveOccurred())
 				gomega.Expect(app).Should(gomega.BeNil())
 			})
+			// AddDescriptor with BadServiceName
+			ginkgo.It("Should fail to add a descriptor with bad service name", func() {
+
+				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
+				InjectBadServiceName(toAdd)
+				_, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).NotTo(gomega.Succeed())
+			})
+			// AddDescriptor with Bad portname
+			ginkgo.It("Should fail to add a descriptor with bad port name", func() {
+
+				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
+				InjectBadPortName(toAdd)
+				_, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).NotTo(gomega.Succeed())
+			})
+			// AddDescriptor with Bad portname
+			ginkgo.It("Should fail to add a descriptor with bad port number", func() {
+
+				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
+				InjectBadPortNumber(toAdd)
+				_, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).NotTo(gomega.Succeed())
+			})
+
 		})
 		ginkgo.Context("get application descriptor", func(){
 		    ginkgo.It("should get an existing app descriptor", func(){

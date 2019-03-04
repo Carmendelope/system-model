@@ -2,7 +2,9 @@ package application
 
 import (
 	"github.com/google/uuid"
-//	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/nalej/system-model/internal/pkg/entities"
+
+	//	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 )
@@ -21,31 +23,6 @@ func RunTest(provider Provider) {
 
 			err := provider.AddDescriptor(*descriptor)
 			gomega.Expect(err).To(gomega.Succeed())
-		})
-
-		// AddDescriptor with BadServiceName
-		ginkgo.It("Should fail to add a descriptor with bad service name", func() {
-
-			descriptor := CreateTestApplicationDescriptor(uuid.New().String())
-			InjectBadServiceName(descriptor)
-			err := provider.AddDescriptor(*descriptor)
-			gomega.Expect(err).NotTo(gomega.Succeed())
-		})
-		// AddDescriptor with Bad portname
-		ginkgo.It("Should fail to add a descriptor with bad port name", func() {
-
-			descriptor := CreateTestApplicationDescriptor(uuid.New().String())
-			InjectBadPortName(descriptor)
-			err := provider.AddDescriptor(*descriptor)
-			gomega.Expect(err).NotTo(gomega.Succeed())
-		})
-		// AddDescriptor with Bad portname
-		ginkgo.It("Should fail to add a descriptor with bad port number", func() {
-
-			descriptor := CreateTestApplicationDescriptor(uuid.New().String())
-			InjectBadPortNumber(descriptor)
-			err := provider.AddDescriptor(*descriptor)
-			gomega.Expect(err).NotTo(gomega.Succeed())
 		})
 
 		// GetDescriptors
@@ -126,7 +103,7 @@ func RunTest(provider Provider) {
 
 	})
 
-	/*
+
 	// ---------------------------------------------------------------------------------------------------------------------
 
 	ginkgo.Context("Instance", func() {
@@ -222,5 +199,5 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).NotTo(gomega.Succeed())
 		})
 	})
-	*/
+
 }

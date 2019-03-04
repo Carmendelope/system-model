@@ -9,6 +9,7 @@ import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
 	"github.com/rs/zerolog/log"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 // Enumerate with the type of instances we can deploy in the system.
@@ -105,14 +106,18 @@ func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule
 	}
 
 	ids := make ([]string, 0)
-	for _, name := range rule.DeviceGroupNames{
-		deviceGroupId, exists := deviceGroupIds[name]
-		if ! exists {
-			log.Error().Str("deviceName", name).Msg("Device id not found")
-			return nil, derrors.NewNotFoundError("device group id").WithParams(name)
-		}else{
-			ids = append(ids, deviceGroupId)
+	if rule != nil {
+		for _, name := range rule.DeviceGroupNames {
+			deviceGroupId, exists := deviceGroupIds[name]
+			if ! exists {
+				log.Error().Str("deviceName", name).Msg("Device id not found")
+				return nil, derrors.NewNotFoundError("device group id").WithParams(name)
+			} else {
+				ids = append(ids, deviceGroupId)
+			}
 		}
+	}else{
+		log.Debug().Msg("rule empty")
 	}
 
 	uuid := GenerateUUID()
@@ -969,12 +974,14 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 	uuid := GenerateUUID()
 
 	rules := make([]SecurityRule, 0)
-	for _, r := range addRequest.Rules {
-		rule, err := NewSecurityRuleFromGRPC(addRequest.OrganizationId, uuid, r, deviceGroupIds)
-		if err != nil {
-			return nil, err
+	if addRequest.Rules != nil {
+		for _, r := range addRequest.Rules {
+			rule, err := NewSecurityRuleFromGRPC(addRequest.OrganizationId, uuid, r, deviceGroupIds)
+			if err != nil {
+				return nil, err
+			}
+			rules = append(rules, *rule)
 		}
-		rules = append(rules, *rule)
 	}
 	groups := make([]ServiceGroup, 0)
 	for _, sg := range addRequest.Groups{
@@ -1266,6 +1273,36 @@ func ValidAddServiceInstanceRequest(request *grpc_application_go.AddServiceInsta
 		request.ServiceGroupInstanceId == "" || request.ServiceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_descriptor_id, app_instance_id, " +
 			"service_group_id, service_group_instance_id, service_id")
+	}
+	return nil
+}
+
+// ValidateDescriptor checks validity of object names, ports meeting Kubernetes specs.
+func  ValidateDescriptor(descriptor AppDescriptor) derrors.Error {
+	// for each group
+	for _, group := range descriptor.Groups {
+		for _,service := range group.Services {
+			// Validate service name
+			kerr := validation.IsDNS1123Label(service.Name)
+			if len(kerr) > 0 {
+				return derrors.NewInvalidArgumentError("Service Name").WithParams(service.Name).WithParams(kerr)
+			}
+			// validate Exposed Port Name and Number
+			for _,port := range service.ExposedPorts {
+				kerr = validation.IsValidPortName(port.Name)
+				if len(kerr) > 0 {
+					return derrors.NewInvalidArgumentError("Port Name").WithParams(port.Name).WithParams(kerr)
+				}
+				kerr = validation.IsValidPortNum(int(port.ExposedPort))
+				if len(kerr) > 0 {
+					return derrors.NewInvalidArgumentError("Exposed Port").WithParams(port.ExposedPort).WithParams(kerr)
+				}
+				kerr = validation.IsValidPortNum(int(port.InternalPort))
+				if len(kerr) > 0 {
+					return derrors.NewInvalidArgumentError("Internal Port").WithParams(port.InternalPort).WithParams(kerr)
+				}
+			}
+		}
 	}
 	return nil
 }
