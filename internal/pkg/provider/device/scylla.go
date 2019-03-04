@@ -260,53 +260,34 @@ func (sp *ScyllaDeviceProvider) ListDeviceGroups(organizationID string) ([]devic
 	return groups, nil
 
 }
-// 	GetDeviceGroupsByName returns a list o devices which names are in groupName list
-func (sp * ScyllaDeviceProvider) getUnsafeDeviceGroupByName (organizationID string, deviceGroupName string) (*device.DeviceGroup, derrors.Error) {
+
+func (sp * ScyllaDeviceProvider) GetDeviceGroupsByName(organizationID string, groupNames []string) ([]device.DeviceGroup, derrors.Error){
+
+	sp.Lock()
+	defer sp.Unlock()
 
 	if err := sp.checkAndConnect(); err != nil{
 		return nil, err
 	}
 
-	var deviceGroup device.DeviceGroup
-
-	stmt, names := qb.Select(deviceGroupTable).Where(qb.Eq("name")).
-		Where(qb.Eq(organizationIdField)).ToCql()
+	var groups []device.DeviceGroup
+	stmt, names := qb.Select("devicegroupname_index").Columns("name", "organization_id", "device_group_id").Where(qb.In("name")).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		organizationIdField: organizationID,
-		"name": deviceGroupName})
+		"name": groupNames,
+	})
+	cqlErr := q.SelectRelease(&groups)
 
-	err := q.GetRelease(&deviceGroup)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return nil, derrors.NewNotFoundError("device group").WithParams(organizationID, deviceGroupName)
-		} else {
-			return nil, derrors.AsError(err, "cannot get device group")
+	if cqlErr != nil {
+		return nil, derrors.AsError(cqlErr, "cannot list device groups of an organization")
+	}
+	result := make([]device.DeviceGroup, 0)
+	for _, group := range groups{
+		if group.OrganizationId == organizationID{
+			result = append(result, group)
 		}
 	}
 
-	return &deviceGroup, nil
-
-}
-func (sp * ScyllaDeviceProvider) GetDeviceGroupsByName(organizationID string, groupNames []string) ([]device.DeviceGroup, derrors.Error){
-	/*
-	TODO: review this problems found:
-	1) I cannot ask for a group of names:
-	   - query: select * from nalej.devicegroups where name in ('dg-1036345786726813121', 'dg-647904701364730442');
-	   - error: InvalidRequest: Error from server: code=2200 [Invalid query] message="IN predicates on non-primary-key columns (name) is not yet supported"
-	   - positive thing: it allows me to ask for a name and organization at the same time
-	   so, I have to ask one device per call
-	*/
-	groups := make ([]device.DeviceGroup, 0)
-
-	for _, name := range groupNames {
-		deviceGroup, err := sp.getUnsafeDeviceGroupByName(organizationID, name)
-		if err != nil {
-			return nil, err
-		}
-		groups = append(groups, *deviceGroup)
-	}
-
-	return groups, nil
+	return result, nil
 }
 
 // Remove a device group

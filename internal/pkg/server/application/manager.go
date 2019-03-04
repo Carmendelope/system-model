@@ -28,21 +28,12 @@ func NewManager(orgProvider organization.Provider, appProvider application.Provi
 	return Manager{orgProvider, appProvider, devProvider}
 }
 
-// AddAppDescriptor adds a new application descriptor to a given organization.
-func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescriptorRequest) (* entities.AppDescriptor, derrors.Error) {
-	exists, err := m.OrgProvider.Exists(addRequest.OrganizationId)
-	if err != nil{
-		return nil, err
-	}
-	if !exists{
-		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
-	}
-
+func (m * Manager) getDeviceGroupNamesFromRules (organizationID string, rules []*grpc_application_go.SecurityRule) (map[string]string, derrors.Error){
 	// -----------------
 	// check if the descriptor has device_names in the rules
 	// we need to convert deviceGroupNames into deviceGroupIds
 	names := make(map[string]bool, 0) // uses a map to avoid insert a device group twice
-	for _, rules := range addRequest.Rules{
+	for _, rules := range rules{
 		if len(rules.DeviceGroupNames) > 0 {
 			for _, name := range rules.DeviceGroupNames {
 				names[name] = true
@@ -59,17 +50,43 @@ func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescr
 
 	deviceGroupIds := make (map[string]string, 0) // map of deviceGroupIds indexed by deviceGroupNames
 	if len(keys) > 0 {
-		deviceGroups, err := m.DevProvider.GetDeviceGroupsByName(addRequest.OrganizationId, keys)
+		deviceGroups, err := m.DevProvider.GetDeviceGroupsByName(organizationID, keys)
 		if err != nil {
 			return nil, err
 		}
+
 		for _,  deviceGroup := range deviceGroups {
 			deviceGroupIds[deviceGroup.Name] = deviceGroup.DeviceGroupId
 		}
+
+		// check the devices number returned (it should be the the same as deviceNames)
+		if len(deviceGroupIds) != len(keys){
+			return nil, derrors.NewNotFoundError("device group names").WithParams(keys)
+		}
+
 	}
 	// ---------------------
+	return deviceGroupIds, nil
 
-	descriptor := entities.NewAppDescriptorFromGRPC(addRequest, deviceGroupIds)
+}
+
+// AddAppDescriptor adds a new application descriptor to a given organization.
+func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescriptorRequest) (* entities.AppDescriptor, derrors.Error) {
+	exists, err := m.OrgProvider.Exists(addRequest.OrganizationId)
+	if err != nil{
+		return nil, err
+	}
+	if !exists{
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
+	}
+
+	deviceGroupIds, err := m.getDeviceGroupNamesFromRules(addRequest.OrganizationId, addRequest.Rules)
+
+	descriptor, err := entities.NewAppDescriptorFromGRPC(addRequest, deviceGroupIds)
+	if err != nil {
+		return nil, err
+	}
+
 	err = m.AppProvider.AddDescriptor(*descriptor)
 	if err != nil {
 		return nil, err

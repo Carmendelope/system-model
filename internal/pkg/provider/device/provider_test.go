@@ -164,15 +164,6 @@ func RunTest (provider Provider) {
 			gomega.Expect(deviceGroups).To(gomega.BeEmpty())
 
 		})
-		ginkgo.It("should Not be able to get devices groups by wrong name", func() {
-			names := []string{"name_error"}
-			organizationID := uuid.New().String()
-
-
-			_, err := provider.GetDeviceGroupsByName(organizationID, names)
-			gomega.Expect(err).NotTo(gomega.Succeed())
-
-		})
 
 
 	})
