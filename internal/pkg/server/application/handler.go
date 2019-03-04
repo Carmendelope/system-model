@@ -12,7 +12,6 @@ import (
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/rs/zerolog/log"
-	"google.golang.org/grpc"
 )
 
 // Handler structure for the application requests.
