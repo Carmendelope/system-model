@@ -28,7 +28,7 @@ func NewManager(orgProvider organization.Provider, appProvider application.Provi
 	return Manager{orgProvider, appProvider, devProvider}
 }
 
-func (m * Manager) getDeviceGroupNamesFromRules (organizationID string, rules []*grpc_application_go.SecurityRule) (map[string]string, derrors.Error){
+func (m * Manager) extractGroupIds (organizationID string, rules []*grpc_application_go.SecurityRule) (map[string]string, derrors.Error){
 	// -----------------
 	// check if the descriptor has device_names in the rules
 	// we need to convert deviceGroupNames into deviceGroupIds
@@ -80,7 +80,7 @@ func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescr
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
 	}
 
-	deviceGroupIds, err := m.getDeviceGroupNamesFromRules(addRequest.OrganizationId, addRequest.Rules)
+	deviceGroupIds, err := m.extractGroupIds(addRequest.OrganizationId, addRequest.Rules)
 
 	descriptor, err := entities.NewAppDescriptorFromGRPC(addRequest, deviceGroupIds)
 	if err != nil {
