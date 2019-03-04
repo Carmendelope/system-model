@@ -22,9 +22,9 @@ func CreateOrganization(orgProvider orgProvider.Provider) * entities.Organizatio
 	return toAdd
 }
 
-func CreateDeviceGroup(devProvider devProvider.Provider, organizationID string) *device.DeviceGroup  {
+func CreateDeviceGroup(devProvider devProvider.Provider, organizationID string, deviceGroupName string) *device.DeviceGroup  {
 	labels := make(map[string]string, 0)
-	toAdd := device.NewDeviceGroup( organizationID, entities.GenerateUUID(), "test device group",labels)
+	toAdd := device.NewDeviceGroup( organizationID, entities.GenerateUUID(), deviceGroupName,labels)
 	err := devProvider.AddDeviceGroup(*toAdd)
 	gomega.Expect(err).To(gomega.Succeed())
 	return toAdd

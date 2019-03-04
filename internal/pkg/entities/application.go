@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
+	"github.com/rs/zerolog/log"
 )
 
 // Enumerate with the type of instances we can deploy in the system.
@@ -90,14 +91,29 @@ type SecurityRule struct {
 	AuthServiceGroupName string `json:"auth_service_group_name,omitempty" cql:"auth_service_group_name"`
 	// AuthServices defining a list of services that can access the port.
 	AuthServices []string `json:"auth_services,omitempty" cql:"auth_services"`
-	// DeviceGroups defining a list of device groups that can access the port.
-	DeviceGroups []string `json:"device_groups,omitempty" cql:"device_groups"`
+	// DeviceGroupIds defining a list of device groups that can access the port.
+	DeviceGroupIds []string `json:"device_groups,omitempty" cql:"device_group_ids"`
+	// DeviceGroupIds defining a list of device groups that can access the port.
+	DeviceGroupNames []string `json:"device_group_names,omitempty" cql:"device_group_names"`
 }
 
-func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule *grpc_application_go.SecurityRule) *SecurityRule {
+// NewSecurityRuleFromGRPC converts a grpc_application_go.SecurityRule into SecurityRule
+// deviceGroupIds is a map of deviceGroupIds indexed by deviceGroupNames (it contains ALL the devices in the appDescriptor)
+func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule *grpc_application_go.SecurityRule, deviceGroupIds map[string]string) *SecurityRule {
 	if rule == nil {
 		return nil
 	}
+
+	ids := make ([]string, 0)
+	for _, name := range rule.DeviceGroupNames{
+		deviceGroupId, exists := deviceGroupIds[name]
+		if ! exists {
+			log.Error().Str("deviceName", name).Msg("Device id not found")
+		}else{
+			ids = append(ids, deviceGroupId)
+		}
+	}
+
 	uuid := GenerateUUID()
 	access := PortAccessFromGRPC[rule.Access]
 	return &SecurityRule{
@@ -111,7 +127,8 @@ func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule
 		Access:          		access,
 		AuthServiceGroupName: 	rule.TargetServiceGroupName,
 		AuthServices:    		rule.AuthServices,
-		DeviceGroups:    		rule.DeviceGroupNames,
+		DeviceGroupNames:  		rule.DeviceGroupNames,
+		DeviceGroupIds:         ids,
 	}
 }
 
@@ -128,7 +145,8 @@ func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
 		Access:       			access,
 		AuthServiceGroupName: 	sr.TargetServiceGroupName,
 		AuthServices: 			sr.AuthServices,
-		DeviceGroupNames:		sr.DeviceGroups,
+		DeviceGroupNames:		sr.DeviceGroupNames,
+		DeviceGroupIds:  		sr.DeviceGroupIds,
 	}
 }
 
@@ -947,7 +965,7 @@ func NewAppDescriptor(organizationID string, appDescriptorID string, name string
 		}
 }
 
-func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorRequest) * AppDescriptor {
+func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorRequest, deviceGroupIds map[string]string) * AppDescriptor {
 
 	if addRequest == nil {
 		return nil
@@ -957,7 +975,7 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 
 	rules := make([]SecurityRule, 0)
 	for _, r := range addRequest.Rules {
-		rules = append(rules, *NewSecurityRuleFromGRPC(addRequest.OrganizationId, uuid, r))
+		rules = append(rules, *NewSecurityRuleFromGRPC(addRequest.OrganizationId, uuid, r, deviceGroupIds))
 	}
 	groups := make([]ServiceGroup, 0)
 	for _, sg := range addRequest.Groups{
@@ -1262,7 +1280,7 @@ func ValidGetServiceGroupInstanceMetadataRequest(request *grpc_application_go.Ge
 }
 
 func ValidUpdateInstanceMetadata(request *grpc_application_go.InstanceMetadata) derrors.Error {
-	if request.OrganizationId == "" || request.AppInstanceId == "" || request.ServiceGroupInstanceId == "" ||
+	if request.OrganizationId == "" || request.AppInstanceId == "" || request.ServiceGroupId == "" ||
 		request.AppDescriptorId == "" || request.MonitoredInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +
 			"service_group_instance_id, app_descriptor_id, monitored_instance_id")

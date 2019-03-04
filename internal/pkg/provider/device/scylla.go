@@ -142,9 +142,12 @@ func (sp *ScyllaDeviceProvider) AddDeviceGroup (deviceGroup device.DeviceGroup) 
 	return nil
 
 }
-
 // ExistsDeviceGroup checks if a group exists on the system.
 func (sp *ScyllaDeviceProvider) ExistsDeviceGroup(organizationID string, deviceGroupID string) (bool, derrors.Error) {
+
+	sp.Lock()
+	defer sp.Unlock()
+
 	if err := sp.checkAndConnect(); err != nil{
 		return false, err
 	}
@@ -170,6 +173,37 @@ func (sp *ScyllaDeviceProvider) ExistsDeviceGroup(organizationID string, deviceG
 	return true, nil
 
 }
+
+func (sp * ScyllaDeviceProvider)ExistsDeviceGroupByName(organizationID string, name string) (bool, derrors.Error){
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.checkAndConnect(); err != nil{
+		return false, err
+	}
+
+	var returnedId string
+
+	stmt, names := qb.Select(deviceGroupTable).Columns(organizationIdField).Where(qb.Eq("name")).
+		Where(qb.Eq(organizationIdField)).ToCql()
+
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		organizationIdField: organizationID,
+		"name":name})
+
+	err := q.GetRelease(&returnedId)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		}else{
+			return false, derrors.AsError(err, "cannot determinate if device group exists by name")
+		}
+	}
+
+	return true, nil
+}
+
 // GetDeviceGroup returns a device Group.
 func (sp *ScyllaDeviceProvider) GetDeviceGroup(organizationID string, deviceGroupID string) (* device.DeviceGroup, derrors.Error) {
 
@@ -226,6 +260,55 @@ func (sp *ScyllaDeviceProvider) ListDeviceGroups(organizationID string) ([]devic
 	return groups, nil
 
 }
+// 	GetDeviceGroupsByName returns a list o devices which names are in groupName list
+func (sp * ScyllaDeviceProvider) getUnsafeDeviceGroupByName (organizationID string, deviceGroupName string) (*device.DeviceGroup, derrors.Error) {
+
+	if err := sp.checkAndConnect(); err != nil{
+		return nil, err
+	}
+
+	var deviceGroup device.DeviceGroup
+
+	stmt, names := qb.Select(deviceGroupTable).Where(qb.Eq("name")).
+		Where(qb.Eq(organizationIdField)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		organizationIdField: organizationID,
+		"name": deviceGroupName})
+
+	err := q.GetRelease(&deviceGroup)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return nil, derrors.NewNotFoundError("device group").WithParams(organizationID, deviceGroupName)
+		} else {
+			return nil, derrors.AsError(err, "cannot get device group")
+		}
+	}
+
+	return &deviceGroup, nil
+
+}
+func (sp * ScyllaDeviceProvider) GetDeviceGroupsByName(organizationID string, groupNames []string) ([]device.DeviceGroup, derrors.Error){
+	/*
+	TODO: review this problems found:
+	1) I cannot ask for a group of names:
+	   - query: select * from nalej.devicegroups where name in ('dg-1036345786726813121', 'dg-647904701364730442');
+	   - error: InvalidRequest: Error from server: code=2200 [Invalid query] message="IN predicates on non-primary-key columns (name) is not yet supported"
+	   - positive thing: it allows me to ask for a name and organization at the same time
+	   so, I have to ask one device per call
+	*/
+	groups := make ([]device.DeviceGroup, 0)
+
+	for _, name := range groupNames {
+		deviceGroup, err := sp.getUnsafeDeviceGroupByName(organizationID, name)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, *deviceGroup)
+	}
+
+	return groups, nil
+}
+
 // Remove a device group
 func (sp *ScyllaDeviceProvider) RemoveDeviceGroup(organizationID string, deviceGroupID string) derrors.Error {
 	sp.Lock()

@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:da6cbc56e53ef1a60c90115b7c64f40abdface00362611fc43c7212e79bb889d"
+  digest = "1:f31c353881b7ad731a956d2fd1f8d89b73ea64d9591f2e2bbdfbfa35ae2a1aff"
   name = "github.com/gocql/gocql"
   packages = [
     ".",
@@ -12,7 +12,7 @@
     "internal/streams",
   ]
   pruneopts = ""
-  revision = "ec4793573d1447b6f92a1b359a0594566fad9d0e"
+  revision = "f6df8288f9b44e66f50c9a59aee53a705c788dbe"
 
 [[projects]]
   digest = "1:d3d38150b6d77b2aad42a9e105170538b6563518993d43df78a1add6e31cce62"
@@ -257,7 +257,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8462238a5601cbb7d38a6f8b40558a716e0573ebb1ab15937e306d63d3305c24"
+  digest = "1:7489cf41e267d966cbc16d9b98622e7124818af9339d5466aaec4fc736c404c0"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -272,15 +272,15 @@
     "trace",
   ]
   pruneopts = ""
-  revision = "c95aed5357e77a4bf7d3955c46740000a17adee1"
+  revision = "16b79f2e4e95ea23b2bf9903c9809ff7b013ce85"
 
 [[projects]]
   branch = "master"
-  digest = "1:0c6739ffae9247730167d467fc2f05ec103d7893f1b1f5638ac8ee4660538394"
+  digest = "1:d39075e87eb635fd96a33a40d3f3281a86858de8420ab599880b9cd4f32cd372"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = ""
-  revision = "6c9a33b5f776fb04c14b20a12b8bf37be4ed92da"
+  revision = "c2f5717e611cf8e89a852a41081355194d80c943"
 
 [[projects]]
   digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
@@ -406,7 +406,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7950631cc470fd3ea117e815690e893fec1e4a25faa87d792eee6f6793b52a4f"
+  digest = "1:f6cff2ad20557e5cc220dc07bdacbac786db472b27f92a2e09e02e57a7950efa"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/util/errors",
@@ -415,7 +415,7 @@
     "pkg/util/validation/field",
   ]
   pruneopts = ""
-  revision = "dcb391cde5ca0298013d43336817d20b74650702"
+  revision = "2f7e9cae4418a86ea03618fea183bfe9fe43c574"
 
 [solve-meta]
   analyzer-name = "dep"

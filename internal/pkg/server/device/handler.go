@@ -79,7 +79,26 @@ func (h *Handler) RemoveDeviceGroup(ctx context.Context, removeRequest *grpc_dev
 	}
 	return &grpc_common_go.Success{}, nil
 }
+// GetDeviceGroupsByNames obtains a list the device groups .
+func (h *Handler) GetDeviceGroupsByNames(ctx context.Context, request *grpc_device_go.GetDeviceGroupsRequest)  (*grpc_device_go.DeviceGroupList, error) {
+	err := device.ValidGetDeviceGroupsRequest(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	groups, err := h.Manager.GetDeviceGroupsByNames(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	toReturn := make([]*grpc_device_go.DeviceGroup, 0)
+	for _, c := range groups {
+		toReturn = append(toReturn, c.ToGRPC())
+	}
+	result := &grpc_device_go.DeviceGroupList{
+		Groups: toReturn,
+	}
+	return result, nil
 
+}
 // ------------------------------------------------------------------------------------------------------------------
 
 // AddDevice adds a new group to the system

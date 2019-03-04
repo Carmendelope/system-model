@@ -11,10 +11,14 @@ type Provider interface {
 	AddDeviceGroup (deviceGroup device.DeviceGroup) derrors.Error
 	// ExistsDeviceGroup checks if a group exists on the system.
 	ExistsDeviceGroup(organizationID string, deviceGroupID string) (bool, derrors.Error)
+	// ExistsDeviceGroupByName checks if a group exists on the system.
+	ExistsDeviceGroupByName(organizationID string, name string) (bool, derrors.Error)
 	// GetDeviceGroup returns a device Group.
 	GetDeviceGroup(organizationID string, deviceGroupID string) (* device.DeviceGroup, derrors.Error)
 	// ListDeviceGroups returns a list of device groups in a organization.
 	ListDeviceGroups(organizationID string) ([]device.DeviceGroup, derrors.Error)
+	// GetDeviceGroupsByName returns a list o devices which names are in groupName list
+	GetDeviceGroupsByName(organizationID string, groupNames []string) ([]device.DeviceGroup, derrors.Error)
 	// Remove a device group
 	RemoveDeviceGroup(organizationID string, deviceGroup string) derrors.Error
 
