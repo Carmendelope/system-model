@@ -93,6 +93,17 @@ func ValidRemoveDeviceGroupRequest (removeRequest * grpc_device_go.RemoveDeviceG
 	return nil
 }
 
+func ValidGetDeviceGroupsRequest (request *grpc_device_go.GetDeviceGroupsRequest) derrors.Error {
+	if request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
+	}
+	if len(request.DeviceGroupNames) == 0{
+		return derrors.NewInvalidArgumentError("device_group_names cannot be empty")
+	}
+
+	return nil
+}
+
 // ----------- Device ----------- //
 func NewDeviceFromGRPC (addRequest * grpc_device_go.AddDeviceRequest) * Device{
 	return &Device{

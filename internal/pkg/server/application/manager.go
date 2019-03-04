@@ -11,6 +11,7 @@ import (
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/application"
+	"github.com/nalej/system-model/internal/pkg/provider/device"
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
 	"github.com/rs/zerolog/log"
 )
@@ -19,11 +20,12 @@ import (
 type Manager struct {
 	OrgProvider organization.Provider
 	AppProvider application.Provider
+	DevProvider device.Provider
 }
 
 // NewManager creates a Manager using a set of providers.
-func NewManager(orgProvider organization.Provider, appProvider application.Provider) Manager {
-	return Manager{orgProvider, appProvider}
+func NewManager(orgProvider organization.Provider, appProvider application.Provider, devProvider device.Provider) Manager {
+	return Manager{orgProvider, appProvider, devProvider}
 }
 
 // AddAppDescriptor adds a new application descriptor to a given organization.
@@ -35,7 +37,39 @@ func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescr
 	if !exists{
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
 	}
-	descriptor := entities.NewAppDescriptorFromGRPC(addRequest)
+
+	// -----------------
+	// check if the descriptor has device_names in the rules
+	// we need to convert deviceGroupNames into deviceGroupIds
+	names := make(map[string]bool, 0) // uses a map to avoid insert a device group twice
+	for _, rules := range addRequest.Rules{
+		if len(rules.DeviceGroupNames) > 0 {
+			for _, name := range rules.DeviceGroupNames {
+				names[name] = true
+			}
+		}
+	}
+	// map to array
+	keys := make([]string, len(names))
+	i:=0
+	for key, _  := range names{
+		keys[i] = key
+		i += 1
+	}
+
+	deviceGroupIds := make (map[string]string, 0) // map of deviceGroupIds indexed by deviceGroupNames
+	if len(keys) > 0 {
+		deviceGroups, err := m.DevProvider.GetDeviceGroupsByName(addRequest.OrganizationId, keys)
+		if err != nil {
+			return nil, err
+		}
+		for _,  deviceGroup := range deviceGroups {
+			deviceGroupIds[deviceGroup.Name] = deviceGroup.DeviceGroupId
+		}
+	}
+	// ---------------------
+
+	descriptor := entities.NewAppDescriptorFromGRPC(addRequest, deviceGroupIds)
 	err = m.AppProvider.AddDescriptor(*descriptor)
 	if err != nil {
 		return nil, err

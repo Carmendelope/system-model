@@ -248,7 +248,7 @@ func CreateTestRule(organizationID string, appDescriptorID string) entities.Secu
 		Access: entities.AllAppServices,
 		AuthServiceGroupName: "auth service group name",
 		AuthServices: []string{"authService1", "authService2"},
-		DeviceGroups: []string{"deviceGroup1", "deviceGroup2"}}
+		DeviceGroupNames: []string{"deviceGroup1", "deviceGroup2"}}
 
 	return rule
 }
