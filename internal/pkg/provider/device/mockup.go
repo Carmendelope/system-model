@@ -109,10 +109,9 @@ func (m * MockupDeviceProvider) GetDeviceGroupsByName(organizationID string, gro
 	for _, name := range groupNames {
 		group, exists := m.deviceGroupsByName[fmt.Sprintf("%s#%s", organizationID, name)]
 
-		if ! exists {
-			return nil, derrors.NewNotFoundError("device group").WithParams(organizationID, name)
+		if exists {
+			deviceGroups = append(deviceGroups, group)
 		}
-		deviceGroups = append(deviceGroups, group)
 
 	}
 

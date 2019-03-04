@@ -238,8 +238,6 @@ var _ = ginkgo.Describe("Applications", func(){
 		ginkgo.Context("adding application descriptors", func(){
 			ginkgo.It("should add an application descriptor", func(){
 				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
-
-
 				app, err := client.AddAppDescriptor(context.Background(), toAdd)
 				gomega.Expect(err).Should(gomega.Succeed())
 				gomega.Expect(app).ShouldNot(gomega.BeNil())
@@ -262,6 +260,13 @@ var _ = ginkgo.Describe("Applications", func(){
 			})
 			ginkgo.It("should fail on a descriptor without services", func(){
 				toAdd := generateAddAppDescriptor(targetOrganization.ID, 0)
+				app, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.HaveOccurred())
+				gomega.Expect(app).Should(gomega.BeNil())
+			})
+			ginkgo.It("should fail on a descriptor with a wrong device", func(){
+				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
+				toAdd.Rules[0].DeviceGroupNames = []string{"dg5"}
 				app, err := client.AddAppDescriptor(context.Background(), toAdd)
 				gomega.Expect(err).Should(gomega.HaveOccurred())
 				gomega.Expect(app).Should(gomega.BeNil())
