@@ -84,12 +84,12 @@
   version = "v2.0.0"
 
 [[projects]]
-  digest = "1:b5034e56f7f2274bc0698bf6cbcc14c591d2d6f0da771487a98b96824647b2d8"
+  digest = "1:dee26ad9b37506114d20da3305065059a63eea769e9a71b201c633d0492985bd"
   name = "github.com/nalej/grpc-application-go"
   packages = ["."]
   pruneopts = ""
-  revision = "93ac95fb4df8896fd7cd95677daffea4b43361d2"
-  version = "v0.0.50"
+  revision = "4d4666231ad69be0ab555e403df520820bedb758"
+  version = "v0.0.52"
 
 [[projects]]
   digest = "1:44f7426538411ea9f774f96e3b102decc9f549b188e55e29ecc15be69542a96b"
@@ -100,12 +100,12 @@
   version = "v0.0.30"
 
 [[projects]]
-  digest = "1:bd8863bf4b19be05c5c4b349fa138c0c70136bc95a7e91095a1fd8eab90ea095"
+  digest = "1:3762fb9d9161d88feb78fc50307e41d699453fbb5f10b722c34820969bc0aca7"
   name = "github.com/nalej/grpc-device-go"
   packages = ["."]
   pruneopts = ""
-  revision = "f9747976194a624ef9ba3d50db424dffe054fb49"
-  version = "v0.0.31"
+  revision = "ef853a07a181e4c593c5063840bff3744ac115eb"
+  version = "v0.0.32"
 
 [[projects]]
   digest = "1:6973c345abcc2530f5ae4ddaa179521470a37b9cc8a2b7568227190df7f381e2"

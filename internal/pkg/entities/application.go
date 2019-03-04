@@ -111,7 +111,7 @@ func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule
 		Access:          		access,
 		AuthServiceGroupName: 	rule.TargetServiceGroupName,
 		AuthServices:    		rule.AuthServices,
-		DeviceGroups:    		rule.DeviceGroups,
+		DeviceGroups:    		rule.DeviceGroupNames,
 	}
 }
 
@@ -128,7 +128,7 @@ func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
 		Access:       			access,
 		AuthServiceGroupName: 	sr.TargetServiceGroupName,
 		AuthServices: 			sr.AuthServices,
-		DeviceGroups: 			sr.DeviceGroups,
+		DeviceGroupNames:		sr.DeviceGroups,
 	}
 }
 
@@ -232,6 +232,8 @@ type InstanceMetadata struct {
 	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
 	// AppInstanceId with the application instance identifier.
 	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
+	// ServiceGroupId with the service group id this entity belongs to.
+	ServiceGroupId string `json:"service_group_id,omitempty" cql:"service_group_id"`
 	// Identifier of the monitored entity
 	MonitoredInstanceId string `json:"monitored_instance_id,omitempty" cql:"monitored_instance_id"`
 	// Type of instance this metadata refers to
@@ -262,6 +264,7 @@ func (md *InstanceMetadata) ToGRPC() *grpc_application_go.InstanceMetadata {
 		OrganizationId: md.OrganizationId,
 		AppDescriptorId: md.AppDescriptorId,
 		AppInstanceId: md.AppInstanceId,
+		ServiceGroupId: md.ServiceGroupId,
 		MonitoredInstanceId: md.MonitoredInstanceId,
 		Type: InstanceTypeToGRPC[md.Type],
 		InstancesId: md.InstancesId,
@@ -287,6 +290,7 @@ func NewMetadataFromGRPC (metadata * grpc_application_go.InstanceMetadata) * Ins
 		OrganizationId: metadata.OrganizationId,
 		AppDescriptorId: metadata.AppDescriptorId,
 		AppInstanceId: metadata.AppInstanceId,
+		ServiceGroupId: metadata.ServiceGroupId,
 		MonitoredInstanceId: metadata.MonitoredInstanceId,
 		Type: InstanceTypeFromGRPC[metadata.Type],
 		InstancesId: metadata.InstancesId,
@@ -349,6 +353,8 @@ func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInsta
 		Labels: 			sgi.Labels,
 	}
 }
+
+// ----
 
 type ServiceType int32
 
@@ -1243,6 +1249,23 @@ func ValidAddServiceInstanceRequest(request *grpc_application_go.AddServiceInsta
 		request.ServiceGroupInstanceId == "" || request.ServiceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_descriptor_id, app_instance_id, " +
 			"service_group_id, service_group_instance_id, service_id")
+	}
+	return nil
+}
+
+func ValidGetServiceGroupInstanceMetadataRequest(request *grpc_application_go.GetServiceGroupInstanceMetadataRequest) derrors.Error {
+	if request.OrganizationId == "" || request.AppInstanceId == "" || request.ServiceGroupInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +
+			"service_group_instance_id")
+	}
+	return nil
+}
+
+func ValidUpdateInstanceMetadata(request *grpc_application_go.InstanceMetadata) derrors.Error {
+	if request.OrganizationId == "" || request.AppInstanceId == "" || request.ServiceGroupInstanceId == "" ||
+		request.AppDescriptorId == "" || request.MonitoredInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +
+			"service_group_instance_id, app_descriptor_id, monitored_instance_id")
 	}
 	return nil
 }

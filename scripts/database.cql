@@ -12,7 +12,7 @@ create type IF NOT EXISTS nalej.storage (size bigint, mount_path text, type int)
 create type IF NOT EXISTS nalej.endpoint (type int, path text);
 create type IF NOT EXISTS nalej.endpoint_instance (endpoint_instance_id text, type int, fqdn text);
 create type IF NOT EXISTS nalej.port (name text, internal_port int, exposed_port int, endpoint list<FROZEN<endpoint>>);
-create type IF NOT EXISTS nalej.metadata (organization_id text, app_descriptor_id text, app_instance_id text, monitored_instance_id text, type int, instance_id list<text>, desired_replicas int, available_replicas int, unavailable_replicas int, status map<text, int>, info map<text, text>);
+create type IF NOT EXISTS nalej.metadata (organization_id text, app_descriptor_id text, app_instance_id text, service_group_id text, monitored_instance_id text, type int, instance_id list<text>, desired_replicas int, available_replicas int, unavailable_replicas int, status map<text, int>, info map<text, text>);
 create type IF NOT EXISTS nalej.credential (username text, password text, email text, docker_repository text);
 create type IF NOT EXISTS nalej.security_rule (organization_id text, app_descriptor_id text, rule_id text, name text, target_service_group_name text, target_service_name text, target_port int, access int, auth_service_group_name text, auth_services list<text>, device_groups list<text>);
 create type IF NOT EXISTS nalej.config_file (organization_id text, app_descriptor_id text, config_file_id text, name text, content blob, mount_path text);
