@@ -5,7 +5,6 @@
 package entities
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
@@ -1267,9 +1266,6 @@ func ValidAddServiceGroupInstanceRequest (request *grpc_application_go.AddServic
 		request.Metadata.AppDescriptorId == "" ||
 		request.Metadata.ServiceGroupId == "" || request.Metadata.InstancesId == nil ||
 		len(request.Metadata.InstancesId) == 0 || request.Metadata.Status == nil {
-
-		fmt.Sprintf("========%#v",request.Metadata)
-
 		return derrors.NewInvalidArgumentError("expecting metadata organization_id, app_instance_id, app_descriptor_id, " +
 			"monitored_instance_id, service_group_id, instances_id, status")
 	}
