@@ -428,6 +428,11 @@ func (m * Manager) AddServiceGroupInstance(request *grpc_application_go.AddServi
 
 	// serviceGroupInstance
 	sgInst := serviceGroup.ToEmptyServiceGroupInstance(request.AppInstanceId)
+	
+	// set metadata
+	sgInst.Metadata = entities.NewMetadataFromGRPC(request.Metadata)
+	// we fill the metadata monitored instance id with the one just generated
+	sgInst.Metadata.MonitoredInstanceId = sgInst.ServiceGroupInstanceId
 
 	// get the app instance
 	retrieved, err := m.AppProvider.GetInstance(request.AppInstanceId)

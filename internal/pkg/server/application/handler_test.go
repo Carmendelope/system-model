@@ -158,7 +158,7 @@ func generateUpdateAppInstance(organizationID string, appInstanceID string,
 func generateUpdateServiceStatus(organizationID string, appInstanceID string, serviceID string,
     appDescriptorID string, status grpc_application_go.ServiceStatus) * grpc_application_go.UpdateServiceStatusRequest {
     endpoint := make([]string,0)
-    endpoint = append(endpoint, "enpoint1")
+    endpoint = append(endpoint, "endpoint1")
     return &grpc_application_go.UpdateServiceStatusRequest{
         OrganizationId: organizationID,
         AppInstanceId: appInstanceID,
@@ -166,6 +166,25 @@ func generateUpdateServiceStatus(organizationID string, appInstanceID string, se
 		//Endpoints: endpoint,
 		DeployedOnClusterId: fmt.Sprintf("Deploy on cluster - %d", rand.Int31n(100)),
     }
+}
+
+func generateServiceGroupInstanceMetadata(appInstance grpc_application_go.AppInstance) *grpc_application_go.InstanceMetadata {
+	return &grpc_application_go.InstanceMetadata{
+		AvailableReplicas: 1,
+		UnavailableReplicas: 0,
+		DesiredReplicas: 1,
+		AppInstanceId: appInstance.AppInstanceId,
+		InstancesId: []string{"appMonitored001"},
+		ServiceGroupId: appInstance.Groups[0].ServiceGroupId,
+		AppDescriptorId: appInstance.AppDescriptorId,
+		Info: map[string]string{"appMonitored001": "info"},
+		Type: grpc_application_go.InstanceType_SERVICE_GROUP_INSTANCE,
+		OrganizationId: appInstance.OrganizationId,
+		// MonitoredInstanceId: --> to be filled by the system model after addition
+		Status: map[string]grpc_application_go.ServiceStatus{
+			"service1": grpc_application_go.ServiceStatus_SERVICE_DEPLOYING,
+		},
+	}
 }
 
 
@@ -544,6 +563,7 @@ var _ = ginkgo.Describe("Applications", func(){
 					AppDescriptorId: targetDescriptor.AppDescriptorId,
 					AppInstanceId:   added.AppInstanceId,
 					ServiceGroupId:  added.Groups[0].ServiceGroupId,
+					Metadata: generateServiceGroupInstanceMetadata(*added),
 				}
 
 				sgReceived, err := client.AddServiceGroupInstance(context.Background(), sgToAdd)
@@ -561,6 +581,7 @@ var _ = ginkgo.Describe("Applications", func(){
 					AppDescriptorId: targetDescriptor.AppDescriptorId,
 					AppInstanceId:   added.AppInstanceId,
 					ServiceGroupId:  uuid.New().String(),
+					Metadata: generateServiceGroupInstanceMetadata(*added),
 				}
 
 				_, err = client.AddServiceGroupInstance(context.Background(), sgToAdd)
@@ -581,6 +602,7 @@ var _ = ginkgo.Describe("Applications", func(){
 					AppDescriptorId: targetDescriptor.AppDescriptorId,
 					AppInstanceId:   added.AppInstanceId,
 					ServiceGroupId:  added.Groups[0].ServiceGroupId,
+					Metadata: generateServiceGroupInstanceMetadata(*added),
 				}
 
 				sgReceived, err := client.AddServiceGroupInstance(context.Background(), sgToAdd)
@@ -613,6 +635,7 @@ var _ = ginkgo.Describe("Applications", func(){
 					AppDescriptorId: targetDescriptor.AppDescriptorId,
 					AppInstanceId:   added.AppInstanceId,
 					ServiceGroupId:  added.Groups[0].ServiceGroupId,
+					Metadata: generateServiceGroupInstanceMetadata(*added),
 				}
 
 				sgReceived, err := client.AddServiceGroupInstance(context.Background(), sgToAdd)

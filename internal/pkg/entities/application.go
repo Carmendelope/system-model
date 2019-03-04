@@ -5,6 +5,7 @@
 package entities
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
@@ -1260,8 +1261,17 @@ func ValidUpdateServiceStatusRequest (updateRequest *grpc_application_go.UpdateS
 
 func ValidAddServiceGroupInstanceRequest (request *grpc_application_go.AddServiceGroupInstanceRequest) derrors.Error {
 	if request.OrganizationId == "" || request.AppDescriptorId == "" ||
-		request.AppInstanceId == "" || request.ServiceGroupId == "" {
-		return derrors.NewInvalidArgumentError("expecting organization_id, app_descriptor_id, app_instance_id, service_group_id")
+		request.AppInstanceId == "" || request.ServiceGroupId == ""  || request.Metadata == nil {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_descriptor_id, app_instance_id, service_group_id, metadata")
+	} else if request.Metadata.OrganizationId == "" || request.Metadata.AppInstanceId == "" ||
+		request.Metadata.AppDescriptorId == "" ||
+		request.Metadata.ServiceGroupId == "" || request.Metadata.InstancesId == nil ||
+		len(request.Metadata.InstancesId) == 0 || request.Metadata.Status == nil {
+
+		fmt.Sprintf("========%#v",request.Metadata)
+
+		return derrors.NewInvalidArgumentError("expecting metadata organization_id, app_instance_id, app_descriptor_id, " +
+			"monitored_instance_id, service_group_id, instances_id, status")
 	}
 	return nil
 }
