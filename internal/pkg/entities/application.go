@@ -256,6 +256,8 @@ type InstanceMetadata struct {
 	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
 	// AppInstanceId with the application instance identifier.
 	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
+	// ServiceGroupId with the service group id this entity belongs to.
+	ServiceGroupId string `json:"service_group_id,omitempty" cql:"service_group_id"`
 	// Identifier of the monitored entity
 	MonitoredInstanceId string `json:"monitored_instance_id,omitempty" cql:"monitored_instance_id"`
 	// Type of instance this metadata refers to
@@ -286,6 +288,7 @@ func (md *InstanceMetadata) ToGRPC() *grpc_application_go.InstanceMetadata {
 		OrganizationId: md.OrganizationId,
 		AppDescriptorId: md.AppDescriptorId,
 		AppInstanceId: md.AppInstanceId,
+		ServiceGroupId: md.ServiceGroupId,
 		MonitoredInstanceId: md.MonitoredInstanceId,
 		Type: InstanceTypeToGRPC[md.Type],
 		InstancesId: md.InstancesId,
@@ -311,6 +314,7 @@ func NewMetadataFromGRPC (metadata * grpc_application_go.InstanceMetadata) * Ins
 		OrganizationId: metadata.OrganizationId,
 		AppDescriptorId: metadata.AppDescriptorId,
 		AppInstanceId: metadata.AppInstanceId,
+		ServiceGroupId: metadata.ServiceGroupId,
 		MonitoredInstanceId: metadata.MonitoredInstanceId,
 		Type: InstanceTypeFromGRPC[metadata.Type],
 		InstancesId: metadata.InstancesId,
@@ -373,6 +377,8 @@ func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInsta
 		Labels: 			sgi.Labels,
 	}
 }
+
+// ----
 
 type ServiceType int32
 
@@ -1261,8 +1267,14 @@ func ValidUpdateServiceStatusRequest (updateRequest *grpc_application_go.UpdateS
 
 func ValidAddServiceGroupInstanceRequest (request *grpc_application_go.AddServiceGroupInstanceRequest) derrors.Error {
 	if request.OrganizationId == "" || request.AppDescriptorId == "" ||
-		request.AppInstanceId == "" || request.ServiceGroupId == "" {
-		return derrors.NewInvalidArgumentError("expecting organization_id, app_descriptor_id, app_instance_id, service_group_id")
+		request.AppInstanceId == "" || request.ServiceGroupId == ""  || request.Metadata == nil {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_descriptor_id, app_instance_id, service_group_id, metadata")
+	} else if request.Metadata.OrganizationId == "" || request.Metadata.AppInstanceId == "" ||
+		request.Metadata.AppDescriptorId == "" ||
+		request.Metadata.ServiceGroupId == "" || request.Metadata.InstancesId == nil ||
+		len(request.Metadata.InstancesId) == 0 || request.Metadata.Status == nil {
+		return derrors.NewInvalidArgumentError("expecting metadata organization_id, app_instance_id, app_descriptor_id, " +
+			"monitored_instance_id, service_group_id, instances_id, status")
 	}
 	return nil
 }
@@ -1281,14 +1293,14 @@ func ValidAddServiceInstanceRequest(request *grpc_application_go.AddServiceInsta
 func  ValidateDescriptor(descriptor AppDescriptor) derrors.Error {
 	// for each group
 	for _, group := range descriptor.Groups {
-		for _,service := range group.Services {
+		for _, service := range group.Services {
 			// Validate service name
 			kerr := validation.IsDNS1123Label(service.Name)
 			if len(kerr) > 0 {
 				return derrors.NewInvalidArgumentError("Service Name").WithParams(service.Name).WithParams(kerr)
 			}
 			// validate Exposed Port Name and Number
-			for _,port := range service.ExposedPorts {
+			for _, port := range service.ExposedPorts {
 				kerr = validation.IsValidPortName(port.Name)
 				if len(kerr) > 0 {
 					return derrors.NewInvalidArgumentError("Port Name").WithParams(port.Name).WithParams(kerr)
@@ -1303,6 +1315,23 @@ func  ValidateDescriptor(descriptor AppDescriptor) derrors.Error {
 				}
 			}
 		}
+	}
+	return nil
+}
+
+func ValidGetServiceGroupInstanceMetadataRequest(request *grpc_application_go.GetServiceGroupInstanceMetadataRequest) derrors.Error {
+	if request.OrganizationId == "" || request.AppInstanceId == "" || request.ServiceGroupInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +
+			"service_group_instance_id")
+	}
+	return nil
+}
+
+func ValidUpdateInstanceMetadata(request *grpc_application_go.InstanceMetadata) derrors.Error {
+	if request.OrganizationId == "" || request.AppInstanceId == "" || request.ServiceGroupId == "" ||
+		request.AppDescriptorId == "" || request.MonitoredInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +
+			"service_group_instance_id, app_descriptor_id, monitored_instance_id")
 	}
 	return nil
 }

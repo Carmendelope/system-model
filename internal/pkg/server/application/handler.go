@@ -191,3 +191,34 @@ func (h *Handler) AddServiceInstance(ctx context.Context, addRequest *grpc_appli
 
 	return serviceInstance.ToGRPC(), nil
 }
+
+
+// GetServiceGroupInstanceMetadata returns the metadata entry of an existing ServiceGroupInstance
+func (h *Handler) GetServiceGroupInstanceMetadata(ctx context.Context, getRequest *grpc_application_go.GetServiceGroupInstanceMetadataRequest) (*grpc_application_go.InstanceMetadata, error) {
+	err := entities.ValidGetServiceGroupInstanceMetadataRequest(getRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	metadata, err := h.Manager.GetServiceGroupInstanceMetadata(getRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	return metadata.ToGRPC(), nil
+}
+// UpdateServiceGroupInstanceMetadata updates the value of an existing metadata instance
+func (h *Handler) UpdateServiceGroupInstanceMetadata(ctx context.Context, updateMetadataRequest *grpc_application_go.InstanceMetadata) (*grpc_common_go.Success, error) {
+	err := entities.ValidUpdateInstanceMetadata(updateMetadataRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	err = h.Manager.UpdateServiceGroupInstanceMetadata(updateMetadataRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	return &grpc_common_go.Success{}, nil
+
+}

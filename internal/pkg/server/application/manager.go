@@ -5,6 +5,7 @@
 package application
 
 import (
+	"fmt"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-organization-go"
@@ -437,6 +438,11 @@ func (m * Manager) AddServiceGroupInstance(request *grpc_application_go.AddServi
 
 	// serviceGroupInstance
 	sgInst := serviceGroup.ToEmptyServiceGroupInstance(request.AppInstanceId)
+	
+	// set metadata
+	sgInst.Metadata = entities.NewMetadataFromGRPC(request.Metadata)
+	// we fill the metadata monitored instance id with the one just generated
+	sgInst.Metadata.MonitoredInstanceId = sgInst.ServiceGroupInstanceId
 
 	// get the app instance
 	retrieved, err := m.AppProvider.GetInstance(request.AppInstanceId)
@@ -455,6 +461,58 @@ func (m * Manager) AddServiceGroupInstance(request *grpc_application_go.AddServi
 
 	return sgInst, nil
 }
+
+
+func (m *Manager) GetServiceGroupInstanceMetadata(request *grpc_application_go.GetServiceGroupInstanceMetadataRequest) (*entities.InstanceMetadata, derrors.Error) {
+	// Get the corresponding instance
+	appInst, err := m.AppProvider.GetInstance(request.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Find the service group instance
+	for _, groupInst := range appInst.Groups {
+		if groupInst.ServiceGroupInstanceId == request.ServiceGroupInstanceId {
+			return groupInst.Metadata, nil
+		}
+	}
+
+	// Not found
+	return nil, derrors.NewNotFoundError(fmt.Sprintf("service group instance %s not found", request.ServiceGroupInstanceId))
+}
+
+
+func (m *Manager) UpdateServiceGroupInstanceMetadata(request *grpc_application_go.InstanceMetadata) derrors.Error {
+	// Get the corresponding instance
+	appInst, err := m.AppProvider.GetInstance(request.AppInstanceId)
+	if err != nil {
+		return err
+	}
+
+	// Find the service group instance and update it
+	var targetGroupInst entities.ServiceGroupInstance
+	found := false
+	for _, groupInst := range appInst.Groups {
+		if groupInst.ServiceGroupInstanceId == request.MonitoredInstanceId {
+			targetGroupInst = groupInst
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return derrors.NewNotFoundError(fmt.Sprintf("service group instance %s not found", request.MonitoredInstanceId))
+	}
+
+	//update the corresponding application instance
+	targetGroupInst.Metadata = entities.NewMetadataFromGRPC(request)
+	err = m.AppProvider.UpdateInstance(*appInst)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 
 func (m * Manager) AddServiceInstance(request *grpc_application_go.AddServiceInstanceRequest) (*entities.ServiceInstance, derrors.Error) {
 	// Check if the app descriptor exists (for this organization)
