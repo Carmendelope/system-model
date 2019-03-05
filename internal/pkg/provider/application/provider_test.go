@@ -3,8 +3,6 @@ package application
 import (
 	"github.com/google/uuid"
 	"github.com/nalej/system-model/internal/pkg/entities"
-
-	//	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 )

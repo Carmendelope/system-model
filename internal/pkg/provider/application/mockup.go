@@ -45,11 +45,7 @@ func (m *MockupApplicationProvider) unsafeExistsAppInst(instanceID string) bool 
 
 // AddDescriptor adds a new application descriptor to the system.
 func (m *MockupApplicationProvider) AddDescriptor(descriptor entities.AppDescriptor) derrors.Error {
-	/*errs := ValidateDescriptor(descriptor)
-	if len(errs) > 0 {
-		err := derrors.NewFailedPreconditionError(fmt.Sprintf("%s: %v","App descriptor validation failed",errs))
-		return err
-	}*/
+
 	m.Lock()
 	defer m.Unlock()
 	if !m.unsafeExistsAppDesc(descriptor.AppDescriptorId){
