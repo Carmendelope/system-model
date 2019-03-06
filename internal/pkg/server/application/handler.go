@@ -163,20 +163,32 @@ func (h *Handler) RemoveAppInstance(ctx context.Context, appInstID *grpc_applica
 	return &grpc_common_go.Success{},nil
 }
 
+
 // AddServiceGroupInstance to an already existing application instance
-func (h *Handler) AddServiceGroupInstance(ctx context.Context, addRequest *grpc_application_go.AddServiceGroupInstanceRequest) (*grpc_application_go.ServiceGroupInstance, error){
+func (h *Handler) AddServiceGroupInstances(ctx context.Context, addRequest *grpc_application_go.AddServiceGroupInstancesRequest) (*grpc_application_go.ServiceGroupInstancesList, error){
 	err := entities.ValidAddServiceGroupInstanceRequest(addRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 
-	service, err := h.Manager.AddServiceGroupInstance(addRequest)
+	instances, err := h.Manager.AddServiceGroupInstances(addRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 
-	return service.ToGRPC(), nil
+	result := make([]*grpc_application_go.ServiceGroupInstance, len(instances))
+	for i, inst := range instances {
+		result[i] = inst.ToGRPC()
+	}
+
+	toReturn := grpc_application_go.ServiceGroupInstancesList{
+		ServiceGroupInstances: result,
+	}
+
+	return &toReturn, nil
 }
+
+
 // AddServiceInstance to an already existing service group instance
 func (h *Handler) AddServiceInstance(ctx context.Context, addRequest *grpc_application_go.AddServiceInstanceRequest) (*grpc_application_go.ServiceInstance, error) {
 	err := entities.ValidAddServiceInstanceRequest(addRequest)
@@ -207,6 +219,8 @@ func (h *Handler) GetServiceGroupInstanceMetadata(ctx context.Context, getReques
 
 	return metadata.ToGRPC(), nil
 }
+
+
 // UpdateServiceGroupInstanceMetadata updates the value of an existing metadata instance
 func (h *Handler) UpdateServiceGroupInstanceMetadata(ctx context.Context, updateMetadataRequest *grpc_application_go.InstanceMetadata) (*grpc_common_go.Success, error) {
 	err := entities.ValidUpdateInstanceMetadata(updateMetadataRequest)

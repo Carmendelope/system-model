@@ -107,7 +107,6 @@ func CreateTestServiceInstance (organizationID string, appDescriptorID string, a
 		Endpoints:endpoints,
 		RunArguments: []string{"arg1, agr2"},
 		Info: "info",
-		DeploymentSelectors: map[string]string{"clusterSelector":"EDGE"},
 	}
 
 }
@@ -163,8 +162,6 @@ func CreateTestService (organizationID string, appDescriptorId string, serviceGr
 		Labels: map[string]string{"eti1": "label1(Service)", "eti2": "label2(Service)"},
 		DeployAfter: []string{"deploy after this", "and this"},
 		RunArguments:[] string{"arg1", "arg2", "arg3", "arg4"},
-		DeploymentSelectors: map[string]string{"clusterSelector":"EDGE"},
-
 	}
 }
 
