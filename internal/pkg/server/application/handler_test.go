@@ -167,18 +167,47 @@ func generateUpdateServiceStatus(organizationID string, appInstanceID string, se
     }
 }
 
+func InjectBadServiceName(descriptor *grpc_application_go.AddAppDescriptorRequest) {
+	for g, group := range descriptor.Groups {
+		for s,service := range group.Services {
+			descriptor.Groups[g].Services[s].Name = fmt.Sprintf("%s #*",service.Name)
+		}
+	}
+}
+
+func InjectBadPortName(descriptor *grpc_application_go.AddAppDescriptorRequest) {
+	for g, group := range descriptor.Groups {
+		for s,service := range group.Services {
+			for p,port := range service.ExposedPorts {
+				descriptor.Groups[g].Services[s].ExposedPorts[p].Name = fmt.Sprintf("%s12345678912345678",port.Name)
+			}
+		}
+	}
+}
+
+func InjectBadPortNumber(descriptor *grpc_application_go.AddAppDescriptorRequest) {
+	for g, group := range descriptor.Groups {
+		for s, service := range group.Services {
+			for p, port := range service.ExposedPorts {
+				descriptor.Groups[g].Services[s].ExposedPorts[p].ExposedPort = port.ExposedPort + 65536
+				descriptor.Groups[g].Services[s].ExposedPorts[p].InternalPort = port.InternalPort + 65536
+			}
+		}
+	}
+}
+
 func generateServiceGroupInstanceMetadata(appInstance grpc_application_go.AppInstance) *grpc_application_go.InstanceMetadata {
 	return &grpc_application_go.InstanceMetadata{
-		AvailableReplicas: 1,
+		AvailableReplicas:   1,
 		UnavailableReplicas: 0,
-		DesiredReplicas: 1,
-		AppInstanceId: appInstance.AppInstanceId,
-		InstancesId: []string{"appMonitored001"},
-		ServiceGroupId: appInstance.Groups[0].ServiceGroupId,
-		AppDescriptorId: appInstance.AppDescriptorId,
-		Info: map[string]string{"appMonitored001": "info"},
-		Type: grpc_application_go.InstanceType_SERVICE_GROUP_INSTANCE,
-		OrganizationId: appInstance.OrganizationId,
+		DesiredReplicas:     1,
+		AppInstanceId:       appInstance.AppInstanceId,
+		InstancesId:         []string{"appMonitored001"},
+		ServiceGroupId:      appInstance.Groups[0].ServiceGroupId,
+		AppDescriptorId:     appInstance.AppDescriptorId,
+		Info:                map[string]string{"appMonitored001": "info"},
+		Type:                grpc_application_go.InstanceType_SERVICE_GROUP_INSTANCE,
+		OrganizationId:      appInstance.OrganizationId,
 		// MonitoredInstanceId: --> to be filled by the system model after addition
 		Status: map[string]grpc_application_go.ServiceStatus{
 			"service1": grpc_application_go.ServiceStatus_SERVICE_DEPLOYING,
@@ -289,6 +318,31 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(err).Should(gomega.HaveOccurred())
 				gomega.Expect(app).Should(gomega.BeNil())
 			})
+			// AddDescriptor with BadServiceName
+			ginkgo.It("Should fail to add a descriptor with bad service name", func() {
+
+				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
+				InjectBadServiceName(toAdd)
+				_, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).NotTo(gomega.Succeed())
+			})
+			// AddDescriptor with Bad portname
+			ginkgo.It("Should fail to add a descriptor with bad port name", func() {
+
+				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
+				InjectBadPortName(toAdd)
+				_, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).NotTo(gomega.Succeed())
+			})
+			// AddDescriptor with Bad portname
+			ginkgo.It("Should fail to add a descriptor with bad port number", func() {
+
+				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
+				InjectBadPortNumber(toAdd)
+				_, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).NotTo(gomega.Succeed())
+			})
+
 		})
 		ginkgo.Context("get application descriptor", func(){
 		    ginkgo.It("should get an existing app descriptor", func(){

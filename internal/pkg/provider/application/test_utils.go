@@ -305,31 +305,3 @@ func CreateTestApplicationDescriptor (organizationID string) *entities.AppDescri
 
 }
 
-func InjectBadServiceName(descriptor *entities.AppDescriptor) {
-	for g, group := range descriptor.Groups {
-		for s,service := range group.Services {
-			descriptor.Groups[g].Services[s].Name = fmt.Sprintf("%s #*",service.Name)
-		}
-	}
-}
-
-func InjectBadPortName(descriptor *entities.AppDescriptor) {
-	for g, group := range descriptor.Groups {
-		for s,service := range group.Services {
-			for p,port := range service.ExposedPorts {
-				descriptor.Groups[g].Services[s].ExposedPorts[p].Name = fmt.Sprintf("%s12345678912345678",port.Name)
-			}
-		}
-	}
-}
-
-func InjectBadPortNumber(descriptor *entities.AppDescriptor) {
-	for g, group := range descriptor.Groups {
-		for s,service := range group.Services {
-			for p,port := range service.ExposedPorts {
-				descriptor.Groups[g].Services[s].ExposedPorts[p].ExposedPort = port.ExposedPort+65536
-				descriptor.Groups[g].Services[s].ExposedPorts[p].InternalPort = port.InternalPort+65536
-			}
-		}
-	}
-}
