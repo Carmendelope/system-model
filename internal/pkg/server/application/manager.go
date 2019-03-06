@@ -488,11 +488,11 @@ func (m *Manager) UpdateServiceGroupInstanceMetadata(request *grpc_application_g
 	}
 
 	// Find the service group instance and update it
-	var targetGroupInst entities.ServiceGroupInstance
+	targetGroupIndex := 0
 	found := false
-	for _, groupInst := range appInst.Groups {
+	for i, groupInst := range appInst.Groups {
 		if groupInst.ServiceGroupInstanceId == request.MonitoredInstanceId {
-			targetGroupInst = groupInst
+			targetGroupIndex = i
 			found = true
 			break
 		}
@@ -503,7 +503,7 @@ func (m *Manager) UpdateServiceGroupInstanceMetadata(request *grpc_application_g
 	}
 
 	//update the corresponding application instance
-	targetGroupInst.Metadata = entities.NewMetadataFromGRPC(request)
+	appInst.Groups[targetGroupIndex].Metadata = entities.NewMetadataFromGRPC(request)
 	err = m.AppProvider.UpdateInstance(*appInst)
 	if err != nil {
 		return err
