@@ -1221,10 +1221,6 @@ func (sg * ServiceGroup) ToEmptyServiceGroupInstance(appInstanceID string) *Serv
 func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceRequest, descriptor * AppDescriptor) * AppInstance {
 	uuid := GenerateUUID()
 
-	groups := make([]ServiceGroupInstance, 0)
-	for _, g := range descriptor.Groups {
-		groups = append(groups, *g.ToServiceGroupInstance(uuid))
-	}
 	return &AppInstance{
 		OrganizationId:       addRequest.OrganizationId,
 		AppDescriptorId:      addRequest.AppDescriptorId,
@@ -1234,7 +1230,8 @@ func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceReque
 		EnvironmentVariables: descriptor.EnvironmentVariables,
 		Labels:               descriptor.Labels,
 		Rules:                descriptor.Rules,
-		Groups:               groups,
+		// ServiceGroupInstances are added using the addservicegroupinstances function
+		//Groups:               groups,
 		Status: Queued,
 	}
 }
