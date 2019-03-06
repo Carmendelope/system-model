@@ -162,6 +162,8 @@ type ServiceGroupDeploymentSpecs struct {
 	NumReplicas int32 `json:"num_replicas,omitempty" cql:"num_replicas"`
 	// Indicate if this service group must be replicated in every cluster
 	MultiClusterReplica  bool     `json:"multi_cluster_replica,omitempty" cql:"multi_cluster_replica"`
+	// DeploymentSelectors defines a key-value map of deployment selectors
+	DeploymentSelectors  map[string]string `json:"deployment_selectors,omitempty" cql:"deployment_selectors"`
 }
 
 func NewServiceGroupDeploymentSpecsFromGRPC(specs * grpc_application_go.ServiceGroupDeploymentSpecs) * ServiceGroupDeploymentSpecs{
@@ -171,6 +173,7 @@ func NewServiceGroupDeploymentSpecsFromGRPC(specs * grpc_application_go.ServiceG
 	return &ServiceGroupDeploymentSpecs{
 		NumReplicas:         specs.NumReplicas,
 		MultiClusterReplica: specs.MultiClusterReplica,
+		DeploymentSelectors: specs.DeploymentSelectors,
 	}
 }
 
@@ -181,6 +184,7 @@ func (sp * ServiceGroupDeploymentSpecs) ToGRPC() *grpc_application_go.ServiceGro
 	return &grpc_application_go.ServiceGroupDeploymentSpecs{
 		NumReplicas:          sp.NumReplicas,
 		MultiClusterReplica:  sp.MultiClusterReplica,
+		DeploymentSelectors:  sp.DeploymentSelectors,
 	}
 }
 
@@ -376,6 +380,35 @@ func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInsta
 		Specs: 				sgi.Specs.ToGRPC(),
 		Labels: 			sgi.Labels,
 	}
+}
+
+// Use this function to fill the metadata object for an initial status.
+func (sgi *ServiceGroupInstance) FillMetadata(totalReplicas int) {
+	// fill the list of ids for the monitored instances
+	instancesId := make([]string, len(sgi.ServiceInstances))
+	statuses := make(map[string]ServiceStatus,len(sgi.ServiceInstances))
+	info := make(map[string]string,len(sgi.ServiceInstances))
+	for i, s := range sgi.ServiceInstances {
+		instancesId[i] = s.ServiceInstanceId
+		statuses[s.ServiceInstanceId] = ServiceScheduled
+		info[s.ServiceInstanceId] = ""
+	}
+
+	metadata := &InstanceMetadata{
+		AppInstanceId: sgi.AppInstanceId,
+		ServiceGroupId: sgi.ServiceGroupId,
+		AppDescriptorId: sgi.AppDescriptorId,
+		OrganizationId: sgi.OrganizationId,
+		MonitoredInstanceId: sgi.ServiceGroupInstanceId,
+		Type: ServiceGroupInstanceType,
+		InstancesId: instancesId,
+		Status: statuses,
+		DesiredReplicas: int32(totalReplicas),
+		AvailableReplicas: 0,
+		UnavailableReplicas: 0,
+		Info: info,
+	}
+	sgi.Metadata = metadata
 }
 
 // ----
@@ -669,8 +702,6 @@ type Service struct {
 	DeployAfter []string `json:"deploy_after,omitempty" cql:"deploy_after"`
 	// RunArguments contains the list of arguments
 	RunArguments [] string `json:"run_arguments" cql:"run_arguments"`
-	// DeploymentSelectors defines a key-value map of deployment selectors
-	DeploymentSelectors  map[string]string `json:"deployment_selectors,omitempty" cql:"deployment_selectors"`
 }
 
 func NewServiceFromGRPC(organizationID string, appDescriptorID string, serviceGroupId string, service *grpc_application_go.Service) * Service {
@@ -711,7 +742,6 @@ func NewServiceFromGRPC(organizationID string, appDescriptorID string, serviceGr
 		Labels:               service.Labels,
 		DeployAfter:          service.DeployAfter,
 		RunArguments: 		  service.RunArguments,
-		DeploymentSelectors:  service.DeploymentSelectors,
 	}
 }
 
@@ -746,7 +776,6 @@ func (s *Service) ToGRPC() *grpc_application_go.Service {
 		Labels:               s.Labels,
 		DeployAfter:          s.DeployAfter,
 		RunArguments:         s.RunArguments,
-		DeploymentSelectors:  s.DeploymentSelectors,
 	}
 }
 
@@ -774,7 +803,6 @@ func (s * Service) ToServiceInstance(appInstanceID string, serviceGroupInstanceI
 		DeployAfter:          s.DeployAfter,
 		Status:               ServiceWaiting,
 		RunArguments:         s.RunArguments,
-		DeploymentSelectors:  s.DeploymentSelectors,
 	}
 }
 
@@ -880,9 +908,6 @@ type ServiceInstance struct {
 	RunArguments [] string `json:"run_arguments" cql:"run_arguments"`
 	// Relevant information about this instance
 	Info string   `json:"info,omitempty" cql:"info"`
-	// DeploymentSelectors defines a key-value map of deployment selectors
-	DeploymentSelectors  map[string]string `json:"deployment_selectors,omitempty" cql:"deployment_selectors"`
-
 }
 
 func (si *ServiceInstance) ToGRPC() *grpc_application_go.ServiceInstance {
@@ -928,8 +953,6 @@ func (si *ServiceInstance) ToGRPC() *grpc_application_go.ServiceInstance {
 		DeployedOnClusterId:  	si.DeployedOnClusterId,
 		RunArguments: 		  	si.RunArguments,
 		Info:            		si.Info,
-		DeploymentSelectors:    si.DeploymentSelectors,
-
 	}
 
 }
@@ -1173,7 +1196,19 @@ func (sg * ServiceGroup) ToServiceGroupInstance(appInstanceID string) *ServiceGr
 }
 
 func (sg * ServiceGroup) ToEmptyServiceGroupInstance(appInstanceID string) *ServiceGroupInstance {
+
 	serviceGroupInstanceID := uuid.New().String()
+
+	instances := make([]ServiceInstance,len(sg.Services))
+	// New service instances for this service group
+	for i, g := range sg.Services {
+		instance := g.ToServiceInstance(appInstanceID, serviceGroupInstanceID)
+		instances[i] = *instance
+	}
+
+
+
+
 
 	return &ServiceGroupInstance{
 		OrganizationId: 		sg.OrganizationId,
@@ -1182,7 +1217,7 @@ func (sg * ServiceGroup) ToEmptyServiceGroupInstance(appInstanceID string) *Serv
 		ServiceGroupId: 		sg.ServiceGroupId,
 		ServiceGroupInstanceId: serviceGroupInstanceID,
 		Name: 					sg.Name,
-		ServiceInstances:		make ([]ServiceInstance, 0),
+		ServiceInstances:		instances,
 		Policy: 				sg.Policy,
 		Status: 				ServiceScheduled,
 		Specs: 					sg.Specs,
@@ -1193,10 +1228,6 @@ func (sg * ServiceGroup) ToEmptyServiceGroupInstance(appInstanceID string) *Serv
 func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceRequest, descriptor * AppDescriptor) * AppInstance {
 	uuid := GenerateUUID()
 
-	groups := make([]ServiceGroupInstance, 0)
-	for _, g := range descriptor.Groups {
-		groups = append(groups, *g.ToServiceGroupInstance(uuid))
-	}
 	return &AppInstance{
 		OrganizationId:       addRequest.OrganizationId,
 		AppDescriptorId:      addRequest.AppDescriptorId,
@@ -1206,7 +1237,8 @@ func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceReque
 		EnvironmentVariables: descriptor.EnvironmentVariables,
 		Labels:               descriptor.Labels,
 		Rules:                descriptor.Rules,
-		Groups:               groups,
+		// ServiceGroupInstances are added using the addservicegroupinstances function
+		//Groups:               groups,
 		Status: Queued,
 	}
 }
@@ -1265,17 +1297,13 @@ func ValidUpdateServiceStatusRequest (updateRequest *grpc_application_go.UpdateS
 	return nil
 }
 
-func ValidAddServiceGroupInstanceRequest (request *grpc_application_go.AddServiceGroupInstanceRequest) derrors.Error {
+func ValidAddServiceGroupInstanceRequest (request *grpc_application_go.AddServiceGroupInstancesRequest) derrors.Error {
 	if request.OrganizationId == "" || request.AppDescriptorId == "" ||
-		request.AppInstanceId == "" || request.ServiceGroupId == ""  || request.Metadata == nil {
-		return derrors.NewInvalidArgumentError("expecting organization_id, app_descriptor_id, app_instance_id, service_group_id, metadata")
-	} else if request.Metadata.OrganizationId == "" || request.Metadata.AppInstanceId == "" ||
-		request.Metadata.AppDescriptorId == "" ||
-		request.Metadata.ServiceGroupId == "" || request.Metadata.InstancesId == nil ||
-		len(request.Metadata.InstancesId) == 0 || request.Metadata.Status == nil {
-		return derrors.NewInvalidArgumentError("expecting metadata organization_id, app_instance_id, app_descriptor_id, " +
-			"monitored_instance_id, service_group_id, instances_id, status")
+		request.AppInstanceId == "" || request.ServiceGroupId == ""  || request.NumInstances <= 0 {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_descriptor_id, app_instance_id, " +
+			"service_group_id, metadata, numInstances greater than zero")
 	}
+
 	return nil
 }
 

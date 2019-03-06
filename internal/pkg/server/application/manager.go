@@ -398,7 +398,7 @@ func (m * Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceI
 	return err
 }
 
-func (m * Manager) AddServiceGroupInstance(request *grpc_application_go.AddServiceGroupInstanceRequest) (*entities.ServiceGroupInstance, derrors.Error){
+func (m * Manager) AddServiceGroupInstances(request *grpc_application_go.AddServiceGroupInstancesRequest) ([]entities.ServiceGroupInstance, derrors.Error){
 
 	// check if the app instance exists (for this organization)
 	exists, err := m.OrgProvider.InstanceExists(request.OrganizationId, request.AppInstanceId)
@@ -436,13 +436,15 @@ func (m * Manager) AddServiceGroupInstance(request *grpc_application_go.AddServi
 		return nil, derrors.NewNotFoundError("ServiceGroupId").WithParams(request.ServiceGroupId)
 	}
 
-	// serviceGroupInstance
-	sgInst := serviceGroup.ToEmptyServiceGroupInstance(request.AppInstanceId)
-	
-	// set metadata
-	sgInst.Metadata = entities.NewMetadataFromGRPC(request.Metadata)
-	// we fill the metadata monitored instance id with the one just generated
-	sgInst.Metadata.MonitoredInstanceId = sgInst.ServiceGroupInstanceId
+	// Generate as many service group instances as required
+	result := make([]entities.ServiceGroupInstance,request.NumInstances)
+	for numReplica := int32(0); numReplica < request.NumInstances; numReplica++ {
+		// create the group
+		sgi := serviceGroup.ToServiceGroupInstance(request.AppInstanceId)
+		// fill the metadata
+		sgi.FillMetadata(int(request.NumInstances))
+		result[numReplica] = *sgi
+	}
 
 	// get the app instance
 	retrieved, err := m.AppProvider.GetInstance(request.AppInstanceId)
@@ -450,8 +452,12 @@ func (m * Manager) AddServiceGroupInstance(request *grpc_application_go.AddServi
 		return nil, err
 	}
 
-	// add the new service group into the instance groups
-	retrieved.Groups = append (retrieved.Groups, *sgInst)
+
+
+	// set the new values for these service group instances
+	retrieved.Groups = append(retrieved.Groups, result...)
+
+	log.Debug().Interface("ServiceGroupInstance",retrieved).Msg("result after adding servicegroupinstances")
 
 	// update
 	err = m.AppProvider.UpdateInstance(*retrieved)
@@ -459,7 +465,9 @@ func (m * Manager) AddServiceGroupInstance(request *grpc_application_go.AddServi
 		return nil, err
 	}
 
-	return sgInst, nil
+	log.Debug().Interface("retrievedAppInstance", retrieved).Msg("this is the retrieved instance")
+
+	return result, nil
 }
 
 
@@ -490,11 +498,11 @@ func (m *Manager) UpdateServiceGroupInstanceMetadata(request *grpc_application_g
 	}
 
 	// Find the service group instance and update it
-	var targetGroupInst entities.ServiceGroupInstance
+	targetGroupIndex := 0
 	found := false
-	for _, groupInst := range appInst.Groups {
+	for i, groupInst := range appInst.Groups {
 		if groupInst.ServiceGroupInstanceId == request.MonitoredInstanceId {
-			targetGroupInst = groupInst
+			targetGroupIndex = i
 			found = true
 			break
 		}
@@ -505,7 +513,7 @@ func (m *Manager) UpdateServiceGroupInstanceMetadata(request *grpc_application_g
 	}
 
 	//update the corresponding application instance
-	targetGroupInst.Metadata = entities.NewMetadataFromGRPC(request)
+	appInst.Groups[targetGroupIndex].Metadata = entities.NewMetadataFromGRPC(request)
 	err = m.AppProvider.UpdateInstance(*appInst)
 	if err != nil {
 		return err
