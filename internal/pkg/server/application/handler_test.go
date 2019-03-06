@@ -561,7 +561,7 @@ var _ = ginkgo.Describe("Applications", func(){
 					OrganizationId:  targetDescriptor.OrganizationId,
 					AppDescriptorId: targetDescriptor.AppDescriptorId,
 					AppInstanceId:   added.AppInstanceId,
-					ServiceGroupId:  added.Groups[0].ServiceGroupId,
+					ServiceGroupId:  targetDescriptor.Groups[0].ServiceGroupId,
 					NumInstances: 1,
 				}
 
