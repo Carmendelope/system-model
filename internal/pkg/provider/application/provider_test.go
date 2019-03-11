@@ -10,7 +10,7 @@ import (
 func RunTest(provider Provider) {
 
 	ginkgo.BeforeEach(func() {
-		//provider.Clear()
+		provider.Clear()
 	})
 
 	ginkgo.Context("Descriptor", func() {
@@ -221,7 +221,7 @@ func RunTest(provider Provider) {
 			err := provider.AddAppEntryPoint(*entrypoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			retrieved, err := provider.GetAppEntryPointByFQDN(entrypoint.PrettyFqdn)
+			retrieved, err := provider.GetAppEntryPointByFQDN(entrypoint.GlobalFqdn)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieved).NotTo(gomega.BeEmpty())
 			gomega.Expect(retrieved[0].OrganizationId).Should(gomega.Equal(entrypoint.OrganizationId))
@@ -236,7 +236,7 @@ func RunTest(provider Provider) {
 			err = provider.AddAppEntryPoint(*endpoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			retrieved, err := provider.GetAppEntryPointByFQDN(endpoint.PrettyFqdn)
+			retrieved, err := provider.GetAppEntryPointByFQDN(endpoint.GlobalFqdn)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieved).NotTo(gomega.BeEmpty())
 			gomega.Expect(len(retrieved)).Should(gomega.Equal(2))

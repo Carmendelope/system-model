@@ -169,11 +169,11 @@ func (m *MockupApplicationProvider)AddAppEntryPoint (appEntryPoint entities.AppE
 	key := m.getAppEndpointKey(appEntryPoint)
 	m.appEntryPoints[key] = appEntryPoint
 
-	list, exists := m.appEntryPointsByName[appEntryPoint.PrettyFqdn]
+	list, exists := m.appEntryPointsByName[appEntryPoint.GlobalFqdn]
 	if exists{
-		m.appEntryPointsByName[appEntryPoint.PrettyFqdn] = append(list, &appEntryPoint)
+		m.appEntryPointsByName[appEntryPoint.GlobalFqdn] = append(list, &appEntryPoint)
 	}else {
-		m.appEntryPointsByName[appEntryPoint.PrettyFqdn] = []*entities.AppEndpoint{&appEntryPoint}
+		m.appEntryPointsByName[appEntryPoint.GlobalFqdn] = []*entities.AppEndpoint{&appEntryPoint}
 	}
 
 	return nil

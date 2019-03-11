@@ -284,7 +284,6 @@ var _ = ginkgo.Describe("Applications", func(){
 
 	ginkgo.BeforeEach(func(){
 		ginkgo.By("cleaning the mockups", func(){
-			// TODO: descomentar
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			applicationProvider.(*appProvider.MockupApplicationProvider).Clear()
 			deviceProvider.(*devProvider.MockupDeviceProvider).Clear()
@@ -749,10 +748,10 @@ var _ = ginkgo.Describe("Applications", func(){
 			gomega.Expect(success).ShouldNot(gomega.BeNil())
 
 			fqdnSplit := strings.Split(endPoint.EndpointInstance.Fqdn, ".")
-			prettyFqdn := fmt.Sprintf("%s.%s.%s.%s.prettydomain.com", fqdnSplit[0], fqdnSplit[1], fqdnSplit[2], organizationID[:8])
+			globalFqdn := fmt.Sprintf("%s.%s.%s.%s.globaldomain.com", fqdnSplit[0], fqdnSplit[1], fqdnSplit[2], organizationID[:8])
 
 			list, err := client.GetAppEndpoints(context.Background(), &grpc_application_go.GetAppEndPointRequest{
-				Fqdn: prettyFqdn,
+				Fqdn: globalFqdn,
 			})
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(list).NotTo(gomega.BeNil())
@@ -796,7 +795,7 @@ var _ = ginkgo.Describe("Applications", func(){
 			gomega.Expect(success).ShouldNot(gomega.BeNil())
 
 			_, err = client.GetAppEndpoints(context.Background(), &grpc_application_go.GetAppEndPointRequest{
-				Fqdn: "service.gggggg.aaaaaa.xxxxxxxx.prettydomain",
+				Fqdn: "service.gggggg.aaaaaa.xxxxxxxx.globaldomain",
 			})
 			gomega.Expect(err).NotTo(gomega.Succeed())
 

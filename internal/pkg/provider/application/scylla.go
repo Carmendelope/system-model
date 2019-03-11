@@ -482,6 +482,12 @@ func (sp *ScyllaApplicationProvider) Clear() derrors.Error {
 		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the applications descriptor table")
 		return derrors.AsError(err, "cannot truncate applicationdescriptors table")
 	}
+
+	err = sp.Session.Query("TRUNCATE TABLE AppEntrypoints").Exec()
+	if err != nil {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the applications endpoints table")
+		return derrors.AsError(err, "cannot truncate AppEntrypoints table")
+	}
 	return nil
 
 
@@ -503,7 +509,7 @@ func (sp *ScyllaApplicationProvider) AddAppEntryPoint (appEntryPoint entities.Ap
 
 	// insert the appEntryPoint
 	stmt, names := qb.Insert("appentrypoints").Columns("organization_id","app_instance_id","service_group_instance_id",
-		"service_instance_id","port","endpoint_instance_id","fqdn","pretty_fqdn","protocol","type").ToCql()
+		"service_instance_id","port","endpoint_instance_id","fqdn","global_fqdn","protocol","type").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(appEntryPoint)
 	cqlErr := q.ExecRelease()
 
@@ -525,10 +531,10 @@ func (sp *ScyllaApplicationProvider) GetAppEntryPointByFQDN(fqdn string) ([]*ent
 	}
 
 	stmt, names := qb.Select("appentrypoints").Columns("organization_id", "app_instance_id", "service_group_instance_id",
-		"service_instance_id", "port", "endpoint_instance_id", "fqdn", "pretty_fqdn", "protocol", "type").
-		Where(qb.Eq("pretty_fqdn")).ToCql()
+		"service_instance_id", "port", "endpoint_instance_id", "fqdn", "global_fqdn", "protocol", "type").
+		Where(qb.Eq("global_fqdn")).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"pretty_fqdn": fqdn,
+		"global_fqdn": fqdn,
 	})
 
 	entrypoints := make([]*entities.AppEndpoint, 0)

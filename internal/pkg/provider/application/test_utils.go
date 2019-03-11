@@ -317,6 +317,6 @@ func CreateAppEntryPoint () *entities.AppEndpoint {
 		EndpointInstanceId: uuid.New().String(),
 		Type: entities.IsAlive,
 		Fqdn: "fqdn.domain.es",
-		PrettyFqdn: fmt.Sprintf("%d.prettydomain.es", rand.Int()),
+		GlobalFqdn: fmt.Sprintf("%d.globaldomain.es", rand.Int()),
 	}
 }

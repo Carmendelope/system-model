@@ -1088,8 +1088,8 @@ type AppEndpoint struct {
 	Type EndpointType `json:"type,omitempty" cql:"type"`
 	// FQDN to be accessed by any client
 	Fqdn string   `json:"fqdn,omitempty" cql:"fqdn"`
-	// PrettyFqdn
-	PrettyFqdn string `json:"pretty_fqdn,omitempty" cql:"pretty_fqdn"`
+	// GlobalFqdn
+	GlobalFqdn string `json:"global_fqdn,omitempty" cql:"global_fqdn"`
 }
 
 func (ep * AppEndpoint) ToGRPC () *grpc_application_go.AppEndpoint {
@@ -1126,12 +1126,16 @@ func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AppEndpoint) (* AppEnd
 	// B: app_instance_id
 
 		// We need to store:
-	// Pretty Fqdn: serv.A.B.C.domain
+	// Global Fqdn: serv.A.B.C.domain
 	// where
 	// A: service_group_id (6 characters)
 	// B: app_instance_id (6 characters)
 	// C: organization_id (8 characters)
 	// the domain is not stored
+	organizationID := endpoint.OrganizationId
+	if len (endpoint.OrganizationId) > 8 {
+		organizationID = endpoint.OrganizationId[:8]
+	}
 	fqdnSplit := strings.Split(fqdn, ".")
 	return &AppEndpoint{
 		OrganizationId: endpoint.OrganizationId,
@@ -1143,7 +1147,7 @@ func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AppEndpoint) (* AppEnd
 		EndpointInstanceId:endpointInstanceId,
 		Type:  endpointType,
 		Fqdn: fqdn,
-		PrettyFqdn:fmt.Sprintf("%s.%s.%s.%s", fqdnSplit[0], fqdnSplit[1], fqdnSplit[2], endpoint.OrganizationId[:8]),
+		GlobalFqdn:fmt.Sprintf("%s.%s.%s.%s", fqdnSplit[0], fqdnSplit[1], fqdnSplit[2], organizationID),
 	}, nil
 }
 

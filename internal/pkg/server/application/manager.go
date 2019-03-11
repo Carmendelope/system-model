@@ -614,9 +614,9 @@ func (m * Manager) AddAppEndpoint(appEndpoint *grpc_application_go.AppEndpoint) 
 func (m * Manager) GetAppEndpoint(request *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AddEndpointList, derrors.Error){
 
 	split := strings.Split(request.Fqdn, ".")
-	prettyFqdn:=fmt.Sprintf("%s.%s.%s.%s", split[0], split[1], split[2], split[3])
+	globalFqdn:=fmt.Sprintf("%s.%s.%s.%s", split[0], split[1], split[2], split[3])
 
-	list, err := m.AppProvider.GetAppEntryPointByFQDN(prettyFqdn)
+	list, err := m.AppProvider.GetAppEntryPointByFQDN(globalFqdn)
 	if err != nil {
 		return nil, err
 	}
