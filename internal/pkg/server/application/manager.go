@@ -301,6 +301,9 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 	}
 
 	toUpdate.Status = entities.AppStatusFromGRPC[updateRequest.Status]
+	if updateRequest.Info != "" {
+		toUpdate.Info = updateRequest.Info
+	}
 
 	err = m.AppProvider.UpdateInstance(*toUpdate)
 	if err != nil {

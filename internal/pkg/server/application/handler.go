@@ -6,6 +6,7 @@ package application
 
 import (
 	"context"
+	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
@@ -235,4 +236,13 @@ func (h *Handler) UpdateServiceGroupInstanceMetadata(ctx context.Context, update
 
 	return &grpc_common_go.Success{}, nil
 
+}
+
+// AddAppEndPoint adds a new App Endpoint to a given service instance
+func (h *Handler) AddAppEndpoint(ctx context.Context, in *grpc_application_go.AppEndpoint) (*grpc_common_go.Success, error) {
+	return nil, derrors.NewUnavailableError("this operation is not implemented yet")
+}
+// GetAppEndPoint retrieves a list of appEndpoints
+func (h *Handler) GetAppEndpoints(ctx context.Context, in *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AddEndpointList, error) {
+	return nil, derrors.NewUnavailableError("this operation is not implemented yet")
 }
