@@ -486,3 +486,58 @@ func (sp *ScyllaApplicationProvider) Clear() derrors.Error {
 
 
 }
+
+
+// ---------------------------------------------------------------------------------------------------------------------
+// AddAppEntryPoint adds a new entry point to the system
+func (sp *ScyllaApplicationProvider) AddAppEntryPoint (appEntryPoint entities.AppEndpoint) derrors.Error {
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return err
+	}
+
+	// insert the appEntryPoint
+	stmt, names := qb.Insert("appentrypoints").Columns("organization_id","app_instance_id","service_group_instance_id",
+		"service_instance_id","port","endpoint_instance_id","fqdn","pretty_fqdn","protocol","type").ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(appEntryPoint)
+	cqlErr := q.ExecRelease()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot add appEntryPoint")
+	}
+
+	return nil
+}
+
+// GetAppEntryPointByFQDN ()
+func (sp *ScyllaApplicationProvider) GetAppEntryPointByFQDN(fqdn string) ([]*entities.AppEndpoint, derrors.Error) {
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.checkAndConnect(); err != nil {
+		return nil, err
+	}
+
+	stmt, names := qb.Select("appentrypoints").Columns("organization_id", "app_instance_id", "service_group_instance_id",
+		"service_instance_id", "port", "endpoint_instance_id", "fqdn", "pretty_fqdn", "protocol", "type").
+		Where(qb.Eq("pretty_fqdn")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"pretty_fqdn": fqdn,
+	})
+
+	entrypoints := make([]*entities.AppEndpoint, 0)
+	cqlErr := gocqlx.Select(&entrypoints, q.Query)
+
+	if cqlErr != nil {
+		return nil, derrors.AsError(cqlErr, "cannot list App entrypoints")
+	}
+
+	return entrypoints, nil
+
+}

@@ -47,6 +47,8 @@ data:
     create table IF NOT EXISTS nalej.ApplicationInstances (organization_id text, app_descriptor_id text, app_instance_id text, name text, configuration_options map<text, text>, environment_variables map<text, text>, labels map<text, text>, rules list<FROZEN<security_rule>>, groups list<FROZEN<service_group_instance>>, status int, metadata list<FROZEN<metadata>>, PRIMARY KEY (app_instance_id));
     create table IF NOT EXISTS nalej.ApplicationDescriptors (organization_id text, app_descriptor_id text, name text, configuration_options map<text, text>, environment_variables map<text, text>, labels map <text, text>, rules list<FROZEN<security_rule>>, groups list<FROZEN<service_group>>, PRIMARY KEY (app_descriptor_id));
 
+    create table IF NOT EXISTS nalej.AppEntrypoints(organization_id text, app_instance_id text, service_group_instance_id text, service_instance_id text, port int, protocol int, endpoint_instance_id text, type int, fqdn text, pretty_fqdn text,  PRIMARY KEY ((organization_id, app_instance_id), service_group_instance_id, service_instance_id, port));
+
 
     create table IF NOT EXISTS nalej.Devices (organization_id text, device_group_id text, device_id text, register_since bigint, labels map<text, text>, PRIMARY KEY ( (organization_id, device_group_id), device_id));
     create table IF NOT EXISTS nalej.DeviceGroups (organization_id text, device_group_id text, name text, created bigint, labels map<text, text>, primary KEY (organization_id, device_group_id));
@@ -56,7 +58,7 @@ data:
     -----------
     create index IF NOT EXISTS organizationName ON nalej.organizations (name);
     create index IF NOT EXISTS deviceGroupName ON nalej.DeviceGroups (name);
-
+    create index IF NOT EXISTS entrypointFqdn ON nalej.AppEntrypoints (pretty_fqdn);
 
   node_alive.sh: |
     #!/bin/bash

@@ -5,6 +5,7 @@
 package application
 
 import (
+	"fmt"
 	"github.com/nalej/derrors"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"sync"
@@ -14,21 +15,29 @@ type MockupApplicationProvider struct {
 	sync.Mutex
 	appDescriptors map[string] entities.AppDescriptor
 	appInstances map[string] entities.AppInstance
+
+	appEntryPoints map[string] entities.AppEndpoint
+	appEntryPointsByName map[string][]*entities.AppEndpoint
 }
 
 func NewMockupOrganizationProvider() * MockupApplicationProvider {
 	return &MockupApplicationProvider{
 		appDescriptors:make(map[string]entities.AppDescriptor, 0),
 		appInstances: make(map[string]entities.AppInstance, 0),
+		appEntryPoints:make(map[string]entities.AppEndpoint, 0),
+		appEntryPointsByName: make(map[string][]*entities.AppEndpoint, 0),
 	}
 }
 
 // Clear cleans the contents of the mockup.
 func (m * MockupApplicationProvider) Clear()  derrors.Error{
 	m.Lock()
+	defer m.Unlock()
+
 	m.appDescriptors = make(map[string] entities.AppDescriptor, 0)
 	m.appInstances = make(map[string] entities.AppInstance, 0)
-	m.Unlock()
+	m.appEntryPoints = make(map[string]entities.AppEndpoint, 0)
+	m.appEntryPointsByName = make(map[string][]*entities.AppEndpoint, 0)
 
 	return nil
 }
@@ -147,6 +156,41 @@ func (m *MockupApplicationProvider) UpdateInstance(instance entities.AppInstance
 	return nil
 }
 
+func (m*MockupApplicationProvider)getAppEndpointKey(appEntryPoint entities.AppEndpoint) string {
+	return fmt.Sprintf("%s-%s-%s-%s-%d", appEntryPoint.OrganizationId, appEntryPoint.AppInstanceId,
+		appEntryPoint.ServiceGroupInstanceId, appEntryPoint.ServiceInstanceId, appEntryPoint.Port)
+}
+
+// AddAppEntryPoint adds a new entry point to the system
+func (m *MockupApplicationProvider)AddAppEntryPoint (appEntryPoint entities.AppEndpoint) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+
+	key := m.getAppEndpointKey(appEntryPoint)
+	m.appEntryPoints[key] = appEntryPoint
+
+	list, exists := m.appEntryPointsByName[appEntryPoint.PrettyFqdn]
+	if exists{
+		m.appEntryPointsByName[appEntryPoint.PrettyFqdn] = append(list, &appEntryPoint)
+	}else {
+		m.appEntryPointsByName[appEntryPoint.PrettyFqdn] = []*entities.AppEndpoint{&appEntryPoint}
+	}
+
+	return nil
+}
+
+// GetAppEntryPointByFQDN ()
+func (m *MockupApplicationProvider) GetAppEntryPointByFQDN(fqdn string) ([]*entities.AppEndpoint, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+
+	list, exists := m.appEntryPointsByName[fqdn]
+	if exists{
+		return list, nil
+	}else {
+		return nil, derrors.NewNotFoundError("appEntryPoint").WithParams(fqdn)
+	}
+}
 
 
 
