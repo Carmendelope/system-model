@@ -1277,6 +1277,8 @@ type AppInstance struct {
 	Status  ApplicationStatus `json:"status,omitempty" cql:"status"`
 	// Metadata descriptor for the instances triggered by this app
 	Metadata []InstanceMetadata `json:"metadata,omitempty" cql:"metadata"`
+	// Textual information for this application instance
+	Info string `json:"info,omitempty" cql:"info"`
 
 }
 func (sg * ServiceGroup) ToServiceGroupInstance(appInstanceID string) *ServiceGroupInstance {
@@ -1341,6 +1343,7 @@ func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceReque
 		// ServiceGroupInstances are added using the addservicegroupinstances function
 		//Groups:               groups,
 		Status: Queued,
+		Info:                 "",
 	}
 }
 
@@ -1372,6 +1375,7 @@ func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
 		Groups:               groups,
 		Status:               status,
 		Metadata:             metadata,
+		Info:                 i.Info,
 	}
 }
 
