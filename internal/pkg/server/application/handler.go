@@ -6,7 +6,6 @@ package application
 
 import (
 	"context"
-	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
