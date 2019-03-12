@@ -445,7 +445,7 @@ func (sp *ScyllaApplicationProvider) UpdateInstance(instance entities.AppInstanc
 
 	// update the application instance
 	stmt, names := qb.Update(applicationTable).Set("organization_id","app_descriptor_id",
-		"name","configuration_options","environment_variables","labels","rules","groups", "status").Where(qb.Eq(applicationTablePK)).ToCql()
+		"name","configuration_options","environment_variables","labels","rules","groups", "status","info").Where(qb.Eq(applicationTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(instance)
 	cqlErr := q.ExecRelease()
 

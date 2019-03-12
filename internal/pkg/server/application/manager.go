@@ -305,6 +305,7 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 		toUpdate.Info = updateRequest.Info
 	}
 
+
 	err = m.AppProvider.UpdateInstance(*toUpdate)
 	if err != nil {
 		return derrors.NewInternalError("impossible to update instance").CausedBy(err)
