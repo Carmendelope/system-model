@@ -91,6 +91,7 @@
   revision = "79040c9131d9c20a205311bf565bc05b87e03a12"
   version = "v0.0.58"
 
+
 [[projects]]
   digest = "1:44f7426538411ea9f774f96e3b102decc9f549b188e55e29ecc15be69542a96b"
   name = "github.com/nalej/grpc-common-go"

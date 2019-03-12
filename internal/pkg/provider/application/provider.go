@@ -44,4 +44,10 @@ type Provider interface {
 	// Clear descriptors and instances
 	Clear() derrors.Error
 
+	// AddAppEntryPoint adds a new entry point to the system
+	AddAppEntryPoint (appEntryPoint entities.AppEndpoint) derrors.Error
+
+	// GetAppEntryPointByFQDN ()
+	GetAppEntryPointByFQDN(fqdn string) ([]*entities.AppEndpoint, derrors.Error)
+
 }

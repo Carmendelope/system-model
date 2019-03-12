@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/nalej/system-model/internal/pkg/entities"
+	"math/rand"
 )
 
 
@@ -305,3 +306,17 @@ func CreateTestApplicationDescriptor (organizationID string) *entities.AppDescri
 
 }
 
+func CreateAppEntryPoint () *entities.AppEndpoint {
+	return &entities.AppEndpoint{
+		OrganizationId: uuid.New().String(),
+		AppInstanceId: uuid.New().String(),
+		ServiceGroupInstanceId: uuid.New().String(),
+		ServiceInstanceId: uuid.New().String(),
+		Port: 8080,
+		Protocol: entities.HTTP,
+		EndpointInstanceId: uuid.New().String(),
+		Type: entities.IsAlive,
+		Fqdn: "fqdn.domain.es",
+		GlobalFqdn: fmt.Sprintf("%d.globaldomain.es", rand.Int()),
+	}
+}

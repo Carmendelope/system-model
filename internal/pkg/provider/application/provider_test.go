@@ -198,4 +198,49 @@ func RunTest(provider Provider) {
 		})
 	})
 
+
+	ginkgo.Context("App EntryPoints", func() {
+		ginkgo.It("should be able to add an appEntryPoint", func() {
+			entrypoint := CreateAppEntryPoint()
+			err := provider.AddAppEntryPoint(*entrypoint)
+			gomega.Expect(err).To(gomega.Succeed())
+
+		})
+		ginkgo.It("should be able to add an appEntryPoint twice", func() {
+			entrypoint := CreateAppEntryPoint()
+			err := provider.AddAppEntryPoint(*entrypoint)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			entrypoint.Protocol = entities.HTTPS
+			err = provider.AddAppEntryPoint(*entrypoint)
+			gomega.Expect(err).To(gomega.Succeed())
+
+		})
+		ginkgo.It("should be able to get entryPoints by name", func() {
+			entrypoint := CreateAppEntryPoint()
+			err := provider.AddAppEntryPoint(*entrypoint)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			retrieved, err := provider.GetAppEntryPointByFQDN(entrypoint.GlobalFqdn)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(retrieved).NotTo(gomega.BeEmpty())
+			gomega.Expect(retrieved[0].OrganizationId).Should(gomega.Equal(entrypoint.OrganizationId))
+
+		})
+		ginkgo.It("should be able to get entryPoint list by name", func() {
+			endpoint := CreateAppEntryPoint()
+			err := provider.AddAppEntryPoint(*endpoint)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			endpoint.OrganizationId = uuid.New().String()
+			err = provider.AddAppEntryPoint(*endpoint)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			retrieved, err := provider.GetAppEntryPointByFQDN(endpoint.GlobalFqdn)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(retrieved).NotTo(gomega.BeEmpty())
+			gomega.Expect(len(retrieved)).Should(gomega.Equal(2))
+
+		})
+	})
 }

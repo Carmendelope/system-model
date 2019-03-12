@@ -8,20 +8,20 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-organization-go"
+	"github.com/nalej/grpc-utils/pkg/test"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
 	devProvider "github.com/nalej/system-model/internal/pkg/provider/device"
 	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
 	"github.com/nalej/system-model/internal/pkg/server/testhelpers"
-
-	"github.com/nalej/grpc-application-go"
-	"github.com/nalej/grpc-utils/pkg/test"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 	"math/rand"
+	"strings"
 )
 
 func generateRandomSpecs() * grpc_application_go.DeploySpecs {
@@ -95,8 +95,6 @@ func generateServiceGroup(services []*grpc_application_go.Service) * grpc_applic
 		Labels:map[string]string{"label1":"sg_label1", "label2":"sg_label2", "label3":"sg_label3"},
 	}
 }
-
-
 
 func generateAddAppDescriptor(orgID string, numServices int) * grpc_application_go.AddAppDescriptorRequest {
 	services := make([]*grpc_application_go.Service, 0)
@@ -215,6 +213,26 @@ func generateServiceGroupInstanceMetadata(appInstance grpc_application_go.AppIns
 	}
 }
 
+func generateAppEndpoint(serviceName string, organizationId string) *grpc_application_go.AppEndpoint{
+	appendpoint := &grpc_application_go.AppEndpoint{
+		OrganizationId:         organizationId,
+		AppInstanceId:          uuid.New().String(),
+		ServiceGroupInstanceId: uuid.New().String(),
+		ServiceInstanceId:      uuid.New().String(),
+		Port:                   8080,
+		Protocol:               grpc_application_go.AppEndpointProtocol_HTTPS,
+		EndpointInstance: &grpc_application_go.EndpointInstance{
+			EndpointInstanceId: uuid.New().String(),
+			Type:               grpc_application_go.EndpointType_IS_ALIVE,
+		},
+	}
+
+	appendpoint.EndpointInstance.Fqdn = fmt.Sprintf("%s.%s.%s.domain",serviceName, appendpoint.ServiceGroupInstanceId[:6],
+		appendpoint.AppInstanceId[:6])
+
+	return appendpoint
+
+}
 
 var _ = ginkgo.Describe("Applications", func(){
 
@@ -712,5 +730,78 @@ var _ = ginkgo.Describe("Applications", func(){
 
 		})
 		*/
+	})
+
+	ginkgo.Context("App Endpoint", func() {
+		ginkgo.It("should be able to add an app endpoint", func(){
+			endPoint := generateAppEndpoint("serviceName", uuid.New().String())
+			success, err := client.AddAppEndpoint(context.Background(), endPoint)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
+		})
+		ginkgo.It("should be able to get app endpoints list", func() {
+			organizationID := uuid.New().String()
+
+			endPoint := generateAppEndpoint("serviceName", organizationID)
+			success, err := client.AddAppEndpoint(context.Background(), endPoint)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
+
+			fqdnSplit := strings.Split(endPoint.EndpointInstance.Fqdn, ".")
+			globalFqdn := fmt.Sprintf("%s.%s.%s.%s.globaldomain.com", fqdnSplit[0], fqdnSplit[1], fqdnSplit[2], organizationID[:8])
+
+			list, err := client.GetAppEndpoints(context.Background(), &grpc_application_go.GetAppEndPointRequest{
+				Fqdn: globalFqdn,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(list).NotTo(gomega.BeNil())
+			gomega.Expect(len(list.AppEndpoints)).Should(gomega.Equal(1))
+
+		})
+
+		ginkgo.It("Should not be able to app endpoints list (several organizations)", func() {
+			endPoint1 := &grpc_application_go.AppEndpoint{
+				OrganizationId:			"xxxxxxxxx1",
+				AppInstanceId: 			"aaaaaaaaa1",
+				ServiceGroupInstanceId:	"ggggggggg1",
+				ServiceInstanceId:		"sssssssss1",
+				Port:					80,
+				Protocol:grpc_application_go.AppEndpointProtocol_HTTPS,
+				EndpointInstance: &grpc_application_go.EndpointInstance{
+					EndpointInstanceId:"1",
+					Type: grpc_application_go.EndpointType_IS_ALIVE,
+					Fqdn:"service.gggggg.aaaaaa.domain",
+				},
+			}
+			success, err := client.AddAppEndpoint(context.Background(), endPoint1)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
+
+			endPoint2 := &grpc_application_go.AppEndpoint{
+				OrganizationId:			"xxxxxxxxx2",
+				AppInstanceId: 			"aaaaaaaaa2",
+				ServiceGroupInstanceId:	"ggggggggg2",
+				ServiceInstanceId:		"sssssssss2",
+				Port:					80,
+				Protocol:grpc_application_go.AppEndpointProtocol_HTTPS,
+				EndpointInstance: &grpc_application_go.EndpointInstance{
+					EndpointInstanceId:"1",
+					Type: grpc_application_go.EndpointType_IS_ALIVE,
+					Fqdn:"service.gggggg.aaaaaa.domain",
+				},
+			}
+			success, err = client.AddAppEndpoint(context.Background(), endPoint2)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
+
+			_, err = client.GetAppEndpoints(context.Background(), &grpc_application_go.GetAppEndPointRequest{
+				Fqdn: "service.gggggg.aaaaaa.xxxxxxxx.globaldomain",
+			})
+			gomega.Expect(err).NotTo(gomega.Succeed())
+
+
+		})
+
+
 	})
 })
