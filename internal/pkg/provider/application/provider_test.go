@@ -10,7 +10,7 @@ import (
 func RunTest(provider Provider) {
 
 	ginkgo.BeforeEach(func() {
-		//provider.Clear()
+		provider.Clear()
 	})
 
 	ginkgo.Context("Descriptor", func() {
