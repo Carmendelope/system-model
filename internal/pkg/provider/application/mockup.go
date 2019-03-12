@@ -192,5 +192,17 @@ func (m *MockupApplicationProvider) GetAppEntryPointByFQDN(fqdn string) ([]*enti
 	}
 }
 
+func (m *MockupApplicationProvider) DeleteAppEndpoints(organizationID string, appInstanceID string) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+
+	for key, endpoint := range m.appEntryPoints{
+		if endpoint.OrganizationId == organizationID && endpoint.AppInstanceId == appInstanceID {
+			delete (m.appEntryPointsByName, endpoint.GlobalFqdn)
+			delete(m.appEntryPoints, key)
+		}
+	}
+	return nil
+}
 
 

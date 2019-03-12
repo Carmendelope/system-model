@@ -261,3 +261,15 @@ func (h *Handler) GetAppEndpoints(ctx context.Context, request *grpc_application
 	}
 	return endpoint, nil
 }
+
+func (h *Handler) RemoveAppEndpoints(ctx context.Context, request *grpc_application_go.RemoveEndpointRequest) (*grpc_common_go.Success, error){
+	err := entities.ValidRemoveEndpointRequest(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	err = h.Manager.RemoveAppEndpoints(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+}

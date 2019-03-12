@@ -799,7 +799,19 @@ var _ = ginkgo.Describe("Applications", func(){
 			})
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
+		})
+		ginkgo.It("should be able to remove an app endpoint", func(){
+			endPoint := generateAppEndpoint("serviceName", uuid.New().String())
+			success, err := client.AddAppEndpoint(context.Background(), endPoint)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
 
+			success, err = client.RemoveAppEndpoints(context.Background(), &grpc_application_go.RemoveEndpointRequest{
+				OrganizationId: endPoint.OrganizationId,
+				AppInstanceId: endPoint.AppInstanceId,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
 		})
 
 
