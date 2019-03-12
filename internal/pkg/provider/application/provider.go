@@ -50,4 +50,7 @@ type Provider interface {
 	// GetAppEntryPointByFQDN ()
 	GetAppEntryPointByFQDN(fqdn string) ([]*entities.AppEndpoint, derrors.Error)
 
+	// DeleteAppEndpoints removes all the endpoint of an instance
+	DeleteAppEndpoints(organizationID string, appInstanceID string) derrors.Error
+
 }

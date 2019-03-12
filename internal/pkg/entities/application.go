@@ -1500,3 +1500,10 @@ func ValidGetAppEndPointRequest(request *grpc_application_go.GetAppEndPointReque
 	}
 	return nil
 }
+
+func ValidRemoveEndpointRequest(request * grpc_application_go.RemoveEndpointRequest)  derrors.Error{
+	if request.AppInstanceId == "" || request.OrganizationId == ""  {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id")
+	}
+	return nil
+}

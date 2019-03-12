@@ -306,7 +306,7 @@ func CreateTestApplicationDescriptor (organizationID string) *entities.AppDescri
 
 }
 
-func CreateAppEntryPoint () *entities.AppEndpoint {
+func CreateAppEndPoint () *entities.AppEndpoint {
 	return &entities.AppEndpoint{
 		OrganizationId: uuid.New().String(),
 		AppInstanceId: uuid.New().String(),

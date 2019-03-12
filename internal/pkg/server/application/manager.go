@@ -642,3 +642,7 @@ func (m * Manager) GetAppEndpoint(request *grpc_application_go.GetAppEndPointReq
 		AppEndpoints:endpointList,
 	}, nil
 }
+
+func (m * Manager) RemoveAppEndpoints(removeRequest *grpc_application_go.RemoveEndpointRequest) derrors.Error{
+	return  m.AppProvider.DeleteAppEndpoints(removeRequest.OrganizationId, removeRequest.AppInstanceId)
+}

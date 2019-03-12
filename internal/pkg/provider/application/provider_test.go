@@ -200,14 +200,14 @@ func RunTest(provider Provider) {
 
 
 	ginkgo.Context("App EntryPoints", func() {
-		ginkgo.It("should be able to add an appEntryPoint", func() {
-			entrypoint := CreateAppEntryPoint()
+		ginkgo.It("should be able to add an appEndPoint", func() {
+			entrypoint := CreateAppEndPoint()
 			err := provider.AddAppEntryPoint(*entrypoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
 		})
-		ginkgo.It("should be able to add an appEntryPoint twice", func() {
-			entrypoint := CreateAppEntryPoint()
+		ginkgo.It("should be able to add an appEndPoint twice", func() {
+			entrypoint := CreateAppEndPoint()
 			err := provider.AddAppEntryPoint(*entrypoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
@@ -216,8 +216,8 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 
 		})
-		ginkgo.It("should be able to get entryPoints by name", func() {
-			entrypoint := CreateAppEntryPoint()
+		ginkgo.It("should be able to get EndPoints by name", func() {
+			entrypoint := CreateAppEndPoint()
 			err := provider.AddAppEntryPoint(*entrypoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
@@ -227,8 +227,8 @@ func RunTest(provider Provider) {
 			gomega.Expect(retrieved[0].OrganizationId).Should(gomega.Equal(entrypoint.OrganizationId))
 
 		})
-		ginkgo.It("should be able to get entryPoint list by name", func() {
-			endpoint := CreateAppEntryPoint()
+		ginkgo.It("should be able to get EndPoint list by name", func() {
+			endpoint := CreateAppEndPoint()
 			err := provider.AddAppEntryPoint(*endpoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
@@ -242,5 +242,26 @@ func RunTest(provider Provider) {
 			gomega.Expect(len(retrieved)).Should(gomega.Equal(2))
 
 		})
+		ginkgo.It("should be able to delete an appEndpoint", func() {
+			endpoint := CreateAppEndPoint()
+			err := provider.AddAppEntryPoint(*endpoint)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			err = provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
+			gomega.Expect(err).To(gomega.Succeed())
+		})
+		ginkgo.It("should be able to delete all the EndPoints in a application", func() {
+			endpoint := CreateAppEndPoint()
+			err := provider.AddAppEntryPoint(*endpoint)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			endpoint.ServiceInstanceId = uuid.New().String()
+			err = provider.AddAppEntryPoint(*endpoint)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			err = provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
+			gomega.Expect(err).To(gomega.Succeed())
+		})
+
 	})
 }

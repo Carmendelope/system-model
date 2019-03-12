@@ -547,3 +547,17 @@ func (sp *ScyllaApplicationProvider) GetAppEntryPointByFQDN(fqdn string) ([]*ent
 	return entrypoints, nil
 
 }
+
+func (sp *ScyllaApplicationProvider) DeleteAppEndpoints(organizationID string, appInstanceID string) derrors.Error {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// delete app instance
+	stmt, _ := qb.Delete("appentrypoints").Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
+	cqlErr := sp.Session.Query(stmt, organizationID, appInstanceID).Exec()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot delete app endpoints")
+	}
+	return nil
+}
