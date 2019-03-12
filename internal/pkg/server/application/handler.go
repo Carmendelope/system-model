@@ -236,3 +236,28 @@ func (h *Handler) UpdateServiceGroupInstanceMetadata(ctx context.Context, update
 	return &grpc_common_go.Success{}, nil
 
 }
+
+// AddAppEndPoint adds a new App Endpoint to a given service instance
+func (h *Handler) AddAppEndpoint(ctx context.Context, request *grpc_application_go.AppEndpoint) (*grpc_common_go.Success, error){
+	err := entities.ValidAppEndpoint(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	err = h.Manager.AddAppEndpoint(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+}
+// GetAppEndPoint retrieves an appEndpoint
+func (h *Handler) GetAppEndpoints(ctx context.Context, request *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AddEndpointList, error){
+	err := entities.ValidGetAppEndPointRequest(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	endpoint, err := h.Manager.GetAppEndpoint(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return endpoint, nil
+}

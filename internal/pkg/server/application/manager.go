@@ -15,6 +15,7 @@ import (
 	"github.com/nalej/system-model/internal/pkg/provider/device"
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
 	"github.com/rs/zerolog/log"
+	"strings"
 )
 
 // Manager structure with the required providers for application operations.
@@ -592,4 +593,48 @@ func (m * Manager) AddServiceInstance(request *grpc_application_go.AddServiceIns
 	}
 
 	return serviceInstance, nil
+}
+
+// AddAppEndPoint adds a new App Endpoint to a given service instance
+func (m * Manager) AddAppEndpoint(appEndpoint *grpc_application_go.AppEndpoint) derrors.Error {
+
+	endpoint, err := entities.NewAppEndpointFromGRPC(appEndpoint)
+	if err != nil {
+		return err
+	}
+
+	err = m.AppProvider.AddAppEntryPoint(*endpoint)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+// GetAppEndPoint retrieves an appEndpoint
+func (m * Manager) GetAppEndpoint(request *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AddEndpointList, derrors.Error){
+
+	split := strings.Split(request.Fqdn, ".")
+	globalFqdn:=fmt.Sprintf("%s.%s.%s.%s", split[0], split[1], split[2], split[3])
+
+	list, err := m.AppProvider.GetAppEntryPointByFQDN(globalFqdn)
+	if err != nil {
+		return nil, err
+	}
+
+	endpointList := make([]*grpc_application_go.AppEndpoint, 0)
+
+	// check that there are only end points of an organization
+	if len(list) > 0 {
+		organizationID := list[0].OrganizationId
+		for _, endpoint := range list {
+			if endpoint.OrganizationId != organizationID{
+				return nil, derrors.NewInternalError("Unable to return app end points, several organizations have the same endpoint")
+			}
+			endpointList = append(endpointList, endpoint.ToGRPC())
+		}
+	}
+
+	return &grpc_application_go.AddEndpointList{
+		AppEndpoints:endpointList,
+	}, nil
 }

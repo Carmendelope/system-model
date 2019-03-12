@@ -5,11 +5,13 @@
 package entities
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
 	"github.com/rs/zerolog/log"
 	"k8s.io/apimachinery/pkg/util/validation"
+	"strings"
 )
 
 // Enumerate with the type of instances we can deploy in the system.
@@ -1048,6 +1050,109 @@ func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
 	}
 }
 
+// -------------
+
+type AppEndpointProtocol int
+
+const (
+	HTTP AppEndpointProtocol = iota + 1
+	HTTPS
+)
+
+var AppEndpointProtocolToGRPC = map[AppEndpointProtocol]grpc_application_go.AppEndpointProtocol{
+	HTTP:    grpc_application_go.AppEndpointProtocol_HTTP,
+	HTTPS:   grpc_application_go.AppEndpointProtocol_HTTPS,
+}
+
+var AppEndpointProtocolFromGRPC = map[grpc_application_go.AppEndpointProtocol]AppEndpointProtocol{
+	grpc_application_go.AppEndpointProtocol_HTTP:   HTTP,
+	grpc_application_go.AppEndpointProtocol_HTTPS:  HTTPS,
+}
+
+type AppEndpoint struct {
+	// OrganizationId with the organization identifier.
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
+	// AppInstanceId with the application instance identifier.
+	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
+	// ServiceGroupInstanceId the identifier of the group instance.
+	ServiceGroupInstanceId string `json:"service_group_instance_id,omitempty" cql:"service_group_instance_id"`
+	// ServiceInstanceId the identifier of the service instance.
+	ServiceInstanceId string `json:"service_instance_id,omitempty" cql:"service_instance_id"`
+	// Port port in the endpoint
+	Port int32 `json:"port,omitempty" cql:"port"`
+	// protocol (http, https)
+	Protocol AppEndpointProtocol `json:"protocol,omitempty" cql:"protocol"`
+	// EndpointInstanceId unique id for this endpoint
+	EndpointInstanceId string `json:"endpoint_instance_id,omitempty" cql:"endpoint_instance_id"`
+	// Type of endpoint
+	Type EndpointType `json:"type,omitempty" cql:"type"`
+	// FQDN to be accessed by any client
+	Fqdn string   `json:"fqdn,omitempty" cql:"fqdn"`
+	// GlobalFqdn
+	GlobalFqdn string `json:"global_fqdn,omitempty" cql:"global_fqdn"`
+}
+
+func (ep * AppEndpoint) ToGRPC () *grpc_application_go.AppEndpoint {
+	convertedType, _ := EndpointTypeToGRPC[ep.Type]
+	convertedProtocol, _ := AppEndpointProtocolToGRPC[ep.Protocol]
+	return & grpc_application_go.AppEndpoint{
+		OrganizationId: ep.OrganizationId,
+		AppInstanceId: ep.AppInstanceId,
+		ServiceGroupInstanceId: ep.ServiceGroupInstanceId,
+		ServiceInstanceId: ep.ServiceInstanceId,
+		Port: ep.Port,
+		Protocol: convertedProtocol,
+		EndpointInstance: &grpc_application_go.EndpointInstance{
+			EndpointInstanceId: ep.EndpointInstanceId,
+			Type:convertedType,
+			Fqdn: ep.Fqdn,
+		},
+	}
+}
+
+func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AppEndpoint) (* AppEndpoint, derrors.Error){
+	endpointInstanceId := ""
+	endpointType := IsAlive
+	fqdn := ""
+	if endpoint.EndpointInstance != nil {
+		endpointInstanceId = endpoint.EndpointInstance.EndpointInstanceId
+		endpointType = EndpointTypeFromGRPC[endpoint.EndpointInstance.Type]
+		fqdn = endpoint.EndpointInstance.Fqdn
+	}
+
+	// Fqdn: serv.A.B.domain
+	// where:
+	// A: service_group_id
+	// B: app_instance_id
+
+		// We need to store:
+	// Global Fqdn: serv.A.B.C.domain
+	// where
+	// A: service_group_id (6 characters)
+	// B: app_instance_id (6 characters)
+	// C: organization_id (8 characters)
+	// the domain is not stored
+	organizationID := endpoint.OrganizationId
+	if len (endpoint.OrganizationId) > 8 {
+		organizationID = endpoint.OrganizationId[:8]
+	}
+	fqdnSplit := strings.Split(fqdn, ".")
+	return &AppEndpoint{
+		OrganizationId: endpoint.OrganizationId,
+		AppInstanceId: endpoint.AppInstanceId,
+		ServiceGroupInstanceId:endpoint.ServiceGroupInstanceId,
+		ServiceInstanceId: endpoint.ServiceInstanceId,
+		Port: endpoint.Port,
+		Protocol: AppEndpointProtocolFromGRPC[endpoint.Protocol],
+		EndpointInstanceId:endpointInstanceId,
+		Type:  endpointType,
+		Fqdn: fqdn,
+		GlobalFqdn:fmt.Sprintf("%s.%s.%s.%s", fqdnSplit[0], fqdnSplit[1], fqdnSplit[2], organizationID),
+	}, nil
+}
+
+// -------------
+
 func (d * AppDescriptor) ApplyUpdate(request grpc_application_go.UpdateAppDescriptorRequest){
 	if request.AddLabels {
 		for k, v := range request.Labels {
@@ -1206,10 +1311,6 @@ func (sg * ServiceGroup) ToEmptyServiceGroupInstance(appInstanceID string) *Serv
 		instances[i] = *instance
 	}
 
-
-
-
-
 	return &ServiceGroupInstance{
 		OrganizationId: 		sg.OrganizationId,
 		AppDescriptorId: 		sg.AppDescriptorId,
@@ -1360,6 +1461,38 @@ func ValidUpdateInstanceMetadata(request *grpc_application_go.InstanceMetadata) 
 		request.AppDescriptorId == "" || request.MonitoredInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +
 			"service_group_instance_id, app_descriptor_id, monitored_instance_id")
+	}
+	return nil
+}
+
+func ValidAppEndpoint(request *grpc_application_go.AppEndpoint) derrors.Error {
+	if request.AppInstanceId == "" || request.OrganizationId == "" || request.ServiceGroupInstanceId == "" ||
+		request.ServiceInstanceId == "" || request.EndpointInstance.Fqdn == "" {
+			return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +
+				"service_group_instance_id, service_instance_id, fqdn")
+	}
+
+	if request.EndpointInstance == nil || request.EndpointInstance.Fqdn == "" {
+		return  derrors.NewInvalidArgumentError("expecting fqdn")
+	}
+	fqdnSplit := strings.Split(request.EndpointInstance.Fqdn, ".")
+	if len(fqdnSplit) < 4 {
+		return derrors.NewInvalidArgumentError("fqdn has incorrect format").WithParams(request.EndpointInstance.Fqdn)
+	}
+
+	if len(request.OrganizationId) < 8 {
+		return derrors.NewInvalidArgumentError("OrganizationId is too short").WithParams(request.OrganizationId)
+	}
+	return nil
+}
+
+func ValidGetAppEndPointRequest(request *grpc_application_go.GetAppEndPointRequest) derrors.Error{
+	if request.Fqdn == "" {
+		return derrors.NewInvalidArgumentError("expecting fqdn")
+	}
+	split := strings.Split(request.Fqdn, ".")
+	if len(split) < 5 {
+		return derrors.NewInvalidArgumentError("fqdn has incorrect format").WithParams(request.Fqdn)
 	}
 	return nil
 }
