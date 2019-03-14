@@ -495,8 +495,8 @@ func (sp *ScyllaApplicationProvider) Clear() derrors.Error {
 
 
 // ---------------------------------------------------------------------------------------------------------------------
-// AddAppEntryPoint adds a new entry point to the system
-func (sp *ScyllaApplicationProvider) AddAppEntryPoint (appEntryPoint entities.AppEndpoint) derrors.Error {
+// AddAppEndPoint adds a new entry point to the system
+func (sp *ScyllaApplicationProvider) AddAppEndpoint (appEntryPoint entities.AppEndpoint) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -520,8 +520,8 @@ func (sp *ScyllaApplicationProvider) AddAppEntryPoint (appEntryPoint entities.Ap
 	return nil
 }
 
-// GetAppEntryPointByFQDN ()
-func (sp *ScyllaApplicationProvider) GetAppEntryPointByFQDN(fqdn string) ([]*entities.AppEndpoint, derrors.Error) {
+// GetAppEndPointByFQDN ()
+func (sp *ScyllaApplicationProvider) GetAppEndpointByFQDN(fqdn string) ([]*entities.AppEndpoint, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -552,6 +552,9 @@ func (sp *ScyllaApplicationProvider) DeleteAppEndpoints(organizationID string, a
 	sp.Lock()
 	defer sp.Unlock()
 
+	if err := sp.checkAndConnect(); err != nil{
+		return  err
+	}
 	// delete app instance
 	stmt, _ := qb.Delete("appentrypoints").Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
 	cqlErr := sp.Session.Query(stmt, organizationID, appInstanceID).Exec()
@@ -560,4 +563,36 @@ func (sp *ScyllaApplicationProvider) DeleteAppEndpoints(organizationID string, a
 		return derrors.AsError(cqlErr, "cannot delete app endpoints")
 	}
 	return nil
+}
+
+func (sp *ScyllaApplicationProvider) GetAppEndpointList(organizationID string , appInstanceId string,
+	serviceGroupInstanceID string) ([]*entities.AppEndpoint, derrors.Error) {
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	list := make ([]*entities.AppEndpoint, 0)
+
+	if err := sp.checkAndConnect(); err != nil{
+		return nil, err
+	}
+
+	stmt, names := qb.Select("appentrypoints").
+		Columns("organization_id", "app_instance_id", "service_group_instance_id",
+		"service_instance_id", "port", "endpoint_instance_id", "fqdn", "global_fqdn", "protocol", "type").
+		Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).
+		Where(qb.Eq("service_group_instance_id")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": organizationID,
+		"app_instance_id": appInstanceId,
+		"service_group_instance_id": serviceGroupInstanceID,
+	})
+
+	cqlErr := gocqlx.Select(&list, q.Query)
+
+	if cqlErr != nil {
+		return nil, derrors.AsError(cqlErr, "cannot list app endPoint of a service group")
+	}
+
+	return list, nil
 }
