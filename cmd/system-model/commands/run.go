@@ -29,7 +29,7 @@ var runCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(runCmd)
 	runCmd.Flags().IntVar(&config.Port, "port", 8800, "Port to launch the System Model")
-	runCmd.Flags().BoolVar(&config.UseInMemoryProviders, "userInMemoryProviders", false, "Whether in-memory providers should be used. ONLY for development")
+	runCmd.Flags().BoolVar(&config.UseInMemoryProviders, "useInMemoryProviders", false, "Whether in-memory providers should be used. ONLY for development")
 	runCmd.Flags().BoolVar(&config.UseDBScyllaProviders, "useDBScyllaProviders", true, "Whether dbscylla providers should be used")
 	runCmd.Flags().StringVar(&config.ScyllaDBAddress, "scyllaDBAddress", "", "address to connect to scylla database")
 	runCmd.Flags().IntVar(&config.ScyllaDBPort, "scyllaDBPort", 9042, "port to connect to scylla database")
