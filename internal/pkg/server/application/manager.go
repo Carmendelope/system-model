@@ -646,3 +646,12 @@ func (m * Manager) GetAppEndpoint(request *grpc_application_go.GetAppEndPointReq
 func (m * Manager) RemoveAppEndpoints(removeRequest *grpc_application_go.RemoveEndpointRequest) derrors.Error{
 	return  m.AppProvider.DeleteAppEndpoints(removeRequest.OrganizationId, removeRequest.AppInstanceId)
 }
+
+func (m * Manager) AddZtNetwork(request *grpc_application_go.AddAppZtNetworkRequest) derrors.Error{
+	return m.AppProvider.AddAppZtNetwork(entities.AppZtNetwork{request.OrganizationId, request.AppInstanceId, request.NetworkId})
+}
+
+func (m * Manager) RemoveZtNetwork(request *grpc_application_go.RemoveAppZtNetworkRequest) derrors.Error{
+	return m.AppProvider.RemoveAppZtNetwork(request.OrganizationId, request.AppInstanceId)
+}
+

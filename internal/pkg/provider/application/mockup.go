@@ -18,6 +18,9 @@ type MockupApplicationProvider struct {
 
 	appEntryPoints map[string] entities.AppEndpoint
 	appEntryPointsByName map[string][]*entities.AppEndpoint
+
+	appZtNetworks map[string]map[string]entities.AppZtNetwork
+
 }
 
 func NewMockupOrganizationProvider() * MockupApplicationProvider {
@@ -26,6 +29,7 @@ func NewMockupOrganizationProvider() * MockupApplicationProvider {
 		appInstances: make(map[string]entities.AppInstance, 0),
 		appEntryPoints:make(map[string]entities.AppEndpoint, 0),
 		appEntryPointsByName: make(map[string][]*entities.AppEndpoint, 0),
+		appZtNetworks: make(map[string]map[string]entities.AppZtNetwork,0),
 	}
 }
 
@@ -38,6 +42,7 @@ func (m * MockupApplicationProvider) Clear()  derrors.Error{
 	m.appInstances = make(map[string] entities.AppInstance, 0)
 	m.appEntryPoints = make(map[string]entities.AppEndpoint, 0)
 	m.appEntryPointsByName = make(map[string][]*entities.AppEndpoint, 0)
+	m.appZtNetworks = make(map[string]map[string]entities.AppZtNetwork,0)
 
 	return nil
 }
@@ -205,4 +210,39 @@ func (m *MockupApplicationProvider) DeleteAppEndpoints(organizationID string, ap
 	return nil
 }
 
+// AppZtNetwork functions
 
+func (m *MockupApplicationProvider) AddAppZtNetwork(ztNetwork entities.AppZtNetwork) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+
+	_, foundOrg := m.appZtNetworks[ztNetwork.OrganizationId]
+	if !foundOrg {
+		m.appZtNetworks[ztNetwork.OrganizationId] = map[string]entities.AppZtNetwork{ztNetwork.AppInstanceId:ztNetwork}
+	} else {
+		m.appZtNetworks[ztNetwork.OrganizationId][ztNetwork.AppInstanceId] = ztNetwork
+	}
+	
+	return nil
+}
+
+
+func (m *MockupApplicationProvider) RemoveAppZtNetwork(organizationID string, appInstanceID string) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+
+	_, foundOrg := m.appZtNetworks[organizationID]
+	if !foundOrg {
+		return derrors.NewNotFoundError("non existing organization")
+	}
+	_,foundAppInstance := m.appZtNetworks[organizationID][appInstanceID]
+	if !foundAppInstance {
+		return derrors.NewNotFoundError("not existing application instance")
+	}
+	delete(m.appZtNetworks[organizationID],appInstanceID)
+	if len(m.appZtNetworks[organizationID])==0{
+		delete(m.appZtNetworks,organizationID)
+	}
+
+	return nil
+}

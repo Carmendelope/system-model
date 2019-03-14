@@ -561,3 +561,43 @@ func (sp *ScyllaApplicationProvider) DeleteAppEndpoints(organizationID string, a
 	}
 	return nil
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// AppZtNetwork related methods
+
+func (sp *ScyllaApplicationProvider) AddAppZtNetwork(ztNetwork entities.AppZtNetwork) derrors.Error {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return err
+	}
+
+	// add the zt network
+	stmt, names := qb.Insert("appztnetworks").Columns("organization_id","app_instance_id","zt_network_id").ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(ztNetwork)
+	cqlErr := q.ExecRelease()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot add appEntryPoint")
+	}
+
+	return nil
+}
+
+
+func (sp *ScyllaApplicationProvider) RemoveAppZtNetwork(organizationID string, appInstanceID string) derrors.Error {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// delete an instance
+	stmt, _ := qb.Delete("appztnetworks").Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
+	cqlErr := sp.Session.Query(stmt, organizationID, appInstanceID).Exec()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot delete app zt network")
+	}
+	return nil
+}

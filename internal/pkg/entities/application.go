@@ -1379,6 +1379,18 @@ func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
 	}
 }
 
+// AppZtNetwork
+type AppZtNetwork struct {
+	// OrganizationId with the organization identifier.
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
+	// AppInstanceId with the application instance identifier.
+	AppInstanceId string `json:"app_instance_id,omitempty" cql: "app_instance_id"`
+	// ZtNetworkId zero-tier network identifier.
+	ZtNetworkId string `json:"zt_network_id,omitempty" cql:"zt_network_id"`
+}
+
+// Validation functions
+
 func ValidAddAppInstanceRequest(toAdd * grpc_application_go.AddAppInstanceRequest) derrors.Error {
 	if toAdd.OrganizationId == "" || toAdd.Name == "" || toAdd.AppDescriptorId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, name, and descriptor_id")
@@ -1503,6 +1515,20 @@ func ValidGetAppEndPointRequest(request *grpc_application_go.GetAppEndPointReque
 
 func ValidRemoveEndpointRequest(request * grpc_application_go.RemoveEndpointRequest)  derrors.Error{
 	if request.AppInstanceId == "" || request.OrganizationId == ""  {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id")
+	}
+	return nil
+}
+
+func ValidAddAppZtNetworkRequest(request * grpc_application_go.AddAppZtNetworkRequest) derrors.Error {
+	if request.OrganizationId == "" || request.AppInstanceId == "" || request.NetworkId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, network_id")
+	}
+	return nil
+}
+
+func ValidRemoveAppZtNetworkRequest(request * grpc_application_go.RemoveAppZtNetworkRequest) derrors.Error {
+	if request.OrganizationId == "" || request.AppInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id")
 	}
 	return nil

@@ -53,4 +53,10 @@ type Provider interface {
 	// DeleteAppEndpoints removes all the endpoint of an instance
 	DeleteAppEndpoints(organizationID string, appInstanceID string) derrors.Error
 
+	// AddAppZtNetwork adds a new zerotier network to an existing application instance
+	AddAppZtNetwork(network entities.AppZtNetwork) derrors.Error
+
+	// RemoveAppZtNetwork removes any zt network belonging to an application instance
+	RemoveAppZtNetwork(organizationID string, appInstanceID string) derrors.Error
+
 }
