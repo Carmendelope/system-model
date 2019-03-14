@@ -655,3 +655,7 @@ func (m * Manager) RemoveZtNetwork(request *grpc_application_go.RemoveAppZtNetwo
 	return m.AppProvider.RemoveAppZtNetwork(request.OrganizationId, request.AppInstanceId)
 }
 
+func (m * Manager) GetAppZtNetwork(request *grpc_application_go.GetAppZtNetworkRequest) (*entities.AppZtNetwork, derrors.Error) {
+	return m.AppProvider.GetAppZtNetwork(request.OrganizationId, request.AppInstanceId)
+}
+

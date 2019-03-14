@@ -59,4 +59,7 @@ type Provider interface {
 	// RemoveAppZtNetwork removes any zt network belonging to an application instance
 	RemoveAppZtNetwork(organizationID string, appInstanceID string) derrors.Error
 
+	// GetAppZtNetwork get the zt network
+	GetAppZtNetwork(organizationId string, appInstanceId string) (*entities.AppZtNetwork, derrors.Error)
+
 }

@@ -488,9 +488,14 @@ func (sp *ScyllaApplicationProvider) Clear() derrors.Error {
 		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the applications endpoints table")
 		return derrors.AsError(err, "cannot truncate AppEntrypoints table")
 	}
+
+	err = sp.Session.Query("TRUNCATE TABLE appztnetworks").Exec()
+	if err != nil {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the zt networks table")
+		return derrors.AsError(err, "cannot truncate AppZtNetworks table")
+	}
+
 	return nil
-
-
 }
 
 
@@ -600,4 +605,38 @@ func (sp *ScyllaApplicationProvider) RemoveAppZtNetwork(organizationID string, a
 		return derrors.AsError(cqlErr, "cannot delete app zt network")
 	}
 	return nil
+}
+
+func (sp *ScyllaApplicationProvider) GetAppZtNetwork(organizationId string, appInstanceId string) (*entities.AppZtNetwork, derrors.Error) {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, names := qb.Select("appztnetworks").Columns("organization_id", "app_instance_id", "zt_network_id").
+		Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": organizationId,
+		"app_instance_id": appInstanceId,
+	})
+
+	var ztNetwork entities.AppZtNetwork
+	cqlErr := gocqlx.Get(&ztNetwork, q.Query)
+
+	if cqlErr != nil {
+		if cqlErr.Error() == rowNotFound {
+			return nil, derrors.NewNotFoundError("appZtNetwork").WithParams(organizationId).WithParams(appInstanceId)
+		}else {
+			return nil, derrors.AsError(err, "cannot get appZtNetwork")
+		}
+	}
+
+
+
+	return &ztNetwork, nil
+
 }

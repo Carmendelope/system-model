@@ -246,3 +246,19 @@ func (m *MockupApplicationProvider) RemoveAppZtNetwork(organizationID string, ap
 
 	return nil
 }
+
+func (m *MockupApplicationProvider) GetAppZtNetwork(organizationID string, appInstanceID string) (*entities.AppZtNetwork, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+
+	_, foundOrg := m.appZtNetworks[organizationID]
+	if !foundOrg {
+		return nil, derrors.NewNotFoundError("non existing organization")
+	}
+	toReturn,foundAppInstance := m.appZtNetworks[organizationID][appInstanceID]
+	if !foundAppInstance {
+		return nil,derrors.NewNotFoundError("not existing application instance")
+	}
+
+	return &toReturn, nil
+}

@@ -299,3 +299,16 @@ func (h *Handler) RemoveAppZtNetwork(ctx context.Context, request *grpc_applicat
 	}
 	return &grpc_common_go.Success{}, nil
 }
+
+// GetAppZtnetwork get an existing network instance associated with an application.
+func (h *Handler) GetAppZtNetwork(ctx context.Context, request *grpc_application_go.GetAppZtNetworkRequest) (*grpc_application_go.AppZtNetwork, error) {
+	err := entities.ValidGetAppZtNetworkRequest(request)
+	if err != nil {
+		return nil, err
+	}
+	retrieved, err := h.Manager.GetAppZtNetwork(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return retrieved.ToGRPC(), nil
+}
