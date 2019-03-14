@@ -202,26 +202,26 @@ func RunTest(provider Provider) {
 	ginkgo.Context("App EntryPoints", func() {
 		ginkgo.It("should be able to add an appEndPoint", func() {
 			entrypoint := CreateAppEndPoint()
-			err := provider.AddAppEntryPoint(*entrypoint)
+			err := provider.AddAppEndpoint(*entrypoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
 		})
 		ginkgo.It("should be able to add an appEndPoint twice", func() {
 			entrypoint := CreateAppEndPoint()
-			err := provider.AddAppEntryPoint(*entrypoint)
+			err := provider.AddAppEndpoint(*entrypoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			entrypoint.Protocol = entities.HTTPS
-			err = provider.AddAppEntryPoint(*entrypoint)
+			err = provider.AddAppEndpoint(*entrypoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
 		})
 		ginkgo.It("should be able to get EndPoints by name", func() {
 			entrypoint := CreateAppEndPoint()
-			err := provider.AddAppEntryPoint(*entrypoint)
+			err := provider.AddAppEndpoint(*entrypoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			retrieved, err := provider.GetAppEntryPointByFQDN(entrypoint.GlobalFqdn)
+			retrieved, err := provider.GetAppEndpointByFQDN(entrypoint.GlobalFqdn)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieved).NotTo(gomega.BeEmpty())
 			gomega.Expect(retrieved[0].OrganizationId).Should(gomega.Equal(entrypoint.OrganizationId))
@@ -229,14 +229,14 @@ func RunTest(provider Provider) {
 		})
 		ginkgo.It("should be able to get EndPoint list by name", func() {
 			endpoint := CreateAppEndPoint()
-			err := provider.AddAppEntryPoint(*endpoint)
+			err := provider.AddAppEndpoint(*endpoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			endpoint.OrganizationId = uuid.New().String()
-			err = provider.AddAppEntryPoint(*endpoint)
+			err = provider.AddAppEndpoint(*endpoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			retrieved, err := provider.GetAppEntryPointByFQDN(endpoint.GlobalFqdn)
+			retrieved, err := provider.GetAppEndpointByFQDN(endpoint.GlobalFqdn)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieved).NotTo(gomega.BeEmpty())
 			gomega.Expect(len(retrieved)).Should(gomega.Equal(2))
@@ -244,7 +244,7 @@ func RunTest(provider Provider) {
 		})
 		ginkgo.It("should be able to delete an appEndpoint", func() {
 			endpoint := CreateAppEndPoint()
-			err := provider.AddAppEntryPoint(*endpoint)
+			err := provider.AddAppEndpoint(*endpoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			err = provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
@@ -252,11 +252,11 @@ func RunTest(provider Provider) {
 		})
 		ginkgo.It("should be able to delete all the EndPoints in a application", func() {
 			endpoint := CreateAppEndPoint()
-			err := provider.AddAppEntryPoint(*endpoint)
+			err := provider.AddAppEndpoint(*endpoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			endpoint.ServiceInstanceId = uuid.New().String()
-			err = provider.AddAppEntryPoint(*endpoint)
+			err = provider.AddAppEndpoint(*endpoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			err = provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
