@@ -189,6 +189,20 @@ func (h *Handler) AddServiceGroupInstances(ctx context.Context, addRequest *grpc
 }
 
 
+func (h *Handler) RemoveServiceGroupInstances(ctx context.Context, removeRequest *grpc_application_go.RemoveServiceGroupInstancesRequest) (*grpc_common_go.Success, error) {
+	err := entities.ValidateRemoveServiceGroupInstancesRequest(removeRequest)
+	if err != nil {
+		return nil,conversions.ToGRPCError(err)
+	}
+
+	err = h.Manager.RemoveServiceGroupInstances(removeRequest)
+	if err != nil {
+		return nil,conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+}
+
+
 // AddServiceInstance to an already existing service group instance
 func (h *Handler) AddServiceInstance(ctx context.Context, addRequest *grpc_application_go.AddServiceInstanceRequest) (*grpc_application_go.ServiceInstance, error) {
 	err := entities.ValidAddServiceInstanceRequest(addRequest)

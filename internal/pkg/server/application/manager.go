@@ -518,6 +518,24 @@ func (m * Manager) AddServiceGroupInstances(request *grpc_application_go.AddServ
 	return result, nil
 }
 
+func (m *Manager) RemoveServiceGroupInstances(removeRequest *grpc_application_go.RemoveServiceGroupInstancesRequest) derrors.Error {
+	// Get the corresponding instance
+	appInst, err := m.AppProvider.GetInstance(removeRequest.AppInstanceId)
+	if err != nil {
+		return err
+	}
+
+	appInst.Groups = nil
+
+	// update
+	err = m.AppProvider.UpdateInstance(*appInst)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 
 func (m *Manager) GetServiceGroupInstanceMetadata(request *grpc_application_go.GetServiceGroupInstanceMetadataRequest) (*entities.InstanceMetadata, derrors.Error) {
 	// Get the corresponding instance

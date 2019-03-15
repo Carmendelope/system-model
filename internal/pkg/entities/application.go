@@ -1493,6 +1493,13 @@ func ValidGetServiceGroupInstanceMetadataRequest(request *grpc_application_go.Ge
 	return nil
 }
 
+func ValidateRemoveServiceGroupInstancesRequest(request *grpc_application_go.RemoveServiceGroupInstancesRequest) derrors.Error {
+	if request.OrganizationId == "" || request.AppInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id")
+	}
+	return nil
+}
+
 func ValidUpdateInstanceMetadata(request *grpc_application_go.InstanceMetadata) derrors.Error {
 	if request.OrganizationId == "" || request.AppInstanceId == "" || request.ServiceGroupId == "" ||
 		request.AppDescriptorId == "" || request.MonitoredInstanceId == "" {
