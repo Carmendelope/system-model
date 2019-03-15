@@ -813,7 +813,57 @@ var _ = ginkgo.Describe("Applications", func(){
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(success).ShouldNot(gomega.BeNil())
 		})
-
-
 	})
+
+	ginkgo.Context("app zt network", func(){
+
+		ginkgo.It("should be able to add a new zt network", func(){
+
+			appNetwork := entities.AppZtNetwork{
+				OrganizationId: "org001",
+				AppInstanceId: "app001",
+				ZtNetworkId: "ztnetwork001",
+			}
+
+			request := grpc_application_go.AddAppZtNetworkRequest{
+				OrganizationId: appNetwork.OrganizationId,
+				AppInstanceId: appNetwork.AppInstanceId,
+				NetworkId: appNetwork.ZtNetworkId,
+			}
+
+			success, err := client.AddAppZtNetwork(context.Background(), &request)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
+		})
+		ginkgo.It("should be able to remove an existing zt network", func(){
+			// first add a network
+			appNetwork := entities.AppZtNetwork{
+				OrganizationId: "org001",
+				AppInstanceId: "appToRemove",
+				ZtNetworkId: "ztnetwork001",
+			}
+
+			request := grpc_application_go.AddAppZtNetworkRequest{
+				OrganizationId: appNetwork.OrganizationId,
+				AppInstanceId: appNetwork.AppInstanceId,
+				NetworkId: appNetwork.ZtNetworkId,
+			}
+
+			success, err := client.AddAppZtNetwork(context.Background(), &request)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
+
+			// then remove it
+			removeRequest := grpc_application_go.RemoveAppZtNetworkRequest{
+				OrganizationId:appNetwork.OrganizationId,
+				AppInstanceId: appNetwork.AppInstanceId,
+			}
+			success, err = client.RemoveAppZtNetwork(context.Background(), &removeRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
+		})
+	})
+
+
+
 })
