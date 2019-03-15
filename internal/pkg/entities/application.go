@@ -1140,14 +1140,7 @@ func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AppEndpoint) (* AppEnd
 	if len (endpoint.OrganizationId) > 8 {
 		organizationID = endpoint.OrganizationId[:8]
 	}
-	serviceGroupInstanceId := endpoint.ServiceGroupInstanceId
-	if len(endpoint.ServiceGroupInstanceId) > 6 {
-		serviceGroupInstanceId = endpoint.ServiceGroupInstanceId[:6]
-	}
-	appInstanceId := endpoint.AppInstanceId
-	if len (endpoint.AppInstanceId) > 6 {
-		appInstanceId = endpoint.AppInstanceId[:6]
-	}
+
 	fqdnSplit := strings.Split(fqdn, ".")
 	return &AppEndpoint{
 		OrganizationId: endpoint.OrganizationId,
@@ -1159,7 +1152,7 @@ func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AppEndpoint) (* AppEnd
 		EndpointInstanceId:endpointInstanceId,
 		Type:  endpointType,
 		Fqdn: fqdn,
-		GlobalFqdn:fmt.Sprintf("%s.%s.%s.%s", fqdnSplit[0], serviceGroupInstanceId, appInstanceId, organizationID),
+		GlobalFqdn:fmt.Sprintf("%s.%s.%s.%s", fqdnSplit[0], fqdnSplit[1], fqdnSplit[2], organizationID),
 	}, nil
 }
 

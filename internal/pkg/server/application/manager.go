@@ -290,7 +290,7 @@ func (m * Manager) fillGlobalFqdn(instance *entities.AppInstance) derrors.Error 
 			instance.Groups[i].GlobalFqdn = make ([]string, len(fqdns))
 			i := 0
 			for key, _ := range fqdns {
-				instance.Groups[i].GlobalFqdn[i] = fmt.Sprintf("%s.%s", key, m.PublicHostDomain)
+				instance.Groups[i].GlobalFqdn[i] = fmt.Sprintf("%s.ep.%s", key, m.PublicHostDomain)
 				i++
 			}
 		}
