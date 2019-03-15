@@ -275,11 +275,40 @@ func (h *Handler) RemoveAppEndpoints(ctx context.Context, request *grpc_applicat
 }
 
 // AddAppZtNetwork add a new zerotier network for an existing app instance
-func (h *Handler)AddAppZtNetwork(context.Context, *grpc_application_go.AddAppZtNetworkRequest) (*grpc_common_go.Success, error){
-	return nil, nil
-}
-// RemoveAppZtNetwork remove the network instance for an application instance
-func (h *Handler)RemoveAppZtNetwork(context.Context, *grpc_application_go.RemoveAppZtNetworkRequest) (*grpc_common_go.Success, error) {
-	return nil, nil
+func (h *Handler) AddAppZtNetwork(ctx context.Context, request *grpc_application_go.AddAppZtNetworkRequest) (*grpc_common_go.Success, error) {
+	err := entities.ValidAddAppZtNetworkRequest(request)
+	if err != nil {
+		return nil, err
+	}
+	err = h.Manager.AddZtNetwork(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
 }
 
+// RemoveAppZtNetwork remove the network instance for an application instance
+func (h *Handler) RemoveAppZtNetwork(ctx context.Context, request *grpc_application_go.RemoveAppZtNetworkRequest) (*grpc_common_go.Success, error) {
+	err := entities.ValidRemoveAppZtNetworkRequest(request)
+	if err != nil {
+		return nil, err
+	}
+	err = h.Manager.RemoveZtNetwork(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+}
+
+// GetAppZtnetwork get an existing network instance associated with an application.
+func (h *Handler) GetAppZtNetwork(ctx context.Context, request *grpc_application_go.GetAppZtNetworkRequest) (*grpc_application_go.AppZtNetwork, error) {
+	err := entities.ValidGetAppZtNetworkRequest(request)
+	if err != nil {
+		return nil, err
+	}
+	retrieved, err := h.Manager.GetAppZtNetwork(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return retrieved.ToGRPC(), nil
+}

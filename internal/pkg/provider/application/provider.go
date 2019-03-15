@@ -55,4 +55,13 @@ type Provider interface {
 
 	GetAppEndpointList(organizationID string , appInstanceId string, serviceGroupInstanceID string) ([]*entities.AppEndpoint, derrors.Error)
 
+	// AddAppZtNetwork adds a new zerotier network to an existing application instance
+	AddAppZtNetwork(network entities.AppZtNetwork) derrors.Error
+
+	// RemoveAppZtNetwork removes any zt network belonging to an application instance
+	RemoveAppZtNetwork(organizationID string, appInstanceID string) derrors.Error
+
+	// GetAppZtNetwork get the zt network
+	GetAppZtNetwork(organizationId string, appInstanceId string) (*entities.AppZtNetwork, derrors.Error)
+
 }
