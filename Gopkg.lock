@@ -84,12 +84,12 @@
   version = "v2.0.0"
 
 [[projects]]
-  digest = "1:0e27e6441c49745881710b61a48f481e1b66f7f9cbebd3850bd50053108adbf1"
+  digest = "1:73281ab98e6642b185dbc952c7873b43037c62f0d34a61825d994d90246080a4"
   name = "github.com/nalej/grpc-application-go"
   packages = ["."]
   pruneopts = ""
-  revision = "40f9143b49015d976f28c8eca34e69f9218a8214"
-  version = "v0.0.59"
+  revision = "e12fc794fee0aad6115c74519a94ae1132f530bf"
+  version = "v0.0.61"
 
 [[projects]]
   digest = "1:44f7426538411ea9f774f96e3b102decc9f549b188e55e29ecc15be69542a96b"
@@ -179,7 +179,7 @@
   version = "v1.8.0"
 
 [[projects]]
-  digest = "1:c8f0c8c28c9c1c51db72d0e7f04797cfe5d0d50528274099b6b2d6c314db7f97"
+  digest = "1:dbafce2fddb1ca331646fe2ac9c9413980368b19a60a4406a6e5861680bd73be"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -196,8 +196,8 @@
     "types",
   ]
   pruneopts = ""
-  revision = "65fb64232476ad9046e57c26cd0bff3d3a8dc6cd"
-  version = "v1.4.3"
+  revision = "90e289841c1ed79b7a598a7cd9959750cb5e89e2"
+  version = "v1.5.0"
 
 [[projects]]
   digest = "1:36de4f001b7f3fca448ba85270a4de8854f5abcb97d02d57be7fd6fc4a39d259"
@@ -257,7 +257,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a51d832881595a7312e766821f874b3172602f9adfbc5e6ddf6f5a75d55a23cc"
+  digest = "1:73e6624a8569db94b0d8f9b34052f73ef9598c380edbce36d89dbbc00941e976"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -272,7 +272,7 @@
     "trace",
   ]
   pruneopts = ""
-  revision = "d8887717615a059821345a5c23649351b52a1c0b"
+  revision = "9f648a60d9775ef5c977e7669d1673a7a67bef33"
 
 [[projects]]
   branch = "master"
@@ -406,7 +406,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ac4704735bd8a15b5226f07c6d26403e1b121f4fe84d25bd510cadb0f6213ec7"
+  digest = "1:002f84e9f3a08359c968075f8effc76b898dd901459a63817f9d9c568e3a5a57"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/util/errors",
@@ -415,7 +415,7 @@
     "pkg/util/validation/field",
   ]
   pruneopts = ""
-  revision = "f9b45bc4494d87078efa7551cad8a792fe1af9e7"
+  revision = "c9defaaddf6f05ecb2dd115c1bed600265501daf"
 
 [solve-meta]
   analyzer-name = "dep"

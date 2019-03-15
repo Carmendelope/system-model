@@ -34,7 +34,14 @@ spec:
           - "--scyllaDBAddress=scylladb.__NPH_NAMESPACE"
           - "--scyllaDBKeyspace=nalej"
           - "--scyllaDBPort=9042"
+          - "--publicHost=$(PUBLIC_HOST)"
         securityContext:
           runAsUser: 2000
+        env:
+        - name: PUBLIC_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: management-config
+              key: public_host
       imagePullSecrets:
       - name: nalej-registry

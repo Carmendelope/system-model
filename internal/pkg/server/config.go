@@ -23,6 +23,8 @@ type Config struct {
 	ScyllaDBPort int
 	// DataBase KeySpace
 	KeySpace string
+	// PublicHostDomain
+	PublicHostDomain string
 }
 
 // Validate the current configuration.
@@ -58,4 +60,5 @@ func (conf *Config) Print() {
 		log.Info().Bool("UseDBScyllaProviders", conf.UseDBScyllaProviders).Msg("using dbScylla providers")
 		log.Info().Str("URL", conf.ScyllaDBAddress).Str("KeySpace", conf.KeySpace).Int("Port", conf.ScyllaDBPort).Msg("ScyllaDB")
 	}
+	log.Info().Str("PublicHostDomain",conf.PublicHostDomain).Msg("Public Host Domain")
 }

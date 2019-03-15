@@ -266,7 +266,7 @@ var _ = ginkgo.Describe("Applications", func(){
 		applicationProvider = appProvider.NewMockupOrganizationProvider()
 		deviceProvider = devProvider.NewMockupDeviceProvider()
 
-		manager := NewManager(organizationProvider, applicationProvider, deviceProvider)
+		manager := NewManager(organizationProvider, applicationProvider, deviceProvider, "nalej.cluster.local")
 		handler := NewHandler(manager)
 		grpc_application_go.RegisterApplicationsServer(server, handler)
 
@@ -576,9 +576,116 @@ var _ = ginkgo.Describe("Applications", func(){
 		})
 
 		ginkgo.Context("update service status in application instance", func(){
-		    ginkgo.PIt("should update instance and return the new values", func(){
-            })
-        })
+		    ginkgo.It("should update instance and return the new values with the global Fqdn", func(){
+				toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+
+				// add serviceGroupInstance
+				list, err:= client.AddServiceGroupInstances(context.Background(), &grpc_application_go.AddServiceGroupInstancesRequest{
+					OrganizationId: targetOrganization.ID,
+					AppDescriptorId: targetDescriptor.AppDescriptorId,
+					AppInstanceId: added.AppInstanceId,
+					ServiceGroupId: targetDescriptor.Groups[0].ServiceGroupId,
+					NumInstances: 1,
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(list).NotTo(gomega.BeNil())
+
+				// update status
+				toUpdate := &grpc_application_go.UpdateServiceStatusRequest{
+					OrganizationId: targetOrganization.ID,
+					AppInstanceId: added.AppInstanceId,
+					ServiceGroupInstanceId:  list.ServiceGroupInstances[0].ServiceGroupInstanceId,
+					ServiceInstanceId: list.ServiceGroupInstances[0].ServiceInstances[0].ServiceInstanceId,
+					Status: grpc_application_go.ServiceStatus_SERVICE_RUNNING,
+					Endpoints: []*grpc_application_go.EndpointInstance{{
+						EndpointInstanceId: uuid.New().String(),
+						Type: grpc_application_go.EndpointType_IS_ALIVE,
+						Fqdn: fmt.Sprintf("%s.%s.%s.appcluster.nalej.com",
+							list.ServiceGroupInstances[0].ServiceInstances[0].Name, list.ServiceGroupInstances[0].ServiceGroupInstanceId, list.ServiceGroupInstances[0].ServiceInstances[0].ServiceInstanceId),
+					},
+					},
+				}
+				success, err := client.UpdateServiceStatus(context.Background(), toUpdate)
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(success).NotTo(gomega.BeNil())
+
+				// add AppEndpoint
+				success, err = client.AddAppEndpoint(context.Background(), &grpc_application_go.AppEndpoint{
+					OrganizationId: targetOrganization.ID,
+					AppInstanceId: added.AppInstanceId,
+					ServiceGroupInstanceId:  list.ServiceGroupInstances[0].ServiceGroupInstanceId,
+					ServiceInstanceId: list.ServiceGroupInstances[0].ServiceInstances[0].ServiceInstanceId,
+					EndpointInstance: toUpdate.Endpoints[0],
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(success).NotTo(gomega.BeNil())
+
+				// get instance
+				instance , err := client.GetAppInstance(context.Background(), &grpc_application_go.AppInstanceId{
+					OrganizationId: targetOrganization.ID,
+					AppInstanceId: added.AppInstanceId,
+				})
+				gomega.Expect(instance).NotTo(gomega.BeNil())
+				gomega.Expect(err).To(gomega.BeNil())
+			})
+			ginkgo.FIt("should update instance and list the new values with the global Fqdn", func(){
+				toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+
+				// add serviceGroupInstance
+				list, err:= client.AddServiceGroupInstances(context.Background(), &grpc_application_go.AddServiceGroupInstancesRequest{
+					OrganizationId: targetOrganization.ID,
+					AppDescriptorId: targetDescriptor.AppDescriptorId,
+					AppInstanceId: added.AppInstanceId,
+					ServiceGroupId: targetDescriptor.Groups[0].ServiceGroupId,
+					NumInstances: 1,
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(list).NotTo(gomega.BeNil())
+
+				// update status
+				toUpdate := &grpc_application_go.UpdateServiceStatusRequest{
+					OrganizationId: targetOrganization.ID,
+					AppInstanceId: added.AppInstanceId,
+					ServiceGroupInstanceId:  list.ServiceGroupInstances[0].ServiceGroupInstanceId,
+					ServiceInstanceId: list.ServiceGroupInstances[0].ServiceInstances[0].ServiceInstanceId,
+					Status: grpc_application_go.ServiceStatus_SERVICE_RUNNING,
+					Endpoints: []*grpc_application_go.EndpointInstance{{
+						EndpointInstanceId: uuid.New().String(),
+						Type: grpc_application_go.EndpointType_IS_ALIVE,
+						Fqdn: fmt.Sprintf("%s.%s.%s.appcluster.nalej.com",
+							list.ServiceGroupInstances[0].ServiceInstances[0].Name, list.ServiceGroupInstances[0].ServiceGroupInstanceId, list.ServiceGroupInstances[0].ServiceInstances[0].ServiceInstanceId),
+					},
+					},
+				}
+				success, err := client.UpdateServiceStatus(context.Background(), toUpdate)
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(success).NotTo(gomega.BeNil())
+
+				// add AppEndpoint
+				success, err = client.AddAppEndpoint(context.Background(), &grpc_application_go.AppEndpoint{
+					OrganizationId: targetOrganization.ID,
+					AppInstanceId: added.AppInstanceId,
+					ServiceGroupInstanceId:  list.ServiceGroupInstances[0].ServiceGroupInstanceId,
+					ServiceInstanceId: list.ServiceGroupInstances[0].ServiceInstances[0].ServiceInstanceId,
+					EndpointInstance: toUpdate.Endpoints[0],
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(success).NotTo(gomega.BeNil())
+
+				// get instance
+				instance , err := client.ListAppInstances(context.Background(), &grpc_organization_go.OrganizationId{
+					OrganizationId: targetOrganization.ID,
+				})
+				gomega.Expect(instance).NotTo(gomega.BeNil())
+				gomega.Expect(err).To(gomega.BeNil())
+			})
+		})
 
 		ginkgo.Context("removing application instances", func(){
 			ginkgo.It("should be able to remove an existing instance", func(){

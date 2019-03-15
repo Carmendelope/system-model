@@ -133,7 +133,7 @@ func (s *Service) Run() error {
 	nodeManager := node.NewManager(p.organizationProvider, p.clusterProvider, p.nodeProvider)
 	nodeHandler := node.NewHandler(nodeManager)
 	// applications
-	appManager := application.NewManager(p.organizationProvider, p.applicationProvider, p.deviceProvider)
+	appManager := application.NewManager(p.organizationProvider, p.applicationProvider, p.deviceProvider, s.Configuration.PublicHostDomain)
 	applicationHandler := application.NewHandler(appManager)
 	// roles
 	roleManager := role.NewManager(p.organizationProvider, p.roleProvider)

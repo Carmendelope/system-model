@@ -23,11 +23,12 @@ type Manager struct {
 	OrgProvider organization.Provider
 	AppProvider application.Provider
 	DevProvider device.Provider
+	PublicHostDomain string
 }
 
 // NewManager creates a Manager using a set of providers.
-func NewManager(orgProvider organization.Provider, appProvider application.Provider, devProvider device.Provider) Manager {
-	return Manager{orgProvider, appProvider, devProvider}
+func NewManager(orgProvider organization.Provider, appProvider application.Provider, devProvider device.Provider, publicHostDomain string) Manager {
+	return Manager{orgProvider, appProvider, devProvider, publicHostDomain}
 }
 
 func (m * Manager) extractGroupIds (organizationID string, rules []*grpc_application_go.SecurityRule) (map[string]string, derrors.Error){
@@ -261,9 +262,41 @@ func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([
 		if err != nil {
 			return nil, err
 		}
+		// Fill Global FQdn
+		err = m.fillGlobalFqdn(toAdd)
+		if err != nil {
+			return nil, err
+		}
 		result = append(result, *toAdd)
 	}
 	return result, nil
+}
+
+func (m * Manager) fillGlobalFqdn(instance *entities.AppInstance) derrors.Error {
+	// Load ServiceGroup GlobalFqn
+	for i:= 0; i< len(instance.Groups) ; i++ {
+		globalFQDN, err := m.AppProvider.GetAppEndpointList(instance.Groups[i].OrganizationId, instance.Groups[i].AppInstanceId, instance.Groups[i].ServiceGroupInstanceId)
+		if err != nil {
+			return err
+		}
+
+		// map to avoid repeated fqdn
+		if globalFQDN != nil && len(globalFQDN) > 0 {
+			fqdns := make(map[string]bool, 0)
+			for _, fqdn := range globalFQDN {
+				fqdns[fqdn.GlobalFqdn] = true
+			}
+			// map to list
+			instance.Groups[i].GlobalFqdn = make ([]string, len(fqdns))
+			i := 0
+			for key, _ := range fqdns {
+				instance.Groups[i].GlobalFqdn[i] = fmt.Sprintf("%s.%s", key, m.PublicHostDomain)
+				i++
+			}
+		}
+
+	}
+	return nil
 }
 
 // GetInstance retrieves a single instance.
@@ -283,7 +316,17 @@ func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (*
 	if !exists{
 		return nil, derrors.NewNotFoundError("appInstanceID").WithParams(appInstID.OrganizationId, appInstID.AppInstanceId)
 	}
-	return m.AppProvider.GetInstance(appInstID.AppInstanceId)
+	instance, err := m.AppProvider.GetInstance(appInstID.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.fillGlobalFqdn(instance)
+	if err != nil {
+		return nil, err
+	}
+
+	return instance, nil
 }
 
 // UpdateInstance updates the information of a given instance.

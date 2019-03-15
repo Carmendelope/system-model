@@ -273,3 +273,13 @@ func (h *Handler) RemoveAppEndpoints(ctx context.Context, request *grpc_applicat
 	}
 	return &grpc_common_go.Success{}, nil
 }
+
+// AddAppZtNetwork add a new zerotier network for an existing app instance
+func (h *Handler)AddAppZtNetwork(context.Context, *grpc_application_go.AddAppZtNetworkRequest) (*grpc_common_go.Success, error){
+	return nil, nil
+}
+// RemoveAppZtNetwork remove the network instance for an application instance
+func (h *Handler)RemoveAppZtNetwork(context.Context, *grpc_application_go.RemoveAppZtNetworkRequest) (*grpc_common_go.Success, error) {
+	return nil, nil
+}
+
