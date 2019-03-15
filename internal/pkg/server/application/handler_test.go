@@ -631,7 +631,7 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(instance).NotTo(gomega.BeNil())
 				gomega.Expect(err).To(gomega.BeNil())
 			})
-			ginkgo.FIt("should update instance and list the new values with the global Fqdn", func(){
+			ginkgo.It("should update instance and list the new values with the global Fqdn", func(){
 				toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
 				added, err := client.AddAppInstance(context.Background(), toAdd)
 				gomega.Expect(err).Should(gomega.Succeed())
