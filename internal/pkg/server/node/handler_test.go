@@ -121,10 +121,13 @@ var _ = ginkgo.Describe("Node service", func() {
 				NodeId:               added.NodeId,
 				UpdateStatus:         true,
 				Status:               grpc_infrastructure_go.InfraStatus_RUNNING,
+				UpdateState:          true,
+				State:                grpc_infrastructure_go.NodeState_ASSIGNED,
 			}
 			updated, err := client.UpdateNode(context.Background(), updateNodeRequest)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(updated.Status).Should(gomega.Equal(updateNodeRequest.Status))
+			gomega.Expect(updated.State).Should(gomega.Equal(updateNodeRequest.State))
 		})
 		ginkgo.It("should be able to add labels to nodes", func(){
 			toAdd := createAddNodeRequest(targetOrganization.ID)

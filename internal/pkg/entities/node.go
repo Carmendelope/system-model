@@ -92,6 +92,9 @@ func (n * Node) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateNodeReque
 	if updateRequest.UpdateStatus{
 		n.Status = InfraStatusFromGRPC[updateRequest.Status]
 	}
+	if updateRequest.UpdateState {
+		n.State = NodeStateFromGRPC[updateRequest.State]
+	}
 }
 
 func ValidAddNodeRequest(addNodeRequest *grpc_infrastructure_go.AddNodeRequest) derrors.Error {
