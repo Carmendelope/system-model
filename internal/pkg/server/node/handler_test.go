@@ -111,7 +111,7 @@ var _ = ginkgo.Describe("Node service", func() {
 			gomega.Expect(err).To(gomega.HaveOccurred())
 			gomega.Expect(added).Should(gomega.BeNil())
 		})
-		ginkgo.FIt("should be able to update a node", func(){
+		ginkgo.It("should be able to update a node", func(){
 			toAdd := createAddNodeRequest(targetOrganization.ID)
 			added, err := client.AddNode(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
