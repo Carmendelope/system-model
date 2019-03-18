@@ -145,7 +145,8 @@ func (h *Handler) UpdateAppStatus(ctx context.Context, updateAppStatus *grpc_app
 func (h *Handler) UpdateServiceStatus(ctx context.Context, updateServiceStatus *grpc_application_go.UpdateServiceStatusRequest) (*grpc_common_go.Success, error) {
 	err := entities.ValidUpdateServiceStatusRequest(updateServiceStatus)
 	if err != nil {
-	    return nil, conversions.ToGRPCError(err)
+		log.Warn().Interface("updateServiceStatus", updateServiceStatus).Msg("error in validation updating ServiceStatus")
+		return nil, conversions.ToGRPCError(err)
     }
     derr := h.Manager.UpdateService(updateServiceStatus)
     if derr != nil {
@@ -168,6 +169,7 @@ func (h *Handler) RemoveAppInstance(ctx context.Context, appInstID *grpc_applica
 func (h *Handler) AddServiceGroupInstances(ctx context.Context, addRequest *grpc_application_go.AddServiceGroupInstancesRequest) (*grpc_application_go.ServiceGroupInstancesList, error){
 	err := entities.ValidAddServiceGroupInstanceRequest(addRequest)
 	if err != nil {
+		log.Warn().Interface("addRequest", addRequest).Msg("error in validation adding serviceGroupInstances")
 		return nil, conversions.ToGRPCError(err)
 	}
 
@@ -239,6 +241,7 @@ func (h *Handler) GetServiceGroupInstanceMetadata(ctx context.Context, getReques
 func (h *Handler) UpdateServiceGroupInstanceMetadata(ctx context.Context, updateMetadataRequest *grpc_application_go.InstanceMetadata) (*grpc_common_go.Success, error) {
 	err := entities.ValidUpdateInstanceMetadata(updateMetadataRequest)
 	if err != nil {
+		log.Warn().Interface("updateMetadataRequest", updateMetadataRequest).Msg("error in validation updating serviceGroupInstance Metadata")
 		return nil, conversions.ToGRPCError(err)
 	}
 
