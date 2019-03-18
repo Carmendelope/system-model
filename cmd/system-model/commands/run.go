@@ -34,5 +34,6 @@ func init() {
 	runCmd.Flags().StringVar(&config.ScyllaDBAddress, "scyllaDBAddress", "", "address to connect to scylla database")
 	runCmd.Flags().IntVar(&config.ScyllaDBPort, "scyllaDBPort", 9042, "port to connect to scylla database")
 	runCmd.Flags().StringVar(&config.KeySpace, "scyllaDBKeyspace", "", "keyspace of scylla database")
+	runCmd.Flags().StringVar(&config.PublicHostDomain, "publicHost", "nalej.cluster.local", "Public Hostname for the domain")
 
 }

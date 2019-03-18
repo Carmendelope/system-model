@@ -167,7 +167,7 @@ func (m*MockupApplicationProvider)getAppEndpointKey(appEntryPoint entities.AppEn
 }
 
 // AddAppEntryPoint adds a new entry point to the system
-func (m *MockupApplicationProvider)AddAppEntryPoint (appEntryPoint entities.AppEndpoint) derrors.Error {
+func (m *MockupApplicationProvider)AddAppEndpoint (appEntryPoint entities.AppEndpoint) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -185,7 +185,7 @@ func (m *MockupApplicationProvider)AddAppEntryPoint (appEntryPoint entities.AppE
 }
 
 // GetAppEntryPointByFQDN ()
-func (m *MockupApplicationProvider) GetAppEntryPointByFQDN(fqdn string) ([]*entities.AppEndpoint, derrors.Error) {
+func (m *MockupApplicationProvider) GetAppEndpointByFQDN(fqdn string) ([]*entities.AppEndpoint, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -210,6 +210,21 @@ func (m *MockupApplicationProvider) DeleteAppEndpoints(organizationID string, ap
 	return nil
 }
 
+func (m *MockupApplicationProvider) GetAppEndpointList(organizationID string , appInstanceId string,
+	serviceGroupInstanceID string) ([]*entities.AppEndpoint, derrors.Error) {
+
+	m.Lock()
+	defer m.Unlock()
+
+	list := make ([]*entities.AppEndpoint, 0)
+	for _, endpoint := range m.appEntryPoints{
+		if endpoint.OrganizationId == organizationID && endpoint.AppInstanceId == appInstanceId &&
+			endpoint.ServiceGroupInstanceId == serviceGroupInstanceID {
+			list = append (list, &endpoint)
+		}
+	}
+	return list, nil
+}
 // AppZtNetwork functions
 
 func (m *MockupApplicationProvider) AddAppZtNetwork(ztNetwork entities.AppZtNetwork) derrors.Error {

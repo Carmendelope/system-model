@@ -15,7 +15,7 @@
   revision = "f6df8288f9b44e66f50c9a59aee53a705c788dbe"
 
 [[projects]]
-  digest = "1:d3d38150b6d77b2aad42a9e105170538b6563518993d43df78a1add6e31cce62"
+  digest = "1:529d738b7976c3848cae5cf3a8036440166835e389c1f617af701eeb12a0518d"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -26,8 +26,8 @@
     "ptypes/timestamp",
   ]
   pruneopts = ""
-  revision = "c823c79ea1570fb5ff454033735a8e68575d1d0f"
-  version = "v1.3.0"
+  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
+  version = "v1.3.1"
 
 [[projects]]
   digest = "1:6a6322a15aa8e99bd156fbba0aae4e5d67b4bb05251d860b348a45dfdcba9cce"
@@ -179,7 +179,7 @@
   version = "v1.8.0"
 
 [[projects]]
-  digest = "1:c8f0c8c28c9c1c51db72d0e7f04797cfe5d0d50528274099b6b2d6c314db7f97"
+  digest = "1:dbafce2fddb1ca331646fe2ac9c9413980368b19a60a4406a6e5861680bd73be"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -196,8 +196,8 @@
     "types",
   ]
   pruneopts = ""
-  revision = "65fb64232476ad9046e57c26cd0bff3d3a8dc6cd"
-  version = "v1.4.3"
+  revision = "90e289841c1ed79b7a598a7cd9959750cb5e89e2"
+  version = "v1.5.0"
 
 [[projects]]
   digest = "1:36de4f001b7f3fca448ba85270a4de8854f5abcb97d02d57be7fd6fc4a39d259"
@@ -257,7 +257,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a51d832881595a7312e766821f874b3172602f9adfbc5e6ddf6f5a75d55a23cc"
+  digest = "1:73e6624a8569db94b0d8f9b34052f73ef9598c380edbce36d89dbbc00941e976"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -272,7 +272,7 @@
     "trace",
   ]
   pruneopts = ""
-  revision = "d8887717615a059821345a5c23649351b52a1c0b"
+  revision = "9f648a60d9775ef5c977e7669d1673a7a67bef33"
 
 [[projects]]
   branch = "master"
@@ -406,7 +406,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ac4704735bd8a15b5226f07c6d26403e1b121f4fe84d25bd510cadb0f6213ec7"
+  digest = "1:002f84e9f3a08359c968075f8effc76b898dd901459a63817f9d9c568e3a5a57"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/util/errors",
@@ -415,7 +415,7 @@
     "pkg/util/validation/field",
   ]
   pruneopts = ""
-  revision = "f9b45bc4494d87078efa7551cad8a792fe1af9e7"
+  revision = "c9defaaddf6f05ecb2dd115c1bed600265501daf"
 
 [solve-meta]
   analyzer-name = "dep"

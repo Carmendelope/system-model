@@ -358,6 +358,9 @@ type ServiceGroupInstance struct {
 	Specs * ServiceGroupDeploymentSpecs `json:"specs,omitempty" cql:"specs"`
 	// Labels defined by the user.
 	Labels map[string]string `json:"labels,omitempty" cql:"labels"`
+	// GlobalFqdn
+	GlobalFqdn  []string `json:"global_fqdn,omitempty"`
+
 }
 
 func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInstance {
@@ -381,6 +384,7 @@ func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInsta
 		Metadata:			sgi.Metadata.ToGRPC(),
 		Specs: 				sgi.Specs.ToGRPC(),
 		Labels: 			sgi.Labels,
+		GlobalFqdn:         sgi.GlobalFqdn,
 	}
 }
 
@@ -1136,6 +1140,7 @@ func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AppEndpoint) (* AppEnd
 	if len (endpoint.OrganizationId) > 8 {
 		organizationID = endpoint.OrganizationId[:8]
 	}
+
 	fqdnSplit := strings.Split(fqdn, ".")
 	return &AppEndpoint{
 		OrganizationId: endpoint.OrganizationId,
