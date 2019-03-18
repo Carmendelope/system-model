@@ -484,11 +484,18 @@ func NewDeploySpecsFromGRPC(specs * grpc_application_go.DeploySpecs) * DeploySpe
 }
 
 func (ds *DeploySpecs) ToGRPC() *grpc_application_go.DeploySpecs {
-	return &grpc_application_go.DeploySpecs{
-		Cpu:      ds.Cpu,
-		Memory:   ds.Memory,
-		Replicas: ds.Replicas,
+
+	spec := &grpc_application_go.DeploySpecs{
+		Replicas: 1,
 	}
+
+	if ds != nil {
+		spec.Cpu = ds.Cpu
+		spec.Memory = ds.Memory
+		spec.Replicas = ds.Replicas
+	}
+
+	return spec
 }
 
 type StorageType int32
