@@ -64,14 +64,24 @@ data:
 
   node_alive.sh: |
     #!/bin/bash
+    sleep_time=15
     echo 'executing script...'
     KEYSPACE=$(cqlsh scylladb -e "DESCRIBE KEYSPACES")
     while [ $? -ne 0 ]
     do
-      echo 'sleep 1'
-      sleep 1
+      echo 'sleep'  ${sleep_time}
+      sleep $sleep_time
+      case $sleep_time in
+        15)
+            sleep_time=10
+        ;;
+        **)
+          sleep_time=5
+        ;;
+     esac
       KEYSPACES=$(cqlsh scylladb -e "DESCRIBE KEYSPACES") 2> dev/null
     done
+    sleep 5
     echo 'creating database...'
     cqlsh scylladb -f /opt/systemmodel-scylla.cql
 
