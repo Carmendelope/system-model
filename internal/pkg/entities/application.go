@@ -161,7 +161,7 @@ func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
 // ServiceGroupDeploymentSpecs -- //
 type ServiceGroupDeploymentSpecs struct {
 	// How many times this service group must be replicated
-	NumReplicas int32 `json:"num_replicas,omitempty" cql:"num_replicas"`
+	Replicas int32 `json:"replicas,omitempty" cql:"replicas"`
 	// Indicate if this service group must be replicated in every cluster
 	MultiClusterReplica  bool     `json:"multi_cluster_replica,omitempty" cql:"multi_cluster_replica"`
 	// DeploymentSelectors defines a key-value map of deployment selectors
@@ -173,7 +173,7 @@ func NewServiceGroupDeploymentSpecsFromGRPC(specs * grpc_application_go.ServiceG
 		return nil
 	}
 	return &ServiceGroupDeploymentSpecs{
-		NumReplicas:         specs.NumReplicas,
+		Replicas:            specs.Replicas,
 		MultiClusterReplica: specs.MultiClusterReplica,
 		DeploymentSelectors: specs.DeploymentSelectors,
 	}
@@ -184,7 +184,7 @@ func (sp * ServiceGroupDeploymentSpecs) ToGRPC() *grpc_application_go.ServiceGro
 		return nil
 	}
 	return &grpc_application_go.ServiceGroupDeploymentSpecs{
-		NumReplicas:          sp.NumReplicas,
+		Replicas:          sp.Replicas,
 		MultiClusterReplica:  sp.MultiClusterReplica,
 		DeploymentSelectors:  sp.DeploymentSelectors,
 	}

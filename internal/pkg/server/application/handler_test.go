@@ -89,7 +89,7 @@ func generateServiceGroup(services []*grpc_application_go.Service) * grpc_applic
 		Services: services,
 		Policy: grpc_application_go.CollocationPolicy_SEPARATE_CLUSTERS,
 		Specs: &grpc_application_go.ServiceGroupDeploymentSpecs{
-			NumReplicas: 5,
+			Replicas: 5,
 			MultiClusterReplica: false,
 		},
 		Labels:map[string]string{"label1":"sg_label1", "label2":"sg_label2", "label3":"sg_label3"},
