@@ -11,6 +11,7 @@ import (
 	"github.com/nalej/grpc-application-go"
 	"github.com/rs/zerolog/log"
 	"k8s.io/apimachinery/pkg/util/validation"
+	"regexp"
 	"strings"
 )
 
@@ -1121,6 +1122,49 @@ func (ep * AppEndpoint) ToGRPC () *grpc_application_go.AppEndpoint {
 	}
 }
 
+// createGlobalFqdn returns the globalFqdn for a endpoinFqnd given
+func createGlobalFqdn(endpoint *grpc_application_go.AppEndpoint) string {
+
+	// Option1 - Fqdn: serv.A.B.domain
+	// where:
+	// A: service_group_id
+	// B: app_instance_id
+
+	// Option2 - Fqdn: IP:port
+
+	// We need to store:
+	// Global Fqdn: serv.A.B.C.domain
+	// where
+	// A: service_group_id (6 characters)
+	// B: app_instance_id (6 characters)
+	// C: organization_id (8 characters)
+	// the domain is not stored
+
+	var serviceId string
+	var serviceGroupId string
+	var appInstanceId string
+	var organizationId string
+
+	organizationId = endpoint.OrganizationId
+	if len (endpoint.OrganizationId) > 8 {
+		organizationId = endpoint.OrganizationId[:8]
+	}
+
+	RegExp_IP := "(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])){3}(:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[0-5]?([0-9]){0,3}[0-9]))?"
+
+	match, _ := regexp.MatchString(RegExp_IP, endpoint.EndpointInstance.Fqdn)
+	if match == true{
+		// IP
+		serviceID = endpoint
+	}else {
+		// no IP
+		log.Debug().Msg("is not a IP")
+	}
+
+	return organizationId
+
+}
+
 func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AppEndpoint) (* AppEndpoint, derrors.Error){
 	endpointInstanceId := ""
 	endpointType := IsAlive
@@ -1516,11 +1560,11 @@ func ValidUpdateInstanceMetadata(request *grpc_application_go.InstanceMetadata) 
 	return nil
 }
 
-func ValidAppEndpoint(request *grpc_application_go.AppEndpoint) derrors.Error {
+func ValidAddAppEndpointRequest(request *grpc_application_go.AppEndpoint) derrors.Error {
 	if request.AppInstanceId == "" || request.OrganizationId == "" || request.ServiceGroupInstanceId == "" ||
-		request.ServiceInstanceId == "" || request.EndpointInstance.Fqdn == "" {
+		request.ServiceInstanceId == "" || request.EndpointInstance.Fqdn == "" || request.ServiceName == "" {
 			return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +
-				"service_group_instance_id, service_instance_id, fqdn")
+				"service_group_instance_id, service_instance_id, service_name, fqdn")
 	}
 
 	if request.EndpointInstance == nil || request.EndpointInstance.Fqdn == "" {

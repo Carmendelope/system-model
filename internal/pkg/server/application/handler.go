@@ -255,8 +255,8 @@ func (h *Handler) UpdateServiceGroupInstanceMetadata(ctx context.Context, update
 }
 
 // AddAppEndPoint adds a new App Endpoint to a given service instance
-func (h *Handler) AddAppEndpoint(ctx context.Context, request *grpc_application_go.AppEndpoint) (*grpc_common_go.Success, error){
-	err := entities.ValidAppEndpoint(request)
+func (h *Handler) AddAppEndpoint(ctx context.Context, request *grpc_application_go.AddAppEndpointRequest) (*grpc_common_go.Success, error){
+	err := entities.ValidAddAppEndpointRequest(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
