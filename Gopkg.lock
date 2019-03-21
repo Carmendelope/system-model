@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f31c353881b7ad731a956d2fd1f8d89b73ea64d9591f2e2bbdfbfa35ae2a1aff"
+  digest = "1:06021125b5a7a3d454e332dc21b5322cd7bb9ad82ea05b43658e9a8d5879282c"
   name = "github.com/gocql/gocql"
   packages = [
     ".",
@@ -12,7 +12,7 @@
     "internal/streams",
   ]
   pruneopts = ""
-  revision = "f6df8288f9b44e66f50c9a59aee53a705c788dbe"
+  revision = "6bdac5e86117001a9b87d0d885c6a0c053764696"
 
 [[projects]]
   digest = "1:529d738b7976c3848cae5cf3a8036440166835e389c1f617af701eeb12a0518d"
@@ -84,12 +84,12 @@
   version = "v2.0.0"
 
 [[projects]]
-  digest = "1:b20160f99a5c5f3070a73868e35eb2e381054f4b0a13c503be2567b472a1335c"
+  digest = "1:fbbc4cb8843fd8a49052a2aef050d46f3b23e8fca32017728d0070ba5cdb3334"
   name = "github.com/nalej/grpc-application-go"
   packages = ["."]
   pruneopts = ""
-  revision = "d46e5ee54f16d25d8adc2cefa1ae3635b0937059"
-  version = "v0.0.63"
+  revision = "79100d71604e66deab80afc2aa312521f6e5dd18"
+  version = "v0.0.64"
 
 [[projects]]
   digest = "1:44f7426538411ea9f774f96e3b102decc9f549b188e55e29ecc15be69542a96b"
@@ -257,7 +257,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:73e6624a8569db94b0d8f9b34052f73ef9598c380edbce36d89dbbc00941e976"
+  digest = "1:ced597cd18c9d5a5b0b2ec62e8bc74194965d703694d7a5bc2277c0f2b2f4d73"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -272,15 +272,15 @@
     "trace",
   ]
   pruneopts = ""
-  revision = "9f648a60d9775ef5c977e7669d1673a7a67bef33"
+  revision = "1272bf9dcd53ea65c09668fb4c76e65deb740072"
 
 [[projects]]
   branch = "master"
-  digest = "1:9f5e388a2e01d646e82dc420469e21a6e0e7a526954ef1638009bc87eacf578e"
+  digest = "1:ba9161ae486a23244987306b85436483df7b276c2364d61a033ad3aebeeec8d0"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = ""
-  revision = "a2f829d7f35f2ed1c3520c553a6226495455cae0"
+  revision = "f7bb7a8bee54210937e93ec56d007d892c1f0580"
 
 [[projects]]
   digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
@@ -329,7 +329,7 @@
   revision = "5fe7a883aa19554f42890211544aa549836af7b7"
 
 [[projects]]
-  digest = "1:b6c17b0c657f047118ae59b358950b28515914512cf3de02388cc42e33a92520"
+  digest = "1:9e9c6b3804858b1a058ef81027270d307b74f4ddd727d2edff0ca002dd304adb"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -368,8 +368,8 @@
     "test/bufconn",
   ]
   pruneopts = ""
-  revision = "2fdaae294f38ed9a121193c51ec99fecd3b13eb7"
-  version = "v1.19.0"
+  revision = "3507fb8e1a5ad030303c106fef3a47c9fdad16ad"
+  version = "v1.19.1"
 
 [[projects]]
   digest = "1:eb53021a8aa3f599d29c7102e65026242bdedce998a54837dc67f14b6a97c5fd"
@@ -406,7 +406,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:002f84e9f3a08359c968075f8effc76b898dd901459a63817f9d9c568e3a5a57"
+  digest = "1:7ceab4ec37534c382a698eeafb079823326f18dc2c8cbdc7aa8975b582925f99"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/util/errors",
@@ -415,7 +415,7 @@
     "pkg/util/validation/field",
   ]
   pruneopts = ""
-  revision = "c9defaaddf6f05ecb2dd115c1bed600265501daf"
+  revision = "82cbdc1b6ac2c074b688b7f23128f3607bf9034c"
 
 [solve-meta]
   analyzer-name = "dep"
