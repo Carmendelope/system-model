@@ -199,7 +199,7 @@ func CreateTestServiceGroupInstance(organizationID string, appDescriptorID strin
 			Info:map[string]string{"sgInfo1": "info1"},
 		},
 		Specs: &entities.ServiceGroupDeploymentSpecs{
-			NumReplicas: 3,
+			Replicas:            3,
 			MultiClusterReplica: true,
 		},
 		Labels: map[string]string {"label1": "label1(servicegroupinstance)"},
@@ -216,7 +216,7 @@ func CreateTestServiceGroup(organizationID string, appDescriptorId string) entit
 	}
 
 	specs := &entities.ServiceGroupDeploymentSpecs {
-		NumReplicas: 5,
+		Replicas:            5,
 		MultiClusterReplica: false,
 	}
 

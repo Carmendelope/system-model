@@ -15,6 +15,11 @@ import (
 	"strings"
 )
 
+var DefaultEndpointInstance = &grpc_application_go.EndpointInstance{
+	EndpointInstanceId: "",
+	Type: grpc_application_go.EndpointType_IS_ALIVE,
+	Fqdn: "",
+}
 // Enumerate with the type of instances we can deploy in the system.
 type InstanceType int32
 
@@ -162,7 +167,7 @@ func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
 // ServiceGroupDeploymentSpecs -- //
 type ServiceGroupDeploymentSpecs struct {
 	// How many times this service group must be replicated
-	NumReplicas int32 `json:"num_replicas,omitempty" cql:"num_replicas"`
+	Replicas int32 `json:"replicas,omitempty" cql:"replicas"`
 	// Indicate if this service group must be replicated in every cluster
 	MultiClusterReplica  bool     `json:"multi_cluster_replica,omitempty" cql:"multi_cluster_replica"`
 	// DeploymentSelectors defines a key-value map of deployment selectors
@@ -174,7 +179,7 @@ func NewServiceGroupDeploymentSpecsFromGRPC(specs * grpc_application_go.ServiceG
 		return nil
 	}
 	return &ServiceGroupDeploymentSpecs{
-		NumReplicas:         specs.NumReplicas,
+		Replicas:            specs.Replicas,
 		MultiClusterReplica: specs.MultiClusterReplica,
 		DeploymentSelectors: specs.DeploymentSelectors,
 	}
@@ -185,7 +190,7 @@ func (sp * ServiceGroupDeploymentSpecs) ToGRPC() *grpc_application_go.ServiceGro
 		return nil
 	}
 	return &grpc_application_go.ServiceGroupDeploymentSpecs{
-		NumReplicas:          sp.NumReplicas,
+		Replicas:          sp.Replicas,
 		MultiClusterReplica:  sp.MultiClusterReplica,
 		DeploymentSelectors:  sp.DeploymentSelectors,
 	}
@@ -1123,7 +1128,7 @@ func (ep * AppEndpoint) ToGRPC () *grpc_application_go.AppEndpoint {
 }
 
 // createGlobalFqdn returns the globalFqdn for a endpoinFqnd given
-func createGlobalFqdn(endpoint *grpc_application_go.AppEndpoint) string {
+func createGlobalFqdn(endpoint *grpc_application_go.AddAppEndpointRequest) string {
 
 	// Option1 - Fqdn: serv.A.B.domain
 	// where:
@@ -1140,59 +1145,55 @@ func createGlobalFqdn(endpoint *grpc_application_go.AppEndpoint) string {
 	// C: organization_id (8 characters)
 	// the domain is not stored
 
-	var serviceId string
-	var serviceGroupId string
-	var appInstanceId string
-	var organizationId string
+	serviceName := ""
+	serviceGroupId := ""
+	appInstanceId := ""
+	organizationId := ""
 
 	organizationId = endpoint.OrganizationId
 	if len (endpoint.OrganizationId) > 8 {
 		organizationId = endpoint.OrganizationId[:8]
 	}
 
-	RegExp_IP := "(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])){3}(:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[0-5]?([0-9]){0,3}[0-9]))?"
+	RegExpIP := "(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])){3}(:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[0-5]?([0-9]){0,3}[0-9]))?"
 
-	match, _ := regexp.MatchString(RegExp_IP, endpoint.EndpointInstance.Fqdn)
+	match, _ := regexp.MatchString(RegExpIP, endpoint.EndpointInstance.Fqdn)
 	if match == true{
 		// IP
-		serviceID = endpoint
+		serviceName = endpoint.ServiceName
+		serviceGroupId = endpoint.ServiceGroupInstanceId // 6 characters
+		if len(serviceGroupId) > 6 {
+			serviceGroupId = serviceGroupId[:6]
+		}
+		appInstanceId = endpoint.AppInstanceId // 6 characters
+		if len(appInstanceId) > 6 {
+			appInstanceId = appInstanceId[:6]
+		}
 	}else {
 		// no IP
 		log.Debug().Msg("is not a IP")
+		fqdn := endpoint.EndpointInstance.Fqdn
+		fqdnSplit := strings.Split(fqdn, ".")
+		if len (fqdnSplit) >= 4 {
+			serviceName = fqdnSplit[0]
+			serviceGroupId = fqdnSplit[1]
+			appInstanceId = fqdnSplit[2]
+		}
 	}
 
-	return organizationId
+	return fmt.Sprintf("%s.%s.%s.%s", serviceName, serviceGroupId, appInstanceId, organizationId)
 
 }
 
-func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AppEndpoint) (* AppEndpoint, derrors.Error){
-	endpointInstanceId := ""
-	endpointType := IsAlive
-	fqdn := ""
-	if endpoint.EndpointInstance != nil {
-		endpointInstanceId = endpoint.EndpointInstance.EndpointInstanceId
-		endpointType = EndpointTypeFromGRPC[endpoint.EndpointInstance.Type]
-		fqdn = endpoint.EndpointInstance.Fqdn
+func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AddAppEndpointRequest) (* AppEndpoint, derrors.Error){
+
+	if endpoint.EndpointInstance == nil {
+		endpoint.EndpointInstance = DefaultEndpointInstance
+		//endpointInstanceId = endpoint.EndpointInstance.EndpointInstanceId
+		//endpointType = EndpointTypeFromGRPC[endpoint.EndpointInstance.Type]
+		//fqdn = endpoint.EndpointInstance.Fqdn
 	}
 
-	// Fqdn: serv.A.B.domain
-	// where:
-	// A: service_group_id
-	// B: app_instance_id
-
-		// We need to store:
-	// Global Fqdn: serv.A.B.C.domain
-	// where
-	// A: service_group_id (6 characters)
-	// B: app_instance_id (6 characters)
-	// C: organization_id (8 characters)
-	// the domain is not stored
-	organizationID := endpoint.OrganizationId
-	if len (endpoint.OrganizationId) > 8 {
-		organizationID = endpoint.OrganizationId[:8]
-	}
-
-	fqdnSplit := strings.Split(fqdn, ".")
 	return &AppEndpoint{
 		OrganizationId: endpoint.OrganizationId,
 		AppInstanceId: endpoint.AppInstanceId,
@@ -1200,10 +1201,10 @@ func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AppEndpoint) (* AppEnd
 		ServiceInstanceId: endpoint.ServiceInstanceId,
 		Port: endpoint.Port,
 		Protocol: AppEndpointProtocolFromGRPC[endpoint.Protocol],
-		EndpointInstanceId:endpointInstanceId,
-		Type:  endpointType,
-		Fqdn: fqdn,
-		GlobalFqdn:fmt.Sprintf("%s.%s.%s.%s", fqdnSplit[0], fqdnSplit[1], fqdnSplit[2], organizationID),
+		EndpointInstanceId:endpoint.EndpointInstance.EndpointInstanceId,
+		Type:  EndpointTypeFromGRPC[endpoint.EndpointInstance.Type],
+		Fqdn: endpoint.EndpointInstance.Fqdn,
+		GlobalFqdn:createGlobalFqdn(endpoint),
 	}, nil
 }
 
@@ -1560,7 +1561,7 @@ func ValidUpdateInstanceMetadata(request *grpc_application_go.InstanceMetadata) 
 	return nil
 }
 
-func ValidAddAppEndpointRequest(request *grpc_application_go.AppEndpoint) derrors.Error {
+func ValidAddAppEndpointRequest(request *grpc_application_go.AddAppEndpointRequest) derrors.Error {
 	if request.AppInstanceId == "" || request.OrganizationId == "" || request.ServiceGroupInstanceId == "" ||
 		request.ServiceInstanceId == "" || request.EndpointInstance.Fqdn == "" || request.ServiceName == "" {
 			return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +

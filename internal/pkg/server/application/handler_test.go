@@ -91,7 +91,7 @@ func generateServiceGroup(services []*grpc_application_go.Service) * grpc_applic
 		Services: services,
 		Policy: grpc_application_go.CollocationPolicy_SEPARATE_CLUSTERS,
 		Specs: &grpc_application_go.ServiceGroupDeploymentSpecs{
-			NumReplicas: 5,
+			Replicas: 5,
 			MultiClusterReplica: false,
 		},
 		Labels:map[string]string{"label1":"sg_label1", "label2":"sg_label2", "label3":"sg_label3"},
@@ -215,24 +215,25 @@ func generateServiceGroupInstanceMetadata(appInstance grpc_application_go.AppIns
 	}
 }
 
-func generateAppEndpoint(serviceName string, organizationId string) *grpc_application_go.AppEndpoint{
-	appendpoint := &grpc_application_go.AppEndpoint{
+func generateAppEndpoint(serviceName string, organizationId string) *grpc_application_go.AddAppEndpointRequest{
+	appEndpoint := &grpc_application_go.AddAppEndpointRequest{
 		OrganizationId:         organizationId,
 		AppInstanceId:          uuid.New().String(),
 		ServiceGroupInstanceId: uuid.New().String(),
 		ServiceInstanceId:      uuid.New().String(),
 		Port:                   8080,
 		Protocol:               grpc_application_go.AppEndpointProtocol_HTTPS,
+		ServiceName:            "service_name",
 		EndpointInstance: &grpc_application_go.EndpointInstance{
 			EndpointInstanceId: uuid.New().String(),
 			Type:               grpc_application_go.EndpointType_IS_ALIVE,
 		},
 	}
 
-	appendpoint.EndpointInstance.Fqdn = fmt.Sprintf("%s.%s.%s.domain",serviceName, appendpoint.ServiceGroupInstanceId[:6],
-		appendpoint.AppInstanceId[:6])
+	appEndpoint.EndpointInstance.Fqdn = fmt.Sprintf("%s.%s.%s.domain",serviceName, appEndpoint.ServiceGroupInstanceId[:6],
+		appEndpoint.AppInstanceId[:6])
 
-	return appendpoint
+	return appEndpoint
 
 }
 
@@ -628,12 +629,68 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(success).NotTo(gomega.BeNil())
 
 				// add AppEndpoint
-				success, err = client.AddAppEndpoint(context.Background(), &grpc_application_go.AppEndpoint{
+				success, err = client.AddAppEndpoint(context.Background(), &grpc_application_go.AddAppEndpointRequest{
 					OrganizationId: targetOrganization.ID,
 					AppInstanceId: added.AppInstanceId,
 					ServiceGroupInstanceId:  list.ServiceGroupInstances[0].ServiceGroupInstanceId,
 					ServiceInstanceId: list.ServiceGroupInstances[0].ServiceInstances[0].ServiceInstanceId,
 					EndpointInstance: toUpdate.Endpoints[0],
+					ServiceName: "service_name",
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(success).NotTo(gomega.BeNil())
+
+				// get instance
+				instance , err := client.GetAppInstance(context.Background(), &grpc_application_go.AppInstanceId{
+					OrganizationId: targetOrganization.ID,
+					AppInstanceId: added.AppInstanceId,
+				})
+				gomega.Expect(instance).NotTo(gomega.BeNil())
+				gomega.Expect(err).To(gomega.BeNil())
+			})
+			ginkgo.It("should update instance and return the new values with the global Fqdn (IP address)", func(){
+				toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+
+				// add serviceGroupInstance
+				list, err:= client.AddServiceGroupInstances(context.Background(), &grpc_application_go.AddServiceGroupInstancesRequest{
+					OrganizationId: targetOrganization.ID,
+					AppDescriptorId: targetDescriptor.AppDescriptorId,
+					AppInstanceId: added.AppInstanceId,
+					ServiceGroupId: targetDescriptor.Groups[0].ServiceGroupId,
+					NumInstances: 1,
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(list).NotTo(gomega.BeNil())
+
+				// update status
+				toUpdate := &grpc_application_go.UpdateServiceStatusRequest{
+					OrganizationId: targetOrganization.ID,
+					AppInstanceId: added.AppInstanceId,
+					ServiceGroupInstanceId:  list.ServiceGroupInstances[0].ServiceGroupInstanceId,
+					ServiceInstanceId: list.ServiceGroupInstances[0].ServiceInstances[0].ServiceInstanceId,
+					Status: grpc_application_go.ServiceStatus_SERVICE_RUNNING,
+					Endpoints: []*grpc_application_go.EndpointInstance{{
+						EndpointInstanceId: uuid.New().String(),
+						Type: grpc_application_go.EndpointType_IS_ALIVE,
+						Fqdn: "100.100.200.1:900",
+						},
+					},
+				}
+				success, err := client.UpdateServiceStatus(context.Background(), toUpdate)
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(success).NotTo(gomega.BeNil())
+
+				// add AppEndpoint
+				success, err = client.AddAppEndpoint(context.Background(), &grpc_application_go.AddAppEndpointRequest{
+					OrganizationId: targetOrganization.ID,
+					AppInstanceId: added.AppInstanceId,
+					ServiceGroupInstanceId:  list.ServiceGroupInstances[0].ServiceGroupInstanceId,
+					ServiceInstanceId: list.ServiceGroupInstances[0].ServiceInstances[0].ServiceInstanceId,
+					EndpointInstance: toUpdate.Endpoints[0],
+					ServiceName: "service_name",
 				})
 				gomega.Expect(err).To(gomega.Succeed())
 				gomega.Expect(success).NotTo(gomega.BeNil())
@@ -683,12 +740,13 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(success).NotTo(gomega.BeNil())
 
 				// add AppEndpoint
-				success, err = client.AddAppEndpoint(context.Background(), &grpc_application_go.AppEndpoint{
+				success, err = client.AddAppEndpoint(context.Background(), &grpc_application_go.AddAppEndpointRequest{
 					OrganizationId: targetOrganization.ID,
 					AppInstanceId: added.AppInstanceId,
 					ServiceGroupInstanceId:  list.ServiceGroupInstances[0].ServiceGroupInstanceId,
 					ServiceInstanceId: list.ServiceGroupInstances[0].ServiceInstances[0].ServiceInstanceId,
 					EndpointInstance: toUpdate.Endpoints[0],
+					ServiceName: "service_name",
 				})
 				gomega.Expect(err).To(gomega.Succeed())
 				gomega.Expect(success).NotTo(gomega.BeNil())
@@ -882,11 +940,12 @@ var _ = ginkgo.Describe("Applications", func(){
 		})
 
 		ginkgo.It("Should not be able to app endpoints list (several organizations)", func() {
-			endPoint1 := &grpc_application_go.AppEndpoint{
+			endPoint1 := &grpc_application_go.AddAppEndpointRequest{
 				OrganizationId:			"xxxxxxxxx1",
 				AppInstanceId: 			"aaaaaaaaa1",
 				ServiceGroupInstanceId:	"ggggggggg1",
 				ServiceInstanceId:		"sssssssss1",
+				ServiceName:            "service1",
 				Port:					80,
 				Protocol:grpc_application_go.AppEndpointProtocol_HTTPS,
 				EndpointInstance: &grpc_application_go.EndpointInstance{
@@ -899,11 +958,12 @@ var _ = ginkgo.Describe("Applications", func(){
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(success).ShouldNot(gomega.BeNil())
 
-			endPoint2 := &grpc_application_go.AppEndpoint{
+			endPoint2 := &grpc_application_go.AddAppEndpointRequest{
 				OrganizationId:			"xxxxxxxxx2",
 				AppInstanceId: 			"aaaaaaaaa2",
 				ServiceGroupInstanceId:	"ggggggggg2",
 				ServiceInstanceId:		"sssssssss2",
+				ServiceName:            "service2",
 				Port:					80,
 				Protocol:grpc_application_go.AppEndpointProtocol_HTTPS,
 				EndpointInstance: &grpc_application_go.EndpointInstance{

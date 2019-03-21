@@ -8,7 +8,7 @@ create KEYSPACE IF NOT EXISTS nalej WITH replication = {'class': 'SimpleStrategy
 -- USER DEFINED TYPES --
 ------------------------
 create type IF NOT EXISTS nalej.deploy_spec (cpu bigint, memory bigint, replicas int);
-create type IF NOT EXISTS nalej.service_group_deployment_specs (num_replicas int, multi_cluster_replica boolean, deployment_selectors map<text, text>);
+create type IF NOT EXISTS nalej.service_group_deployment_specs (replicas int, multi_cluster_replica boolean, deployment_selectors map<text, text>);
 create type IF NOT EXISTS nalej.storage (size bigint, mount_path text, type int);
 create type IF NOT EXISTS nalej.endpoint (type int, path text);
 create type IF NOT EXISTS nalej.endpoint_instance (endpoint_instance_id text, type int, fqdn text);
