@@ -18,11 +18,9 @@ import (
 	"github.com/nalej/system-model/internal/pkg/server/testhelpers"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
-	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 	"math/rand"
-	"regexp"
 	"strings"
 )
 
@@ -235,18 +233,6 @@ func generateAppEndpoint(serviceName string, organizationId string) *grpc_applic
 
 	return appEndpoint
 
-}
-
-func pruebaBorrar(ent string){
-	RegExp_IP := "(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])){3}(:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[0-5]?([0-9]){0,3}[0-9]))?"
-	//r := regexp.MustCompile(RegExp_IP)
-
-	match, _ := regexp.MatchString(RegExp_IP, ent)
-	if match == true{
-		log.Debug().Msg("is a IP")
-	}else {
-		log.Debug().Msg("is not a IP")
-	}
 }
 
 var _ = ginkgo.Describe("Applications", func(){

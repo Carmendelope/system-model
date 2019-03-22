@@ -20,6 +20,10 @@ var DefaultEndpointInstance = &grpc_application_go.EndpointInstance{
 	Type: grpc_application_go.EndpointType_IS_ALIVE,
 	Fqdn: "",
 }
+
+var IPAddressRegExp = string("(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])){3}(:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[0-5]?([0-9]){0,3}[0-9]))?")
+
+
 // Enumerate with the type of instances we can deploy in the system.
 type InstanceType int32
 
@@ -1155,9 +1159,7 @@ func createGlobalFqdn(endpoint *grpc_application_go.AddAppEndpointRequest) strin
 		organizationId = endpoint.OrganizationId[:8]
 	}
 
-	RegExpIP := "(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])){3}(:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[0-5]?([0-9]){0,3}[0-9]))?"
-
-	match, _ := regexp.MatchString(RegExpIP, endpoint.EndpointInstance.Fqdn)
+	match, _ := regexp.MatchString(IPAddressRegExp, endpoint.EndpointInstance.Fqdn)
 	if match == true{
 		// IP
 		serviceName = endpoint.ServiceName
@@ -1189,9 +1191,6 @@ func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AddAppEndpointRequest)
 
 	if endpoint.EndpointInstance == nil {
 		endpoint.EndpointInstance = DefaultEndpointInstance
-		//endpointInstanceId = endpoint.EndpointInstance.EndpointInstanceId
-		//endpointType = EndpointTypeFromGRPC[endpoint.EndpointInstance.Type]
-		//fqdn = endpoint.EndpointInstance.Fqdn
 	}
 
 	return &AppEndpoint{
