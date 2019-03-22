@@ -15,14 +15,15 @@ import (
 	"strings"
 )
 
+// DefaultEndPointInstance is used when the endpoint recived from GRPC has no endpoint
 var DefaultEndpointInstance = &grpc_application_go.EndpointInstance{
 	EndpointInstanceId: "",
 	Type: grpc_application_go.EndpointType_IS_ALIVE,
 	Fqdn: "",
 }
 
+// regular expresion for IP:port address
 var IPAddressRegExp = string("(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])){3}(:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[0-5]?([0-9]){0,3}[0-9]))?")
-
 
 // Enumerate with the type of instances we can deploy in the system.
 type InstanceType int32
