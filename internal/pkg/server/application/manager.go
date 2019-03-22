@@ -659,7 +659,7 @@ func (m * Manager) AddServiceInstance(request *grpc_application_go.AddServiceIns
 }
 
 // AddAppEndPoint adds a new App Endpoint to a given service instance
-func (m * Manager) AddAppEndpoint(appEndpoint *grpc_application_go.AppEndpoint) derrors.Error {
+func (m * Manager) AddAppEndpoint(appEndpoint *grpc_application_go.AddAppEndpointRequest) derrors.Error {
 
 	endpoint, err := entities.NewAppEndpointFromGRPC(appEndpoint)
 	if err != nil {

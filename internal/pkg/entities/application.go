@@ -11,8 +11,19 @@ import (
 	"github.com/nalej/grpc-application-go"
 	"github.com/rs/zerolog/log"
 	"k8s.io/apimachinery/pkg/util/validation"
+	"regexp"
 	"strings"
 )
+
+// DefaultEndPointInstance is used when the endpoint recived from GRPC has no endpoint
+var DefaultEndpointInstance = &grpc_application_go.EndpointInstance{
+	EndpointInstanceId: "",
+	Type: grpc_application_go.EndpointType_IS_ALIVE,
+	Fqdn: "",
+}
+
+// regular expresion for IP:port address
+var IPAddressRegExp = string("(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])){3}(:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[0-5]?([0-9]){0,3}[0-9]))?")
 
 // Enumerate with the type of instances we can deploy in the system.
 type InstanceType int32
@@ -1121,34 +1132,68 @@ func (ep * AppEndpoint) ToGRPC () *grpc_application_go.AppEndpoint {
 	}
 }
 
-func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AppEndpoint) (* AppEndpoint, derrors.Error){
-	endpointInstanceId := ""
-	endpointType := IsAlive
-	fqdn := ""
-	if endpoint.EndpointInstance != nil {
-		endpointInstanceId = endpoint.EndpointInstance.EndpointInstanceId
-		endpointType = EndpointTypeFromGRPC[endpoint.EndpointInstance.Type]
-		fqdn = endpoint.EndpointInstance.Fqdn
-	}
+// createGlobalFqdn returns the globalFqdn for a endpoinFqnd given
+func createGlobalFqdn(endpoint *grpc_application_go.AddAppEndpointRequest) string {
 
-	// Fqdn: serv.A.B.domain
+	// Option1 - Fqdn: serv.A.B.domain
 	// where:
 	// A: service_group_id
 	// B: app_instance_id
 
-		// We need to store:
+	// Option2 - Fqdn: IP:port
+
+	// We need to store:
 	// Global Fqdn: serv.A.B.C.domain
 	// where
 	// A: service_group_id (6 characters)
 	// B: app_instance_id (6 characters)
 	// C: organization_id (8 characters)
 	// the domain is not stored
-	organizationID := endpoint.OrganizationId
+
+	serviceName := ""
+	serviceGroupId := ""
+	appInstanceId := ""
+	organizationId := ""
+
+	organizationId = endpoint.OrganizationId
 	if len (endpoint.OrganizationId) > 8 {
-		organizationID = endpoint.OrganizationId[:8]
+		organizationId = endpoint.OrganizationId[:8]
 	}
 
-	fqdnSplit := strings.Split(fqdn, ".")
+	match, _ := regexp.MatchString(IPAddressRegExp, endpoint.EndpointInstance.Fqdn)
+	if match == true{
+		// IP
+		serviceName = endpoint.ServiceName
+		serviceGroupId = endpoint.ServiceGroupInstanceId // 6 characters
+		if len(serviceGroupId) > 6 {
+			serviceGroupId = serviceGroupId[:6]
+		}
+		appInstanceId = endpoint.AppInstanceId // 6 characters
+		if len(appInstanceId) > 6 {
+			appInstanceId = appInstanceId[:6]
+		}
+	}else {
+		// no IP
+		log.Debug().Msg("is not a IP")
+		fqdn := endpoint.EndpointInstance.Fqdn
+		fqdnSplit := strings.Split(fqdn, ".")
+		if len (fqdnSplit) >= 4 {
+			serviceName = fqdnSplit[0]
+			serviceGroupId = fqdnSplit[1]
+			appInstanceId = fqdnSplit[2]
+		}
+	}
+
+	return fmt.Sprintf("%s.%s.%s.%s", serviceName, serviceGroupId, appInstanceId, organizationId)
+
+}
+
+func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AddAppEndpointRequest) (* AppEndpoint, derrors.Error){
+
+	if endpoint.EndpointInstance == nil {
+		endpoint.EndpointInstance = DefaultEndpointInstance
+	}
+
 	return &AppEndpoint{
 		OrganizationId: endpoint.OrganizationId,
 		AppInstanceId: endpoint.AppInstanceId,
@@ -1156,10 +1201,10 @@ func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AppEndpoint) (* AppEnd
 		ServiceInstanceId: endpoint.ServiceInstanceId,
 		Port: endpoint.Port,
 		Protocol: AppEndpointProtocolFromGRPC[endpoint.Protocol],
-		EndpointInstanceId:endpointInstanceId,
-		Type:  endpointType,
-		Fqdn: fqdn,
-		GlobalFqdn:fmt.Sprintf("%s.%s.%s.%s", fqdnSplit[0], fqdnSplit[1], fqdnSplit[2], organizationID),
+		EndpointInstanceId:endpoint.EndpointInstance.EndpointInstanceId,
+		Type:  EndpointTypeFromGRPC[endpoint.EndpointInstance.Type],
+		Fqdn: endpoint.EndpointInstance.Fqdn,
+		GlobalFqdn:createGlobalFqdn(endpoint),
 	}, nil
 }
 
@@ -1516,11 +1561,11 @@ func ValidUpdateInstanceMetadata(request *grpc_application_go.InstanceMetadata) 
 	return nil
 }
 
-func ValidAppEndpoint(request *grpc_application_go.AppEndpoint) derrors.Error {
+func ValidAddAppEndpointRequest(request *grpc_application_go.AddAppEndpointRequest) derrors.Error {
 	if request.AppInstanceId == "" || request.OrganizationId == "" || request.ServiceGroupInstanceId == "" ||
-		request.ServiceInstanceId == "" || request.EndpointInstance.Fqdn == "" {
+		request.ServiceInstanceId == "" || request.EndpointInstance.Fqdn == "" || request.ServiceName == "" {
 			return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +
-				"service_group_instance_id, service_instance_id, fqdn")
+				"service_group_instance_id, service_instance_id, service_name, fqdn")
 	}
 
 	if request.EndpointInstance == nil || request.EndpointInstance.Fqdn == "" {
