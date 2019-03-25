@@ -1150,7 +1150,7 @@ func (ep * AppEndpoint) ToGRPC () *grpc_application_go.AppEndpoint {
 func getNamePrefixes(ep *grpc_application_go.AddAppEndpointRequest) (string, string, string, string){
 	serviceName := ep.ServiceName
 
-	if ep.EndpointInstance != nil && ep.EndpointInstance.Port != 80 {
+	if ep.EndpointInstance != nil && ep.EndpointInstance.Port != 80 && ep.EndpointInstance.Port != 0 {
 		serviceName = fmt.Sprintf("%s-%d", ep.ServiceName, ep.EndpointInstance.Port)
 	}
 	serviceGroupInstPrefix := ep.ServiceGroupInstanceId
