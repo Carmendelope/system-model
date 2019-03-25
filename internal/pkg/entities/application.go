@@ -11,7 +11,6 @@ import (
 	"github.com/nalej/grpc-application-go"
 	"github.com/rs/zerolog/log"
 	"k8s.io/apimachinery/pkg/util/validation"
-	"regexp"
 	"strings"
 )
 
@@ -24,6 +23,12 @@ var DefaultEndpointInstance = &grpc_application_go.EndpointInstance{
 
 // regular expresion for IP:port address
 var IPAddressRegExp = string("(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])){3}(:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[0-5]?([0-9]){0,3}[0-9]))?")
+
+// characters of service_group_instance_id and service_instance_id to create gloabl_fqdn
+const InstPrefixLength = 6
+// characters of organization_id to create gloabl_fqdn
+const OrgPrefixLength = 8
+
 
 // Enumerate with the type of instances we can deploy in the system.
 type InstanceType int32
@@ -839,6 +844,8 @@ type EndpointInstance struct {
 	Type EndpointType `json:"type,omitempty" cql:"type"`
 	// FQDN to be accessed by any client
 	Fqdn string   `json:"fqdn,omitempty" cql:"fqdn"`
+	// Port port in the endpoint
+	Port                 int32    `json:"port,omitempty" cql:"port"`
 }
 
 func (ep * EndpointInstance) ToGRPC () *grpc_application_go.EndpointInstance {
@@ -847,6 +854,7 @@ func (ep * EndpointInstance) ToGRPC () *grpc_application_go.EndpointInstance {
 		EndpointInstanceId: ep.EndpointInstanceId,
 		Type : 				convertedType,
 		Fqdn: 				ep.Fqdn,
+		Port:               ep.Port,
 	}
 }
 
@@ -855,6 +863,7 @@ func EndpointInstanceFromGRPC(endpoint *grpc_application_go.EndpointInstance) En
 		EndpointInstanceId: endpoint.EndpointInstanceId,
 		Fqdn: endpoint.Fqdn,
 		Type: EndpointTypeFromGRPC[endpoint.Type],
+		Port: endpoint.Port,
 	}
 }
 
@@ -1122,14 +1131,41 @@ func (ep * AppEndpoint) ToGRPC () *grpc_application_go.AppEndpoint {
 		AppInstanceId: ep.AppInstanceId,
 		ServiceGroupInstanceId: ep.ServiceGroupInstanceId,
 		ServiceInstanceId: ep.ServiceInstanceId,
-		Port: ep.Port,
 		Protocol: convertedProtocol,
 		EndpointInstance: &grpc_application_go.EndpointInstance{
 			EndpointInstanceId: ep.EndpointInstanceId,
 			Type:convertedType,
 			Fqdn: ep.Fqdn,
+			Port: ep.Port,
 		},
 	}
+}
+
+
+// getNamePrefixes returns prefix to fill the globalFQDN
+// 1) "service-name"-"port"
+// 2) service_group_instanceID (6 characters)
+// 3) appInstance (6 characters)
+// 4) organizationID (8 characters)
+func getNamePrefixes(ep *grpc_application_go.AddAppEndpointRequest) (string, string, string, string){
+	serviceName := ep.ServiceName
+
+	if ep.EndpointInstance != nil && ep.EndpointInstance.Port != 80 {
+		serviceName = fmt.Sprintf("%s-%d", ep.ServiceName, ep.EndpointInstance.Port)
+	}
+	serviceGroupInstPrefix := ep.ServiceGroupInstanceId
+	if len(serviceGroupInstPrefix) > InstPrefixLength {
+		serviceGroupInstPrefix = serviceGroupInstPrefix[0:InstPrefixLength]
+	}
+	appInstPrefix := ep.AppInstanceId
+	if len(appInstPrefix) > InstPrefixLength {
+		appInstPrefix = appInstPrefix[0:InstPrefixLength]
+	}
+	orgPrefix := ep.OrganizationId
+	if len(orgPrefix) > OrgPrefixLength {
+		orgPrefix = orgPrefix[0:OrgPrefixLength]
+	}
+	return serviceName, serviceGroupInstPrefix, appInstPrefix, orgPrefix
 }
 
 // createGlobalFqdn returns the globalFqdn for a endpoinFqnd given
@@ -1150,39 +1186,7 @@ func createGlobalFqdn(endpoint *grpc_application_go.AddAppEndpointRequest) strin
 	// C: organization_id (8 characters)
 	// the domain is not stored
 
-	serviceName := ""
-	serviceGroupId := ""
-	appInstanceId := ""
-	organizationId := ""
-
-	organizationId = endpoint.OrganizationId
-	if len (endpoint.OrganizationId) > 8 {
-		organizationId = endpoint.OrganizationId[:8]
-	}
-
-	match, _ := regexp.MatchString(IPAddressRegExp, endpoint.EndpointInstance.Fqdn)
-	if match == true{
-		// IP
-		serviceName = endpoint.ServiceName
-		serviceGroupId = endpoint.ServiceGroupInstanceId // 6 characters
-		if len(serviceGroupId) > 6 {
-			serviceGroupId = serviceGroupId[:6]
-		}
-		appInstanceId = endpoint.AppInstanceId // 6 characters
-		if len(appInstanceId) > 6 {
-			appInstanceId = appInstanceId[:6]
-		}
-	}else {
-		// no IP
-		log.Debug().Msg("is not a IP")
-		fqdn := endpoint.EndpointInstance.Fqdn
-		fqdnSplit := strings.Split(fqdn, ".")
-		if len (fqdnSplit) >= 4 {
-			serviceName = fqdnSplit[0]
-			serviceGroupId = fqdnSplit[1]
-			appInstanceId = fqdnSplit[2]
-		}
-	}
+	serviceName, serviceGroupId, appInstanceId, organizationId := getNamePrefixes(endpoint)
 
 	return fmt.Sprintf("%s.%s.%s.%s", serviceName, serviceGroupId, appInstanceId, organizationId)
 
@@ -1199,7 +1203,6 @@ func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AddAppEndpointRequest)
 		AppInstanceId: endpoint.AppInstanceId,
 		ServiceGroupInstanceId:endpoint.ServiceGroupInstanceId,
 		ServiceInstanceId: endpoint.ServiceInstanceId,
-		Port: endpoint.Port,
 		Protocol: AppEndpointProtocolFromGRPC[endpoint.Protocol],
 		EndpointInstanceId:endpoint.EndpointInstance.EndpointInstanceId,
 		Type:  EndpointTypeFromGRPC[endpoint.EndpointInstance.Type],
