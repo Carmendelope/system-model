@@ -19,6 +19,7 @@ var DefaultEndpointInstance = &grpc_application_go.EndpointInstance{
 	EndpointInstanceId: "",
 	Type: grpc_application_go.EndpointType_IS_ALIVE,
 	Fqdn: "",
+	Port: 0,
 }
 
 // regular expresion for IP:port address
@@ -1204,6 +1205,7 @@ func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AddAppEndpointRequest)
 		ServiceGroupInstanceId:endpoint.ServiceGroupInstanceId,
 		ServiceInstanceId: endpoint.ServiceInstanceId,
 		Protocol: AppEndpointProtocolFromGRPC[endpoint.Protocol],
+		Port: endpoint.EndpointInstance.Port,
 		EndpointInstanceId:endpoint.EndpointInstance.EndpointInstanceId,
 		Type:  EndpointTypeFromGRPC[endpoint.EndpointInstance.Type],
 		Fqdn: endpoint.EndpointInstance.Fqdn,
