@@ -193,7 +193,7 @@ func (m *MockupApplicationProvider) GetAppEndpointByFQDN(fqdn string) ([]*entiti
 	if exists{
 		return list, nil
 	}else {
-		return nil, derrors.NewNotFoundError("appEntryPoint").WithParams(fqdn)
+		return nil, derrors.NewNotFoundError("appEndPoint").WithParams(fqdn)
 	}
 }
 

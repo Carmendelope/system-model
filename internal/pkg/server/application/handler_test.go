@@ -219,12 +219,12 @@ func generateAppEndpoint(serviceName string, organizationId string) *grpc_applic
 		AppInstanceId:          uuid.New().String(),
 		ServiceGroupInstanceId: uuid.New().String(),
 		ServiceInstanceId:      uuid.New().String(),
-		Port:                   8080,
 		Protocol:               grpc_application_go.AppEndpointProtocol_HTTPS,
-		ServiceName:            "service_name",
+		ServiceName:            serviceName,
 		EndpointInstance: &grpc_application_go.EndpointInstance{
 			EndpointInstanceId: uuid.New().String(),
 			Type:               grpc_application_go.EndpointType_IS_ALIVE,
+			Port:                   8080,
 		},
 	}
 
@@ -914,7 +914,8 @@ var _ = ginkgo.Describe("Applications", func(){
 			gomega.Expect(success).ShouldNot(gomega.BeNil())
 
 			fqdnSplit := strings.Split(endPoint.EndpointInstance.Fqdn, ".")
-			globalFqdn := fmt.Sprintf("%s.%s.%s.%s.globaldomain.com", fqdnSplit[0], fqdnSplit[1], fqdnSplit[2], organizationID[:8])
+			globalFqdn := fmt.Sprintf("%s-%d.%s.%s.%s.globaldomain.com", fqdnSplit[0], endPoint.EndpointInstance.Port,
+				fqdnSplit[1], fqdnSplit[2], organizationID[:8])
 
 			list, err := client.GetAppEndpoints(context.Background(), &grpc_application_go.GetAppEndPointRequest{
 				Fqdn: globalFqdn,
@@ -932,12 +933,12 @@ var _ = ginkgo.Describe("Applications", func(){
 				ServiceGroupInstanceId:	"ggggggggg1",
 				ServiceInstanceId:		"sssssssss1",
 				ServiceName:            "service1",
-				Port:					80,
 				Protocol:grpc_application_go.AppEndpointProtocol_HTTPS,
 				EndpointInstance: &grpc_application_go.EndpointInstance{
 					EndpointInstanceId:"1",
 					Type: grpc_application_go.EndpointType_IS_ALIVE,
 					Fqdn:"service.gggggg.aaaaaa.domain",
+					Port:					80,
 				},
 			}
 			success, err := client.AddAppEndpoint(context.Background(), endPoint1)
@@ -950,12 +951,12 @@ var _ = ginkgo.Describe("Applications", func(){
 				ServiceGroupInstanceId:	"ggggggggg2",
 				ServiceInstanceId:		"sssssssss2",
 				ServiceName:            "service2",
-				Port:					80,
 				Protocol:grpc_application_go.AppEndpointProtocol_HTTPS,
 				EndpointInstance: &grpc_application_go.EndpointInstance{
 					EndpointInstanceId:"1",
 					Type: grpc_application_go.EndpointType_IS_ALIVE,
-					Fqdn:"service.gggggg.aaaaaa.domain",
+					Fqdn:"service2.gggggg.aaaaaa.domain",
+					Port:					80,
 				},
 			}
 			success, err = client.AddAppEndpoint(context.Background(), endPoint2)
