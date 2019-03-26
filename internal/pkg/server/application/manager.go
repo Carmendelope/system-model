@@ -231,7 +231,7 @@ func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanc
 	    return nil, err
 	}
 
-	instance := entities.NewAppInstanceFromGRPC(addRequest, descriptor)
+	instance := entities.NewAppInstanceFromAddInstanceRequestGRPC(addRequest, descriptor)
 	err = m.AppProvider.AddInstance(*instance)
 	if err != nil {
 		return nil, err
@@ -401,7 +401,6 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
 		}
     }
 
-
 	err = m.AppProvider.UpdateInstance(*aux)
 	if err != nil {
 		return derrors.NewInternalError("impossible to update instance").CausedBy(err)
@@ -409,6 +408,16 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
 
 	return nil
 
+}
+
+func (m *Manager) UpdateAppInstance(appInstance *grpc_application_go.AppInstance) error {
+	localEntity := entities.NewAppInstanceFromGRPC(appInstance)
+
+	err := m.AppProvider.UpdateInstance(*localEntity)
+	if err != nil {
+		return derrors.NewInternalError("impossible to update application instance").CausedBy(err)
+	}
+	return nil
 }
 
 // RemoveAppInstance removes an application instance
