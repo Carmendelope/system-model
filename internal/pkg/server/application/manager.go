@@ -512,15 +512,11 @@ func (m * Manager) AddServiceGroupInstances(request *grpc_application_go.AddServ
 	// set the new values for these service group instances
 	retrieved.Groups = append(retrieved.Groups, result...)
 
-	log.Debug().Interface("ServiceGroupInstance",retrieved).Msg("result after adding servicegroupinstances")
-
 	// update
 	err = m.AppProvider.UpdateInstance(*retrieved)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Debug().Interface("retrievedAppInstance", retrieved).Msg("this is the retrieved instance")
 
 	return result, nil
 }
