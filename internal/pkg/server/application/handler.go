@@ -101,6 +101,17 @@ func (h *Handler) AddAppInstance(ctx context.Context, addInstanceRequest *grpc_a
 	return added.ToGRPC(), nil
 }
 
+// UpdateAppInstance adds a new application instance to a given organization.
+func (h *Handler) UpdateAppInstance(ctx context.Context, appInstance *grpc_application_go.AppInstance) (*grpc_common_go.Success, error) {
+	// TODO validate the application instance
+	log.Debug().Interface("updatedAppInstance", appInstance).Msg("Update application instance")
+	err := h.Manager.UpdateAppInstance(appInstance)
+	if err != nil {
+		return nil, err
+	}
+	return &grpc_common_go.Success{},nil
+}
+
 // ListAppInstances retrieves a list of application instances.
 func (h *Handler) ListAppInstances(ctx context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppInstanceList, error) {
 	instances, err := h.Manager.ListInstances(orgID)

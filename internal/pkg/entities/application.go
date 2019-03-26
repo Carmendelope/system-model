@@ -156,6 +156,31 @@ func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule
 	}, nil
 }
 
+
+// NewSecurityRuleFromGRPC converts a grpc_application_go.SecurityRule into SecurityRule
+// TODO revisit if it is necessary to have the other version of this function running
+func NewSecurityRuleFromInstantiatedGRPC(rule *grpc_application_go.SecurityRule) (*SecurityRule, derrors.Error) {
+	if rule == nil {
+		return nil, nil
+	}
+
+	access := PortAccessFromGRPC[rule.Access]
+	return &SecurityRule{
+		OrganizationId:  		rule.OrganizationId,
+		AppDescriptorId: 		rule.AppDescriptorId,
+		RuleId:          		rule.RuleId,
+		Name:            		rule.Name,
+		TargetServiceGroupName:	rule.TargetServiceGroupName,
+		TargetServiceName: 		rule.TargetServiceName,
+		TargetPort: 			rule.TargetPort,
+		Access:          		access,
+		AuthServiceGroupName: 	rule.AuthServiceGroupName,
+		AuthServices:    		rule.AuthServices,
+		DeviceGroupNames:  		rule.DeviceGroupNames,
+		DeviceGroupIds:         rule.DeviceGroupIds,
+	}, nil
+}
+
 func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
 	access, _ := PortAccessToGRPC[sr.Access]
 	return &grpc_application_go.SecurityRule{
@@ -943,6 +968,57 @@ type ServiceInstance struct {
 	Info string   `json:"info,omitempty" cql:"info"`
 }
 
+func NewServiceInstanceFromGRPC(serviceInstance *grpc_application_go.ServiceInstance) ServiceInstance {
+
+	endpoints := make([]EndpointInstance,len(serviceInstance.Endpoints))
+	for i, e := range serviceInstance.Endpoints {
+		endpoints[i] = EndpointInstance{Type: EndpointTypeFromGRPC[e.Type], EndpointInstanceId: e.EndpointInstanceId,
+			Fqdn: e.Fqdn, Port: e.Port}
+	}
+
+	storage := make([]Storage, len(serviceInstance.Storage))
+	for i, s := range serviceInstance.Storage {
+		storage[i] = *NewStorageFromGRPC(s)
+	}
+
+	exposedPorts := make([]Port, len(serviceInstance.ExposedPorts))
+	for i, p := range serviceInstance.ExposedPorts {
+		exposedPorts[i] = *NewPortFromGRPC(p)
+	}
+
+	configs := make([]ConfigFile, len(serviceInstance.Configs))
+	for i, c := range serviceInstance.Configs {
+		configs[i] = ConfigFile{AppDescriptorId: c.AppDescriptorId, OrganizationId: c.OrganizationId,
+			Name: c.Name, ConfigFileId: c.ConfigFileId, Content: c.Content, MountPath: c.MountPath}
+	}
+
+	return ServiceInstance{
+		Name: serviceInstance.Name,
+		Labels: serviceInstance.Labels,
+		Status: ServiceStatusFromGRPC[serviceInstance.Status],
+		ServiceGroupInstanceId: serviceInstance.ServiceGroupInstanceId,
+		AppInstanceId: serviceInstance.AppInstanceId,
+		ServiceGroupId: serviceInstance.ServiceGroupId,
+		OrganizationId: serviceInstance.OrganizationId,
+		AppDescriptorId: serviceInstance.AppDescriptorId,
+		Info: serviceInstance.Info,
+		EnvironmentVariables: serviceInstance.EnvironmentVariables,
+		ServiceInstanceId: serviceInstance.ServiceInstanceId,
+		Type: ServiceTypeFromGRPC[serviceInstance.Type],
+		ServiceId: serviceInstance.ServiceId,
+		Image: serviceInstance.Image,
+		DeployedOnClusterId: serviceInstance.DeployedOnClusterId,
+		Specs: NewDeploySpecsFromGRPC(serviceInstance.Specs),
+		Endpoints: endpoints,
+		Credentials: NewImageCredentialsFromGRPC(serviceInstance.Credentials),
+		Storage: storage,
+		ExposedPorts: exposedPorts,
+		Configs: configs,
+		DeployAfter: serviceInstance.DeployAfter,
+		RunArguments: serviceInstance.RunArguments,
+	}
+}
+
 func (si *ServiceInstance) ToGRPC() *grpc_application_go.ServiceInstance {
 	serviceType, _ := ServiceTypeToGRPC[si.Type]
 	serviceStatus, _ := ServiceStatusToGRPC[si.Status]
@@ -1388,7 +1464,33 @@ func (sg * ServiceGroup) ToEmptyServiceGroupInstance(appInstanceID string) *Serv
 	}
 }
 
-func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceRequest, descriptor * AppDescriptor) * AppInstance {
+// This function returns a local object from an incoming grpc service group instance
+func NewServiceGroupInstanceFromGRPC(group *grpc_application_go.ServiceGroupInstance) *ServiceGroupInstance {
+
+	serviceInstances := make([]ServiceInstance,0)
+	for _, serv := range group.ServiceInstances {
+		serviceInstances = append(serviceInstances, NewServiceInstanceFromGRPC(serv))
+	}
+
+	return &ServiceGroupInstance{
+		AppDescriptorId: group.AppDescriptorId,
+		OrganizationId: group.OrganizationId,
+		AppInstanceId: group.AppInstanceId,
+		Name: group.Name,
+		Metadata: NewMetadataFromGRPC(group.Metadata),
+		Labels: group.Labels,
+		Status: ServiceStatusFromGRPC[group.Status],
+		ServiceGroupId: group.ServiceGroupId,
+		ServiceGroupInstanceId: group.ServiceGroupInstanceId,
+		Policy: CollocationPolicyFromGRPC[group.Policy],
+		ServiceInstances: serviceInstances,
+		GlobalFqdn: group.GlobalFqdn,
+		Specs: NewServiceGroupDeploymentSpecsFromGRPC(group.Specs),
+	}
+}
+
+
+func NewAppInstanceFromAddInstanceRequestGRPC(addRequest * grpc_application_go.AddAppInstanceRequest, descriptor * AppDescriptor) * AppInstance {
 	uuid := GenerateUUID()
 
 	return &AppInstance{
@@ -1404,6 +1506,40 @@ func NewAppInstanceFromGRPC(addRequest * grpc_application_go.AddAppInstanceReque
 		//Groups:               groups,
 		Status: Queued,
 		Info:                 "",
+	}
+}
+
+func NewAppInstanceFromGRPC(appInstance * grpc_application_go.AppInstance) * AppInstance {
+	groups := make([]ServiceGroupInstance, 0)
+	for _, g := range appInstance.Groups {
+		groups = append(groups, *NewServiceGroupInstanceFromGRPC(g))
+	}
+	metadata := make([]InstanceMetadata,0)
+	for _, m := range appInstance.Metadata {
+		metadata = append(metadata, *NewMetadataFromGRPC(m))
+	}
+	rules := make([]SecurityRule,0)
+	for _, r := range appInstance.Rules {
+		newR, err := NewSecurityRuleFromInstantiatedGRPC(r)
+		if err != nil {
+			return nil
+		}
+		rules = append(rules, *newR)
+	}
+
+	return &AppInstance{
+		OrganizationId: appInstance.OrganizationId,
+		AppInstanceId: appInstance.AppInstanceId,
+		Groups: groups,
+		Info: appInstance.Info,
+		Status: AppStatusFromGRPC[appInstance.Status],
+		Metadata: metadata,
+		Name: appInstance.Name,
+		Labels: appInstance.Labels,
+		AppDescriptorId: appInstance.AppInstanceId,
+		EnvironmentVariables: appInstance.EnvironmentVariables,
+		Rules: rules,
+		ConfigurationOptions: appInstance.ConfigurationOptions,
 	}
 }
 
