@@ -1536,7 +1536,7 @@ func NewAppInstanceFromGRPC(appInstance * grpc_application_go.AppInstance) * App
 		Metadata: metadata,
 		Name: appInstance.Name,
 		Labels: appInstance.Labels,
-		AppDescriptorId: appInstance.AppInstanceId,
+		AppDescriptorId: appInstance.AppDescriptorId,
 		EnvironmentVariables: appInstance.EnvironmentVariables,
 		Rules: rules,
 		ConfigurationOptions: appInstance.ConfigurationOptions,
