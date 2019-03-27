@@ -42,7 +42,6 @@ func (h *Handler) AddUser(ctx context.Context, addUserRequest *grpc_user_go.AddU
 }
 
 func (h *Handler) Update(ctx context.Context, request *grpc_user_go.UpdateUserRequest) (*grpc_common_go.Success, error) {
-
 	vErr := entities.ValidUpdateUserRequest(request)
 	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
@@ -69,7 +68,6 @@ func (h *Handler) GetUser(ctx context.Context, userID *grpc_user_go.UserId) (*gr
 
 // GetUsers retrieves the list of users of a given organization.
 func (h *Handler) GetUsers(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_user_go.UserList, error) {
-	log.Debug().Str("organizationID", organizationID.OrganizationId).Msg("list users")
 	vErr := entities.ValidOrganizationID(organizationID)
 	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
