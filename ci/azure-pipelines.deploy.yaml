@@ -115,6 +115,7 @@ jobs:
       yamlIdentifier: production
       yamlPath: dist/yaml/$(productionDockerRegistry)
   
+  - template: slack/build/finish.yaml@ci_templates
     parameters:
       author: $(authorName)
       repository: $(Build.Repository.Name)
