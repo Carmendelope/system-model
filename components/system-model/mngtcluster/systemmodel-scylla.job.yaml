@@ -10,18 +10,18 @@ spec:
     spec:
       restartPolicy: Never
       containers:
-      - name: scylladb
-        image: scylladb/scylla:3.0.0
-        command: ["/bin/bash"]
-        args: [ "./opt/node_alive.sh"]
-        tty: true
-        volumeMounts:
-        - name: systemmodel-scylla
-          mountPath: /opt/systemmodel-scylla.cql
-          subPath: systemmodel-scylla.cql
-        - name: systemmodel-scylla
-          mountPath: /opt/node_alive.sh
-          subPath: node_alive.sh
+        - name: scylladb
+          image: scylladb/scylla:3.0.0
+          command: ["/bin/bash"]
+          args: ["./opt/node_alive.sh"]
+          tty: true
+          volumeMounts:
+            - name: systemmodel-scylla
+              mountPath: /opt/systemmodel-scylla.cql
+              subPath: systemmodel-scylla.cql
+            - name: systemmodel-scylla
+              mountPath: /opt/node_alive.sh
+              subPath: node_alive.sh
       volumes:
         - name: systemmodel-scylla
           configMap:

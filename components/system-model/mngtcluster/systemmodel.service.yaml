@@ -12,6 +12,6 @@ spec:
     component: system-model
   type: ClusterIP
   ports:
-  - protocol: TCP
-    port: 8800
-    targetPort: 8800
+    - protocol: TCP
+      port: 8800
+      targetPort: 8800
