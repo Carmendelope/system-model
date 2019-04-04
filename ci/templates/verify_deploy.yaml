@@ -28,3 +28,20 @@ steps:
       done
       exit $isOk
     displayName: Verify system-model deployment is ready
+
+  - script: |
+      isOk=1
+      for (( i=0; i<36; i++ ))
+      do
+        jobs=$(kubectl --kubeconfig ${{ parameters.kubeconfig }} -n ${{ parameters.namespace }} get jobs -ojson | jq '(.items | length) >= reduce .items[].status.succeeded as $completed (0; . + $completed)')
+        if [ "$jobs" == "true" ]; then
+          isOk=0
+          break
+        else
+          echo "Jobs not executed yet, waiting 10 seconds"
+          echo ""
+          sleep 10
+        fi
+      done
+      exit $isOk
+    displayName: Verify system-model jobs are executed successfully
