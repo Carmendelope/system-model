@@ -428,7 +428,6 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(len(retrieved.Descriptors)).Should(gomega.Equal(0))
 			})
 		})
-
 		ginkgo.Context("removing application descriptors", func(){
 			ginkgo.It("should be able to remove an existing descriptor", func(){
 				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
@@ -471,7 +470,43 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(success).Should(gomega.BeNil())
 			})
 		})
+		ginkgo.Context("Getting the params of a descriptor", func() {
+			ginkgo.It("should be able to retrieve the parameters of a descriptor", func(){
+				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
 
+				toAdd.Parameters = []*grpc_application_go.AppParameter{
+					{
+					Name: "Param1",
+					Description: "Param1 Descriptor",
+					Path:"Path1",
+					Type: grpc_application_go.ParamDataType_STRING,
+					DefaultValue:"default",
+					Category:grpc_application_go.ParamCategory_ADVANCED,
+					},
+					{
+						Name: "Param2",
+						Description: "Param2 Descriptor",
+						Path:"Path2",
+						Type: grpc_application_go.ParamDataType_BOOLEAN,
+						DefaultValue:"true",
+						Category:grpc_application_go.ParamCategory_BASIC,
+					},
+				}
+
+				app, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(app).ShouldNot(gomega.BeNil())
+
+				params, err := client.GetDescriptorAppParameters(context.Background(), &grpc_application_go.AppDescriptorId{
+					OrganizationId: app.OrganizationId,
+					AppDescriptorId: app.AppDescriptorId,
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(params).NotTo(gomega.BeNil())
+				gomega.Expect(len(params.Parameters)).Should(gomega.Equal(2))
+
+			})
+		})
 	})
 
 	ginkgo.Context("Application instance", func(){
@@ -786,6 +821,30 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(err).To(gomega.HaveOccurred())
 				gomega.Expect(success).Should(gomega.BeNil())
 			})
+			ginkgo.It("should be able to remove an existing instance and its params", func(){
+
+				toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
+				list := []*grpc_application_go.InstanceParameter {{ParameterName: "name1", Value:"value1"},{ParameterName: "name2", Value:"value2"}}
+				toAdd.Parameters = &grpc_application_go.InstanceParameterList{Parameters:list}
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+				toRemove := &grpc_application_go.AppInstanceId{
+					OrganizationId:       added.OrganizationId,
+					AppInstanceId:        added.AppInstanceId,
+				}
+				success, err := client.RemoveAppInstance(context.Background(), toRemove)
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(success).ShouldNot(gomega.BeNil())
+
+				// check the instance paramas have been removed
+				params, err := applicationProvider.GetInstanceParameters(added.AppInstanceId)
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(params).ShouldNot(gomega.BeNil())
+				gomega.Expect(len(params)).Should(gomega.Equal(0))
+
+			})
+
 		})
 
 		ginkgo.Context("Adding ServiceGroupInstance ", func() {
@@ -825,6 +884,43 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(err).NotTo(gomega.Succeed())
 			})
 
+		})
+		ginkgo.Context("Getting the params of an instance", func() {
+			ginkgo.It("should be able to retrieve the parameters of an instance", func(){
+
+				toAdd := generateAddAppInstance(targetDescriptor.OrganizationId, targetDescriptor.AppDescriptorId)
+				list := []*grpc_application_go.InstanceParameter {{ParameterName: "name1", Value:"value1"},{ParameterName: "name2", Value:"value2"}}
+				toAdd.Parameters = &grpc_application_go.InstanceParameterList{Parameters:list}
+				app, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(app).ShouldNot(gomega.BeNil())
+
+				params, err := client.GetInstanceParameters(context.Background(), &grpc_application_go.AppInstanceId{
+					OrganizationId: app.OrganizationId,
+					AppInstanceId: app.AppInstanceId,
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(params).NotTo(gomega.BeNil())
+				gomega.Expect(len(params.Parameters)).Should(gomega.Equal(2))
+
+			})
+			ginkgo.It("should be able to retrieve an empty list if the instance has no parameters", func(){
+
+				toAdd := generateAddAppInstance(targetDescriptor.OrganizationId, targetDescriptor.AppDescriptorId)
+
+				app, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(app).ShouldNot(gomega.BeNil())
+
+				params, err := client.GetInstanceParameters(context.Background(), &grpc_application_go.AppInstanceId{
+					OrganizationId: app.OrganizationId,
+					AppInstanceId: app.AppInstanceId,
+				})
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(params).NotTo(gomega.BeNil())
+				gomega.Expect(len(params.Parameters)).Should(gomega.Equal(0))
+
+			})
 		})
 		/*
 		// Service instances are
