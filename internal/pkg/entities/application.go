@@ -1434,6 +1434,9 @@ func NewParametrizedDescriptorFromGRPC(descriptor * grpc_application_go.Parametr
 }
 
 func (d *ParametrizedDescriptor) ToGRPC() *grpc_application_go.ParametrizedDescriptor {
+	if d == nil {
+		return nil
+	}
 
 	rules := make([]*grpc_application_go.SecurityRule, 0)
 	for _, r := range d.Rules {

@@ -788,3 +788,95 @@ func (m * Manager) GetAppZtNetwork(request *grpc_application_go.GetAppZtNetworkR
 	return m.AppProvider.GetAppZtNetwork(request.OrganizationId, request.AppInstanceId)
 }
 
+// AddParametrizedDescriptor adds a parametrized descriptor to a given descriptor
+func (m * Manager) AddParametrizedDescriptor(descriptor *grpc_application_go.ParametrizedDescriptor)  derrors.Error{
+
+	// check if the organization exists
+	exists, err := m.OrgProvider.Exists(descriptor.OrganizationId)
+	if err != nil {
+		return  err
+	}
+	if ! exists{
+		return derrors.NewNotFoundError("organizationID").WithParams(descriptor.OrganizationId)
+	}
+	// check if the descriptor exists
+	exists, err = m.AppProvider.DescriptorExists(descriptor.AppDescriptorId)
+	if err != nil {
+		return  err
+	}
+	if ! exists {
+		return derrors.NewNotFoundError("descriptorID").WithParams(descriptor.OrganizationId, descriptor.AppDescriptorId)
+	}
+
+	// check if the instance exists
+	exists, err = m.AppProvider.InstanceExists(descriptor.AppInstanceId)
+	if err != nil {
+		return  err
+	}
+	if ! exists {
+		return derrors.NewNotFoundError("instanceID").WithParams(descriptor.OrganizationId, descriptor.AppInstanceId)
+	}
+
+	// Convert to ParametrizedDescriptor
+	newDesc:= entities.NewParametrizedDescriptorFromGRPC(descriptor)
+
+	err = m.AppProvider.AddParametrizedDescriptor(*newDesc)
+	if err != nil{
+		return err
+	}
+
+	return  nil
+}
+// GetParametrizedDescriptor retrieves the parametrized descriptor associated with an instance
+func (m * Manager) GetParametrizedDescriptor(request *grpc_application_go.AppInstanceId) (*entities.ParametrizedDescriptor, derrors.Error) {
+	// check if the organization exists
+	exists, err := m.OrgProvider.Exists(request.OrganizationId)
+	if err != nil {
+		return  nil, err
+	}
+	if ! exists{
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
+	}
+
+	// check if the instance exists
+	exists, err = m.AppProvider.InstanceExists(request.AppInstanceId)
+	if err != nil {
+		return  nil, err
+	}
+	if ! exists {
+		return nil, derrors.NewNotFoundError("instanceID").WithParams(request.OrganizationId, request.AppInstanceId)
+	}
+
+	descriptor, err := m.AppProvider.GetParametrizedDescriptor(request.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	return descriptor, nil
+}
+// RemoveParametrizedDescriptor removes the parametrized descriptor associated with an instance
+func (m * Manager) RemoveParametrizedDescriptor(request *grpc_application_go.AppInstanceId) derrors.Error{
+	// check if the organization exists
+	exists, err := m.OrgProvider.Exists(request.OrganizationId)
+	if err != nil {
+		return   err
+	}
+	if ! exists{
+		return  derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
+	}
+
+	// check if the instance exists
+	exists, err = m.AppProvider.InstanceExists(request.AppInstanceId)
+	if err != nil {
+		return   err
+	}
+	if ! exists {
+		return  derrors.NewNotFoundError("instanceID").WithParams(request.OrganizationId, request.AppInstanceId)
+	}
+	err = m.AppProvider.DeleteParametrizedDescriptor(request.AppInstanceId)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}

@@ -135,6 +135,20 @@ func generateAddAppDescriptor(orgID string, numServices int) * grpc_application_
 	}
 }
 
+func generateParametrizedDescriptor(descriptor * grpc_application_go.AppDescriptor, instanceID string) * grpc_application_go.ParametrizedDescriptor{
+	return &grpc_application_go.ParametrizedDescriptor{
+		OrganizationId: descriptor.OrganizationId,
+		AppDescriptorId: descriptor.AppDescriptorId,
+		AppInstanceId: instanceID,
+		Name: descriptor.Name,
+		ConfigurationOptions: descriptor.ConfigurationOptions,
+		EnvironmentVariables: descriptor.EnvironmentVariables,
+		Labels: descriptor.Labels,
+		Rules: descriptor.Rules,
+		Groups:descriptor.Groups,
+	}
+}
+
 func generateAddAppInstance(organizationID string, appDescriptorID string) * grpc_application_go.AddAppInstanceRequest {
 	return &grpc_application_go.AddAppInstanceRequest{
 		OrganizationId:       organizationID,
@@ -251,6 +265,7 @@ var _ = ginkgo.Describe("Applications", func(){
 	//var targetDeviceGroup * device.DeviceGroup
 
 	var targetDescriptor * grpc_application_go.AppDescriptor
+	var targetInstance * grpc_application_go.AppInstance
 
 	// Organization Provider
 	var organizationProvider orgProvider.Provider
@@ -1129,6 +1144,85 @@ var _ = ginkgo.Describe("Applications", func(){
 		})
 	})
 
+	ginkgo.Context("Parametrized Descriptor", func() {
+		ginkgo.BeforeEach(func() {
+			ginkgo.By("creating required descriptor", func() {
+				// Initial data
+				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
+				app, err := client.AddAppDescriptor(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(app).ShouldNot(gomega.BeNil())
+				targetDescriptor = app
 
+				instToAdd := generateAddAppInstance(targetDescriptor.OrganizationId, targetDescriptor.AppDescriptorId)
+				inst, err := client.AddAppInstance(context.Background(), instToAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(inst).ShouldNot(gomega.BeNil())
+				targetInstance = inst
+			})
+		})
+
+		ginkgo.It("should be able to add parametrized descriptor", func() {
+			parameterDescriptor := generateParametrizedDescriptor(targetDescriptor, targetInstance.AppInstanceId)
+
+			success, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
+		})
+		ginkgo.It("should not be able to add parametrized descriptor of a non-existent organization", func() {
+			parameterDescriptor := generateParametrizedDescriptor(targetDescriptor, targetInstance.AppInstanceId)
+
+			parameterDescriptor.OrganizationId = uuid.New().String()
+
+			success, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
+			gomega.Expect(err).NotTo(gomega.Succeed())
+			gomega.Expect(success).Should(gomega.BeNil())
+		})
+		ginkgo.It("should not be able to add parametrized descriptor of a non-existent descriptor", func() {
+			parameterDescriptor := generateParametrizedDescriptor(targetDescriptor, targetInstance.AppInstanceId)
+
+			parameterDescriptor.AppDescriptorId = uuid.New().String()
+
+			success, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
+			gomega.Expect(err).NotTo(gomega.Succeed())
+			gomega.Expect(success).Should(gomega.BeNil())
+		})
+		ginkgo.It("should not be able to add parametrized descriptor of a non-existent instance", func() {
+			parameterDescriptor := generateParametrizedDescriptor(targetDescriptor, targetInstance.AppInstanceId)
+
+			parameterDescriptor.AppInstanceId = uuid.New().String()
+
+			success, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
+			gomega.Expect(err).NotTo(gomega.Succeed())
+			gomega.Expect(success).Should(gomega.BeNil())
+		})
+
+		ginkgo.It("should be able to get parametrized descriptor", func() {
+			parameterDescriptor := generateParametrizedDescriptor(targetDescriptor, targetInstance.AppInstanceId)
+
+			success, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
+
+			retrieved, err := client.GetParametrizedDescriptor(context.Background(), &grpc_application_go.AppInstanceId{
+				OrganizationId: parameterDescriptor.OrganizationId,
+				AppInstanceId: parameterDescriptor.AppInstanceId,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(retrieved).NotTo(gomega.BeNil())
+			gomega.Expect(retrieved.Name).Should(gomega.Equal(retrieved.Name))
+
+		})
+		ginkgo.It("should not be able to get a non-existent parametrized descriptor", func() {
+			retrieved, err := client.GetParametrizedDescriptor(context.Background(), &grpc_application_go.AppInstanceId{
+				OrganizationId: targetDescriptor.OrganizationId,
+				AppInstanceId: uuid.New().String(),
+			})
+			gomega.Expect(err).NotTo(gomega.Succeed())
+			gomega.Expect(retrieved).To(gomega.BeNil())
+
+		})
+
+	})
 
 })
