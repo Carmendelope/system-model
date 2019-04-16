@@ -157,6 +157,27 @@ func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule
 	}, nil
 }
 
+// CopySecurityRuleFromGRPC converts a grpc_application_go.SecurityRule into SecurityRule
+// (unlike NewSecurityRuleFromGRPC method,  CopySecurityRuleFromGRPC copy ALL the fields,
+//  does not generate identifiers)
+func CopySecurityRuleFromGRPC(rule *grpc_application_go.SecurityRule) *SecurityRule {
+
+	access := PortAccessFromGRPC[rule.Access]
+	return &SecurityRule{
+		OrganizationId:  		rule.OrganizationId,
+		AppDescriptorId: 		rule.AppDescriptorId,
+		RuleId:          		rule.RuleId,
+		Name:            		rule.Name,
+		TargetServiceGroupName:	rule.TargetServiceGroupName,
+		TargetServiceName: 		rule.TargetServiceName,
+		TargetPort: 			rule.TargetPort,
+		Access:          		access,
+		AuthServiceGroupName: 	rule.AuthServiceGroupName,
+		AuthServices:    		rule.AuthServices,
+		DeviceGroupNames:  		rule.DeviceGroupNames,
+		DeviceGroupIds:         rule.DeviceGroupIds,
+	}
+}
 
 // NewSecurityRuleFromGRPC converts a grpc_application_go.SecurityRule into SecurityRule
 // TODO revisit if it is necessary to have the other version of this function running
@@ -274,6 +295,30 @@ func NewServiceGroupFromGRPC(organizationID string, appDescriptorID string, grou
 		Specs: 				NewServiceGroupDeploymentSpecsFromGRPC(group.Specs),
 		Labels: 			group.Labels,
 	}
+}
+
+// CopyServiceGroupFromGRPC converts a grpc_application_go.ServiceGroup into ServiceGroup
+// (unlike NewServiceGroupFromGRPC method,  CopyServiceGroupFromGRPC copy ALL the fields,
+//  does not generate identifiers)
+func CopyServiceGroupFromGRPC(group * grpc_application_go.ServiceGroup) *ServiceGroup  {
+
+	services := make ([]Service, 0)
+	for _, service := range group.Services {
+		services = append(services, *CopyServiceFromGRPC(service))
+	}
+
+	policy, _ := CollocationPolicyFromGRPC[group.Policy]
+	return &ServiceGroup{
+		OrganizationId:		group.OrganizationId,
+		AppDescriptorId:	group.AppDescriptorId,
+		ServiceGroupId: 	group.ServiceGroupId,
+		Name : 				group.Name,
+		Services: 			services,
+		Policy: 			policy,
+		Specs: 				NewServiceGroupDeploymentSpecsFromGRPC(group.Specs),
+		Labels: 			group.Labels,
+	}
+
 }
 
 func (sg *ServiceGroup) ToGRPC() *grpc_application_go.ServiceGroup {
@@ -757,6 +802,55 @@ type Service struct {
 	DeployAfter []string `json:"deploy_after,omitempty" cql:"deploy_after"`
 	// RunArguments contains the list of arguments
 	RunArguments [] string `json:"run_arguments" cql:"run_arguments"`
+}
+
+func CopyServiceFromGRPC (service *grpc_application_go.Service) * Service {
+	if service == nil{
+		return nil
+	}
+
+	storage := make([]Storage, 0)
+	for _, s := range service.Storage {
+		storage = append(storage, *NewStorageFromGRPC(s))
+	}
+	ports := make([]Port, 0)
+	for _, p := range service.ExposedPorts {
+		ports = append(ports, *NewPortFromGRPC(p))
+	}
+
+	configs := make([]ConfigFile, 0)
+	for _, cf := range service.Configs {
+		config := &ConfigFile {
+			OrganizationId:	cf.OrganizationId,
+			AppDescriptorId:cf.AppDescriptorId,
+			ConfigFileId: 	cf.ConfigFileId,
+			Name:			cf.Name,
+			Content: 		cf.Content,
+			MountPath: 		cf.MountPath,
+		}
+		configs = append(configs, *config)
+	}
+
+	serviceType, _ := ServiceTypeFromGRPC[service.Type]
+	return &Service{
+		OrganizationId:       service.OrganizationId,
+		AppDescriptorId:      service.AppDescriptorId,
+		ServiceGroupId:       service.ServiceGroupId,
+		ServiceId:            service.ServiceId,
+		Name:                 service.Name,
+		Type:                 serviceType,
+		Image:                service.Image,
+		Credentials:          NewImageCredentialsFromGRPC(service.Credentials),
+		Specs:                NewDeploySpecsFromGRPC(service.Specs),
+		Storage:              storage,
+		ExposedPorts:         ports,
+		EnvironmentVariables: service.EnvironmentVariables,
+		Configs:              configs,
+		Labels:               service.Labels,
+		DeployAfter:          service.DeployAfter,
+		RunArguments: 		  service.RunArguments,
+	}
+
 }
 
 func NewServiceFromGRPC(organizationID string, appDescriptorID string, serviceGroupId string, service *grpc_application_go.Service) * Service {
@@ -1269,6 +1363,12 @@ func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
 	for _, g := range d.Groups {
 		groups = append(groups, g.ToGRPC())
 	}
+
+	parameters := make ([]*grpc_application_go.AppParameter, 0)
+	for _, param := range d.Parameters{
+		parameters = append(parameters, param.ToGRPC())
+	}
+
 	return &grpc_application_go.AppDescriptor{
 		OrganizationId:       d.OrganizationId,
 		AppDescriptorId:      d.AppDescriptorId,
@@ -1278,9 +1378,84 @@ func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
 		Labels:               d.Labels,
 		Rules:                rules,
 		Groups:               groups,
+		Parameters:           parameters,
 	}
 }
 
+// -- Parametrized Descriptor -- //
+type ParametrizedDescriptor struct {
+	// OrganizationId with the organization identifier.
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
+	// AppDescriptorId with the application descriptor identifier.
+	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
+	// AppInstanceID with the identifier of the instance associated to this descriptor
+	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
+	// Name of the application.
+	Name string `json:"name,omitempty" cql:"name"`
+	// ConfigurationOptions defines a key-value map of configuration options.
+	ConfigurationOptions map[string]string `json:"configuration_options,omitempty" cql:"configuration_options"`
+	// EnvironmentVariables defines a key-value map of environment variables and values that will be passed to all
+	// running services.
+	EnvironmentVariables map[string]string `json:"environment_variables,omitempty" cql:"environment_variables"`
+	// Labels defined by the user.
+	Labels map[string]string `json:"labels,omitempty" cql:"labels"`
+	// Rules that define the connectivity between the elements of an application.
+	Rules []SecurityRule `json:"rules,omitempty" cql:"rules"`
+	// Groups with the Service collocation strategies.
+	Groups []ServiceGroup `json:"groups,omitempty" cql:"groups"`
+}
+
+// NewParametrizedDescriptorFromGRPC converts grpc_application_go.ParametrizedDescriptor to ParametrizedDescriptor
+// copying All the values (including the identifiers)
+func NewParametrizedDescriptorFromGRPC(descriptor * grpc_application_go.ParametrizedDescriptor) *ParametrizedDescriptor {
+
+	rules := make ([]SecurityRule, 0)
+	for _, rule := range descriptor.Rules {
+		rules = append(rules, *CopySecurityRuleFromGRPC(rule))
+	}
+
+	groups := make ([]ServiceGroup, 0)
+	for _, group := range descriptor.Groups {
+		groups = append(groups, *CopyServiceGroupFromGRPC(group))
+	}
+
+	return &ParametrizedDescriptor{
+		OrganizationId:       descriptor.OrganizationId,
+		AppDescriptorId:      descriptor.AppDescriptorId,
+		AppInstanceId:        descriptor.AppInstanceId,
+		Name:                 descriptor.Name,
+		ConfigurationOptions: descriptor.ConfigurationOptions,
+		EnvironmentVariables: descriptor.EnvironmentVariables,
+		Labels:               descriptor.Labels,
+		Rules:                rules,
+		Groups:               groups,
+	}
+
+}
+
+func (d *ParametrizedDescriptor) ToGRPC() *grpc_application_go.ParametrizedDescriptor {
+
+	rules := make([]*grpc_application_go.SecurityRule, 0)
+	for _, r := range d.Rules {
+		rules = append(rules, r.ToGRPC())
+	}
+	groups := make([]*grpc_application_go.ServiceGroup, 0)
+	for _, g := range d.Groups {
+		groups = append(groups, g.ToGRPC())
+	}
+
+	return &grpc_application_go.ParametrizedDescriptor{
+		OrganizationId:       d.OrganizationId,
+		AppDescriptorId:      d.AppDescriptorId,
+		AppInstanceId:        d.AppInstanceId,
+		Name:                 d.Name,
+		ConfigurationOptions: d.ConfigurationOptions,
+		EnvironmentVariables: d.EnvironmentVariables,
+		Labels:               d.Labels,
+		Rules:                rules,
+		Groups:               groups,
+	}
+}
 // -------------
 
 type AppEndpointProtocol int

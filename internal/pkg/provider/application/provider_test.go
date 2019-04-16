@@ -9,7 +9,7 @@ import (
 
 func RunTest(provider Provider) {
 
-	ginkgo.BeforeEach(func() {
+	ginkgo.AfterEach(func() {
 		provider.Clear()
 	})
 
@@ -100,9 +100,6 @@ func RunTest(provider Provider) {
 		})
 
 	})
-
-
-	// ---------------------------------------------------------------------------------------------------------------------
 
 	ginkgo.Context("Instance", func() {
 		// Add Application Instance
@@ -352,6 +349,75 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(params).NotTo(gomega.BeNil())
 			gomega.Expect(params).To(gomega.BeEmpty())
+		})
+	})
+
+	ginkgo.Context("Parametrized Descriptor", func() {
+		ginkgo.It("Should be able to add a parametrized descriptor", func() {
+
+			descriptor := CreateParametrizedDescriptor(uuid.New().String())
+			err := provider.AddParametrizedDescriptor(*descriptor)
+			gomega.Expect(err).To(gomega.Succeed())
+		})
+		ginkgo.It("Should not be able to add a parametrized descriptor twice", func() {
+
+			descriptor := CreateParametrizedDescriptor(uuid.New().String())
+			err := provider.AddParametrizedDescriptor(*descriptor)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			err = provider.AddParametrizedDescriptor(*descriptor)
+			gomega.Expect(err).NotTo(gomega.Succeed())
+		})
+		ginkgo.It("Should be able to get a parametrized descriptor", func() {
+
+			descriptor := CreateParametrizedDescriptor(uuid.New().String())
+			err := provider.AddParametrizedDescriptor(*descriptor)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			parametrized, err := provider.GetParametrizedDescriptor(descriptor.AppInstanceId)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(parametrized).NotTo(gomega.BeNil())
+
+		})
+		ginkgo.It("Should not be able to get a non-existent parametrized descriptor", func() {
+
+			_, err := provider.GetParametrizedDescriptor(uuid.New().String())
+			gomega.Expect(err).NotTo(gomega.Succeed())
+
+		})
+		ginkgo.It("Should be able to determinate if a parametrized descriptor exists", func() {
+
+			descriptor := CreateParametrizedDescriptor(uuid.New().String())
+			err := provider.AddParametrizedDescriptor(*descriptor)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			exists, err := provider.ParametrizedDescriptorExists(descriptor.AppInstanceId)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(*exists).To(gomega.BeTrue())
+
+		})
+		ginkgo.It("Should be able to determinate a parametrized descriptor does not exist", func() {
+
+			exists, err := provider.ParametrizedDescriptorExists(uuid.New().String())
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(*exists).NotTo(gomega.BeTrue())
+
+		})
+		ginkgo.It("Should be able to delete a parametrized descriptor", func() {
+
+			descriptor := CreateParametrizedDescriptor(uuid.New().String())
+			err := provider.AddParametrizedDescriptor(*descriptor)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			err = provider.DeleteParametrizedDescriptor(descriptor.AppInstanceId)
+			gomega.Expect(err).To(gomega.Succeed())
+
+		})
+		ginkgo.It("Should not be able to delete a non-existent parametrized descriptor", func() {
+
+			err := provider.DeleteParametrizedDescriptor(uuid.New().String())
+			gomega.Expect(err).NotTo(gomega.Succeed())
+
 		})
 	})
 }

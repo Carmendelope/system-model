@@ -21,6 +21,9 @@ const applicationTablePK = "app_instance_id"
 const applicationDescriptorTable = "applicationdescriptors"
 const applicationDescriptorTablePK = "app_descriptor_id"
 
+const parametrizedDescriptorTable = "parametrizeddescriptors"
+const parametrizedDescriptorTablePK = "app_instance_id"
+
 const instanceParamTable = "instanceParameters" // (app_instance_id, parameters)
 const instanceParamTablePK = "app_instance_id"
 
@@ -153,6 +156,26 @@ func (sp *ScyllaApplicationProvider) unsafeInstanceParametersExists(appInstanceI
 	}
 
 	return count == 1, nil
+}
+
+func (sp *ScyllaApplicationProvider) unsafeParametrizedDescriptorExists(appInstanceID string) (bool, derrors.Error) {
+
+
+	var count int
+
+	stmt, names := qb.Select(parametrizedDescriptorTable).CountAll().Where(qb.Eq(parametrizedDescriptorTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		parametrizedDescriptorTablePK: appInstanceID,
+	})
+
+	err := q.GetRelease(&count)
+	if err != nil {
+
+		return false, derrors.AsError(err, "cannot determinate if parametrized descriptor exists")
+
+	}
+
+	return count > 0, nil
 }
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -612,6 +635,121 @@ func (sp *ScyllaApplicationProvider) DeleteInstanceParameters (appInstanceID str
 	return nil
 }
 
+// --------------------------------- //
+// ------ Parametrized Descriptor -- //
+// --------------------------------- //
+// AddParametrizedDescriptor adds a new parametrized descriptor to the system.
+func (sp *ScyllaApplicationProvider)AddParametrizedDescriptor(descriptor entities.ParametrizedDescriptor) derrors.Error {
+
+	sp.Lock()
+	defer sp.Unlock()
+
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return err
+	}
+
+	// check if the application exists
+	exists, err := sp.unsafeParametrizedDescriptorExists(descriptor.AppInstanceId)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return derrors.NewAlreadyExistsError(descriptor.AppInstanceId)
+	}
+
+	// insert the application instance
+	stmt, names := qb.Insert(parametrizedDescriptorTable).Columns("organization_id","app_descriptor_id",
+		"app_instance_id", "name", "configuration_options","environment_variables","labels","rules","groups").ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(descriptor)
+	cqlErr := q.ExecRelease()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot add parametrized Descriptor")
+	}
+
+	return nil
+}
+
+// GetParametrizedDescriptor retrieves a parametrized descriptor
+func (sp * ScyllaApplicationProvider) GetParametrizedDescriptor(appInstanceID string) (*entities.ParametrizedDescriptor, derrors.Error){
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	if err := sp.checkAndConnect(); err != nil {
+		return nil, err
+	}
+
+	// 2.- Gocqlx
+	var parametrized entities.ParametrizedDescriptor
+	stmt, names := qb.Select(parametrizedDescriptorTable).Where(qb.Eq(parametrizedDescriptorTablePK)).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		parametrizedDescriptorTablePK: appInstanceID,
+	})
+
+	err := q.GetRelease(&parametrized)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return nil, derrors.NewNotFoundError("parametrized descriptor").WithParams(appInstanceID)
+		}else{
+			return nil, derrors.AsError(err,"cannot get parametrized Descriptor")
+		}
+	}
+
+	return &parametrized, nil
+}
+
+// ParametrizedDescriptorExists checks if a parametrized descriptor exists on the system.
+func (sp * ScyllaApplicationProvider) ParametrizedDescriptorExists (appInstanceID string) (*bool, derrors.Error) {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	if  err := sp.checkAndConnect(); err != nil {
+		return nil, err
+	}
+
+	exists, err := sp.unsafeParametrizedDescriptorExists(appInstanceID)
+	if err != nil {
+		return nil, err
+	}
+	return &exists, nil
+}
+
+// DeleteParametrizedDescriptor removes a parametrized Descriptor from the system
+func (sp * ScyllaApplicationProvider)DeleteParametrizedDescriptor (appInstanceID string) derrors.Error{
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if  err != nil {
+		return err
+	}
+
+	// check if the application exists
+	exists, err := sp.unsafeParametrizedDescriptorExists(appInstanceID)
+	if err != nil {
+		return err
+	}
+	if ! exists {
+		return derrors.NewNotFoundError("parametrized descriptor").WithParams(appInstanceID)
+	}
+
+	// delete app instance
+	stmt, _ := qb.Delete(parametrizedDescriptorTable).Where(qb.Eq(parametrizedDescriptorTablePK)).ToCql()
+	cqlErr := sp.Session.Query(stmt, appInstanceID).Exec()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot delete parametrized descriptor")
+	}
+
+	return nil
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 
 // Clear descriptors and instances
@@ -656,6 +794,13 @@ func (sp *ScyllaApplicationProvider) Clear() derrors.Error {
 	if err != nil {
 		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the instance parameters table")
 		return derrors.AsError(err, "cannot truncate instaceparameters table")
+	}
+
+	// table parametrized descriptor
+	err = sp.Session.Query("truncate table parametrizeddescriptors").Exec()
+	if err != nil {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("failed to truncate the parametrized descriptors table")
+		return derrors.AsError(err, "cannot truncate parametrizeddescriptors table")
 	}
 	return nil
 }

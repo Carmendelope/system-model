@@ -281,6 +281,28 @@ func CreateTestApplication(organizationID string, appDescriptorID string) *entit
 	return &app
 }
 
+func CreateParametrizedDescriptor (organizationID string) *entities.ParametrizedDescriptor{
+	rules := make([]entities.SecurityRule, 0)
+	rules = append(rules, CreateTestRule(organizationID, uuid.New().String()))
+
+	groups := make([]entities.ServiceGroup, 0)
+	groups = append(groups, CreateTestServiceGroup(organizationID,uuid.New().String()))
+
+	descriptor := entities.ParametrizedDescriptor{
+		OrganizationId: organizationID,
+		AppDescriptorId: uuid.New().String(),
+		AppInstanceId: uuid.New().String(),
+		Name: "App descriptor Test",
+		ConfigurationOptions:map[string]string{"conf1":"value1", "conf2":"value2"},
+		EnvironmentVariables:map[string]string{"env1":"value1", "env2":"value2"},
+		Labels:map[string]string{"label1":"value1", "label2":"value2", "label3":"value3"},
+		Rules:rules,
+		Groups: groups,
+	}
+
+	return &descriptor
+}
+
 func CreateTestApplicationDescriptor (organizationID string) *entities.AppDescriptor {
 
 	id := uuid.New().String()
