@@ -113,6 +113,9 @@ func (m * MockupApplicationProvider) GetDescriptorParameters(appDescriptorID str
 	if !e {
 		return nil, derrors.NewNotFoundError("descriptor").WithParams(appDescriptorID)
 	}
+	if d.Parameters == nil {
+		d.Parameters = make([]entities.Parameter, 0)
+	}
 	return d.Parameters, nil
 }
 

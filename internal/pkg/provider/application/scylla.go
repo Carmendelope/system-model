@@ -180,7 +180,7 @@ func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescri
 
 	// insert the application instance
 	stmt, names := qb.Insert(applicationDescriptorTable).Columns("organization_id","app_descriptor_id", "name",
-		"configuration_options","environment_variables","labels","rules","groups").ToCql()
+		"configuration_options","environment_variables","labels","rules","groups", "parameters").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(descriptor)
 	cqlErr := q.ExecRelease()
 
@@ -242,10 +242,12 @@ func (sp *ScyllaApplicationProvider) GetDescriptorParameters(appDescriptorID str
 		if err.Error() == rowNotFound {
 			return nil, derrors.NewNotFoundError("descriptor").WithParams(appDescriptorID)
 		}else {
-			return nil, derrors.AsError(err, "cannot get appDescriptor")
+			return nil, derrors.AsError(err, "cannot get descriptor parameters")
 		}
 	}
-
+	if parameters == nil {
+		parameters = make([]entities.Parameter, 0)
+	}
 	return parameters, nil
 }
 
@@ -296,6 +298,7 @@ func (sp *ScyllaApplicationProvider) UpdateDescriptor(descriptor entities.AppDes
 	if ! exists {
 		return derrors.NewNotFoundError(descriptor.AppDescriptorId)
 	}
+	// TODO: parameters can not be updated, review if that is true
 	// insert the application instance
 	stmt, names := qb.Update(applicationDescriptorTable).Set("organization_id", "name",
 		"configuration_options","environment_variables","labels","rules","groups").Where(qb.Eq(applicationDescriptorTablePK)).ToCql()

@@ -328,4 +328,30 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 		})
 	})
+
+	ginkgo.Context("Descriptor Parameters", func() {
+		ginkgo.It("should be able to retrieves descriptor parameters", func() {
+			appDescriptorID := uuid.New().String()
+			descriptor := CreateApplicationDescriptorWithParameters(appDescriptorID)
+
+			err := provider.AddDescriptor(*descriptor)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			params, err := provider.GetDescriptorParameters(descriptor.AppDescriptorId)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(params).NotTo(gomega.BeEmpty())
+		})
+		ginkgo.It("should be able to retrieves an empty list when the descriptor has no parameters", func() {
+			appDescriptorID := uuid.New().String()
+			descriptor := CreateTestApplicationDescriptor(appDescriptorID)
+
+			err := provider.AddDescriptor(*descriptor)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			params, err := provider.GetDescriptorParameters(descriptor.AppDescriptorId)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(params).NotTo(gomega.BeNil())
+			gomega.Expect(params).To(gomega.BeEmpty())
+		})
+	})
 }
