@@ -1067,6 +1067,120 @@ func (si *ServiceInstance) ToGRPC() *grpc_application_go.ServiceInstance {
 
 }
 
+// -- Parameters -- //
+
+type ParamCategory int
+
+const (
+	Basic = iota + 1
+	Advanced
+)
+var ParamCategoryToGRPC = map[ParamCategory] grpc_application_go.ParamCategory{
+	Basic: grpc_application_go.ParamCategory_BASIC,
+	Advanced: grpc_application_go.ParamCategory_ADVANCED,
+}
+
+var ParamCategoryFromGRPC = map[grpc_application_go.ParamCategory]ParamCategory {
+	grpc_application_go.ParamCategory_BASIC: Basic,
+	grpc_application_go.ParamCategory_ADVANCED: Advanced,
+}
+
+type ParamDataType int
+
+const (
+	Boolean = iota + 1
+	Integer
+	Float
+	Enum
+	String
+	Password
+)
+
+var ParamDataTypeToGRPC = map[ParamDataType]grpc_application_go.ParamDataType{
+	Boolean:    grpc_application_go.ParamDataType_BOOLEAN,
+	Integer: 	grpc_application_go.ParamDataType_INTEGER,
+	Float:      grpc_application_go.ParamDataType_FLOAT,
+	Enum:       grpc_application_go.ParamDataType_ENUM,
+	String: 	grpc_application_go.ParamDataType_STRING,
+	Password : 	grpc_application_go.ParamDataType_PASSWORD,
+}
+
+var ParamDataTypeFromGRPC = map[grpc_application_go.ParamDataType]ParamDataType{
+	grpc_application_go.ParamDataType_BOOLEAN: Boolean,
+	grpc_application_go.ParamDataType_INTEGER: Integer,
+	grpc_application_go.ParamDataType_FLOAT: Float,
+	grpc_application_go.ParamDataType_ENUM : Enum,
+	grpc_application_go.ParamDataType_STRING: String,
+	grpc_application_go.ParamDataType_PASSWORD: Password,
+}
+
+func (p * Parameter) ToGRPC () *grpc_application_go.AppParameter {
+	if p == nil {
+		return nil
+	}
+	return &grpc_application_go.AppParameter{
+		Name: p.Name,
+		Description: p.Description,
+		Path: p.Path,
+		Type: ParamDataTypeToGRPC[p.Type],
+		DefaultValue: p.DefaultValue,
+		Category: ParamCategoryToGRPC[p.Category],
+		EnumValues: p.EnumValues,
+	}
+}
+
+func NewParamFromGRPC(parameter *grpc_application_go.AppParameter) *Parameter {
+	return &Parameter{
+		Name: parameter.Name,
+		Description: parameter.Description,
+		Path: parameter.Path,
+		Type: ParamDataTypeFromGRPC[parameter.Type],
+		DefaultValue: parameter.DefaultValue,
+		Category: ParamCategoryFromGRPC[parameter.Category],
+		EnumValues: parameter.EnumValues,
+	}
+}
+
+// Parameter represents a parameter definition
+type Parameter struct {
+	// Name with the name of the parameter. It can not start with 'NALEJ'
+	// It will be used to substitute it through the descriptor when application is deployed.
+	Name string `json:"name,omitempty" cql:"name"`
+	// Description with the description of the parameter.
+	Description string `json:"description,omitempty" cql:"description"`
+	// XPATH to access the parameter
+	Path string `json:"path,omitempty" cql:"path"`
+	// DataType with the value type (bool, integer, float, enum, string, password)
+	Type ParamDataType `json:"type,omitempty" cql:"type"`
+	// DefaultValue with the value by default of the field
+	DefaultValue string `json:"default_value,omitempty" cql:"default_value"`
+	// Category indicates if the parameter is basic or advanced
+	Category ParamCategory `json:"category,omitempty" cql:"category"`
+	// enumValues indicates, in case of an enum type parameter, the values allowed
+	EnumValues []string `json:"enum_values,omitempty" cql:"enum_values"`
+}
+
+type InstanceParameter struct {
+	ParameterName        string   `json:"parameter_name,omitempty" cql:"parameter_name"`
+	Value                string   `json:"value,omitempty" cql:"value" `
+}
+func (p * InstanceParameter) ToGRPC () *grpc_application_go.InstanceParameter {
+	if p == nil {
+		return nil
+	}
+	return &grpc_application_go.InstanceParameter{
+		ParameterName: p.ParameterName,
+		Value: p.Value,
+	}
+}
+
+func NewInstanceParamFromGRPC(parameter *grpc_application_go.InstanceParameter) *InstanceParameter {
+	return &InstanceParameter{
+		ParameterName: parameter.ParameterName,
+		Value: parameter.Value,
+	}
+}
+
 // -- AppDecriptor -- //
 type AppDescriptor struct {
 	// OrganizationId with the organization identifier.
@@ -1086,12 +1200,14 @@ type AppDescriptor struct {
 	Rules []SecurityRule `json:"rules,omitempty" cql:"rules"`
 	// Groups with the Service collocation strategies.
 	Groups []ServiceGroup `json:"groups,omitempty" cql:"groups"`
+	// Parameters with the parameters of an application
+	Parameters []Parameter `json:"paramters,omitempty" cql:"parameters"`
 }
 
 func NewAppDescriptor(organizationID string, appDescriptorID string, name string,
 	configOptions map[string]string, envVars map[string]string,
 	labels map[string]string,
-	rules []SecurityRule, groups []ServiceGroup) *AppDescriptor {
+	rules []SecurityRule, groups []ServiceGroup, parameters []Parameter) *AppDescriptor {
 	return &AppDescriptor{
 		OrganizationId: 		organizationID,
 	 	AppDescriptorId: 		appDescriptorID,
@@ -1101,6 +1217,7 @@ func NewAppDescriptor(organizationID string, appDescriptorID string, name string
 		Labels:					labels,
 		Rules:					rules,
 		Groups:					groups,
+		Parameters:  			parameters,
 		}
 }
 
@@ -1126,6 +1243,12 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 	for _, sg := range addRequest.Groups{
 		groups = append(groups, *NewServiceGroupFromGRPC(addRequest.OrganizationId, uuid, sg))
 	}
+
+	parameters := make([]Parameter, 0)
+	for _, param := range addRequest.Parameters {
+		parameters = append(parameters, *NewParamFromGRPC(param))
+	}
+
 	return NewAppDescriptor(
 		addRequest.OrganizationId,
 		uuid,
@@ -1133,7 +1256,7 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 		addRequest.ConfigurationOptions,
 		addRequest.EnvironmentVariables,
 		addRequest.Labels,
-		rules, groups), nil
+		rules, groups, parameters), nil
 }
 
 func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
@@ -1417,7 +1540,6 @@ type AppInstance struct {
 	Metadata []InstanceMetadata `json:"metadata,omitempty" cql:"metadata"`
 	// Textual information for this application instance
 	Info string `json:"info,omitempty" cql:"info"`
-
 }
 func (sg * ServiceGroup) ToServiceGroupInstance(appInstanceID string) *ServiceGroupInstance {
 	serviceGroupInstanceID := uuid.New().String()
@@ -1605,6 +1727,21 @@ func(a *AppZtNetwork) ToGRPC() *grpc_application_go.AppZtNetwork {
 
 // Validation functions
 
+func ValidAppDescriptorId (descriptorID * grpc_application_go.AppDescriptorId) derrors.Error{
+	if descriptorID.OrganizationId == "" || descriptorID.AppDescriptorId == ""{
+		return derrors.NewInvalidArgumentError("expecting organization_id and descriptor_id")
+	}
+	return nil
+}
+
+
+func ValidAppInstanceId (descriptorID * grpc_application_go.AppInstanceId) derrors.Error{
+	if descriptorID.OrganizationId == "" || descriptorID.AppInstanceId == ""{
+		return derrors.NewInvalidArgumentError("expecting organization_id and app_instance_id")
+	}
+	return nil
+}
+
 func ValidAddAppInstanceRequest(toAdd * grpc_application_go.AddAppInstanceRequest) derrors.Error {
 	if toAdd.OrganizationId == "" || toAdd.Name == "" || toAdd.AppDescriptorId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, name, and descriptor_id")
@@ -1734,7 +1871,7 @@ func ValidGetAppEndPointRequest(request *grpc_application_go.GetAppEndPointReque
 	return nil
 }
 
-func ValidRemoveEndpointRequest(request * grpc_application_go.RemoveEndpointRequest)  derrors.Error{
+func ValidRemoveEndpointRequest(request * grpc_application_go.RemoveAppEndpointRequest)  derrors.Error{
 	if request.AppInstanceId == "" || request.OrganizationId == ""  {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id")
 	}

@@ -975,7 +975,7 @@ var _ = ginkgo.Describe("Applications", func(){
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(success).ShouldNot(gomega.BeNil())
 
-			success, err = client.RemoveAppEndpoints(context.Background(), &grpc_application_go.RemoveEndpointRequest{
+			success, err = client.RemoveAppEndpoints(context.Background(), &grpc_application_go.RemoveAppEndpointRequest{
 				OrganizationId: endPoint.OrganizationId,
 				AppInstanceId: endPoint.AppInstanceId,
 			})

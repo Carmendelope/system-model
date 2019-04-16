@@ -198,7 +198,6 @@ func RunTest(provider Provider) {
 		})
 	})
 
-
 	ginkgo.Context("App EntryPoints", func() {
 		ginkgo.It("should be able to add an appEndPoint", func() {
 			entrypoint := CreateAppEndPoint()
@@ -263,5 +262,70 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 		})
 
+	})
+
+	ginkgo.Context("Instance Parameters", func() {
+		ginkgo.It("Should be able to add instance parameters", func() {
+
+			parameters := []entities.InstanceParameter {
+				{"param1", "value1",},
+				{"param2", "value2"},
+			}
+			err := provider.AddInstanceParameters(uuid.New().String(), parameters)
+			gomega.Expect(err).To(gomega.Succeed())
+
+		})
+		ginkgo.It("Should not be able to add instance parameters twice", func() {
+			instanceID := uuid.New().String()
+			parameters := []entities.InstanceParameter {
+				{"param1", "value1",},
+				{"param2", "value2"},
+			}
+			err := provider.AddInstanceParameters(instanceID, parameters)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			err = provider.AddInstanceParameters(instanceID, parameters)
+			gomega.Expect(err).NotTo(gomega.Succeed())
+		})
+		ginkgo.It("Should be able to retrieve the params of an instance", func() {
+			instanceID := uuid.New().String()
+			parameters := []entities.InstanceParameter {
+				{"param1", "value1",},
+				{"param2", "value2"},
+			}
+			err := provider.AddInstanceParameters(instanceID, parameters)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			params, err := provider.GetInstanceParameters(instanceID)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(params).NotTo(gomega.BeNil())
+			gomega.Expect(len(params)).Should(gomega.Equal(2))
+		})
+		ginkgo.It("Should be able to retrieve an empty list if the instance has no params", func() {
+			instanceID := uuid.New().String()
+
+			params, err := provider.GetInstanceParameters(instanceID)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(params).NotTo(gomega.BeNil())
+			gomega.Expect(len(params)).Should(gomega.Equal(0))
+		})
+		ginkgo.It("should be able to remove the params of an instance", func() {
+			instanceID := uuid.New().String()
+			parameters := []entities.InstanceParameter {
+				{"param1", "value1",},
+				{"param2", "value2"},
+			}
+			err := provider.AddInstanceParameters(instanceID, parameters)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			err = provider.DeleteInstanceParameters(instanceID)
+			gomega.Expect(err).To(gomega.Succeed())
+		})
+		ginkgo.It("should not fail when deleting the parameters of an instance (which do not exist)", func() {
+			instanceID := uuid.New().String()
+
+			err := provider.DeleteInstanceParameters(instanceID)
+			gomega.Expect(err).To(gomega.Succeed())
+		})
 	})
 }
