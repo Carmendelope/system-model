@@ -97,44 +97,36 @@ func (sp *ScyllaApplicationProvider) checkAndConnect () derrors.Error{
 func (sp *ScyllaApplicationProvider) unsafeDescriptorExists(appDescriptorID string) (bool, derrors.Error) {
 
 
-	var returnedId string
+	var count int
 
-	stmt, names := qb.Select(applicationDescriptorTable).Columns(applicationDescriptorTablePK).Where(qb.Eq(applicationDescriptorTablePK)).ToCql()
+	stmt, names := qb.Select(applicationDescriptorTable).CountAll().Where(qb.Eq(applicationDescriptorTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		applicationDescriptorTablePK: appDescriptorID,
 	})
 
-	err := q.GetRelease(&returnedId)
+	err := q.GetRelease(&count)
 	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		}else{
-			return false, derrors.AsError(err, "cannot determinate if appDescriptor exists")
-		}
+		return false, derrors.AsError(err, "cannot determinate if appDescriptor exists")
 	}
 
-	return true, nil
+	return count == 1, nil
 }
 
 func (sp *ScyllaApplicationProvider) unsafeInstanceExists(appInstanceID string) (bool, derrors.Error) {
 
-	var returnedId string
+	var count int
 
-	stmt, names := qb.Select(applicationTable).Columns(applicationTablePK).Where(qb.Eq(applicationTablePK)).ToCql()
+	stmt, names := qb.Select(applicationTable).CountAll().Where(qb.Eq(applicationTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		applicationTablePK: appInstanceID,
 	})
 
-	err := q.GetRelease(&returnedId)
+	err := q.GetRelease(&count)
 	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		}else {
 			return false, derrors.AsError(err, "cannot determinate if appInstance exists")
-		}
 	}
 
-	return true, nil
+	return count == 1, nil
 
 }
 

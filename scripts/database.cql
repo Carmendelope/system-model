@@ -51,7 +51,7 @@ create table IF NOT EXISTS nalej.DeviceGroups (organization_id text, device_grou
 
 create table IF NOT EXISTS nalej.AppZtNetworks(organization_id text, app_instance_id text, zt_network_id text,  PRIMARY KEY ((organization_id, app_instance_id), zt_network_id));
 
-create table IF NOT EXISTS nalej.instanceParameters(app_instance_id text, parameters list<FROZEN<instance_parameter>>, PRIMARY KEY (app_instance_id));
+create table IF NOT EXISTS nalej.InstanceParameters(app_instance_id text, parameters list<FROZEN<instance_parameter>>, PRIMARY KEY (app_instance_id));
 
 -----------
 -- INDEX --

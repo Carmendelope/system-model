@@ -2,6 +2,7 @@
  * Copyright (C)  2018 Nalej - All Rights Reserved
  */
 
+ // TODO: Refactor this file at least into two (one for instances, another for descriptors)
 package application
 
 import (
@@ -937,7 +938,7 @@ var _ = ginkgo.Describe("Applications", func(){
 
 			})
 		})
-		/*
+
 		// Service instances are
 		ginkgo.Context("Adding ServiceInstance ", func() {
 			ginkgo.It("should be able to add a service instance", func() {
@@ -950,7 +951,7 @@ var _ = ginkgo.Describe("Applications", func(){
 					OrganizationId:  targetDescriptor.OrganizationId,
 					AppDescriptorId: targetDescriptor.AppDescriptorId,
 					AppInstanceId:   added.AppInstanceId,
-					ServiceGroupId:  added.Groups[0].ServiceGroupId,
+					ServiceGroupId:  targetDescriptor.Groups[0].ServiceGroupId,
 					NumInstances: 1,
 				}
 
@@ -958,13 +959,13 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(err).To(gomega.Succeed())
 				gomega.Expect(sgReceived.ServiceGroupInstances[0].ServiceGroupId).Should(gomega.Equal(sgToAdd.ServiceGroupId))
 
-				sToAdd := &grpc_application_go.AddServiceInstancesRequest{
+				sToAdd := &grpc_application_go.AddServiceInstanceRequest{
 					OrganizationId:  targetDescriptor.OrganizationId,
 					AppDescriptorId: targetDescriptor.AppDescriptorId,
 					AppInstanceId:   added.AppInstanceId,
-					ServiceGroupId:  sgReceived.ServiceGroupId,
-					ServiceGroupInstanceId: sgReceived.ServiceGroupInstanceId,
-					ServiceId: added.Groups[0].ServiceInstances[0].ServiceId,
+					ServiceGroupId:  sgReceived.ServiceGroupInstances[0].ServiceGroupId,
+					ServiceGroupInstanceId: sgReceived.ServiceGroupInstances[0].ServiceGroupInstanceId,
+					ServiceId: sgReceived.ServiceGroupInstances[0].ServiceInstances[0].ServiceId,
 				}
 
 				serviceInstance, err := client.AddServiceInstance(context.Background(), sToAdd)
@@ -979,24 +980,24 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(err).Should(gomega.Succeed())
 				gomega.Expect(added).ShouldNot(gomega.BeNil())
 
-				sgToAdd := &grpc_application_go.AddServiceGroupInstanceRequest{
+				sgToAdd := &grpc_application_go.AddServiceGroupInstancesRequest{
 					OrganizationId:  targetDescriptor.OrganizationId,
 					AppDescriptorId: targetDescriptor.AppDescriptorId,
 					AppInstanceId:   added.AppInstanceId,
-					ServiceGroupId:  added.Groups[0].ServiceGroupId,
-					Metadata: generateServiceGroupInstanceMetadata(*added),
+					ServiceGroupId:  targetDescriptor.Groups[0].ServiceGroupId,
+					NumInstances: 1,
 				}
 
-				sgReceived, err := client.AddServiceGroupInstance(context.Background(), sgToAdd)
+				sgReceived, err := client.AddServiceGroupInstances(context.Background(), sgToAdd)
 				gomega.Expect(err).To(gomega.Succeed())
-				gomega.Expect(sgReceived.ServiceGroupId).Should(gomega.Equal(sgToAdd.ServiceGroupId))
+				gomega.Expect(sgReceived.ServiceGroupInstances[0].ServiceGroupId).Should(gomega.Equal(sgToAdd.ServiceGroupId))
 
 				sToAdd := &grpc_application_go.AddServiceInstanceRequest{
 					OrganizationId:  targetDescriptor.OrganizationId,
 					AppDescriptorId: targetDescriptor.AppDescriptorId,
 					AppInstanceId:   added.AppInstanceId,
-					ServiceGroupId:  sgReceived.ServiceGroupId,
-					ServiceGroupInstanceId: sgReceived.ServiceGroupInstanceId,
+					ServiceGroupId:  sgReceived.ServiceGroupInstances[0].ServiceGroupId,
+					ServiceGroupInstanceId: sgReceived.ServiceGroupInstances[0].ServiceGroupInstanceId,
 					ServiceId: uuid.New().String(),
 				}
 
@@ -1006,7 +1007,7 @@ var _ = ginkgo.Describe("Applications", func(){
 			})
 
 		})
-		*/
+
 	})
 
 	ginkgo.Context("App Endpoint", func() {
