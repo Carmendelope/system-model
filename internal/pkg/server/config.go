@@ -12,6 +12,8 @@ import (
 
 // Config structure with the options for the system model.
 type Config struct {
+	// Debug level is active.
+	Debug bool
 	// Address where the API service will listen requests.
 	Port int
 	// Use in-memory providers
@@ -20,6 +22,7 @@ type Config struct {
 	UseDBScyllaProviders bool
 	// Database Address
 	ScyllaDBAddress string
+	// ScyllaDBPort with the port
 	ScyllaDBPort int
 	// DataBase KeySpace
 	KeySpace string

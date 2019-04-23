@@ -8,10 +8,13 @@ import (
 	"fmt"
 	"github.com/nalej/grpc-device-go"
 	"github.com/nalej/grpc-infrastructure-go"
+	"github.com/nalej/grpc-inventory-go"
 	"github.com/nalej/grpc-role-go"
 	"github.com/nalej/grpc-user-go"
+	"github.com/nalej/system-model/internal/pkg/server/asset"
 	"github.com/nalej/system-model/internal/pkg/server/cluster"
 	"github.com/nalej/system-model/internal/pkg/server/device"
+	"github.com/nalej/system-model/internal/pkg/server/eic"
 	"github.com/nalej/system-model/internal/pkg/server/node"
 	"github.com/nalej/system-model/internal/pkg/server/role"
 	"github.com/nalej/system-model/internal/pkg/server/user"
@@ -21,19 +24,20 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/tools"
-	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
-	clusterProvider "github.com/nalej/system-model/internal/pkg/provider/cluster"
-	nodeProvider "github.com/nalej/system-model/internal/pkg/provider/node"
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
+	clusterProvider "github.com/nalej/system-model/internal/pkg/provider/cluster"
+	devProvider "github.com/nalej/system-model/internal/pkg/provider/device"
+	nodeProvider "github.com/nalej/system-model/internal/pkg/provider/node"
+	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
 	rProvider "github.com/nalej/system-model/internal/pkg/provider/role"
 	uProvider "github.com/nalej/system-model/internal/pkg/provider/user"
-	devProvider "github.com/nalej/system-model/internal/pkg/provider/device"
-
-	"github.com/nalej/system-model/internal/pkg/server/organization"
+	aProvider "github.com/nalej/system-model/internal/pkg/provider/asset"
+	eicProvider "github.com/nalej/system-model/internal/pkg/provider/eic"
 	"github.com/nalej/system-model/internal/pkg/server/application"
-	"github.com/nalej/grpc-application-go"
+	"github.com/nalej/system-model/internal/pkg/server/organization"
 )
 
 // Service structure containing the configuration and gRPC server.
@@ -59,6 +63,8 @@ type Providers struct {
 	roleProvider rProvider.Provider
 	userProvider uProvider.Provider
 	deviceProvider devProvider.Provider
+	assetProvider aProvider.Provider
+	controllerProvider eicProvider.Provider
 }
 
 // Name of the service.
@@ -75,12 +81,14 @@ func (s *Service) Description() string {
 func (s *Service) CreateInMemoryProviders() * Providers {
 	return &Providers{
 		organizationProvider: orgProvider.NewMockupOrganizationProvider(),
-		clusterProvider: clusterProvider.NewMockupClusterProvider(),
-		nodeProvider: nodeProvider.NewMockupNodeProvider(),
-		applicationProvider: appProvider.NewMockupOrganizationProvider(),
-		roleProvider: rProvider.NewMockupRoleProvider(),
-		userProvider: uProvider.NewMockupUserProvider(),
-		deviceProvider: devProvider.NewMockupDeviceProvider(),
+		clusterProvider:      clusterProvider.NewMockupClusterProvider(),
+		nodeProvider:         nodeProvider.NewMockupNodeProvider(),
+		applicationProvider:  appProvider.NewMockupOrganizationProvider(),
+		roleProvider:         rProvider.NewMockupRoleProvider(),
+		userProvider:         uProvider.NewMockupUserProvider(),
+		deviceProvider:       devProvider.NewMockupDeviceProvider(),
+		assetProvider:        aProvider.NewMockupAssetProvider(),
+		controllerProvider:   eicProvider.NewMockupEICProvider(),
 	}
 }
 
@@ -100,6 +108,10 @@ func (s *Service) CreateDBScyllaProviders() * Providers {
 		userProvider: uProvider.NewScyllaUserProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 		deviceProvider: devProvider.NewScyllaDeviceProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+		assetProvider:      aProvider.NewScyllaAssetProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+		controllerProvider: eicProvider.NewScyllaControllerProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 	}
 }
@@ -145,6 +157,11 @@ func (s *Service) Run() error {
 	deviceManager := device.NewManager(p.deviceProvider, p.organizationProvider)
 	deviceHandler := device.NewHandler(deviceManager)
 
+	assetManager := asset.NewManager(p.organizationProvider, p.assetProvider)
+	assetHandler := asset.NewHandler(assetManager)
+
+	controllerManager := eic.NewManager(p.controllerProvider, p.organizationProvider)
+	controllerHandler := eic.NewHandler(controllerManager)
 
 	grpcServer := grpc.NewServer()
 	grpc_organization_go.RegisterOrganizationsServer(grpcServer, organizationHandler)
@@ -154,9 +171,15 @@ func (s *Service) Run() error {
 	grpc_role_go.RegisterRolesServer(grpcServer, roleHandler)
 	grpc_user_go.RegisterUsersServer(grpcServer, userHandler)
 	grpc_device_go.RegisterDevicesServer(grpcServer, deviceHandler)
+	grpc_inventory_go.RegisterAssetsServer(grpcServer, assetHandler)
+	grpc_inventory_go.RegisterControllersServer(grpcServer, controllerHandler)
 
-	// Register reflection service on gRPC server.
-	reflection.Register(grpcServer)
+	if s.Configuration.Debug{
+		log.Info().Msg("Enabling gRPC server reflection")
+		// Register reflection service on gRPC server.
+		reflection.Register(grpcServer)
+	}
+	
 	log.Info().Int("port", s.Configuration.Port).Msg("Launching gRPC server")
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatal().Errs("failed to serve: %v", []error{err})
