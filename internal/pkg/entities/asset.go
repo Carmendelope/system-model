@@ -14,9 +14,9 @@ import (
 // inventory even if we do not have an agent running supporting those.
 type OperatingSystemInfo struct {
 	// Name of the operating system. Expecting full name.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" cql:"name"`
 	// Version installed.
-	Version              string   `json:"version,omitempty"`
+	Version              string   `json:"version,omitempty" cql:"version"`
 }
 
 func NewOperatingSystemInfoFromGRPC(osInfo *grpc_inventory_go.OperatingSystemInfo) *OperatingSystemInfo{
@@ -42,11 +42,11 @@ func (os * OperatingSystemInfo) ToGRPC() *grpc_inventory_go.OperatingSystemInfo{
 // HardareInfo contains information about the hardware of an asset.
 type HardwareInfo struct {
 	// CPUs contains the list of CPU available in a given asset.
-	Cpus []*CPUInfo `json:"cpus,omitempty"`
+	Cpus []*CPUInfo `json:"cpus,omitempty" cql:"cpus"`
 	// InstalledRam contains the total RAM available in MB.
-	InstalledRam int64 `json:"installed_ram,omitempty"`
+	InstalledRam int64 `json:"installed_ram,omitempty" cql:"installed_ram"`
 	// NetInterfaces with the list of networking cards.
-	NetInterfaces        []*NetworkingHardwareInfo `json:"net_interfaces,omitempty"`
+	NetInterfaces        []*NetworkingHardwareInfo `json:"net_interfaces,omitempty" cql:"net_interfaces"`
 }
 
 func NewHardwareInfoFromGRPC(hardwareInfo * grpc_inventory_go.HardwareInfo) * HardwareInfo{
@@ -90,13 +90,13 @@ func (hi * HardwareInfo) ToGRPC() *grpc_inventory_go.HardwareInfo{
 // CPUInfo contains information about a CPU.
 type CPUInfo struct {
 	// Manufacturer of the CPU.
-	Manufacturer string `json:"manufacturer,omitempty"`
+	Manufacturer string `json:"manufacturer,omitempty" cql:"manufacturer"`
 	// Model of the CPU.
-	Model string `json:"model,omitempty"`
+	Model string `json:"model,omitempty" cql:"model"`
 	// Architecture of the CPU.
-	Architecture string `json:"architecture,omitempty"`
+	Architecture string `json:"architecture,omitempty" cql:"architecture"`
 	// NumCores with the number of cores.
-	NumCores             int32    `json:"num_cores,omitempty"`
+	NumCores             int32    `json:"num_cores,omitempty" cql:"num_cores"`
 }
 
 func NewCPUInfoFromGRPC(cpu * grpc_inventory_go.CPUInfo) * CPUInfo{
@@ -126,9 +126,9 @@ func (ci * CPUInfo) ToGRPC() *grpc_inventory_go.CPUInfo{
 // NetworkingHardwareInfo with the list of network interfaces that are available.
 type NetworkingHardwareInfo struct {
 	// Type of network interface. For example, ethernet, wifi, infiniband, etc.
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitempty" cql:"type"`
 	// Link capacity in Mbps.
-	LinkCapacity         int64    `json:"link_capacity,omitempty"`
+	LinkCapacity         int64    `json:"link_capacity,omitempty" cql:"link_capacity"`
 }
 
 func NewNetworkingHardwareInfoFromGRPC(netInfo * grpc_inventory_go.NetworkingHardwareInfo) * NetworkingHardwareInfo{
@@ -154,9 +154,9 @@ func (nhi * NetworkingHardwareInfo) ToGRPC() *grpc_inventory_go.NetworkingHardwa
 // StorageHardwareInfo with the storage related information.
 type StorageHardwareInfo struct {
 	// Type of storage.
-	Type string `json:"type,omitempty"`
+	Type string `json:"type,omitempty" cql:"type"`
 	// Total capacity in MB.
-	TotalCapacity        int64    `json:"total_capacity,omitempty"`
+	TotalCapacity        int64    `json:"total_capacity,omitempty" cql:"total_capacity"`
 }
 
 func NewStorageHardwareInfoFromGRPC(storage * grpc_inventory_go.StorageHardwareInfo) * StorageHardwareInfo{
@@ -196,11 +196,11 @@ type Asset struct {
 	// Labels defined by the user.
 	Labels map[string]string `json:"labels,omitempty"`
 	// OS contains Operating System information.
-	Os *OperatingSystemInfo `json:"os,omitempty"`
+	Os *OperatingSystemInfo `json:"os,omitempty" cql:"os"`
 	// Hardware information.
-	Hardware *HardwareInfo `json:"hardware,omitempty"`
+	Hardware *HardwareInfo `json:"hardware,omitempty" cql:"hardware"`
 	// Storage information.
-	Storage *StorageHardwareInfo `json:"storage,omitempty"`
+	Storage *StorageHardwareInfo `json:"storage,omitempty" cql:"storage"`
 	// EicNetIp contains the current IP address that connects the asset to the EIC.
 	EicNetIp             string   `json:"eic_net_ip,omitempty"`
 }

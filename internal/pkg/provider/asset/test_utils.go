@@ -50,7 +50,7 @@ func CreateTestAsset() * entities.Asset{
 	}
 	hardware := &entities.HardwareInfo{
 		Cpus:          CreateTestCPU(),
-		InstalledRam:  0,
+		InstalledRam:  100,
 		NetInterfaces: CreateTestNetInterfaces(),
 	}
 	storage := &entities.StorageHardwareInfo{
