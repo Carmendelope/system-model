@@ -5,6 +5,7 @@
 package entities
 
 import (
+	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-inventory-go"
 	"time"
 )
@@ -52,4 +53,47 @@ func (ec * EdgeController) ToGRPC() *grpc_inventory_go.EdgeController{
 		Name:                 ec.Name,
 		Labels:               ec.Labels,
 	}
+}
+
+func (ec * EdgeController) ApplyUpdate(request * grpc_inventory_go.UpdateEdgeControllerRequest){
+	if request.AddLabels {
+		if ec.Labels == nil {
+			ec.Labels = make(map[string]string, 0)
+		}
+		for k, v := range request.Labels {
+			ec.Labels[k] = v
+		}
+	}
+	if request.RemoveLabels {
+		for k, _ := range request.Labels {
+			delete(ec.Labels, k)
+		}
+	}
+}
+
+func ValidAddEdgeControllerRequest(request *grpc_inventory_go.AddEdgeControllerRequest) derrors.Error{
+	if request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	return nil
+}
+
+func ValidEdgeControllerID(edgeControllerID *grpc_inventory_go.EdgeControllerId) derrors.Error{
+	if edgeControllerID.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	if edgeControllerID.EdgeControllerId == "" {
+		return derrors.NewInvalidArgumentError(emptyEdgeControllerId)
+	}
+	return nil
+}
+
+func ValidUpdateEdgeControllerRequest(request * grpc_inventory_go.UpdateEdgeControllerRequest) derrors.Error{
+	if request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	if request.EdgeControllerId == "" {
+		return derrors.NewInvalidArgumentError(emptyEdgeControllerId)
+	}
+	return nil
 }

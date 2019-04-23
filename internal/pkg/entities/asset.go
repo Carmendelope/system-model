@@ -5,6 +5,7 @@
 package entities
 
 import (
+	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-inventory-go"
 	"time"
 )
@@ -232,4 +233,48 @@ func (a * Asset) ToGRPC() *grpc_inventory_go.Asset{
 		Storage:              a.Storage.ToGRPC(),
 		EicNetIp:             a.EicNetIp,
 	}
+}
+
+func (a * Asset) ApplyUpdate(request * grpc_inventory_go.UpdateAssetRequest){
+	if request.AddLabels {
+		if a.Labels == nil {
+			a.Labels = make(map[string]string, 0)
+		}
+		for k, v := range request.Labels {
+			a.Labels[k] = v
+		}
+	}
+	if request.RemoveLabels {
+		for k, _ := range request.Labels {
+			delete(a.Labels, k)
+		}
+	}
+}
+
+func ValidAddAssetRequest(addRequest * grpc_inventory_go.AddAssetRequest) derrors.Error{
+	if addRequest.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	return nil
+}
+
+func ValidAssetID(assetID * grpc_inventory_go.AssetId) derrors.Error{
+	if assetID.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	if assetID.AssetId == "" {
+		return derrors.NewInvalidArgumentError(emptyAssetId)
+	}
+
+	return nil
+}
+
+func ValidUpdateAssetRequest(request *grpc_inventory_go.UpdateAssetRequest) derrors.Error {
+	if request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	if request.AssetId == "" {
+		return derrors.NewInvalidArgumentError(emptyAssetId)
+	}
+	return nil
 }

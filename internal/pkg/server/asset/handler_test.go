@@ -1,0 +1,145 @@
+/*
+ * Copyright (C)  2019 Nalej - All Rights Reserved
+ */
+
+package asset
+
+import (
+	"context"
+	"github.com/nalej/grpc-inventory-go"
+	"github.com/nalej/grpc-organization-go"
+	"github.com/nalej/grpc-utils/pkg/test"
+	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/nalej/system-model/internal/pkg/provider/asset"
+	assetProvider "github.com/nalej/system-model/internal/pkg/provider/asset"
+	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
+	"github.com/nalej/system-model/internal/pkg/server/testhelpers"
+	"github.com/onsi/ginkgo"
+	"github.com/onsi/gomega"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/test/bufconn"
+)
+
+func createAddAssetRequest(organizationID string) *grpc_inventory_go.AddAssetRequest{
+	testAsset := asset.CreateTestAsset()
+	return &grpc_inventory_go.AddAssetRequest{
+		OrganizationId:       organizationID,
+		AgentId:              testAsset.AgentId,
+		Labels:               testAsset.Labels,
+		Os:                   testAsset.Os.ToGRPC(),
+		Hardware:             testAsset.Hardware.ToGRPC(),
+		Storage:              testAsset.Storage.ToGRPC(),
+	}
+}
+
+var _ = ginkgo.Describe("Asset service", func(){
+	// gRPC server
+	var server *grpc.Server
+	// grpc test listener
+	var listener *bufconn.Listener
+	// client
+	var client grpc_inventory_go.AssetsClient
+
+	// Target organization.
+	var targetOrganization * entities.Organization
+
+	// Providers
+	var organizationProvider orgProvider.Provider
+	var aProvider assetProvider.Provider
+
+	ginkgo.BeforeSuite(func() {
+		listener = test.GetDefaultListener()
+		server = grpc.NewServer()
+		test.LaunchServer(server, listener)
+
+		// Register the service
+		organizationProvider = orgProvider.NewMockupOrganizationProvider()
+		aProvider = assetProvider.NewMockupAssetProvider()
+		manager := NewManager(organizationProvider, aProvider)
+		handler := NewHandler(manager)
+		grpc_inventory_go.RegisterAssetsServer(server, handler)
+
+		conn, err := test.GetConn(*listener)
+		gomega.Expect(err).Should(gomega.Succeed())
+		client = grpc_inventory_go.NewAssetsClient(conn)
+	})
+
+	ginkgo.AfterSuite(func() {
+		server.Stop()
+		listener.Close()
+	})
+
+	ginkgo.BeforeEach(func(){
+		ginkgo.By("cleaning the mockups", func(){
+			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
+			aProvider.Clear()
+			// Initial data
+			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
+		})
+	})
+
+	ginkgo.It("should be able to add a new asset", func(){
+	    toAdd := createAddAssetRequest(targetOrganization.ID)
+	    added, err := client.Add(context.Background(), toAdd)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(added).ShouldNot(gomega.BeNil())
+		gomega.Expect(added.AssetId).ShouldNot(gomega.BeEmpty())
+	})
+
+	ginkgo.It("should be able to list assets", func(){
+	    numAssets := 10
+	    for index := 0; index < numAssets; index++{
+			toAdd := createAddAssetRequest(targetOrganization.ID)
+			added, err := client.Add(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+			gomega.Expect(added.AssetId).ShouldNot(gomega.BeEmpty())
+		}
+	    orgID := &grpc_organization_go.OrganizationId{
+			OrganizationId:       targetOrganization.ID,
+		}
+	    allAssets, err := client.List(context.Background(), orgID)
+	    gomega.Expect(err).To(gomega.Succeed())
+	    gomega.Expect(len(allAssets.Assets)).Should(gomega.Equal(numAssets))
+	})
+
+	ginkgo.It("should be able to remove assets", func(){
+		toAdd := createAddAssetRequest(targetOrganization.ID)
+		added, err := client.Add(context.Background(), toAdd)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(added).ShouldNot(gomega.BeNil())
+		assetID := &grpc_inventory_go.AssetId{
+			OrganizationId:       added.OrganizationId,
+			AssetId:              added.AssetId,
+		}
+		success, err := client.Remove(context.Background(), assetID)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(success).ShouldNot(gomega.BeNil())
+	})
+
+	ginkgo.Context("update operations", func(){
+		ginkgo.It("should be able to add new labels", func(){
+			toAdd := createAddAssetRequest(targetOrganization.ID)
+			added, err := client.Add(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			newLabels := make(map[string]string, 0)
+			newLabels["k1"]="v1"
+			updateRequest := &grpc_inventory_go.UpdateAssetRequest{
+				OrganizationId:       added.OrganizationId,
+				AssetId:              added.AssetId,
+				AddLabels:            true,
+				RemoveLabels:         false,
+				Labels:               newLabels,
+			}
+
+			updated, err := client.Update(context.Background(), updateRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			value, exits := updated.Labels["k1"]
+			gomega.Expect(exits).To(gomega.BeTrue())
+			gomega.Expect(value).Should(gomega.Equal("v1"))
+		})
+	})
+
+
+})
