@@ -52,6 +52,7 @@ create table IF NOT EXISTS nalej.DeviceGroups (organization_id text, device_grou
 create table IF NOT EXISTS nalej.AppZtNetworks(organization_id text, app_instance_id text, zt_network_id text,  PRIMARY KEY ((organization_id, app_instance_id), zt_network_id));
 
 create table IF NOT EXISTS nalej.Asset (organization_id text, asset_id text, agent_id text, show boolean, created int, labels map<text, text>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage FROZEN<storage_hardware_info>, eic_net_ip text, PRIMARY KEY (asset_id));
+create table IF NOT EXISTS nalej.Controller (organization_id text, edge_controller_id text, show boolean, created int, name text, labels map<text, text>, PRIMARY KEY(edge_controller_id));
 
 -----------
 -- INDEX --
@@ -59,3 +60,5 @@ create table IF NOT EXISTS nalej.Asset (organization_id text, asset_id text, age
 create index IF NOT EXISTS organizationName ON nalej.organizations (name);
 create index IF NOT EXISTS deviceGroupName ON nalej.DeviceGroups (name);
 create index IF NOT EXISTS entrypointFqdn ON nalej.AppEntrypoints (global_fqdn);
+create index IF NOT EXISTS controllerOrg ON nalej.Controller (organization_id);
+create index IF NOT EXISTS assetOrg ON nalej.Asset (organization_id);

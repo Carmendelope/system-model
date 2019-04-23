@@ -64,6 +64,19 @@ func (m * MockupAssetProvider) Get(assetID string) (*entities.Asset, derrors.Err
 	return nil, derrors.NewNotFoundError(assetID)
 }
 
+// List the EIC in a given organization
+func (m *MockupAssetProvider) List(organizationID string) ([]entities.Asset, derrors.Error){
+	m.Lock()
+	defer m.Unlock()
+	result := make([]entities.Asset, 0)
+	for _, a := range m.assets{
+		if a.OrganizationId == organizationID{
+			result = append(result, a)
+		}
+	}
+	return result, nil
+}
+
 func (m * MockupAssetProvider) Remove(assetID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()

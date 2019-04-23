@@ -17,6 +17,8 @@ type Provider interface {
 	Update(asset entities.Asset) derrors.Error
 	// Exists checks if an asset exists on the system.
 	Exists(assetID string) (bool, derrors.Error)
+	// List the assets in a given organization
+	List(organizationID string) ([]entities.Asset, derrors.Error)
 	// Get an asset.
 	Get(assetID string) (* entities.Asset, derrors.Error)
 	// Remove an asset

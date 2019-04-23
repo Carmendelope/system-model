@@ -5,6 +5,7 @@
 package asset
 
 import (
+	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 )
@@ -56,6 +57,26 @@ func RunTest(provider Provider) {
 		retrieved, err := provider.Get(toAdd.AssetId)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(retrieved).To(gomega.Equal(toAdd))
+	})
+
+	ginkgo.It("should be able to list the assets in an organization", func(){
+	    numAssets := 10
+		organizationID := entities.GenerateUUID()
+		for index := 0; index < numAssets; index ++{
+			toAdd := CreateTestAsset()
+			toAdd.OrganizationId = organizationID
+			err := provider.Add(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+		}
+		// Add elements to other organizations
+		for index := 0; index < numAssets; index ++{
+			toAdd := CreateTestAsset()
+			err := provider.Add(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+		}
+		retrieved, err := provider.List(organizationID)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(len(retrieved)).To(gomega.Equal(numAssets))
 	})
 
 	ginkgo.It("should be able to delete an asset", func(){
