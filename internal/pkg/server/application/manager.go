@@ -208,6 +208,25 @@ func (m * Manager) RemoveAppDescriptor(appDescID *grpc_application_go.AppDescrip
 	return err
 }
 
+
+func (m * Manager) GetDescriptorAppParameters(request *grpc_application_go.AppDescriptorId) ( []entities.Parameter, derrors.Error) {
+	exists, err := m.OrgProvider.Exists(request.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if ! exists {
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
+	}
+	exists, err = m.OrgProvider.DescriptorExists(request.OrganizationId, request.AppDescriptorId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists{
+		return nil, derrors.NewNotFoundError("appDescriptorID").WithParams(request.OrganizationId, request.AppDescriptorId)
+	}
+	return m.AppProvider.GetDescriptorParameters(request.AppDescriptorId)
+}
+
 // AddAppInstance adds a new application instance to a given organization.
 func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanceRequest) (* entities.AppInstance, derrors.Error) {
 
@@ -240,6 +259,25 @@ func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanc
 	if err != nil {
 		return nil, err
 	}
+
+	// add parameters
+	if addRequest.Parameters != nil {
+		parameters := make ([]entities.InstanceParameter, 0)
+		for _, param := range addRequest.Parameters.Parameters {
+			parameters = append(parameters, *entities.NewInstanceParamFromGRPC(param))
+		}
+		err = m.AppProvider.AddInstanceParameters(instance.AppInstanceId, parameters)
+		if err != nil {
+			log.Error().Str("instance_id", instance.AppInstanceId).Str("trace", err.DebugReport()).Msg("error saving instance parameters.")
+			// if error storing instance parameters -> delete instance and return the error
+			rollBackErr := m.AppProvider.DeleteInstance(instance.AppInstanceId)
+			if rollBackErr != nil {
+				log.Error().Str("instance_id", instance.AppInstanceId).Str("trace", rollBackErr.DebugReport()).Msg("Error removing instance")
+			}
+			return nil, err
+		}
+	}
+
 	return instance, nil
 }
 
@@ -449,8 +487,35 @@ func (m * Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceI
 				Str("appInstID.OrganizationId", appInstID.OrganizationId).
 				Str("appInstID.AppInstanceId", appInstID.AppInstanceId).Msg("error in Rollback")
 		}
+	}else{ // delete parameters (if exist)
+		instErr := m.AppProvider.DeleteInstanceParameters(appInstID.AppInstanceId)
+		if instErr != nil {
+			log.Error().Str("instanceID", appInstID.AppInstanceId).Str("trace", instErr.DebugReport()).Msg("Error removing parameters")
+		}
 	}
 	return err
+}
+
+func (m * Manager) GetInstanceParameters (request *grpc_application_go.AppInstanceId) ([]entities.InstanceParameter, derrors.Error) {
+	exists, err := m.OrgProvider.Exists(request.OrganizationId)
+	if err != nil{
+		return nil, err
+	}
+	if ! exists{
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
+	}
+	exists, err = m.OrgProvider.InstanceExists(request.OrganizationId, request.AppInstanceId)
+	if err != nil{
+		return nil, err
+	}
+	if ! exists{
+		return nil, derrors.NewNotFoundError("AppInstanceId").WithParams(request.AppInstanceId)
+	}
+	parameters, err := m.AppProvider.GetInstanceParameters(request.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	return parameters, nil
 }
 
 func (m * Manager) AddServiceGroupInstances(request *grpc_application_go.AddServiceGroupInstancesRequest) ([]entities.ServiceGroupInstance, derrors.Error){
@@ -679,7 +744,7 @@ func (m * Manager) AddAppEndpoint(appEndpoint *grpc_application_go.AddAppEndpoin
 	return nil
 }
 // GetAppEndPoint retrieves an appEndpoint
-func (m * Manager) GetAppEndpoint(request *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AddEndpointList, derrors.Error){
+func (m * Manager) GetAppEndpoint(request *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AppEndpointList, derrors.Error){
 
 	split := strings.Split(request.Fqdn, ".")
 	globalFqdn:=fmt.Sprintf("%s.%s.%s.%s", split[0], split[1], split[2], split[3])
@@ -702,12 +767,12 @@ func (m * Manager) GetAppEndpoint(request *grpc_application_go.GetAppEndPointReq
 		}
 	}
 
-	return &grpc_application_go.AddEndpointList{
+	return &grpc_application_go.AppEndpointList{
 		AppEndpoints:endpointList,
 	}, nil
 }
 
-func (m * Manager) RemoveAppEndpoints(removeRequest *grpc_application_go.RemoveEndpointRequest) derrors.Error{
+func (m * Manager) RemoveAppEndpoints(removeRequest *grpc_application_go.RemoveAppEndpointRequest) derrors.Error{
 	return  m.AppProvider.DeleteAppEndpoints(removeRequest.OrganizationId, removeRequest.AppInstanceId)
 }
 
@@ -723,3 +788,95 @@ func (m * Manager) GetAppZtNetwork(request *grpc_application_go.GetAppZtNetworkR
 	return m.AppProvider.GetAppZtNetwork(request.OrganizationId, request.AppInstanceId)
 }
 
+// AddParametrizedDescriptor adds a parametrized descriptor to a given descriptor
+func (m * Manager) AddParametrizedDescriptor(descriptor *grpc_application_go.ParametrizedDescriptor)  derrors.Error{
+
+	// check if the organization exists
+	exists, err := m.OrgProvider.Exists(descriptor.OrganizationId)
+	if err != nil {
+		return  err
+	}
+	if ! exists{
+		return derrors.NewNotFoundError("organizationID").WithParams(descriptor.OrganizationId)
+	}
+	// check if the descriptor exists
+	exists, err = m.AppProvider.DescriptorExists(descriptor.AppDescriptorId)
+	if err != nil {
+		return  err
+	}
+	if ! exists {
+		return derrors.NewNotFoundError("descriptorID").WithParams(descriptor.OrganizationId, descriptor.AppDescriptorId)
+	}
+
+	// check if the instance exists
+	exists, err = m.AppProvider.InstanceExists(descriptor.AppInstanceId)
+	if err != nil {
+		return  err
+	}
+	if ! exists {
+		return derrors.NewNotFoundError("instanceID").WithParams(descriptor.OrganizationId, descriptor.AppInstanceId)
+	}
+
+	// Convert to ParametrizedDescriptor
+	newDesc:= entities.NewParametrizedDescriptorFromGRPC(descriptor)
+
+	err = m.AppProvider.AddParametrizedDescriptor(*newDesc)
+	if err != nil{
+		return err
+	}
+
+	return  nil
+}
+// GetParametrizedDescriptor retrieves the parametrized descriptor associated with an instance
+func (m * Manager) GetParametrizedDescriptor(request *grpc_application_go.AppInstanceId) (*entities.ParametrizedDescriptor, derrors.Error) {
+	// check if the organization exists
+	exists, err := m.OrgProvider.Exists(request.OrganizationId)
+	if err != nil {
+		return  nil, err
+	}
+	if ! exists{
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
+	}
+
+	// check if the instance exists
+	exists, err = m.AppProvider.InstanceExists(request.AppInstanceId)
+	if err != nil {
+		return  nil, err
+	}
+	if ! exists {
+		return nil, derrors.NewNotFoundError("instanceID").WithParams(request.OrganizationId, request.AppInstanceId)
+	}
+
+	descriptor, err := m.AppProvider.GetParametrizedDescriptor(request.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	return descriptor, nil
+}
+// RemoveParametrizedDescriptor removes the parametrized descriptor associated with an instance
+func (m * Manager) RemoveParametrizedDescriptor(request *grpc_application_go.AppInstanceId) derrors.Error{
+	// check if the organization exists
+	exists, err := m.OrgProvider.Exists(request.OrganizationId)
+	if err != nil {
+		return   err
+	}
+	if ! exists{
+		return  derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
+	}
+
+	// check if the instance exists
+	exists, err = m.AppProvider.InstanceExists(request.AppInstanceId)
+	if err != nil {
+		return   err
+	}
+	if ! exists {
+		return  derrors.NewNotFoundError("instanceID").WithParams(request.OrganizationId, request.AppInstanceId)
+	}
+	err = m.AppProvider.DeleteParametrizedDescriptor(request.AppInstanceId)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}

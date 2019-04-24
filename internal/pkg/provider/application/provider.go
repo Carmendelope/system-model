@@ -26,6 +26,9 @@ type Provider interface {
 	// DeleteDescriptor removes a given descriptor from the system.
 	DeleteDescriptor(appDescriptorID string) derrors.Error
 
+	// GetDescriptorParameters retrieves the params of a descriptor
+	GetDescriptorParameters(appDescriptorID string) ([]entities.Parameter, derrors.Error)
+
 	// AddInstance adds a new application instance to the system
 	AddInstance(instance entities.AppInstance) derrors.Error
 
@@ -40,6 +43,27 @@ type Provider interface {
 
 	// UpdateInstance updates the information of an instance
 	UpdateInstance(instance entities.AppInstance) derrors.Error
+
+	// AddInstanceParameters adds deploy parameters of an instance in the system
+	AddInstanceParameters (appInstanceID string, parameters []entities.InstanceParameter) derrors.Error
+
+	// GetInstanceParameters retrieves the params of an instance
+	GetInstanceParameters (appInstanceID string) ([]entities.InstanceParameter, derrors.Error)
+
+	// DeleteInstanceParameters removes the params of an instance
+	DeleteInstanceParameters (appInstanceID string) derrors.Error
+
+	// AddParametrizedDescriptor adds a new parametrized descriptor to the system.
+	AddParametrizedDescriptor(descriptor entities.ParametrizedDescriptor) derrors.Error
+
+	// GetParametrizedDescriptor retrieves a parametrized descriptor
+	GetParametrizedDescriptor(appInstanceID string) (*entities.ParametrizedDescriptor, derrors.Error)
+
+	// ParametrizedDescriptorExists checks if a parametrized descriptor exists on the system.
+	ParametrizedDescriptorExists (appInstanceID string) (*bool, derrors.Error)
+
+	// DeleteParametrizedDescriptor removes a parametrized Descriptor from the system
+	DeleteParametrizedDescriptor (appInstanceID string) derrors.Error
 
 	// Clear descriptors and instances
 	Clear() derrors.Error

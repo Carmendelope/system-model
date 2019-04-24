@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:87b96c7207c723bec01f47ed35ba396daefdc5dbe292995212139f192c1228e6"
+  digest = "1:5bd61a1c77ba9e6d7b1a550644159045df55564261e7fb6c13b011f16b28043b"
   name = "github.com/gocql/gocql"
   packages = [
     ".",
@@ -12,7 +12,7 @@
     "internal/streams",
   ]
   pruneopts = ""
-  revision = "59a610c947c50cbbf9efa4d772be1ce8d1a215db"
+  revision = "b99afaf3b1639e5264f5e1cabf04fdb2e5ed57ac"
 
 [[projects]]
   digest = "1:529d738b7976c3848cae5cf3a8036440166835e389c1f617af701eeb12a0518d"
@@ -84,12 +84,12 @@
   version = "v2.0.0"
 
 [[projects]]
-  digest = "1:5f122d256d0cc365838a5e7339ee8f678ce71a05bae1908ad69b565f27ec1317"
+  digest = "1:9066555014995d4d3e0550d8ed2a5fa72861316b37faebc2d4ab0fa2e04de78a"
   name = "github.com/nalej/grpc-application-go"
   packages = ["."]
   pruneopts = ""
-  revision = "952da2ac2fa8994b4d5eef088c550abd9ffd767c"
-  version = "v0.0.67"
+  revision = "4a2436533e5eff49040c92ae682bfb1a9548c257"
+  version = "v0.0.71"
 
 [[projects]]
   digest = "1:44f7426538411ea9f774f96e3b102decc9f549b188e55e29ecc15be69542a96b"
@@ -265,7 +265,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a2a9a2c106855d5fd3b11383f7c591064a81f25ee0d9749524801f636e7f473a"
+  digest = "1:dd11a4a34c68c84042603069933b8c40cd1bf07f7e40d050d4dc3cf60ea6fb63"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -280,7 +280,7 @@
     "trace",
   ]
   pruneopts = ""
-  revision = "afa5a82059c6356159f699d81beff22a81842231"
+  revision = "afe8014c977f78fe2406743d9d32c8bd44d0542b"
 
 [[projects]]
   branch = "master"
@@ -415,7 +415,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6f903194a9d4d3a4da7cb6f7511580de0a26303de647c2d9fea3de4dccfb3219"
+  digest = "1:d2752bacce20a9d9f39465ab91489021fb7069fda1c5263fde2cf4c646aa9aea"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/util/errors",
@@ -424,7 +424,7 @@
     "pkg/util/validation/field",
   ]
   pruneopts = ""
-  revision = "b874eabb9a4eb99cef27db5c8d06f16542580cec"
+  revision = "11f1676e3da49fcc37a6bc42f77a77ce972a931f"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -452,6 +452,7 @@
     "github.com/scylladb/gocqlx",
     "github.com/scylladb/gocqlx/qb",
     "github.com/spf13/cobra",
+    "golang.org/x/net/context",
     "google.golang.org/grpc",
     "google.golang.org/grpc/reflection",
     "google.golang.org/grpc/test/bufconn",

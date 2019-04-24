@@ -16,6 +16,11 @@ type MockupApplicationProvider struct {
 	appDescriptors map[string] entities.AppDescriptor
 	appInstances map[string] entities.AppInstance
 
+	// parametrizedDescriptor indexed by AppInstanceID
+	parametrizedDescriptor map[string] entities.ParametrizedDescriptor
+
+	instanceParameters map[string] []entities.InstanceParameter
+
 	appEntryPoints map[string] entities.AppEndpoint
 	appEntryPointsByName map[string][]*entities.AppEndpoint
 
@@ -28,6 +33,8 @@ func NewMockupOrganizationProvider() * MockupApplicationProvider {
 		appDescriptors:make(map[string]entities.AppDescriptor, 0),
 		appInstances: make(map[string]entities.AppInstance, 0),
 		appEntryPoints:make(map[string]entities.AppEndpoint, 0),
+		instanceParameters: make(map[string][]entities.InstanceParameter, 0),
+		parametrizedDescriptor: make(map[string]entities.ParametrizedDescriptor, 0),
 		appEntryPointsByName: make(map[string][]*entities.AppEndpoint, 0),
 		appZtNetworks: make(map[string]map[string]entities.AppZtNetwork,0),
 	}
@@ -41,8 +48,12 @@ func (m * MockupApplicationProvider) Clear()  derrors.Error{
 	m.appDescriptors = make(map[string] entities.AppDescriptor, 0)
 	m.appInstances = make(map[string] entities.AppInstance, 0)
 	m.appEntryPoints = make(map[string]entities.AppEndpoint, 0)
+	m.parametrizedDescriptor = make(map[string]entities.ParametrizedDescriptor, 0)
+
 	m.appEntryPointsByName = make(map[string][]*entities.AppEndpoint, 0)
 	m.appZtNetworks = make(map[string]map[string]entities.AppZtNetwork,0)
+
+	m.instanceParameters = make(map[string][]entities.InstanceParameter, 0)
 
 	return nil
 }
@@ -54,6 +65,11 @@ func (m *MockupApplicationProvider) unsafeExistsAppDesc(descriptorID string) boo
 
 func (m *MockupApplicationProvider) unsafeExistsAppInst(instanceID string) bool {
 	_, exists := m.appInstances[instanceID]
+	return exists
+}
+
+func (m *MockupApplicationProvider) unsafeExistsParamDesc(instanceID string) bool {
+	_, exists := m.parametrizedDescriptor[instanceID]
 	return exists
 }
 
@@ -99,6 +115,21 @@ func (m *MockupApplicationProvider) GetDescriptor(appDescriptorID string) (*enti
 	return &d, nil
 }
 
+func (m * MockupApplicationProvider) GetDescriptorParameters(appDescriptorID string) ([]entities.Parameter, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+
+	d, e := m.appDescriptors[appDescriptorID]
+
+	if !e {
+		return nil, derrors.NewNotFoundError("descriptor").WithParams(appDescriptorID)
+	}
+	if d.Parameters == nil {
+		d.Parameters = make([]entities.Parameter, 0)
+	}
+	return d.Parameters, nil
+}
+
 // DeleteDescriptor removes a given descriptor from the system.
 func (m * MockupApplicationProvider) DeleteDescriptor(appDescriptorID string) derrors.Error {
 	m.Lock()
@@ -116,6 +147,7 @@ func (m *MockupApplicationProvider) AddInstance(instance entities.AppInstance) d
 	defer m.Unlock()
 	if !m.unsafeExistsAppDesc(instance.AppInstanceId){
 		m.appInstances[instance.AppInstanceId] = instance
+
 		return nil
 	}
 	return derrors.NewAlreadyExistsError(instance.AppDescriptorId)
@@ -158,6 +190,91 @@ func (m *MockupApplicationProvider) UpdateInstance(instance entities.AppInstance
 		return derrors.NewNotFoundError("instance").WithParams(instance.AppInstanceId)
 	}
 	m.appInstances[instance.AppInstanceId] = instance
+	return nil
+}
+
+// -- Instance parameters
+// AddInstanceParameters adds deploy parameters of an instance in the system
+func (m * MockupApplicationProvider)AddInstanceParameters (appInstanceID string, parameters []entities.InstanceParameter) derrors.Error{
+	m.Lock()
+	defer m.Unlock()
+
+	_, exists := m.instanceParameters[appInstanceID]
+
+	if exists {
+		return derrors.NewAlreadyExistsError("parameters").WithParams(appInstanceID)
+	}
+
+	m.instanceParameters[appInstanceID] = parameters
+
+	return nil
+}
+// GetInstanceParameters retrieves the params of an instance
+func (m * MockupApplicationProvider) GetInstanceParameters (appInstanceID string) ([]entities.InstanceParameter, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+
+	params, exists := m.instanceParameters[appInstanceID]
+
+	if !exists {
+		params := make ([]entities.InstanceParameter, 0)
+		return params, nil
+	}
+	return params, nil
+}
+
+
+// DeleteInstanceParameters removes the params of an instance
+func (m * MockupApplicationProvider)DeleteInstanceParameters (appInstanceID string) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+
+	delete (m.instanceParameters, appInstanceID)
+
+	return nil
+}
+
+// AddParametrizedDescriptor adds a new parametrized descriptor to the system.
+func (m * MockupApplicationProvider)AddParametrizedDescriptor(descriptor entities.ParametrizedDescriptor) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+	if !m.unsafeExistsParamDesc(descriptor.AppInstanceId){
+		m.parametrizedDescriptor[descriptor.AppInstanceId] = descriptor
+
+		return nil
+	}
+	return derrors.NewAlreadyExistsError(descriptor.AppInstanceId)
+}
+
+// GetParametrizedDescriptor retrieves a parametrized descriptor
+func (m * MockupApplicationProvider) GetParametrizedDescriptor(appInstanceID string) (*entities.ParametrizedDescriptor, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+	i, e := m.parametrizedDescriptor[appInstanceID]
+	if !e {
+		return nil, derrors.NewNotFoundError("parametrized descriptor").WithParams(appInstanceID)
+	}
+	return &i, nil
+}
+
+// ParametrizedDescriptorExists checks if a parametrized descriptor exists on the system.
+func (m * MockupApplicationProvider)	ParametrizedDescriptorExists (appInstanceID string) (*bool, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+
+	exists := m.unsafeExistsParamDesc(appInstanceID)
+
+	return &exists, nil
+}
+
+// DeleteParametrizedDescriptor removes a parametrized Descriptor from the system
+func (m * MockupApplicationProvider) DeleteParametrizedDescriptor (appInstanceID string) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+	if !m.unsafeExistsParamDesc(appInstanceID) {
+		return derrors.NewNotFoundError("parametrized descriptor").WithParams(appInstanceID)
+	}
+	delete(m.parametrizedDescriptor, appInstanceID)
 	return nil
 }
 
