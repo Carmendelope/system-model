@@ -281,6 +281,28 @@ func CreateTestApplication(organizationID string, appDescriptorID string) *entit
 	return &app
 }
 
+func CreateParametrizedDescriptor (organizationID string) *entities.ParametrizedDescriptor{
+	rules := make([]entities.SecurityRule, 0)
+	rules = append(rules, CreateTestRule(organizationID, uuid.New().String()))
+
+	groups := make([]entities.ServiceGroup, 0)
+	groups = append(groups, CreateTestServiceGroup(organizationID,uuid.New().String()))
+
+	descriptor := entities.ParametrizedDescriptor{
+		OrganizationId: organizationID,
+		AppDescriptorId: uuid.New().String(),
+		AppInstanceId: uuid.New().String(),
+		Name: "App descriptor Test",
+		ConfigurationOptions:map[string]string{"conf1":"value1", "conf2":"value2"},
+		EnvironmentVariables:map[string]string{"env1":"value1", "env2":"value2"},
+		Labels:map[string]string{"label1":"value1", "label2":"value2", "label3":"value3"},
+		Rules:rules,
+		Groups: groups,
+	}
+
+	return &descriptor
+}
+
 func CreateTestApplicationDescriptor (organizationID string) *entities.AppDescriptor {
 
 	id := uuid.New().String()
@@ -304,6 +326,47 @@ func CreateTestApplicationDescriptor (organizationID string) *entities.AppDescri
 
 	return &descriptor
 
+}
+
+func CreateApplicationDescriptorWithParameters(organizationID string) *entities.AppDescriptor {
+	id := uuid.New().String()
+
+	rules := make([]entities.SecurityRule, 0)
+	rules = append(rules, CreateTestRule(organizationID, id))
+
+	groups := make([]entities.ServiceGroup, 0)
+	groups = append(groups, CreateTestServiceGroup(organizationID,id))
+
+	descriptor := entities.AppDescriptor{
+		OrganizationId: organizationID,
+		AppDescriptorId: id,
+		Name: "Test-Descriptor",
+		ConfigurationOptions:map[string]string{"conf1":"value1", "conf2":"value2"},
+		EnvironmentVariables:map[string]string{"env1":"value1", "env2":"value2"},
+		Labels:map[string]string{"label1":"value1", "label2":"value2", "label3":"value3"},
+		Rules:rules,
+		Groups: groups,
+		Parameters:[]entities.Parameter{
+			{
+				Name: "param_name1",
+				Description: "param_name1 description",
+				Path: "path1",
+				Type: entities.Boolean,
+				DefaultValue:"true",
+				Category: entities.Basic,
+			},{
+				Name: "param_name2",
+				Description: "param_name2 description",
+				Path: "path2",
+				Type: entities.Enum,
+				DefaultValue:"ENUM1",
+				Category: entities.Basic,
+				EnumValues:[]string{"ENUM1, ENUM2"},
+			},
+		},
+	}
+
+	return &descriptor
 }
 
 func CreateAppEndPoint () *entities.AppEndpoint {

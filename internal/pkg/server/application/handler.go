@@ -86,6 +86,50 @@ func (h *Handler) RemoveAppDescriptor(ctx context.Context, appDescID *grpc_appli
 	return &grpc_common_go.Success{},nil
 }
 
+// GetDescriptorAppParameters retrieves a list of application parameters of a descriptor
+func (h *Handler) GetDescriptorAppParameters(ctx context.Context, request *grpc_application_go.AppDescriptorId) (*grpc_application_go.AppParameterList, error){
+
+	err := entities.ValidAppDescriptorId(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	parameters, err := h.Manager.GetDescriptorAppParameters(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	toReturn := make([]*grpc_application_go.AppParameter, 0)
+	for _, param := range parameters {
+		toReturn = append(toReturn, param.ToGRPC())
+	}
+
+	return &grpc_application_go.AppParameterList{
+		Parameters: toReturn,
+	}, nil
+}
+// GetInstanceParameters retrieves a list of application parameters of an instance
+func (h *Handler) GetInstanceParameters(ctx context.Context, request *grpc_application_go.AppInstanceId) (*grpc_application_go.InstanceParameterList, error) {
+	err := entities.ValidAppInstanceId(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	instanceParams, err := h.Manager.GetInstanceParameters(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	toReturn := make([]*grpc_application_go.InstanceParameter, 0)
+	for _, param := range instanceParams {
+		toReturn = append(toReturn, param.ToGRPC())
+	}
+
+	return &grpc_application_go.InstanceParameterList{
+		Parameters: toReturn,
+	}, nil
+
+
+	return nil, nil
+}
 
 // AddAppInstance adds a new application instance to a given organization.
 func (h *Handler) AddAppInstance(ctx context.Context, addInstanceRequest *grpc_application_go.AddAppInstanceRequest) (*grpc_application_go.AppInstance, error) {
@@ -278,7 +322,7 @@ func (h *Handler) AddAppEndpoint(ctx context.Context, request *grpc_application_
 	return &grpc_common_go.Success{}, nil
 }
 // GetAppEndPoint retrieves an appEndpoint
-func (h *Handler) GetAppEndpoints(ctx context.Context, request *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AddEndpointList, error){
+func (h *Handler) GetAppEndpoints(ctx context.Context, request *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AppEndpointList, error){
 	err := entities.ValidGetAppEndPointRequest(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -290,7 +334,7 @@ func (h *Handler) GetAppEndpoints(ctx context.Context, request *grpc_application
 	return endpoint, nil
 }
 
-func (h *Handler) RemoveAppEndpoints(ctx context.Context, request *grpc_application_go.RemoveEndpointRequest) (*grpc_common_go.Success, error){
+func (h *Handler) RemoveAppEndpoints(ctx context.Context, request *grpc_application_go.RemoveAppEndpointRequest) (*grpc_common_go.Success, error){
 	err := entities.ValidRemoveEndpointRequest(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -339,4 +383,43 @@ func (h *Handler) GetAppZtNetwork(ctx context.Context, request *grpc_application
 		return nil, conversions.ToGRPCError(err)
 	}
 	return retrieved.ToGRPC(), nil
+}
+
+// AddParametrizedDescriptor adds a parametrized descriptor to a given descriptor
+func (h *Handler) AddParametrizedDescriptor(ctx context.Context, request *grpc_application_go.ParametrizedDescriptor) (*grpc_common_go.Success, error) {
+
+	err := h.Manager.AddParametrizedDescriptor(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{},nil
+}
+// GetParametrizedDescriptor retrieves the parametrized descriptor associated with an instance
+func (h *Handler) GetParametrizedDescriptor(ctx context.Context, instanceID *grpc_application_go.AppInstanceId) (*grpc_application_go.ParametrizedDescriptor, error) {
+
+	err := entities.ValidAppInstanceId(instanceID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	descriptor, err := h.Manager.GetParametrizedDescriptor(instanceID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	return descriptor.ToGRPC(), nil
+}
+// RemoveParametrizedDescriptor removes the parametrized descriptor associated with an instance
+func (h *Handler) RemoveParametrizedDescriptor(ctx context.Context, instanceID *grpc_application_go.AppInstanceId) (*grpc_common_go.Success, error) {
+	err := entities.ValidAppInstanceId(instanceID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	err = h.Manager.RemoveParametrizedDescriptor(instanceID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	return &grpc_common_go.Success{}, nil
 }
