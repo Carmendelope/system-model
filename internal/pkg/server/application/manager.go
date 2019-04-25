@@ -539,7 +539,7 @@ func (m * Manager) AddServiceGroupInstances(request *grpc_application_go.AddServ
 	}
 
 	// get the app_descriptor
-	appDesc, err := m.AppProvider.GetDescriptor(request.AppDescriptorId)
+	appDesc, err := m.AppProvider.GetParametrizedDescriptor(request.AppInstanceId)
 	if err != nil {
 		return nil, err
 	}
