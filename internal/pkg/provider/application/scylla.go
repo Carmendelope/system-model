@@ -608,15 +608,6 @@ func (sp *ScyllaApplicationProvider) DeleteInstanceParameters (appInstanceID str
 		return err
 	}
 
-	// check if the application exists
-	exists, err := sp.unsafeInstanceExists(appInstanceID)
-	if err != nil {
-		return err
-	}
-	if ! exists {
-		return nil
-	}
-
 	stmt, _ := qb.Delete(instanceParamTable).Where(qb.Eq(instanceParamTablePK)).ToCql()
 	cqlErr := sp.Session.Query(stmt, appInstanceID).Exec()
 
