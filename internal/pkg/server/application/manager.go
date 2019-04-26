@@ -865,14 +865,6 @@ func (m * Manager) RemoveParametrizedDescriptor(request *grpc_application_go.App
 		return  derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
 	}
 
-	// check if the instance exists
-	exists, err = m.AppProvider.InstanceExists(request.AppInstanceId)
-	if err != nil {
-		return   err
-	}
-	if ! exists {
-		return  derrors.NewNotFoundError("instanceID").WithParams(request.OrganizationId, request.AppInstanceId)
-	}
 	err = m.AppProvider.DeleteParametrizedDescriptor(request.AppInstanceId)
 	if err != nil {
 		return err
