@@ -31,6 +31,7 @@ func NewManager(orgProvider organization.Provider, appProvider application.Provi
 	return Manager{orgProvider, appProvider, devProvider, publicHostDomain}
 }
 
+
 func (m * Manager) extractGroupIds (organizationID string, rules []*grpc_application_go.SecurityRule) (map[string]string, derrors.Error){
 	// -----------------
 	// check if the descriptor has device_names in the rules
@@ -83,13 +84,7 @@ func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescr
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
 	}
 
-	deviceGroupIds := make(map[string]string, 0)
-
-	if addRequest.Rules != nil && len(addRequest.Rules) > 0 {
-		deviceGroupIds, err = m.extractGroupIds(addRequest.OrganizationId, addRequest.Rules)
-	}
-
-	descriptor, err := entities.NewAppDescriptorFromGRPC(addRequest, deviceGroupIds)
+	descriptor, err := entities.NewAppDescriptorFromGRPC(addRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -294,6 +289,7 @@ func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([
 	if err != nil {
 		return nil, err
 	}
+
 	result := make([] entities.AppInstance, 0)
 	for _, instID := range instances {
 		toAdd, err := m.AppProvider.GetInstance(instID)
@@ -307,6 +303,7 @@ func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([
 		}
 		result = append(result, *toAdd)
 	}
+
 	return result, nil
 }
 
@@ -446,6 +443,34 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
 
 	return nil
 
+}
+
+func (m *Manager) UpdateRules (updateRules * grpc_application_go.UpdateRulesRequest) error {
+	exists, err := m.OrgProvider.InstanceExists(updateRules.OrganizationId, updateRules.AppInstanceId)
+	if err != nil {
+		return err
+	}
+	if !exists{
+		return derrors.NewNotFoundError("appInstanceID").WithParams(updateRules.OrganizationId, updateRules.AppInstanceId)
+	}
+
+	toUpdate, err := m.AppProvider.GetInstance(updateRules.AppInstanceId)
+	if err != nil {
+		return derrors.NewInternalError("impossible to get old instance", err)
+	}
+
+	rules := make ([]entities.SecurityRule, 0)
+	for _, rule := range updateRules.Rules {
+		rules = append(rules, *entities.CopySecurityRuleFromGRPC(rule))
+	}
+	toUpdate.Rules = rules
+
+	err = m.AppProvider.UpdateInstance(*toUpdate)
+	if err != nil {
+		return derrors.NewInternalError("impossible to update instance").CausedBy(err)
+	}
+
+	return nil
 }
 
 func (m *Manager) UpdateAppInstance(appInstance *grpc_application_go.AppInstance) error {
@@ -788,44 +813,133 @@ func (m * Manager) GetAppZtNetwork(request *grpc_application_go.GetAppZtNetworkR
 	return m.AppProvider.GetAppZtNetwork(request.OrganizationId, request.AppInstanceId)
 }
 
+func (m * Manager) fillDeviceGroupIds (desc *entities.ParametrizedDescriptor) derrors.Error {
+	// -----------------
+	// check if the descriptor has device_names in the rules
+	// we need to convert deviceGroupNames into deviceGroupIds
+	names := make(map[string]bool, 0) // uses a map to avoid insert a device group twice
+	for _, rules := range desc.Rules{
+		if len(rules.DeviceGroupNames) > 0 {
+			for _, name := range rules.DeviceGroupNames {
+				names[name] = true
+			}
+		}
+	}
+	// map to array
+	keys := make([]string, len(names))
+	i:=0
+	for key := range names{
+		keys[i] = key
+		i += 1
+	}
+
+	deviceGroupIds := make (map[string]string, 0) // map of deviceGroupIds indexed by deviceGroupNames
+	if len(keys) > 0 {
+		deviceGroups, err := m.DevProvider.GetDeviceGroupsByName(desc.OrganizationId, keys)
+		if err != nil {
+			return  err
+		}
+
+		for _,  deviceGroup := range deviceGroups {
+			deviceGroupIds[deviceGroup.Name] = deviceGroup.DeviceGroupId
+		}
+
+		// check the devices number returned (it should be the the same as deviceNames)
+		if len(deviceGroupIds) != len(keys){
+			return  derrors.NewNotFoundError("device group names").WithParams(keys)
+		}
+
+	}
+
+	// once we have all the ids of the devices groups, we add them to the descriptor
+	for i:=0; i< len(desc.Rules); i++ {
+		ids := make ([]string, 0)
+
+		for j:=0; j< len(desc.Rules[i].DeviceGroupNames); j++{
+
+			id, exists := deviceGroupIds[desc.Rules[i].DeviceGroupNames[j]]
+			if ! exists {
+				log.Error().Str("deviceName", desc.Rules[i].DeviceGroupNames[j]).Msg("Device id not found")
+				return derrors.NewNotFoundError("device group id").WithParams(desc.Rules[i].DeviceGroupNames[j])
+			}
+			ids = append(ids, id)
+		}
+
+		desc.Rules[i].DeviceGroupIds = ids
+	}
+
+	return nil
+
+}
+
+func (m * Manager) getDeviceGroupIds(organizationID string, deviceNames []string) (map[string]string, derrors.Error){
+
+
+
+	deviceGroupIds := make (map[string]string, 0) // map of deviceGroupIds indexed by deviceGroupNames
+	if len(deviceNames) > 0 {
+		deviceGroups, err := m.DevProvider.GetDeviceGroupsByName(organizationID, deviceNames)
+		if err != nil {
+			return nil, err
+		}
+
+		for _,  deviceGroup := range deviceGroups {
+			deviceGroupIds[deviceGroup.Name] = deviceGroup.DeviceGroupId
+		}
+
+		// check the devices number returned (it should be the the same as deviceNames)
+		if len(deviceGroupIds) != len(deviceNames){
+			return nil, derrors.NewNotFoundError("device group names").WithParams(deviceNames)
+		}
+
+	}
+	// ---------------------
+	return deviceGroupIds, nil
+}
+
 // AddParametrizedDescriptor adds a parametrized descriptor to a given descriptor
-func (m * Manager) AddParametrizedDescriptor(descriptor *grpc_application_go.ParametrizedDescriptor)  derrors.Error{
+func (m * Manager) AddParametrizedDescriptor(descriptor *grpc_application_go.ParametrizedDescriptor)  (*entities.ParametrizedDescriptor, derrors.Error){
 
 	// check if the organization exists
 	exists, err := m.OrgProvider.Exists(descriptor.OrganizationId)
 	if err != nil {
-		return  err
+		return nil,  err
 	}
 	if ! exists{
-		return derrors.NewNotFoundError("organizationID").WithParams(descriptor.OrganizationId)
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(descriptor.OrganizationId)
 	}
 	// check if the descriptor exists
 	exists, err = m.AppProvider.DescriptorExists(descriptor.AppDescriptorId)
 	if err != nil {
-		return  err
+		return nil, err
 	}
 	if ! exists {
-		return derrors.NewNotFoundError("descriptorID").WithParams(descriptor.OrganizationId, descriptor.AppDescriptorId)
+		return nil, derrors.NewNotFoundError("descriptorID").WithParams(descriptor.OrganizationId, descriptor.AppDescriptorId)
 	}
 
 	// check if the instance exists
 	exists, err = m.AppProvider.InstanceExists(descriptor.AppInstanceId)
 	if err != nil {
-		return  err
+		return nil, err
 	}
 	if ! exists {
-		return derrors.NewNotFoundError("instanceID").WithParams(descriptor.OrganizationId, descriptor.AppInstanceId)
+		return nil, derrors.NewNotFoundError("instanceID").WithParams(descriptor.OrganizationId, descriptor.AppInstanceId)
 	}
 
 	// Convert to ParametrizedDescriptor
 	newDesc:= entities.NewParametrizedDescriptorFromGRPC(descriptor)
 
+	// fill deviceGroupIds
+	err = m.fillDeviceGroupIds(newDesc)
+	if err != nil{
+		return nil, err
+	}
 	err = m.AppProvider.AddParametrizedDescriptor(*newDesc)
 	if err != nil{
-		return err
+		return nil, err
 	}
 
-	return  nil
+	return newDesc, nil
 }
 // GetParametrizedDescriptor retrieves the parametrized descriptor associated with an instance
 func (m * Manager) GetParametrizedDescriptor(request *grpc_application_go.AppInstanceId) (*entities.ParametrizedDescriptor, derrors.Error) {

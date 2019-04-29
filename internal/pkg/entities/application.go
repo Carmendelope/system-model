@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
-	"github.com/rs/zerolog/log"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"strings"
 )
@@ -119,25 +118,12 @@ type SecurityRule struct {
 
 // NewSecurityRuleFromGRPC converts a grpc_application_go.SecurityRule into SecurityRule
 // deviceGroupIds is a map of deviceGroupIds indexed by deviceGroupNames (it contains ALL the devices in the appDescriptor)
-func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule *grpc_application_go.SecurityRule, deviceGroupIds map[string]string) (*SecurityRule, derrors.Error) {
+func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule *grpc_application_go.SecurityRule) (*SecurityRule, derrors.Error) {
 	if rule == nil {
 		return nil, nil
 	}
 
 	ids := make ([]string, 0)
-	if rule != nil {
-		for _, name := range rule.DeviceGroupNames {
-			deviceGroupId, exists := deviceGroupIds[name]
-			if ! exists {
-				log.Error().Str("deviceName", name).Msg("Device id not found")
-				return nil, derrors.NewNotFoundError("device group id").WithParams(name)
-			} else {
-				ids = append(ids, deviceGroupId)
-			}
-		}
-	}else{
-		log.Debug().Msg("rule empty")
-	}
 
 	uuid := GenerateUUID()
 	access := PortAccessFromGRPC[rule.Access]
@@ -1315,7 +1301,7 @@ func NewAppDescriptor(organizationID string, appDescriptorID string, name string
 		}
 }
 
-func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorRequest, deviceGroupIds map[string]string) (*AppDescriptor, derrors.Error) {
+func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorRequest) (*AppDescriptor, derrors.Error) {
 
 	if addRequest == nil {
 		return nil, nil
@@ -1326,7 +1312,7 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 	rules := make([]SecurityRule, 0)
 	if addRequest.Rules != nil {
 		for _, r := range addRequest.Rules {
-			rule, err := NewSecurityRuleFromGRPC(addRequest.OrganizationId, uuid, r, deviceGroupIds)
+			rule, err := NewSecurityRuleFromGRPC(addRequest.OrganizationId, uuid, r)
 			if err != nil {
 				return nil, err
 			}
@@ -1939,6 +1925,13 @@ func ValidUpdateServiceStatusRequest (updateRequest *grpc_application_go.UpdateS
 		updateRequest.ServiceGroupInstanceId == "" || updateRequest.ServiceInstanceId == "" {
 			return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, app_service_instance_id " +
 				"and service_instance_id")
+	}
+	return nil
+}
+
+func ValidUpdateRulesRequest (request *grpc_application_go.UpdateRulesRequest) derrors.Error {
+	if request.OrganizationId == "" || request.AppInstanceId == ""   {
+		return derrors.NewInvalidArgumentError("expecting organization_id  and app_instance_id")
 	}
 	return nil
 }

@@ -170,6 +170,7 @@ func (h *Handler) ListAppInstances(ctx context.Context, orgID *grpc_organization
 	result := &grpc_application_go.AppInstanceList{
 		Instances:          toReturn,
 	}
+
 	return result, nil
 }
 
@@ -210,6 +211,19 @@ func (h *Handler) UpdateServiceStatus(ctx context.Context, updateServiceStatus *
     return &grpc_common_go.Success{},nil
 }
 
+// UpdateRulesInstance updates the rules of an application instance
+func (h *Handler) UpdateRulesInstance(ctx context.Context, updateRules * grpc_application_go.UpdateRulesRequest) (*grpc_common_go.Success, error){
+	err := entities.ValidUpdateRulesRequest(updateRules)
+	if err != nil {
+		log.Warn().Interface("UpdateRulesInstance", updateRules).Msg("error in validation updating Rules Instance")
+		return nil, conversions.ToGRPCError(err)
+	}
+	derr := h.Manager.UpdateRules(updateRules)
+	if derr != nil {
+		return nil, derr
+	}
+	return &grpc_common_go.Success{},nil
+}
 // RemoveAppInstance removes an application instance
 func (h *Handler) RemoveAppInstance(ctx context.Context, appInstID *grpc_application_go.AppInstanceId) (*grpc_common_go.Success, error){
 	err := h.Manager.RemoveAppInstance(appInstID)
@@ -386,13 +400,14 @@ func (h *Handler) GetAppZtNetwork(ctx context.Context, request *grpc_application
 }
 
 // AddParametrizedDescriptor adds a parametrized descriptor to a given descriptor
-func (h *Handler) AddParametrizedDescriptor(ctx context.Context, request *grpc_application_go.ParametrizedDescriptor) (*grpc_common_go.Success, error) {
+func (h *Handler) AddParametrizedDescriptor(ctx context.Context, request *grpc_application_go.ParametrizedDescriptor) (*grpc_application_go.ParametrizedDescriptor, error) {
 
-	err := h.Manager.AddParametrizedDescriptor(request)
+	param, err := h.Manager.AddParametrizedDescriptor(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
-	return &grpc_common_go.Success{},nil
+
+	return param.ToGRPC() ,nil
 }
 // GetParametrizedDescriptor retrieves the parametrized descriptor associated with an instance
 func (h *Handler) GetParametrizedDescriptor(ctx context.Context, instanceID *grpc_application_go.AppInstanceId) (*grpc_application_go.ParametrizedDescriptor, error) {

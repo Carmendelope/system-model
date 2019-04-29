@@ -348,13 +348,7 @@ var _ = ginkgo.Describe("Applications", func(){
 				gomega.Expect(err).Should(gomega.HaveOccurred())
 				gomega.Expect(app).Should(gomega.BeNil())
 			})
-			ginkgo.It("should fail on a descriptor with a wrong device", func(){
-				toAdd := generateAddAppDescriptor(targetOrganization.ID, numServices)
-				toAdd.Rules[0].DeviceGroupNames = []string{"dg5"}
-				app, err := client.AddAppDescriptor(context.Background(), toAdd)
-				gomega.Expect(err).Should(gomega.HaveOccurred())
-				gomega.Expect(app).Should(gomega.BeNil())
-			})
+
 			// AddDescriptor with BadServiceName
 			ginkgo.It("Should fail to add a descriptor with bad service name", func() {
 
