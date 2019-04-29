@@ -118,7 +118,7 @@ type SecurityRule struct {
 
 // NewSecurityRuleFromGRPC converts a grpc_application_go.SecurityRule into SecurityRule
 // deviceGroupIds is a map of deviceGroupIds indexed by deviceGroupNames (it contains ALL the devices in the appDescriptor)
-func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule *grpc_application_go.SecurityRule, deviceGroupIds map[string]string) (*SecurityRule, derrors.Error) {
+func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule *grpc_application_go.SecurityRule) (*SecurityRule, derrors.Error) {
 	if rule == nil {
 		return nil, nil
 	}
@@ -1301,7 +1301,7 @@ func NewAppDescriptor(organizationID string, appDescriptorID string, name string
 		}
 }
 
-func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorRequest, deviceGroupIds map[string]string) (*AppDescriptor, derrors.Error) {
+func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorRequest) (*AppDescriptor, derrors.Error) {
 
 	if addRequest == nil {
 		return nil, nil
@@ -1312,7 +1312,7 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 	rules := make([]SecurityRule, 0)
 	if addRequest.Rules != nil {
 		for _, r := range addRequest.Rules {
-			rule, err := NewSecurityRuleFromGRPC(addRequest.OrganizationId, uuid, r, deviceGroupIds)
+			rule, err := NewSecurityRuleFromGRPC(addRequest.OrganizationId, uuid, r)
 			if err != nil {
 				return nil, err
 			}

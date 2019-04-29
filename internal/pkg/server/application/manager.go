@@ -84,13 +84,7 @@ func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescr
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
 	}
 
-	deviceGroupIds := make(map[string]string, 0)
-
-	//if addRequest.Rules != nil && len(addRequest.Rules) > 0 {
-	//	deviceGroupIds, err = m.extractGroupIds(addRequest.OrganizationId, addRequest.Rules)
-	//}
-
-	descriptor, err := entities.NewAppDescriptorFromGRPC(addRequest, deviceGroupIds)
+	descriptor, err := entities.NewAppDescriptorFromGRPC(addRequest)
 	if err != nil {
 		return nil, err
 	}
