@@ -123,23 +123,8 @@ func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule
 		return nil, nil
 	}
 
-		ids := make ([]string, 0)
+	ids := make ([]string, 0)
 
-		/*
-	if rule != nil {
-		for _, name := range rule.DeviceGroupNames {
-			deviceGroupId, exists := deviceGroupIds[name]
-			if ! exists {
-				log.Error().Str("deviceName", name).Msg("Device id not found")
-				return nil, derrors.NewNotFoundError("device group id").WithParams(name)
-			} else {
-				ids = append(ids, deviceGroupId)
-			}
-		}
-	}else{
-		log.Debug().Msg("rule empty")
-	}
-*/
 	uuid := GenerateUUID()
 	access := PortAccessFromGRPC[rule.Access]
 	return &SecurityRule{
