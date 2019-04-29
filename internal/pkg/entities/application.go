@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
-	"github.com/rs/zerolog/log"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"strings"
 )
@@ -124,7 +123,9 @@ func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule
 		return nil, nil
 	}
 
-	ids := make ([]string, 0)
+		ids := make ([]string, 0)
+
+		/*
 	if rule != nil {
 		for _, name := range rule.DeviceGroupNames {
 			deviceGroupId, exists := deviceGroupIds[name]
@@ -138,7 +139,7 @@ func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule
 	}else{
 		log.Debug().Msg("rule empty")
 	}
-
+*/
 	uuid := GenerateUUID()
 	access := PortAccessFromGRPC[rule.Access]
 	return &SecurityRule{
@@ -1939,6 +1940,13 @@ func ValidUpdateServiceStatusRequest (updateRequest *grpc_application_go.UpdateS
 		updateRequest.ServiceGroupInstanceId == "" || updateRequest.ServiceInstanceId == "" {
 			return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, app_service_instance_id " +
 				"and service_instance_id")
+	}
+	return nil
+}
+
+func ValidUpdateRulesRequest (request *grpc_application_go.UpdateRulesRequest) derrors.Error {
+	if request.OrganizationId == "" || request.AppInstanceId == ""   {
+		return derrors.NewInvalidArgumentError("expecting organization_id  and app_instance_id")
 	}
 	return nil
 }
