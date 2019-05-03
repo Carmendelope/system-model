@@ -1206,6 +1206,7 @@ func (p * Parameter) ToGRPC () *grpc_application_go.AppParameter {
 		DefaultValue: p.DefaultValue,
 		Category: ParamCategoryToGRPC[p.Category],
 		EnumValues: p.EnumValues,
+		Required: p.Required,
 	}
 }
 
@@ -1218,6 +1219,7 @@ func NewParamFromGRPC(parameter *grpc_application_go.AppParameter) *Parameter {
 		DefaultValue: parameter.DefaultValue,
 		Category: ParamCategoryFromGRPC[parameter.Category],
 		EnumValues: parameter.EnumValues,
+		Required: parameter.Required,
 	}
 }
 
@@ -1238,6 +1240,8 @@ type Parameter struct {
 	Category ParamCategory `json:"category,omitempty" cql:"category"`
 	// enumValues indicates, in case of an enum type parameter, the values allowed
 	EnumValues []string `json:"enum_values,omitempty" cql:"enum_values"`
+	// required indicates if the param must be filled to deploy an application
+	Required bool     `json:"required,omitempty" cql:"required"`
 }
 
 type InstanceParameter struct {

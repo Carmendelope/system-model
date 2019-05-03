@@ -354,6 +354,7 @@ func CreateApplicationDescriptorWithParameters(organizationID string) *entities.
 				Type: entities.Boolean,
 				DefaultValue:"true",
 				Category: entities.Basic,
+				Required: true,
 			},{
 				Name: "param_name2",
 				Description: "param_name2 description",
@@ -362,6 +363,7 @@ func CreateApplicationDescriptorWithParameters(organizationID string) *entities.
 				DefaultValue:"ENUM1",
 				Category: entities.Basic,
 				EnumValues:[]string{"ENUM1, ENUM2"},
+				Required: false,
 			},
 		},
 	}

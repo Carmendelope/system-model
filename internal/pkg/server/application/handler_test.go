@@ -632,9 +632,9 @@ var _ = ginkgo.Describe("Applications", func(){
 
 				parametrized := generateParametrizedDescriptor(targetDescriptor, added.AppInstanceId)
 
-				success, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
+				newDesc, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
 				gomega.Expect(err).Should(gomega.Succeed())
-				gomega.Expect(success).ShouldNot(gomega.BeNil())
+				gomega.Expect(newDesc).ShouldNot(gomega.BeNil())
 
 				// add serviceGroupInstance
 				list, err:= client.AddServiceGroupInstances(context.Background(), &grpc_application_go.AddServiceGroupInstancesRequest{
@@ -662,7 +662,7 @@ var _ = ginkgo.Describe("Applications", func(){
 					},
 					},
 				}
-				success, err = client.UpdateServiceStatus(context.Background(), toUpdate)
+				success, err := client.UpdateServiceStatus(context.Background(), toUpdate)
 				gomega.Expect(err).To(gomega.Succeed())
 				gomega.Expect(success).NotTo(gomega.BeNil())
 
@@ -694,9 +694,9 @@ var _ = ginkgo.Describe("Applications", func(){
 
 				parametrized := generateParametrizedDescriptor(targetDescriptor, added.AppInstanceId)
 
-				success, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
+				newDesc, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
 				gomega.Expect(err).Should(gomega.Succeed())
-				gomega.Expect(success).ShouldNot(gomega.BeNil())
+				gomega.Expect(newDesc).ShouldNot(gomega.BeNil())
 
 				// add serviceGroupInstance
 				list, err:= client.AddServiceGroupInstances(context.Background(), &grpc_application_go.AddServiceGroupInstancesRequest{
@@ -723,7 +723,7 @@ var _ = ginkgo.Describe("Applications", func(){
 						},
 					},
 				}
-				success, err = client.UpdateServiceStatus(context.Background(), toUpdate)
+				success, err := client.UpdateServiceStatus(context.Background(), toUpdate)
 				gomega.Expect(err).To(gomega.Succeed())
 				gomega.Expect(success).NotTo(gomega.BeNil())
 
@@ -755,9 +755,9 @@ var _ = ginkgo.Describe("Applications", func(){
 
 				parametrized := generateParametrizedDescriptor(targetDescriptor, added.AppInstanceId)
 
-				success, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
+				newDesc, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
 				gomega.Expect(err).Should(gomega.Succeed())
-				gomega.Expect(success).ShouldNot(gomega.BeNil())
+				gomega.Expect(newDesc).ShouldNot(gomega.BeNil())
 
 				// add serviceGroupInstance
 				list, err:= client.AddServiceGroupInstances(context.Background(), &grpc_application_go.AddServiceGroupInstancesRequest{
@@ -785,7 +785,7 @@ var _ = ginkgo.Describe("Applications", func(){
 					},
 					},
 				}
-				success, err = client.UpdateServiceStatus(context.Background(), toUpdate)
+				success, err := client.UpdateServiceStatus(context.Background(), toUpdate)
 				gomega.Expect(err).To(gomega.Succeed())
 				gomega.Expect(success).NotTo(gomega.BeNil())
 
@@ -885,9 +885,9 @@ var _ = ginkgo.Describe("Applications", func(){
 
 				parametrized := generateParametrizedDescriptor(targetDescriptor, added.AppInstanceId)
 
-				success, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
+				newDesc, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
 				gomega.Expect(err).Should(gomega.Succeed())
-				gomega.Expect(success).ShouldNot(gomega.BeNil())
+				gomega.Expect(newDesc).ShouldNot(gomega.BeNil())
 
 				sgToAdd := &grpc_application_go.AddServiceGroupInstancesRequest{
 					OrganizationId:  targetDescriptor.OrganizationId,
@@ -968,9 +968,9 @@ var _ = ginkgo.Describe("Applications", func(){
 
 				parametrized := generateParametrizedDescriptor(targetDescriptor, added.AppInstanceId)
 
-				success, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
+				newDesc, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
 				gomega.Expect(err).Should(gomega.Succeed())
-				gomega.Expect(success).ShouldNot(gomega.BeNil())
+				gomega.Expect(newDesc).ShouldNot(gomega.BeNil())
 
 				sgToAdd := &grpc_application_go.AddServiceGroupInstancesRequest{
 					OrganizationId:  targetDescriptor.OrganizationId,
@@ -1007,9 +1007,9 @@ var _ = ginkgo.Describe("Applications", func(){
 
 				parametrized := generateParametrizedDescriptor(targetDescriptor, added.AppInstanceId)
 
-				success, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
+				newDesc, err := client.AddParametrizedDescriptor(context.Background(), parametrized)
 				gomega.Expect(err).Should(gomega.Succeed())
-				gomega.Expect(success).ShouldNot(gomega.BeNil())
+				gomega.Expect(newDesc).ShouldNot(gomega.BeNil())
 
 				sgToAdd := &grpc_application_go.AddServiceGroupInstancesRequest{
 					OrganizationId:  targetDescriptor.OrganizationId,
@@ -1197,44 +1197,44 @@ var _ = ginkgo.Describe("Applications", func(){
 		ginkgo.It("should be able to add parametrized descriptor", func() {
 			parameterDescriptor := generateParametrizedDescriptor(targetDescriptor, targetInstance.AppInstanceId)
 
-			success, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
+			newDesc, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
 			gomega.Expect(err).To(gomega.Succeed())
-			gomega.Expect(success).ShouldNot(gomega.BeNil())
+			gomega.Expect(newDesc).ShouldNot(gomega.BeNil())
 		})
 		ginkgo.It("should not be able to add parametrized descriptor of a non-existent organization", func() {
 			parameterDescriptor := generateParametrizedDescriptor(targetDescriptor, targetInstance.AppInstanceId)
 
 			parameterDescriptor.OrganizationId = uuid.New().String()
 
-			success, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
+			newDesc, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
 			gomega.Expect(err).NotTo(gomega.Succeed())
-			gomega.Expect(success).Should(gomega.BeNil())
+			gomega.Expect(newDesc).Should(gomega.BeNil())
 		})
 		ginkgo.It("should not be able to add parametrized descriptor of a non-existent descriptor", func() {
 			parameterDescriptor := generateParametrizedDescriptor(targetDescriptor, targetInstance.AppInstanceId)
 
 			parameterDescriptor.AppDescriptorId = uuid.New().String()
 
-			success, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
+			newDesc, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
 			gomega.Expect(err).NotTo(gomega.Succeed())
-			gomega.Expect(success).Should(gomega.BeNil())
+			gomega.Expect(newDesc).Should(gomega.BeNil())
 		})
 		ginkgo.It("should not be able to add parametrized descriptor of a non-existent instance", func() {
 			parameterDescriptor := generateParametrizedDescriptor(targetDescriptor, targetInstance.AppInstanceId)
 
 			parameterDescriptor.AppInstanceId = uuid.New().String()
 
-			success, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
+			newDesc, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
 			gomega.Expect(err).NotTo(gomega.Succeed())
-			gomega.Expect(success).Should(gomega.BeNil())
+			gomega.Expect(newDesc).Should(gomega.BeNil())
 		})
 
 		ginkgo.It("should be able to get parametrized descriptor", func() {
 			parameterDescriptor := generateParametrizedDescriptor(targetDescriptor, targetInstance.AppInstanceId)
 
-			success, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
+			newDesc, err := client.AddParametrizedDescriptor(context.Background(), parameterDescriptor)
 			gomega.Expect(err).To(gomega.Succeed())
-			gomega.Expect(success).ShouldNot(gomega.BeNil())
+			gomega.Expect(newDesc).ShouldNot(gomega.BeNil())
 
 			retrieved, err := client.GetParametrizedDescriptor(context.Background(), &grpc_application_go.AppInstanceId{
 				OrganizationId: parameterDescriptor.OrganizationId,
