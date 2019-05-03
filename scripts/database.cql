@@ -29,7 +29,7 @@ create type IF NOT EXISTS nalej.hardware_info (cpus list<FROZEN<cpu_info>>, inst
 create type IF NOT EXISTS nalej.storage_hardware_info (type text, total_capacity int);
 
 create type IF NOT EXISTS nalej.instance_parameter(parameter_name text, value text);
-create type IF NOT EXISTS nalej.descriptor_parameter(name text, description text, path text, type int, default_value text, category int, enum_values list<text>);
+create type IF NOT EXISTS nalej.descriptor_parameter(name text, description text, path text, type int, default_value text, category int, enum_values list<text>, required boolean);
 
 ------------
 -- TABLES --
