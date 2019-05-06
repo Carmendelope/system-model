@@ -327,7 +327,7 @@ func RunTest(provider Provider) {
 	})
 
 	ginkgo.Context("Descriptor Parameters", func() {
-		ginkgo.FIt("should be able to retrieves descriptor parameters", func() {
+		ginkgo.It("should be able to retrieves descriptor parameters", func() {
 			appDescriptorID := uuid.New().String()
 			descriptor := CreateApplicationDescriptorWithParameters(appDescriptorID)
 

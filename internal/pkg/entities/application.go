@@ -1933,13 +1933,6 @@ func ValidUpdateServiceStatusRequest (updateRequest *grpc_application_go.UpdateS
 	return nil
 }
 
-func ValidUpdateRulesRequest (request *grpc_application_go.UpdateRulesRequest) derrors.Error {
-	if request.OrganizationId == "" || request.AppInstanceId == ""   {
-		return derrors.NewInvalidArgumentError("expecting organization_id  and app_instance_id")
-	}
-	return nil
-}
-
 func ValidAddServiceGroupInstanceRequest (request *grpc_application_go.AddServiceGroupInstancesRequest) derrors.Error {
 	if request.OrganizationId == "" || request.AppDescriptorId == "" ||
 		request.AppInstanceId == "" || request.ServiceGroupId == ""  || request.NumInstances <= 0 {
