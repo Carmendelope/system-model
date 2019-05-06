@@ -211,19 +211,7 @@ func (h *Handler) UpdateServiceStatus(ctx context.Context, updateServiceStatus *
     return &grpc_common_go.Success{},nil
 }
 
-// UpdateRulesInstance updates the rules of an application instance
-func (h *Handler) UpdateRulesInstance(ctx context.Context, updateRules * grpc_application_go.UpdateRulesRequest) (*grpc_common_go.Success, error){
-	err := entities.ValidUpdateRulesRequest(updateRules)
-	if err != nil {
-		log.Warn().Interface("UpdateRulesInstance", updateRules).Msg("error in validation updating Rules Instance")
-		return nil, conversions.ToGRPCError(err)
-	}
-	derr := h.Manager.UpdateRules(updateRules)
-	if derr != nil {
-		return nil, derr
-	}
-	return &grpc_common_go.Success{},nil
-}
+
 // RemoveAppInstance removes an application instance
 func (h *Handler) RemoveAppInstance(ctx context.Context, appInstID *grpc_application_go.AppInstanceId) (*grpc_common_go.Success, error){
 	err := h.Manager.RemoveAppInstance(appInstID)

@@ -445,34 +445,6 @@ func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServi
 
 }
 
-func (m *Manager) UpdateRules (updateRules * grpc_application_go.UpdateRulesRequest) error {
-	exists, err := m.OrgProvider.InstanceExists(updateRules.OrganizationId, updateRules.AppInstanceId)
-	if err != nil {
-		return err
-	}
-	if !exists{
-		return derrors.NewNotFoundError("appInstanceID").WithParams(updateRules.OrganizationId, updateRules.AppInstanceId)
-	}
-
-	toUpdate, err := m.AppProvider.GetInstance(updateRules.AppInstanceId)
-	if err != nil {
-		return derrors.NewInternalError("impossible to get old instance", err)
-	}
-
-	rules := make ([]entities.SecurityRule, 0)
-	for _, rule := range updateRules.Rules {
-		rules = append(rules, *entities.CopySecurityRuleFromGRPC(rule))
-	}
-	toUpdate.Rules = rules
-
-	err = m.AppProvider.UpdateInstance(*toUpdate)
-	if err != nil {
-		return derrors.NewInternalError("impossible to update instance").CausedBy(err)
-	}
-
-	return nil
-}
-
 func (m *Manager) UpdateAppInstance(appInstance *grpc_application_go.AppInstance) error {
 	localEntity := entities.NewAppInstanceFromGRPC(appInstance)
 
