@@ -156,3 +156,75 @@ func (m * Manager) RemoveCluster(removeClusterRequest *grpc_infrastructure_go.Re
 	}
 	return err
 }
+
+func (m * Manager) CordonCluster(clusterID *grpc_infrastructure_go.ClusterId) derrors.Error {
+	exists, err := m.OrgProvider.Exists(clusterID.OrganizationId)
+	if err != nil {
+		return err
+	}
+	if ! exists{
+		return derrors.NewNotFoundError("organizationID").WithParams(clusterID.OrganizationId)
+	}
+
+	exists, err = m.OrgProvider.ClusterExists(clusterID.OrganizationId, clusterID.ClusterId)
+	if err != nil {
+		return err
+	}
+	if !exists{
+		return derrors.NewNotFoundError("clusterID").WithParams(clusterID.OrganizationId, clusterID.ClusterId)
+	}
+
+	old, err := m.ClusterProvider.Get(clusterID.ClusterId)
+	if err != nil{
+		return err
+	}
+	if old.Cordon {
+		// this was already cordoned. Nothing to do
+		return nil
+	}
+
+	// this is going to be cordoned
+	old.Cordon = true
+	err = m.ClusterProvider.Update(*old)
+	if err != nil{
+		return err
+	}
+
+	return nil
+}
+
+func (m * Manager) UncordonCluster(clusterID *grpc_infrastructure_go.ClusterId) derrors.Error {
+	exists, err := m.OrgProvider.Exists(clusterID.OrganizationId)
+	if err != nil {
+		return err
+	}
+	if ! exists{
+		return derrors.NewNotFoundError("organizationID").WithParams(clusterID.OrganizationId)
+	}
+
+	exists, err = m.OrgProvider.ClusterExists(clusterID.OrganizationId, clusterID.ClusterId)
+	if err != nil {
+		return err
+	}
+	if !exists{
+		return derrors.NewNotFoundError("clusterID").WithParams(clusterID.OrganizationId, clusterID.ClusterId)
+	}
+
+	old, err := m.ClusterProvider.Get(clusterID.ClusterId)
+	if err != nil{
+		return err
+	}
+	if !old.Cordon {
+		// this was already cordoned. Nothing to do
+		return nil
+	}
+
+	// this is going to be cordoned
+	old.Cordon = false
+	err = m.ClusterProvider.Update(*old)
+	if err != nil{
+		return err
+	}
+
+	return nil
+}
