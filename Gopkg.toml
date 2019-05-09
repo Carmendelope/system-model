@@ -8,7 +8,7 @@
 
 [[constraint]]
     name="github.com/nalej/derrors"
-    version="v2.0.0"
+    version="=v2.0.0"
 
 [[constraint]]
     name="github.com/nalej/grpc-utils"
@@ -24,7 +24,7 @@
 
 [[constraint]]
     name="github.com/nalej/grpc-infrastructure-go"
-    version="=v0.0.33"
+    version="=v0.0.37"
 
 [[constraint]]
     name="github.com/nalej/grpc-user-go"

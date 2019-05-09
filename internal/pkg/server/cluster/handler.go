@@ -104,3 +104,28 @@ func (h * Handler) RemoveCluster(ctx context.Context, removeClusterRequest *grpc
 }
 
 
+// Cordon a cluster. The cluster will not accept any new application deployment request.
+func (h * Handler) CordonCluster(ctx context.Context, clusterID *grpc_infrastructure_go.ClusterId) (*grpc_common_go.Success, error) {
+	err := entities.ValidClusterID(clusterID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	err = h.Manager.CordonCluster(clusterID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+}
+// Uncordon a cluster. The cordon flag will be disabled for this cluster.
+func (h * Handler) UncordonCluster(ctx context.Context, clusterID *grpc_infrastructure_go.ClusterId) (*grpc_common_go.Success, error) {
+	err := entities.ValidClusterID(clusterID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	err = h.Manager.UncordonCluster(clusterID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+}
+

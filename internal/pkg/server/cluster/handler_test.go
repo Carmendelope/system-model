@@ -243,6 +243,57 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(err).To(gomega.HaveOccurred())
 			gomega.Expect(removed).Should(gomega.BeNil())
 		})
+		ginkgo.It("should be able to cordon a cluster", func() {
+			// add cluster to be cordoned
+			toAdd := createAddClusterRequest(targetOrganization.ID)
+			added, err := client.AddCluster(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
+
+			clusterID := &grpc_infrastructure_go.ClusterId{
+				ClusterId: added.ClusterId,
+				OrganizationId: targetOrganization.ID,
+			}
+			ok, err := client.CordonCluster(context.Background(), clusterID)
+			gomega.Expect(ok).ShouldNot(gomega.BeNil())
+			gomega.Expect(err).Should(gomega.Succeed())
+			// retrieve the changes in the cluster and check it
+			retrieved, err := client.GetCluster(context.Background(), clusterID)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(added.Cordon).Should(gomega.BeFalse())
+			gomega.Expect(retrieved.Cordon).Should(gomega.BeTrue())
+		})
+		ginkgo.It("should be able to uncordon a cluster", func() {
+			// add cluster to be cordoned
+			toAdd := createAddClusterRequest(targetOrganization.ID)
+			added, err := client.AddCluster(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
+
+			clusterID := &grpc_infrastructure_go.ClusterId{
+				ClusterId: added.ClusterId,
+				OrganizationId: targetOrganization.ID,
+			}
+			ok, err := client.CordonCluster(context.Background(), clusterID)
+			gomega.Expect(ok).ShouldNot(gomega.BeNil())
+			gomega.Expect(err).Should(gomega.Succeed())
+			// retrieve the changes in the cluster and check it
+			retrieved, err := client.GetCluster(context.Background(), clusterID)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(added.Cordon).Should(gomega.BeFalse())
+			gomega.Expect(retrieved.Cordon).Should(gomega.BeTrue())
+			// now uncordon the cluster
+			ok, err = client.UncordonCluster(context.Background(), clusterID)
+			gomega.Expect(ok).ShouldNot(gomega.BeNil())
+			gomega.Expect(err).Should(gomega.Succeed())
+			// retrieve to check this was uncordonned
+			retrievedU, err := client.GetCluster(context.Background(), clusterID)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(retrievedU.Cordon).Should(gomega.BeFalse())
+		})
+
 	})
 
 	ginkgo.PContext("With nodes", func() {
