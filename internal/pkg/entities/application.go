@@ -1867,7 +1867,11 @@ func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
 	}
 }
 
+
+// ----------------------------------------------
 // AppZtNetwork
+
+
 type AppZtNetwork struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
@@ -1893,7 +1897,66 @@ func(a *AppZtNetwork) ToGRPC() *grpc_application_go.AppZtNetwork {
 	}
 }
 
+// ----------------------------------------------
+// AppZtNetworkMember
+
+type AppZtNetworkMember struct {
+	// OrganizationId with the organization identifier.
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
+	// AppInstanceId with the application instance identifier.
+	AppInstanceId string `json:"app_instance_id,omitempty" cql: "app_instance_id"`
+	// ServiceGroupInstanceId
+	ServiceGroupInstanceId string `json:"service_group_instance_id,omitempty" cql: "service_group_instance_id"`
+	// ServiceApplicationInstanceId
+	ServiceApplicationInstanceId string `json:"service_application_instance_id,omitempty" cql: "service_application_instance_id"`
+	// ZtNetworkId zero-tier network identifier.
+	ZtNetworkId string `json:"zt_network_id,omitempty" cql:"zt_network_id"`
+	// MemberId for this entry in the zt network
+	MemberId string `json:"member_id,omitempty" cql:"member_id"`
+	// IsProxy indicates whether this is a proxy entry or not
+	IsProxy bool `json:"is_proxy,omitempty" cql:"is_proxy"`
+	// CreatedAt indicates when the entry was created
+	CreatedAt int64 `json:"created_at,omitempty" cql:"created_at"`
+}
+
+func NewAppZtNetworkMemberFromGRPC(req *grpc_application_go.AddAuthorizedZtNetworkMemberRequest ) *AppZtNetworkMember {
+	return &AppZtNetworkMember{
+		OrganizationId: req.OrganizationId,
+		AppInstanceId: req.AppInstanceId,
+		ZtNetworkId: req.NetworkId,
+		ServiceGroupInstanceId: req.ServiceGroupInstanceId,
+		IsProxy: req.IsProxy,
+		MemberId: req.MemberId,
+		ServiceApplicationInstanceId: req.ServiceApplicationInstanceId,
+		CreatedAt: 0,
+	}
+}
+
+func(a *AppZtNetworkMember) ToGRPC() *grpc_application_go.ZtNetworkMember {
+	return &grpc_application_go.ZtNetworkMember{
+		NetworkId: a.ZtNetworkId,
+		AppInstanceId: a.AppInstanceId,
+		OrganizationId: a.OrganizationId,
+		ServiceApplicationInstanceId: a.ServiceApplicationInstanceId,
+		MemberId: a.MemberId,
+		IsProxy: a.IsProxy,
+		ServiceGroupInstanceId: a.ServiceGroupInstanceId,
+		CreatedAt: a.CreatedAt,
+	}
+}
+
+
+
 // Validation functions
+
+func ValidAddAuthorizedNetworkMemberRequest(req * grpc_application_go.AddAuthorizedZtNetworkMemberRequest) derrors.Error {
+	if req.OrganizationId == "" || req.AppInstanceId == "" || req.ServiceGroupInstanceId == "" ||
+		req.ServiceApplicationInstanceId == "" || req.MemberId == "" || req.NetworkId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, service_group_instance_id, " +
+			"service_application_instance_id, member_id and network_id")
+	}
+	return nil
+}
 
 func ValidAppDescriptorId (descriptorID * grpc_application_go.AppDescriptorId) derrors.Error{
 	if descriptorID.OrganizationId == "" || descriptorID.AppDescriptorId == ""{

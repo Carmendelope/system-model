@@ -426,3 +426,22 @@ func (h *Handler) RemoveParametrizedDescriptor(ctx context.Context, instanceID *
 
 	return &grpc_common_go.Success{}, nil
 }
+
+// Add Zt member authorization data
+func (h *Handler) AddAuthorizedZtNetworkMember(ctx context.Context, req *grpc_application_go.AddAuthorizedZtNetworkMemberRequest) (*grpc_application_go.ZtNetworkMember, error) {
+	err := entities.ValidAddAuthorizedNetworkMemberRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	storedMember, err := h.Manager.AppProvider.AddAppZtNetworkMember(req)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	return storedMember.ToGRPC(), nil
+}
+
+// Delete Zt member authorization data
+func (h *Handler) RemoveAuthorizedZtNetworkMember(ctx context.Context, req *grpc_application_go.RemoveAuthorizedZtNetworkMemberRequest) (*grpc_common_go.Success, error) {
+	// TODO
+}

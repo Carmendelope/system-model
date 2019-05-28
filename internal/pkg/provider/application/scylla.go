@@ -9,6 +9,7 @@ import (
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
 	"sync"
+	"time"
 )
 
 
@@ -960,4 +961,51 @@ func (sp *ScyllaApplicationProvider) GetAppZtNetwork(organizationId string, appI
 	}
 
 	return &ztNetwork, nil
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// AppZtNetworkMember related methods
+
+// AddZtNetworkMember add a new member for an existing zt network
+func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZtNetworkMember) (*entities.AppZtNetworkMember, derrors.Error) {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return nil, err
+	}
+
+	// set the created_at field
+	member.CreatedAt = time.Now().Unix()
+	// add the zt network member
+	stmt, names := qb.Insert("appztnetworkmembers").Columns("organization_id", "app_instance_id",
+		"service_group_instance_id", "service_application_instance_id", "zt_network_id", "member_id", "is_proxy", "created_at").ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(member)
+	cqlErr := q.ExecRelease()
+
+	if cqlErr != nil {
+		return nil,derrors.AsError(cqlErr, "cannot add appEntryPoint")
+	}
+
+	return &member, nil
+
+}
+
+// RemoveZtNetworkMember remove an existing member for a zt network
+func (sp *ScyllaApplicationProvider) RemoveAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstanceId string) derrors.Error {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// delete an instance
+	stmt, _ := qb.Delete("appztnetworkmembers").Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).
+		Where(qb.Eq("service_group_instance_id")).Where(qb.Eq("service_application_instance_id")).ToCql()
+	cqlErr := sp.Session.Query(stmt, organizationId, appInstanceId, serviceGroupInstanceId, serviceInstanceId).Exec()
+
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot delete app zt network")
+	}
+	return nil
 }
