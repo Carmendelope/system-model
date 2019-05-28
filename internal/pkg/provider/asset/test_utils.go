@@ -59,6 +59,7 @@ func CreateTestAsset() * entities.Asset{
 	}
 	return &entities.Asset{
 		OrganizationId: fmt.Sprintf("organization_%d", id),
+		EdgeControllerId: entities.GenerateUUID(),
 		AssetId:        entities.GenerateUUID(),
 		AgentId:        fmt.Sprintf("agent_%d", id),
 		Show:           true,
@@ -66,7 +67,7 @@ func CreateTestAsset() * entities.Asset{
 		Labels:         labels,
 		Os:             os,
 		Hardware:       hardware,
-		Storage:        storage,
+		Storage:        []*entities.StorageHardwareInfo{storage},
 		EicNetIp:       "1.1.1.1",
 	}
 }

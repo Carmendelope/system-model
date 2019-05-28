@@ -22,13 +22,20 @@ import (
 
 func createAddAssetRequest(organizationID string) *grpc_inventory_go.AddAssetRequest{
 	testAsset := asset.CreateTestAsset()
+
+	storage := make ([]*grpc_inventory_go.StorageHardwareInfo, 0)
+	for _, sto := range testAsset.Storage {
+		storage = append (storage, sto.ToGRPC())
+	}
+
 	return &grpc_inventory_go.AddAssetRequest{
 		OrganizationId:       organizationID,
+		EdgeControllerId:     testAsset.EdgeControllerId,
 		AgentId:              testAsset.AgentId,
 		Labels:               testAsset.Labels,
 		Os:                   testAsset.Os.ToGRPC(),
 		Hardware:             testAsset.Hardware.ToGRPC(),
-		Storage:              testAsset.Storage.ToGRPC(),
+		Storage:              storage,
 	}
 }
 

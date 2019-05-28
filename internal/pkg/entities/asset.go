@@ -185,6 +185,8 @@ func (shi * StorageHardwareInfo) ToGRPC() *grpc_inventory_go.StorageHardwareInfo
 type Asset struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty"`
+	// EdgeControllerId with the EIC identifier
+	EdgeControllerId string `json:"edge_controller_id,omitempty"`
 	// AssetId with the asset identifier.
 	AssetId string `json:"asset_id,omitempty"`
 	// AgentId with the agent identifier that is monitoring this asset if any.
@@ -201,14 +203,21 @@ type Asset struct {
 	// Hardware information.
 	Hardware *HardwareInfo `json:"hardware,omitempty" cql:"hardware"`
 	// Storage information.
-	Storage *StorageHardwareInfo `json:"storage,omitempty" cql:"storage"`
+	Storage []*StorageHardwareInfo `json:"storage,omitempty" cql:"storage"`
 	// EicNetIp contains the current IP address that connects the asset to the EIC.
 	EicNetIp             string   `json:"eic_net_ip,omitempty"`
 }
 
 func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
+
+	storage := make ([]*StorageHardwareInfo, 0)
+	for _, sto := range addRequest.Storage {
+		storage = append(storage,NewStorageHardwareInfoFromGRPC(sto) )
+	}
+
 	return &Asset{
 		OrganizationId: addRequest.OrganizationId,
+		EdgeControllerId: addRequest.EdgeControllerId,
 		AssetId:        GenerateUUID(),
 		AgentId:        addRequest.AgentId,
 		Show:           true,
@@ -216,13 +225,20 @@ func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
 		Labels:         addRequest.Labels,
 		Os:             NewOperatingSystemInfoFromGRPC(addRequest.Os),
 		Hardware:       NewHardwareInfoFromGRPC(addRequest.Hardware),
-		Storage:        NewStorageHardwareInfoFromGRPC(addRequest.Storage),
+		Storage:        storage,
 	}
 }
 
 func (a * Asset) ToGRPC() *grpc_inventory_go.Asset{
+
+	storage := make ([]*grpc_inventory_go.StorageHardwareInfo, 0)
+	for _, sto := range a.Storage {
+		storage = append(storage,sto.ToGRPC() )
+	}
+
 	return &grpc_inventory_go.Asset{
 		OrganizationId:       a.OrganizationId,
+		EdgeControllerId:     a.EdgeControllerId,
 		AssetId:              a.AssetId,
 		AgentId:              a.AgentId,
 		Show:                 a.Show,
@@ -230,7 +246,7 @@ func (a * Asset) ToGRPC() *grpc_inventory_go.Asset{
 		Labels:               a.Labels,
 		Os:                   a.Os.ToGRPC(),
 		Hardware:             a.Hardware.ToGRPC(),
-		Storage:              a.Storage.ToGRPC(),
+		Storage:              storage,
 		EicNetIp:             a.EicNetIp,
 	}
 }
@@ -254,6 +270,9 @@ func (a * Asset) ApplyUpdate(request * grpc_inventory_go.UpdateAssetRequest){
 func ValidAddAssetRequest(addRequest * grpc_inventory_go.AddAssetRequest) derrors.Error{
 	if addRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	if addRequest.EdgeControllerId == "" {
+		return derrors.NewInvalidArgumentError(emptyEdgeControllerId)
 	}
 	return nil
 }
