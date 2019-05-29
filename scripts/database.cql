@@ -57,7 +57,7 @@ create table IF NOT EXISTS nalej.Devices (organization_id text, device_group_id 
 create table IF NOT EXISTS nalej.DeviceGroups (organization_id text, device_group_id text, name text, created bigint, labels map<text, text>, primary KEY (organization_id, device_group_id));
 
 create table IF NOT EXISTS nalej.AppZtNetworks(organization_id text, app_instance_id text, zt_network_id text,  PRIMARY KEY ((organization_id, app_instance_id), zt_network_id));
-create table IF NOT EXISTS nalej.AppZtNetworkMembers(organization_id text, app_instance_id text, service_group_instance_id text, service_application_instance_id text, zt_network_id text, member_id text, is_proxy bool, created_at bigint  PRIMARY KEY ((organization_id text, app_instance_id text, service_group_instance_id text, service_application_instance_id text, member_id), zt_network_id));
+create table IF NOT EXISTS nalej.AppZtNetworkMembers(organization_id text, app_instance_id text, service_group_instance_id text, service_application_instance_id text, zt_network_id text, member_id text, is_proxy boolean, created_at bigint,  PRIMARY KEY ((organization_id, app_instance_id), zt_network_id, member_id));
 
 create table IF NOT EXISTS nalej.Asset (organization_id text, asset_id text, agent_id text, show boolean, created int, labels map<text, text>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage FROZEN<storage_hardware_info>, eic_net_ip text, PRIMARY KEY (asset_id));
 create table IF NOT EXISTS nalej.Controller (organization_id text, edge_controller_id text, show boolean, created int, name text, labels map<text, text>, PRIMARY KEY(edge_controller_id));
