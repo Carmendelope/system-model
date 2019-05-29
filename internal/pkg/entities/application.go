@@ -1958,6 +1958,16 @@ func ValidAddAuthorizedNetworkMemberRequest(req * grpc_application_go.AddAuthori
 	return nil
 }
 
+func ValidRemoveAuthorizedZtNetworkMemberRequest(req * grpc_application_go.RemoveAuthorizedZtNetworkMemberRequest) derrors.Error {
+	if req.OrganizationId == "" || req.AppInstanceId == "" || req.ServiceGroupInstanceId == "" ||
+		req.ServiceApplicationInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, service_group_instance_id, " +
+			"service_application_instance_id")
+	}
+	return nil
+}
+
+
 func ValidAppDescriptorId (descriptorID * grpc_application_go.AppDescriptorId) derrors.Error{
 	if descriptorID.OrganizationId == "" || descriptorID.AppDescriptorId == ""{
 		return derrors.NewInvalidArgumentError("expecting organization_id and descriptor_id")
@@ -2124,8 +2134,15 @@ func ValidRemoveAppZtNetworkRequest(request * grpc_application_go.RemoveAppZtNet
 }
 
 func ValidGetAppZtNetworkRequest(request * grpc_application_go.GetAppZtNetworkRequest) derrors.Error {
-	if request.OrganizationId == "" || request.AppInstanceId == "" {
+	if request.OrganizationId == "" || request.AppInstanceId == ""  {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id")
+	}
+	return nil
+}
+
+func ValidRemoveCompleteAppZtNetworkMemberNetReques(request * grpc_application_go.RemoveCompleteAppZtNetworkMemberNetRequest) derrors.Error {
+	if request.NetworkId == "" || request.AppInstanceId == "" || request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, network_id")
 	}
 	return nil
 }

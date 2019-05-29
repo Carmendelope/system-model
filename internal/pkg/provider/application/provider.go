@@ -94,4 +94,7 @@ type Provider interface {
 	// RemoveZtNetworkMember remove an existing member for a zt network
 	RemoveAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstance string) derrors.Error
 
+	// RemoveCompleteAppZtNetworkMemberNet removes all the entries stored under the same network id
+	RemoveCompleteAppZtNetworkMemberNet(organizationId string, appInstanceId string, networkId string) derrors.Error
+
 }
