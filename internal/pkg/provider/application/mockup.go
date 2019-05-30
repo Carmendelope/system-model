@@ -394,3 +394,16 @@ func (m *MockupApplicationProvider) GetAppZtNetwork(organizationID string, appIn
 
 	return &toReturn, nil
 }
+
+
+func (m *MockupApplicationProvider) AddAppZtNetworkMember(member entities.AppZtNetworkMember) (*entities.AppZtNetworkMember, derrors.Error) {
+	return nil, derrors.NewUnimplementedError("AddAppZtNetworkMember not implemented yet")
+}
+
+func (m *MockupApplicationProvider) RemoveAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstance string) derrors.Error {
+	return derrors.NewUnimplementedError("RemoveAppZtNetworkMember not implemented yet")
+}
+
+func (m *MockupApplicationProvider) RemoveCompleteAppZtNetworkMemberNet(organizationId string, appInstanceId string, networkId string) derrors.Error {
+	return derrors.NewUnimplementedError("RemoveCompleteAppZtNetworkMemberNet not implemented yet")
+}

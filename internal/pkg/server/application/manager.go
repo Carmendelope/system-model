@@ -785,6 +785,10 @@ func (m * Manager) GetAppZtNetwork(request *grpc_application_go.GetAppZtNetworkR
 	return m.AppProvider.GetAppZtNetwork(request.OrganizationId, request.AppInstanceId)
 }
 
+func (m * Manager) AddAppZtNetworkMember(request *grpc_application_go.AddAuthorizedZtNetworkMemberRequest) (*entities.AppZtNetworkMember, derrors.Error) {
+	return m.AppProvider.AddAppZtNetworkMember(*entities.NewAppZtNetworkMemberFromGRPC(request))
+}
+
 func (m * Manager) fillDeviceGroupIds (desc *entities.ParametrizedDescriptor) derrors.Error {
 	// -----------------
 	// check if the descriptor has device_names in the rules
