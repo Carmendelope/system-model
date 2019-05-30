@@ -180,6 +180,60 @@ func (shi * StorageHardwareInfo) ToGRPC() *grpc_inventory_go.StorageHardwareInfo
 	}
 }
 
+// Enumerate with the type of instances we can deploy in the system.
+type AgentOpStatus int32
+
+const (
+	AgentOpStatusScheduled AgentOpStatus = iota + 1
+	AgentOpStatusSuccess
+	AgentOpStatusFail
+)
+
+var AgentOpStatusToGRPC = map[AgentOpStatus]grpc_inventory_go.AgentOpStatus{
+	AgentOpStatusScheduled : grpc_inventory_go.AgentOpStatus_SCHEDULED,
+	AgentOpStatusSuccess : grpc_inventory_go.AgentOpStatus_SUCCESS,
+	AgentOpStatusFail : grpc_inventory_go.AgentOpStatus_FAIL,
+}
+
+var AgentOpStatusFromGRPC = map[grpc_inventory_go.AgentOpStatus]AgentOpStatus {
+	grpc_inventory_go.AgentOpStatus_SCHEDULED:AgentOpStatusScheduled,
+	grpc_inventory_go.AgentOpStatus_SUCCESS:AgentOpStatusSuccess,
+	grpc_inventory_go.AgentOpStatus_FAIL:AgentOpStatusFail,
+}
+
+// AgentOpSummary contains the result of an asset operation
+// this is a provisional result!
+type AgentOpSummary struct {
+	// OperationId with the operation identifier.
+	OperationId string `json:"operation_id,omitempty"`
+	// Timestamp of the response.
+	Timestamp int64 `json:"timestamp,omitempty"`
+	// Status indicates if the operation was successfull
+	Status AgentOpStatus `json:"status,omitempty"`
+	// Info with additional information for an operation.
+	Info                 string   `json:"info,omitempty"`
+}
+
+func (a * AgentOpSummary) ToGRPC() *grpc_inventory_go.AgentOpSummary {
+	if a == nil {
+		return nil
+	}
+	return &grpc_inventory_go.AgentOpSummary{
+		OperationId:a.OperationId,
+		Timestamp:	a.Timestamp,
+		Status: 	AgentOpStatusToGRPC[a.Status],
+		Info: 		a.Info,
+	}
+}
+func NewAgentOpSummaryFromGRPC(op *grpc_inventory_go.AgentOpSummary) *AgentOpSummary {
+	return &AgentOpSummary{
+		OperationId:op.OperationId,
+		Timestamp:	op.Timestamp,
+		Status: 	AgentOpStatusFromGRPC[op.Status],
+		Info: 		op.Info,
+	}
+}
+
 // Asset represents an element in the network from which we register some type of information. Example of
 // assets could be workstations, nodes in a cluster, or other type of hardware.
 type Asset struct {
@@ -203,16 +257,20 @@ type Asset struct {
 	// Hardware information.
 	Hardware *HardwareInfo `json:"hardware,omitempty" cql:"hardware"`
 	// Storage information.
-	Storage []*StorageHardwareInfo `json:"storage,omitempty" cql:"storage"`
+	Storage []StorageHardwareInfo `json:"storage,omitempty" cql:"storage"`
 	// EicNetIp contains the current IP address that connects the asset to the EIC.
 	EicNetIp             string   `json:"eic_net_ip,omitempty"`
+	// AgentOpSummary contains the result of the last operation fr this asset
+	LastOpResult *AgentOpSummary `json:"last_op_result,omitempty"`
+	// LastAliveTimestamp contains the last alive message received
+	LastAliveTimestamp   int64    `json:"last_alive_timestamp,omitempty"`
 }
 
 func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
 
-	storage := make ([]*StorageHardwareInfo, 0)
+	storage := make ([]StorageHardwareInfo, 0)
 	for _, sto := range addRequest.Storage {
-		storage = append(storage,NewStorageHardwareInfoFromGRPC(sto) )
+		storage = append(storage, * NewStorageHardwareInfoFromGRPC(sto) )
 	}
 
 	return &Asset{
@@ -248,6 +306,8 @@ func (a * Asset) ToGRPC() *grpc_inventory_go.Asset{
 		Hardware:             a.Hardware.ToGRPC(),
 		Storage:              storage,
 		EicNetIp:             a.EicNetIp,
+		LastAliveTimestamp:   a.LastAliveTimestamp,
+		LastOpResult:         a.LastOpResult.ToGRPC(),
 	}
 }
 
@@ -264,6 +324,12 @@ func (a * Asset) ApplyUpdate(request * grpc_inventory_go.UpdateAssetRequest){
 		for k, _ := range request.Labels {
 			delete(a.Labels, k)
 		}
+	}
+	if request.UpdateLastAlive {
+		a.LastAliveTimestamp = request.LastAliveTimestamp
+	}
+	if request.UpdateLastOpSummary {
+		a.LastOpResult = NewAgentOpSummaryFromGRPC(request.LastOpSummary)
 	}
 }
 

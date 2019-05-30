@@ -8,6 +8,7 @@ import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/scylladb"
+	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
 	"sync"
@@ -19,10 +20,10 @@ const AssetTable = "Asset"
 const AssetTablePK = "asset_id"
 // AllAssetColumns contains the name of all the columns in the asset table.
 var allAssetColumns = []string{"organization_id", "edge_controller_id", "asset_id", "agent_id", "show",
-	"created", "labels", "os", "hardware", "storage", "eic_net_ip"}
+	"created", "labels", "os", "hardware", "storage", "eic_net_ip", "last_alive_timestamp", "last_op_result"}
 // AllAssetColumnsNoPK contains the name of all the columns in the asset table except the PK.
 var allAssetColumnsNoPK = []string{"organization_id", "edge_controller_id", "agent_id", "show",
-	"created", "labels", "os", "hardware", "storage", "eic_net_ip"}
+	"created", "labels", "os", "hardware", "storage", "eic_net_ip", "last_alive_timestamp", "last_op_result"}
 
 type ScyllaAssetProvider struct {
 	scylladb.ScyllaDB
@@ -51,6 +52,7 @@ func (sp *ScyllaAssetProvider) Disconnect() {
 func (sp *ScyllaAssetProvider) Add(asset entities.Asset) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
+	log.Debug().Interface("asset", asset).Msg("provider add asset")
 	return sp.UnsafeAdd(AssetTable, AssetTablePK, asset.AssetId, allAssetColumns, asset)
 }
 

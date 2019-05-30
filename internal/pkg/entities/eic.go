@@ -25,6 +25,8 @@ type EdgeController struct {
 	Name string `json:"name,omitempty"`
 	// Labels defined by the user.
 	Labels               map[string]string `json:"labels,omitempty"`
+	// LastAliveTimestamp contains the last alive message received
+	LastAliveTimestamp   int64    `json:"last_alive_timestamp,omitempty"`
 }
 
 func NewEdgeControllerFromGRPC(eic * grpc_inventory_go.AddEdgeControllerRequest) * EdgeController{
@@ -52,6 +54,7 @@ func (ec * EdgeController) ToGRPC() *grpc_inventory_go.EdgeController{
 		Created:              ec.Created,
 		Name:                 ec.Name,
 		Labels:               ec.Labels,
+		LastAliveTimestamp:   ec.LastAliveTimestamp,
 	}
 }
 
@@ -68,6 +71,9 @@ func (ec * EdgeController) ApplyUpdate(request * grpc_inventory_go.UpdateEdgeCon
 		for k, _ := range request.Labels {
 			delete(ec.Labels, k)
 		}
+	}
+	if request.UpdateLastAlive {
+		ec.LastAliveTimestamp = request.LastAliveTimestamp
 	}
 }
 

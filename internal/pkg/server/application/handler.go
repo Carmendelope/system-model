@@ -6,6 +6,7 @@ package application
 
 import (
 	"context"
+	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
@@ -425,4 +426,18 @@ func (h *Handler) RemoveParametrizedDescriptor(ctx context.Context, instanceID *
 	}
 
 	return &grpc_common_go.Success{}, nil
+}
+
+// Add Zt member authorization data
+func (h *Handler) AddAuthorizedZtNetworkMember(_ context.Context, in *grpc_application_go.AddAuthorizedZtNetworkMemberRequest) (*grpc_application_go.ZtNetworkMember, error) {
+	return nil, derrors.NewUnimplementedError("not implemented")
+}
+// Delete Zt member authorization data
+func (h *Handler) RemoveAuthorizedZtNetworkMember(_ context.Context, in *grpc_application_go.RemoveAuthorizedZtNetworkMemberRequest) (*grpc_common_go.Success, error){
+	return nil, derrors.NewUnimplementedError("not implemented")
+}
+
+// Delete all the members of a Zt network
+func (h *Handler) RemoveCompleteAppZtNetworkMemberNet(_ context.Context, in *grpc_application_go.RemoveCompleteAppZtNetworkMemberNetRequest) (*grpc_common_go.Success, error){
+	return nil, derrors.NewUnimplementedError("not implemented")
 }

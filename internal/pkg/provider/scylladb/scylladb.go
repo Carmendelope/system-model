@@ -110,6 +110,7 @@ func (s * ScyllaDB) UnsafeAdd(table string, pkColumn string, pkValue string, tab
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
+		log.Warn().Str("err", cqlErr.Error()).Msg("error adding the element")
 		return derrors.AsError(cqlErr, "cannot add new element")
 	}
 
