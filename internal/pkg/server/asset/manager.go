@@ -91,3 +91,18 @@ func (m *Manager) Update(updateRequest *grpc_inventory_go.UpdateAssetRequest) (*
 	}
 	return asset, nil
 }
+
+func (m * Manager) ListControllerAssets(edgeControllerId *grpc_inventory_go.EdgeControllerId) ([]entities.Asset, derrors.Error) {
+	exists, err := m.OrgProvider.Exists(edgeControllerId.OrganizationId)
+	if err != nil{
+		return nil, err
+	}
+	if !exists{
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(edgeControllerId.OrganizationId)
+	}
+	groups, err := m.AssetProvider.ListControllerAssets(edgeControllerId.EdgeControllerId)
+	if err != nil {
+		return nil, err
+	}
+	return groups, nil
+}

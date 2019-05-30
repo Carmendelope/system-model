@@ -77,6 +77,19 @@ func (m *MockupAssetProvider) List(organizationID string) ([]entities.Asset, der
 	return result, nil
 }
 
+// ListControllerAssets retrieves the assets associated with a given edge controller
+func (m *MockupAssetProvider) ListControllerAssets(edgeControllerID string) ([]entities.Asset, derrors.Error){
+	m.Lock()
+	defer m.Unlock()
+	result := make([]entities.Asset, 0)
+	for _, a := range m.assets{
+		if a.EdgeControllerId == edgeControllerID{
+			result = append(result, a)
+		}
+	}
+	return result, nil
+}
+
 func (m * MockupAssetProvider) Remove(assetID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
