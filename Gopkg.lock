@@ -148,7 +148,7 @@
   version = "v0.0.30"
 
 [[projects]]
-  digest = "1:a55e0792c0a632d14fc0f7a1c4b55ed2973189c2267d7197c2e13b1a44371466"
+  digest = "1:347aace88c837e2b1b65a7c603e1b74066e3ad9c26343a2001649e3a2354591b"
   name = "github.com/nalej/grpc-utils"
   packages = [
     "pkg/conversions",
@@ -156,8 +156,8 @@
     "pkg/tools",
   ]
   pruneopts = ""
-  revision = "3763d699ec598000c8095dc4d2e86a3ec0a169ff"
-  version = "v1.3.1"
+  revision = "926e5152669ee71c0e6904055ebe6cfb5492b599"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:a3735b0978a8b53fc2ac97a6f46ca1189f0712a00df86d6ec4cf26c1a25e6d77"

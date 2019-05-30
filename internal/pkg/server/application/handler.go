@@ -6,7 +6,6 @@ package application
 
 import (
 	"context"
-	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
@@ -429,15 +428,46 @@ func (h *Handler) RemoveParametrizedDescriptor(ctx context.Context, instanceID *
 }
 
 // Add Zt member authorization data
-func (h *Handler) AddAuthorizedZtNetworkMember(_ context.Context, in *grpc_application_go.AddAuthorizedZtNetworkMemberRequest) (*grpc_application_go.ZtNetworkMember, error) {
-	return nil, derrors.NewUnimplementedError("not implemented")
-}
-// Delete Zt member authorization data
-func (h *Handler) RemoveAuthorizedZtNetworkMember(_ context.Context, in *grpc_application_go.RemoveAuthorizedZtNetworkMemberRequest) (*grpc_common_go.Success, error){
-	return nil, derrors.NewUnimplementedError("not implemented")
+func (h *Handler) AddAuthorizedZtNetworkMember(ctx context.Context, req *grpc_application_go.AddAuthorizedZtNetworkMemberRequest) (*grpc_application_go.ZtNetworkMember, error) {
+	err := entities.ValidAddAuthorizedNetworkMemberRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	localReq := entities.NewAppZtNetworkMemberFromGRPC(req)
+	storedMember, err := h.Manager.AppProvider.AddAppZtNetworkMember(*localReq)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	return storedMember.ToGRPC(), nil
 }
 
-// Delete all the members of a Zt network
-func (h *Handler) RemoveCompleteAppZtNetworkMemberNet(_ context.Context, in *grpc_application_go.RemoveCompleteAppZtNetworkMemberNetRequest) (*grpc_common_go.Success, error){
-	return nil, derrors.NewUnimplementedError("not implemented")
+// Delete Zt member authorization data
+func (h *Handler) RemoveAuthorizedZtNetworkMember(ctx context.Context, req *grpc_application_go.RemoveAuthorizedZtNetworkMemberRequest) (*grpc_common_go.Success, error) {
+	err := entities.ValidRemoveAuthorizedZtNetworkMemberRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	err = h.Manager.AppProvider.RemoveAppZtNetworkMember(req.OrganizationId, req.AppInstanceId, req.ServiceApplicationInstanceId, req.ServiceApplicationInstanceId)
+	if err!= nil {
+		return nil, err
+	}
+
+	return  &grpc_common_go.Success{}, nil
+}
+
+func (h *Handler) RemoveCompleteAppZtNetworkMemberNet(ctx context.Context,
+	req *grpc_application_go.RemoveCompleteAppZtNetworkMemberNetRequest) (*grpc_common_go.Success, error){
+
+	err := entities.ValidRemoveCompleteAppZtNetworkMemberNetReques(req)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.Manager.AppProvider.RemoveCompleteAppZtNetworkMemberNet(req.OrganizationId, req.AppInstanceId, req.NetworkId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &grpc_common_go.Success{}, nil
 }
