@@ -53,7 +53,7 @@ func CreateTestAsset() * entities.Asset{
 		InstalledRam:  100,
 		NetInterfaces: CreateTestNetInterfaces(),
 	}
-	storage := &entities.StorageHardwareInfo{
+	storage := entities.StorageHardwareInfo{
 		Type:          "FakeStorage",
 		TotalCapacity: 100,
 	}
@@ -67,7 +67,7 @@ func CreateTestAsset() * entities.Asset{
 		Labels:         labels,
 		Os:             os,
 		Hardware:       hardware,
-		Storage:        []*entities.StorageHardwareInfo{storage},
+		Storage:        []entities.StorageHardwareInfo{storage},
 		EicNetIp:       "1.1.1.1",
 	}
 }
