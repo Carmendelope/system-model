@@ -40,6 +40,17 @@ func (h *Handler) Add(ctx context.Context, addRequest *grpc_inventory_go.AddAsse
 	return added.ToGRPC(), nil
 }
 
+func (h *Handler) Get(ctx context.Context, assetID *grpc_inventory_go.AssetId) (*grpc_inventory_go.Asset, error) {
+	err := entities.ValidAssetID(assetID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	asset, err := h.Manager.Get(assetID)
+	if err != nil{
+		return nil, conversions.ToGRPCError(err)
+	}
+	return asset.ToGRPC(), nil
+}
 // List the assets of an organization.
 func (h *Handler) List(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_inventory_go.AssetList, error) {
 	err := entities.ValidOrganizationID(organizationID)
