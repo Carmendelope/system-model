@@ -91,6 +91,14 @@ var _ = ginkgo.Describe("Asset service", func(){
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(added).ShouldNot(gomega.BeNil())
 		gomega.Expect(added.AssetId).ShouldNot(gomega.BeEmpty())
+
+	    assetID := &grpc_inventory_go.AssetId{
+			OrganizationId:       added.OrganizationId,
+			AssetId:              added.AssetId,
+		}
+	    retrieved, err := client.Get(context.Background(), assetID)
+	    gomega.Expect(err).To(gomega.Succeed())
+	    gomega.Expect(retrieved.EdgeControllerId).Should(gomega.Equal(toAdd.EdgeControllerId))
 	})
 
 	ginkgo.It("should be able to list assets", func(){

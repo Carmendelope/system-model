@@ -75,3 +75,4 @@ create index IF NOT EXISTS deviceGroupName ON nalej.DeviceGroups (name);
 create index IF NOT EXISTS entrypointFqdn ON nalej.AppEntrypoints (global_fqdn);
 create index IF NOT EXISTS controllerOrg ON nalej.Controller (organization_id);
 create index IF NOT EXISTS assetOrg ON nalej.Asset (organization_id);
+create index IF NOT EXISTS assetEdgeController ON nalej.Asset (edge_controller_id);

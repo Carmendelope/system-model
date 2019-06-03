@@ -102,6 +102,30 @@ func (sp *ScyllaAssetProvider) List(organizationID string) ([]entities.Asset, de
 	return assets, nil
 }
 
+// ListControllerAssets retrieves the assets associated with a given edge controller
+func (sp *ScyllaAssetProvider) ListControllerAssets(edgeControllerID string) ([]entities.Asset, derrors.Error) {
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.CheckAndConnect(); err != nil {
+		return nil, err
+	}
+	stmt, names := qb.Select(AssetTable).Columns(allAssetColumns...).Where(qb.Eq("edge_controller_id")).ToCql()
+	q:= gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"edge_controller_id": edgeControllerID,
+	})
+
+	assets := make ([]entities.Asset, 0)
+	cqlErr := q.SelectRelease(&assets)
+
+	if cqlErr != nil {
+		return nil, derrors.AsError(cqlErr, "cannot list assets")
+	}
+
+	return assets, nil
+}
+
+
 func (sp *ScyllaAssetProvider) Remove(assetID string) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
