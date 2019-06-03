@@ -404,6 +404,3 @@ func (m *MockupApplicationProvider) RemoveAppZtNetworkMember(organizationId stri
 	return derrors.NewUnimplementedError("RemoveAppZtNetworkMember not implemented yet")
 }
 
-func (m *MockupApplicationProvider) RemoveCompleteAppZtNetworkMemberNet(organizationId string, appInstanceId string, networkId string) derrors.Error {
-	return derrors.NewUnimplementedError("RemoveCompleteAppZtNetworkMemberNet not implemented yet")
-}

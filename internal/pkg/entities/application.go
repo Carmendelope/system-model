@@ -2140,9 +2140,3 @@ func ValidGetAppZtNetworkRequest(request * grpc_application_go.GetAppZtNetworkRe
 	return nil
 }
 
-func ValidRemoveCompleteAppZtNetworkMemberNetReques(request * grpc_application_go.RemoveCompleteAppZtNetworkMemberNetRequest) derrors.Error {
-	if request.NetworkId == "" || request.AppInstanceId == "" || request.OrganizationId == "" {
-		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, network_id")
-	}
-	return nil
-}

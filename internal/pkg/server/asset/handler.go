@@ -116,3 +116,4 @@ func (h *Handler) ListControllerAssets(ctx context.Context, edgeControllerId *gr
 	}
 	return result, nil
 }
+
