@@ -331,6 +331,9 @@ func (a * Asset) ApplyUpdate(request * grpc_inventory_go.UpdateAssetRequest){
 	if request.UpdateLastOpSummary {
 		a.LastOpResult = NewAgentOpSummaryFromGRPC(request.LastOpSummary)
 	}
+	if request.UpdateIp {
+		a.EicNetIp = request.EicNetIp
+	}
 }
 
 func ValidAddAssetRequest(addRequest * grpc_inventory_go.AddAssetRequest) derrors.Error{
