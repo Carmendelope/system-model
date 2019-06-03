@@ -40,6 +40,17 @@ func (h *Handler) Add(ctx context.Context, addRequest *grpc_inventory_go.AddAsse
 	return added.ToGRPC(), nil
 }
 
+func (h *Handler) Get(ctx context.Context, assetID *grpc_inventory_go.AssetId) (*grpc_inventory_go.Asset, error) {
+	err := entities.ValidAssetID(assetID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	asset, err := h.Manager.Get(assetID)
+	if err != nil{
+		return nil, conversions.ToGRPCError(err)
+	}
+	return asset.ToGRPC(), nil
+}
 // List the assets of an organization.
 func (h *Handler) List(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_inventory_go.AssetList, error) {
 	err := entities.ValidOrganizationID(organizationID)
@@ -87,3 +98,21 @@ func (h *Handler) Update(ctx context.Context, updateRequest *grpc_inventory_go.U
 	return updated.ToGRPC(), nil
 }
 
+func (h *Handler) ListControllerAssets(ctx context.Context, edgeControllerId *grpc_inventory_go.EdgeControllerId) (*grpc_inventory_go.AssetList, error) {
+	err := entities.ValidEdgeControllerID(edgeControllerId)
+	if err != nil{
+		return nil, conversions.ToGRPCError(err)
+	}
+	assets, err := h.Manager.ListControllerAssets(edgeControllerId)
+	if err != nil{
+		return nil, conversions.ToGRPCError(err)
+	}
+	toReturn := make([]*grpc_inventory_go.Asset, 0, len(assets))
+	for _, a := range assets{
+		toReturn = append(toReturn, a.ToGRPC())
+	}
+	result := &grpc_inventory_go.AssetList{
+		Assets:               toReturn,
+	}
+	return result, nil
+}

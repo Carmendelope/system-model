@@ -26,6 +26,8 @@ create type IF NOT EXISTS nalej.hardware_info (cpus list<FROZEN<cpu_info>>, inst
 create type IF NOT EXISTS nalej.storage_hardware_info (type text, total_capacity int);
 
 create table IF NOT EXISTS nalej.Asset (organization_id text, asset_id text, agent_id text, show boolean, created int, labels map<text, text>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage FROZEN<storage_hardware_info>, eic_net_ip text, PRIMARY KEY (asset_id));
+    create index IF NOT EXISTS assetOrg ON nalej.Asset (organization_id);
+    create index IF NOT EXISTS assetEdgeController ON nalej.Asset (edge_controller_id);
 */
 
 var _ = ginkgo.Describe("Scylla asset provider", func(){

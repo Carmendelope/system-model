@@ -40,6 +40,24 @@ func (m *Manager) Add(addRequest *grpc_inventory_go.AddAssetRequest) (*entities.
 	return toAdd, nil
 }
 
+func  (m *Manager) Get(assetID *grpc_inventory_go.AssetId) (*entities.Asset, derrors.Error) {
+	exists, err := m.OrgProvider.Exists(assetID.OrganizationId)
+	if err != nil{
+		return nil, err
+	}
+	if !exists{
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(assetID.OrganizationId)
+	}
+	asset, err := m.AssetProvider.Get(assetID.AssetId)
+	if err != nil{
+		return nil, err
+	}
+	if asset.OrganizationId != assetID.OrganizationId{
+		return nil, derrors.NewInternalError("asset organization_id does not match").WithParams(assetID.OrganizationId, assetID.AssetId)
+	}
+	return asset, nil
+}
+
 // List the assets of an organization.
 func (m *Manager) List(organizationID *grpc_organization_go.OrganizationId) ([]entities.Asset, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(organizationID.OrganizationId)
@@ -90,4 +108,19 @@ func (m *Manager) Update(updateRequest *grpc_inventory_go.UpdateAssetRequest) (*
 		return nil, err
 	}
 	return asset, nil
+}
+
+func (m * Manager) ListControllerAssets(edgeControllerId *grpc_inventory_go.EdgeControllerId) ([]entities.Asset, derrors.Error) {
+	exists, err := m.OrgProvider.Exists(edgeControllerId.OrganizationId)
+	if err != nil{
+		return nil, err
+	}
+	if !exists{
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(edgeControllerId.OrganizationId)
+	}
+	groups, err := m.AssetProvider.ListControllerAssets(edgeControllerId.EdgeControllerId)
+	if err != nil {
+		return nil, err
+	}
+	return groups, nil
 }

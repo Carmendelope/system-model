@@ -19,6 +19,8 @@ type Provider interface {
 	Exists(assetID string) (bool, derrors.Error)
 	// List the assets in a given organization
 	List(organizationID string) ([]entities.Asset, derrors.Error)
+	// ListControllerAssets retrieves the assets associated with a given edge controller
+	ListControllerAssets(edgeControllerID string) ([]entities.Asset, derrors.Error)
 	// Get an asset.
 	Get(assetID string) (* entities.Asset, derrors.Error)
 	// Remove an asset
