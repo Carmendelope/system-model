@@ -1018,19 +1018,3 @@ func (sp *ScyllaApplicationProvider) RemoveAppZtNetworkMember(organizationId str
 	return nil
 }
 
-// RemoveZtNetworkMember all the members of an existing network
-func (sp *ScyllaApplicationProvider) RemoveCompleteAppZtNetworkMemberNet(organizationId string, appInstanceId string, networkId string) derrors.Error {
-	sp.Lock()
-	defer sp.Unlock()
-
-	// delete an instance
-	stmt, _ := qb.Delete("appztnetworkmembers").Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).
-		Where(qb.Eq("zt_network_id")).ToCql()
-	cqlErr := sp.Session.Query(stmt, organizationId, appInstanceId, networkId).Exec()
-
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot delete app zt network members")
-	}
-	return nil
-}

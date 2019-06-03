@@ -456,18 +456,3 @@ func (h *Handler) RemoveAuthorizedZtNetworkMember(ctx context.Context, req *grpc
 	return  &grpc_common_go.Success{}, nil
 }
 
-func (h *Handler) RemoveCompleteAppZtNetworkMemberNet(ctx context.Context,
-	req *grpc_application_go.RemoveCompleteAppZtNetworkMemberNetRequest) (*grpc_common_go.Success, error){
-
-	err := entities.ValidRemoveCompleteAppZtNetworkMemberNetReques(req)
-	if err != nil {
-		return nil, err
-	}
-
-	err = h.Manager.AppProvider.RemoveCompleteAppZtNetworkMemberNet(req.OrganizationId, req.AppInstanceId, req.NetworkId)
-	if err != nil {
-		return nil, err
-	}
-
-	return &grpc_common_go.Success{}, nil
-}
