@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const DefaultLocation = "undefined"
+
 // EdgeController entity.
 type EdgeController struct {
 	// OrganizationId with the organization identifier.
@@ -35,6 +37,9 @@ type EdgeController struct {
 func NewEdgeControllerFromGRPC(eic * grpc_inventory_go.AddEdgeControllerRequest) * EdgeController{
 	if eic == nil{
 		return nil
+	}
+	if eic.Location == "" {
+		eic.Location = DefaultLocation
 	}
 	return &EdgeController{
 		OrganizationId:   eic.OrganizationId,
