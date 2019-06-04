@@ -90,4 +90,14 @@ func (m * Manager) Update(request *grpc_inventory_go.UpdateEdgeControllerRequest
 	return retrieved, nil
 }
 
+func (m * Manager) Get(edgeControllerID *grpc_inventory_go.EdgeControllerId) (*entities.EdgeController, derrors.Error) {
+	retrieved, err := m.ControllerProvider.Get(edgeControllerID.EdgeControllerId)
+	if err != nil{
+		return nil, err
+	}
+	if retrieved.OrganizationId != edgeControllerID.OrganizationId{
+		return nil, derrors.NewNotFoundError("organization_id & edge_controller_id").WithParams(edgeControllerID.OrganizationId, edgeControllerID.EdgeControllerId)
+	}
+	return retrieved, nil
+}
 

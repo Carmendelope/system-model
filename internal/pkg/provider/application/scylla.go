@@ -1078,6 +1078,7 @@ func (sp *ScyllaApplicationProvider) RemoveAppZtNetworkMember(organizationId str
 	return nil
 }
 
+
 func (sp *ScyllaApplicationProvider) GetAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string) (*entities.AppZtNetworkMembers, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()

@@ -79,6 +79,25 @@ func RunTest(provider Provider) {
 		gomega.Expect(len(retrieved)).To(gomega.Equal(numAssets))
 	})
 
+	ginkgo.It("should be able to list the assets in an organization associated with an edge controller", func(){
+		numAssets := 10
+		organizationID := entities.GenerateUUID()
+		edgeControllerID := entities.GenerateUUID()
+		for index := 0; index < numAssets; index ++{
+			toAdd := CreateTestAsset()
+			toAdd.OrganizationId = organizationID
+			if index % 2 == 0{
+				toAdd.EdgeControllerId = edgeControllerID
+			}
+			err := provider.Add(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+		}
+
+		retrieved, err := provider.ListControllerAssets(edgeControllerID)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(len(retrieved)).To(gomega.Equal(numAssets/2))
+	})
+
 	ginkgo.It("should be able to delete an asset", func(){
 		toAdd := CreateTestAsset()
 		err := provider.Add(*toAdd)
