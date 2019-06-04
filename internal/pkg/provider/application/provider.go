@@ -89,12 +89,12 @@ type Provider interface {
 	GetAppZtNetwork(organizationId string, appInstanceId string) (*entities.AppZtNetwork, derrors.Error)
 
 	// AddZtNetworkMember add a new member for an existing zt network
-	AddAppZtNetworkMember(member entities.AppZtNetworkMember) (*entities.AppZtNetworkMember, derrors.Error)
+	AddAppZtNetworkMember(member entities.AppZtNetworkMembers) (*entities.AppZtNetworkMembers, derrors.Error)
 
 	// RemoveZtNetworkMember remove an existing member for a zt network
-	RemoveAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstance string) derrors.Error
+	RemoveAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstance string, ztNetworkId string) derrors.Error
 
-	// RemoveCompleteAppZtNetworkMemberNet removes all the entries stored under the same network id
-	RemoveCompleteAppZtNetworkMemberNet(organizationId string, appInstanceId string, networkId string) derrors.Error
+	// GetAppZtNetworkMember get the member of a zt network
+	GetAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string) (*entities.AppZtNetworkMembers, derrors.Error)
 
 }

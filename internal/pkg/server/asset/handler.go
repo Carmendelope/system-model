@@ -5,6 +5,7 @@
 package asset
 
 import (
+	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-inventory-go"
 	"github.com/nalej/grpc-organization-go"
@@ -87,3 +88,11 @@ func (h *Handler) Update(ctx context.Context, updateRequest *grpc_inventory_go.U
 	return updated.ToGRPC(), nil
 }
 
+// Get retrieves a given asset
+func (h *Handler) Get(ctx context.Context, asset *grpc_inventory_go.AssetId) (*grpc_inventory_go.Asset, error) {
+	return nil, derrors.NewUnavailableError("Not implemented yet")
+}
+
+func (h *Handler) ListControllerAssets(context.Context, *grpc_inventory_go.EdgeControllerId) (*grpc_inventory_go.AssetList, error) {
+	return nil, derrors.NewUnavailableError("Not implemented yet")
+}

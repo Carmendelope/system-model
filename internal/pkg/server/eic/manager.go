@@ -89,3 +89,5 @@ func (m * Manager) Update(request *grpc_inventory_go.UpdateEdgeControllerRequest
 	}
 	return retrieved, nil
 }
+
+

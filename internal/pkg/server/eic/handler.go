@@ -6,6 +6,7 @@ package eic
 
 import (
 	"context"
+	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-inventory-go"
 	"github.com/nalej/grpc-organization-go"
@@ -84,4 +85,6 @@ func (h * Handler) Update(ctx context.Context, request *grpc_inventory_go.Update
 	return updated.ToGRPC(), nil
 }
 
-
+func (h * Handler) Get(context.Context, *grpc_inventory_go.EdgeControllerId) (*grpc_inventory_go.EdgeController, error) {
+	return nil, derrors.NewNotFoundError("not implemented yet")
+}
