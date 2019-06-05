@@ -100,3 +100,4 @@ func (m * Manager) Get(edgeControllerID *grpc_inventory_go.EdgeControllerId) (*e
 	}
 	return retrieved, nil
 }
+

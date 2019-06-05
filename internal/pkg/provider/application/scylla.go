@@ -975,7 +975,7 @@ func (sp *ScyllaApplicationProvider) GetAppZtNetwork(organizationId string, appI
 // AppZtNetworkMembers related methods
 
 // AddZtNetworkMember add a new member for an existing zt network
-func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZtNetworkMember) (*entities.AppZtNetworkMember, derrors.Error) {
+func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZtNetworkMembers) (*entities.AppZtNetworkMembers, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -985,16 +985,71 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 		return nil, err
 	}
 
-	// set the created_at field
-	member.CreatedAt = time.Now().Unix()
-	// add the zt network member
-	stmt, names := qb.Insert("appztnetworkmembers").Columns("organization_id", "app_instance_id",
-		"service_group_instance_id", "service_application_instance_id", "zt_network_id", "member_id", "is_proxy", "created_at").ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(member)
-	cqlErr := q.ExecRelease()
+	// if we already have an entry, simply add a new member
+	stmt, names := qb.Select("appztnetworkmembers").Columns("organization_id", "app_instance_id",
+		"service_group_instance_id", "service_application_instance_id", "zt_network_id","members").
+		Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).
+		Where(qb.Eq("service_group_instance_id")).Where(qb.Eq("service_application_instance_id")).
+		Where(qb.Eq("zt_network_id")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": member.OrganizationId,
+		"app_instance_id": member.AppInstanceId,
+		"service_group_instance_id": member.ServiceGroupInstanceId,
+		"service_application_instance_id": member.ServiceApplicationInstanceId,
+		"zt_network_id": member.ZtNetworkId,
+	})
+
+	var retrievedMembers entities.AppZtNetworkMembers
+	cqlErr := gocqlx.Get(&retrievedMembers, q.Query)
 
 	if cqlErr != nil {
-		return nil,derrors.AsError(cqlErr, "cannot add an app zt network member")
+		if cqlErr.Error() == rowNotFound {
+			// insert a new row
+			stmt, names := qb.Insert("appztnetworkmembers").Columns("organization_id", "app_instance_id",
+				"service_group_instance_id", "service_application_instance_id", "zt_network_id","members").ToCql()
+			// update creation time
+			for k, v := range member.Members {
+				v.CreatedAt = time.Now().Unix()
+				member.Members[k] = v
+			}
+
+			log.Debug().Interface("members", member).Msg("members to write")
+
+			q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(member)
+			cqlErr := q.Exec()
+			if cqlErr != nil {
+				return nil, derrors.NewInternalError("appZtNetworkMembers",err).WithParams(member.OrganizationId).
+					WithParams(member.AppInstanceId).WithParams(member.ServiceGroupInstanceId).WithParams(member.AppInstanceId).
+					WithParams(member.ZtNetworkId)
+			}
+			return &member, nil
+		}else {
+			return nil, derrors.AsError(err, "cannot get appZtNetworkMembers")
+		}
+	}
+
+	log.Debug().Interface("retrieved",retrievedMembers).Msg("retrieved members from DB")
+
+	// update the map
+	for k,v := range member.Members {
+		newEntry := v
+		newEntry.CreatedAt = time.Now().Unix()
+		retrievedMembers.Members[k] = newEntry
+	}
+
+	log.Debug().Interface("members", retrievedMembers).Msg("members to update")
+
+
+	// add the zt network member
+	stmt, names = qb.Update("appztnetworkmembers").Set("members").
+		Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).
+		Where(qb.Eq("service_group_instance_id")).Where(qb.Eq("service_application_instance_id")).
+		Where(qb.Eq("zt_network_id")).ToCql()
+	q = gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(retrievedMembers)
+	cqlErr = q.ExecRelease()
+
+	if cqlErr != nil {
+		return nil,derrors.AsError(cqlErr, "cannot update app zt network member")
 	}
 
 	return &member, nil
@@ -1002,19 +1057,61 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 }
 
 // RemoveZtNetworkMember remove an existing member for a zt network
-func (sp *ScyllaApplicationProvider) RemoveAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstanceId string) derrors.Error {
+func (sp *ScyllaApplicationProvider) RemoveAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstanceId string, ztNetworkId string) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 
 	// delete an instance
 	stmt, _ := qb.Delete("appztnetworkmembers").Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).
-		Where(qb.Eq("service_group_instance_id")).Where(qb.Eq("service_application_instance_id")).ToCql()
-	cqlErr := sp.Session.Query(stmt, organizationId, appInstanceId, serviceGroupInstanceId, serviceInstanceId).Exec()
+		Where(qb.Eq("service_group_instance_id")).Where(qb.Eq("service_application_instance_id")).
+		Where(qb.Eq("zt_network_id")).ToCql()
+	query := sp.Session.Query(stmt, organizationId, appInstanceId, serviceGroupInstanceId, serviceInstanceId,ztNetworkId)
+	cqlErr := query.Exec()
+
+	log.Debug().Str("query", query.String()).Msg("generated sql statement")
+
 
 
 	if cqlErr != nil {
 		return derrors.AsError(cqlErr, "cannot delete an app zt network member")
 	}
 	return nil
+}
+
+
+func (sp *ScyllaApplicationProvider) GetAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string) (*entities.AppZtNetworkMembers, derrors.Error) {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return nil, err
+	}
+
+	// if we already have an entry, simply add a new member
+	stmt, names := qb.Select("appztnetworkmembers").Columns("organization_id", "app_instance_id",
+		"service_group_instance_id", "service_application_instance_id", "zt_network_id","members").
+		Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).
+		Where(qb.Eq("service_group_instance_id")).Where(qb.Eq("service_application_instance_id")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": organizationId,
+		"app_instance_id": appInstanceId,
+		"service_group_instance_id": serviceGroupInstanceId,
+		"service_application_instance_id": serviceApplicationInstanceId,
+	})
+
+	var retrievedMembers entities.AppZtNetworkMembers
+	cqlErr := gocqlx.Get(&retrievedMembers, q.Query)
+
+	if cqlErr != nil {
+		if cqlErr.Error() == rowNotFound {
+			return nil, derrors.NewNotFoundError("get app zt network member")
+		}else{
+			return nil, derrors.AsError(err,"cannot get app zt network member")
+		}
+	}
+	return &retrievedMembers, nil
+
 }
 
