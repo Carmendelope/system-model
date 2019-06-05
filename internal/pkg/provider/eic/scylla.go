@@ -8,7 +8,6 @@ import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/scylladb"
-	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
 	"sync"
@@ -52,8 +51,6 @@ func (sp *ScyllaControllerProvider) Disconnect() {
 func (sp *ScyllaControllerProvider) Add(eic entities.EdgeController) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
-	log.Info().Interface("eic", eic).Msg("Add")
-
 	return sp.UnsafeAdd(ControllerTable, ControllerTablePK, eic.EdgeControllerId, allControllerColumns, eic)
 }
 

@@ -7,7 +7,6 @@ package entities
 import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-inventory-go"
-	"github.com/rs/zerolog/log"
 	"time"
 )
 
@@ -57,7 +56,6 @@ func NewEdgeControllerFromGRPC(eic * grpc_inventory_go.AddEdgeControllerRequest)
 	if eic.Geolocation == "" {
 		eic.Geolocation = DefaultLocation
 	}
-	log.Info().Interface("AddEdgeControllerRequest", eic).Msg("NewEdgeControllerFromGRPC")
 	return &EdgeController{
 		OrganizationId:   eic.OrganizationId,
 		EdgeControllerId: GenerateUUID(),
