@@ -25,5 +25,9 @@ func CreateTestEdgeController() *entities.EdgeController{
 		Created:          time.Now().Unix(),
 		Name:             fmt.Sprintf("name_%d", id),
 		Labels:           labels,
+		Location:         &entities.InventoryLocation{
+			Geolocation: "geolocation",
+			Geohash: "geohash",
+		},
 	}
 }
