@@ -98,6 +98,7 @@ func (h *Handler) Update(ctx context.Context, updateRequest *grpc_inventory_go.U
 	return updated.ToGRPC(), nil
 }
 
+
 func (h *Handler) ListControllerAssets(ctx context.Context, edgeControllerId *grpc_inventory_go.EdgeControllerId) (*grpc_inventory_go.AssetList, error) {
 	err := entities.ValidEdgeControllerID(edgeControllerId)
 	if err != nil{

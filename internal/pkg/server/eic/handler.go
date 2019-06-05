@@ -84,6 +84,7 @@ func (h * Handler) Update(ctx context.Context, request *grpc_inventory_go.Update
 	return updated.ToGRPC(), nil
 }
 
+
 func (h *Handler) Get(ctx context.Context, edgeControllerID *grpc_inventory_go.EdgeControllerId) (*grpc_inventory_go.EdgeController, error) {
 	err := entities.ValidEdgeControllerID(edgeControllerID)
 	if err != nil{
@@ -95,4 +96,3 @@ func (h *Handler) Get(ctx context.Context, edgeControllerID *grpc_inventory_go.E
 	}
 	return retrieved.ToGRPC(), nil
 }
-

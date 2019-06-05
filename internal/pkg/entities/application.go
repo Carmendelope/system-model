@@ -1898,9 +1898,23 @@ func(a *AppZtNetwork) ToGRPC() *grpc_application_go.AppZtNetwork {
 }
 
 // ----------------------------------------------
-// AppZtNetworkMember
 
-type AppZtNetworkMember struct {
+// Set of attributes to identify a member of a VPN
+type AppNetworkMember struct {
+	// MemberId identifier of this entry in a VPN
+	MemberId string `json:"member_id,omitempty" cql:"member_id"`
+	// IsProxy indicates whether this is a VPN proxy
+	IsProxy bool `json:"is_proxy,omitempty" cql:"is_proxy"`
+	// Ip
+	Ip string `json:"ip,omitempty" cql:"ip"`
+	// CreatedAt
+	CreatedAt int64 `json:"created_at,omitempty" cql:"created_at"`
+}
+
+
+// AppZtNetworkMembers
+
+type AppZtNetworkMembers struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// AppInstanceId with the application instance identifier.
@@ -1911,43 +1925,67 @@ type AppZtNetworkMember struct {
 	ServiceApplicationInstanceId string `json:"service_application_instance_id,omitempty" cql: "service_application_instance_id"`
 	// ZtNetworkId zero-tier network identifier.
 	ZtNetworkId string `json:"zt_network_id,omitempty" cql:"zt_network_id"`
-	// MemberId for this entry in the zt network
-	MemberId string `json:"member_id,omitempty" cql:"member_id"`
-	// IsProxy indicates whether this is a proxy entry or not
-	IsProxy bool `json:"is_proxy,omitempty" cql:"is_proxy"`
-	// CreatedAt indicates when the entry was created
-	CreatedAt int64 `json:"created_at,omitempty" cql:"created_at"`
+	// Members and their information for this particular network
+	Members map[string]AppNetworkMember `json:"members,omitempty" cql:"members"`
 }
 
-func NewAppZtNetworkMemberFromGRPC(req *grpc_application_go.AddAuthorizedZtNetworkMemberRequest ) *AppZtNetworkMember {
-	return &AppZtNetworkMember{
+func NewAppZtNetworkMemberFromGRPC(req *grpc_application_go.AddAuthorizedZtNetworkMemberRequest ) *AppZtNetworkMembers {
+	return &AppZtNetworkMembers{
 		OrganizationId: req.OrganizationId,
 		AppInstanceId: req.AppInstanceId,
 		ZtNetworkId: req.NetworkId,
 		ServiceGroupInstanceId: req.ServiceGroupInstanceId,
-		IsProxy: req.IsProxy,
-		MemberId: req.MemberId,
 		ServiceApplicationInstanceId: req.ServiceApplicationInstanceId,
-		CreatedAt: 0,
+		Members: map[string]AppNetworkMember{req.MemberId: {MemberId: req.MemberId, Ip: req.NetworkId, IsProxy: req.IsProxy, CreatedAt: 0}},
 	}
 }
 
-func(a *AppZtNetworkMember) ToGRPC() *grpc_application_go.ZtNetworkMember {
+func (m *AppZtNetworkMembers) ToGRPC() *grpc_application_go.ZtNetworkMember {
 	return &grpc_application_go.ZtNetworkMember{
-		NetworkId: a.ZtNetworkId,
-		AppInstanceId: a.AppInstanceId,
-		OrganizationId: a.OrganizationId,
-		ServiceApplicationInstanceId: a.ServiceApplicationInstanceId,
-		MemberId: a.MemberId,
-		IsProxy: a.IsProxy,
-		ServiceGroupInstanceId: a.ServiceGroupInstanceId,
-		CreatedAt: a.CreatedAt,
+		OrganizationId: m.OrganizationId,
+		AppInstanceId: m.AppInstanceId,
+		ServiceGroupInstanceId: m.ServiceGroupInstanceId,
+		ServiceApplicationInstanceId: m.ServiceApplicationInstanceId,
+		NetworkId: m.ZtNetworkId,
+		// CreatedAt:
+		// IsProxy:
+		// MemberId:
 	}
+}
+
+// convert the zt network members to a list of network member
+func (m *AppZtNetworkMembers) ToArrayGRPC() *grpc_application_go.ZtNetworkMembers {
+	result := grpc_application_go.ZtNetworkMembers{Members: make([]*grpc_application_go.ZtNetworkMember,len(m.Members))}
+	i:=0
+	for _, entry := range m.Members {
+		aux := &grpc_application_go.ZtNetworkMember{
+			OrganizationId: m.OrganizationId,
+			AppInstanceId: m.AppInstanceId,
+			ServiceGroupInstanceId: m.ServiceGroupInstanceId,
+			ServiceApplicationInstanceId: m.ServiceApplicationInstanceId,
+			CreatedAt: entry.CreatedAt,
+			MemberId: entry.MemberId,
+			IsProxy: entry.IsProxy,
+			NetworkId: m.ZtNetworkId,
+		}
+		result.Members[i] = aux
+		i++
+	}
+	return &result
 }
 
 
 
 // Validation functions
+
+func ValidGetAuthorizedZtNetworkMemberRequest(req * grpc_application_go.GetAuthorizedZtNetworkMemberRequest) derrors.Error {
+	if req.OrganizationId == "" || req.AppInstanceId == "" || req.ServiceGroupInstanceId == "" ||
+		req.ServiceApplicationInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, service_group_instance_id, " +
+			"service_application_instance_id")
+	}
+	return nil
+}
 
 func ValidAddAuthorizedNetworkMemberRequest(req * grpc_application_go.AddAuthorizedZtNetworkMemberRequest) derrors.Error {
 	if req.OrganizationId == "" || req.AppInstanceId == "" || req.ServiceGroupInstanceId == "" ||
@@ -1960,9 +1998,9 @@ func ValidAddAuthorizedNetworkMemberRequest(req * grpc_application_go.AddAuthori
 
 func ValidRemoveAuthorizedZtNetworkMemberRequest(req * grpc_application_go.RemoveAuthorizedZtNetworkMemberRequest) derrors.Error {
 	if req.OrganizationId == "" || req.AppInstanceId == "" || req.ServiceGroupInstanceId == "" ||
-		req.ServiceApplicationInstanceId == "" {
+		req.ServiceApplicationInstanceId == "" || req.ZtNetworkId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, service_group_instance_id, " +
-			"service_application_instance_id")
+			"service_application_instance_id, zt_network_id")
 	}
 	return nil
 }

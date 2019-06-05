@@ -785,8 +785,16 @@ func (m * Manager) GetAppZtNetwork(request *grpc_application_go.GetAppZtNetworkR
 	return m.AppProvider.GetAppZtNetwork(request.OrganizationId, request.AppInstanceId)
 }
 
-func (m * Manager) AddAppZtNetworkMember(request *grpc_application_go.AddAuthorizedZtNetworkMemberRequest) (*entities.AppZtNetworkMember, derrors.Error) {
+func (m * Manager) AddAppZtNetworkMember(request *grpc_application_go.AddAuthorizedZtNetworkMemberRequest) (*entities.AppZtNetworkMembers, derrors.Error) {
 	return m.AppProvider.AddAppZtNetworkMember(*entities.NewAppZtNetworkMemberFromGRPC(request))
+}
+
+func (m * Manager) RemoveAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string, ztNetworkId string) derrors.Error {
+	return m.AppProvider.RemoveAppZtNetworkMember(organizationId,appInstanceId, serviceGroupInstanceId, serviceApplicationInstanceId, ztNetworkId)
+}
+
+func (m * Manager) GetAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string) (*entities.AppZtNetworkMembers, derrors.Error) {
+	return m.AppProvider.GetAppZtNetworkMember(organizationId,appInstanceId, serviceGroupInstanceId, serviceApplicationInstanceId)
 }
 
 func (m * Manager) fillDeviceGroupIds (desc *entities.ParametrizedDescriptor) derrors.Error {
