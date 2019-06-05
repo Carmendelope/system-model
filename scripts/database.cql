@@ -28,6 +28,7 @@ create type IF NOT EXISTS nalej.networking_hardware_info (type text, link_capaci
 create type IF NOT EXISTS nalej.hardware_info (cpus list<FROZEN<cpu_info>>, installed_ram int, net_interfaces list<FROZEN<networking_hardware_info>>);
 create type IF NOT EXISTS nalej.storage_hardware_info (type text, total_capacity int);
 create type IF NOT EXISTS nalej.agent_op_summary (operation_id text, timestamp int, status int, info text);
+    create type IF NOT EXISTS nalej.inventory_location (geolocation text, geohash text);
 
 
 create type IF NOT EXISTS nalej.instance_parameter(parameter_name text, value text);

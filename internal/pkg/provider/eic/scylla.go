@@ -78,6 +78,7 @@ func (sp *ScyllaControllerProvider) Get(edgeControllerID string) (*entities.Edge
 }
 
 func (sp *ScyllaControllerProvider) List(organizationID string) ([]entities.EdgeController, derrors.Error) {
+
 	sp.Lock()
 	defer sp.Unlock()
 

@@ -12,25 +12,40 @@ import (
 
 const DefaultLocation = "undefined"
 
+type InventoryLocation struct {
+	Geolocation string `json:"geolocation,omitempty" cql:"geolocation"`
+	Geohash     string `json:"geohash,omitempty" cql:"geohash"`
+}
+
+func (ecl *InventoryLocation) ToGRPC() *grpc_inventory_go.InventoryLocation {
+	if ecl == nil {
+		return nil
+	}
+	return &grpc_inventory_go.InventoryLocation{
+		Geolocation: ecl.Geolocation,
+		Geohash: ecl.Geohash,
+	}
+}
+
 // EdgeController entity.
 type EdgeController struct {
 	// OrganizationId with the organization identifier.
-	OrganizationId string `json:"organization_id,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// EdgeControllerId with the EIC identifier.
-	EdgeControllerId string `json:"edge_controller_id,omitempty"`
+	EdgeControllerId string `json:"edge_controller_id,omitempty" cql:"edge_controller_id"`
 	// Show flag to determine if this asset should be shown on the UI. This flag is internally used
 	// for the async uninstall/removal of the asset.
-	Show bool `json:"show,omitempty"`
+	Show bool `json:"show,omitempty" cql:"show"`
 	// Created time
-	Created int64 `json:"created,omitempty"`
+	Created int64 `json:"created,omitempty" cql:"created"`
 	// Name of the EIC.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" cql:"name"`
 	// Labels defined by the user.
-	Labels               map[string]string `json:"labels,omitempty"`
+	Labels               map[string]string `json:"labels,omitempty" cql:"labels"`
 	// LastAliveTimestamp contains the last alive message received
-	LastAliveTimestamp   int64    `json:"last_alive_timestamp,omitempty"`
-	// Location
-	Location string `json:"location,omitempty"`
+	LastAliveTimestamp   int64    `json:"last_alive_timestamp,omitempty" cql:"last_alive_timestamp"`
+	// location with the EC location
+	Location             *InventoryLocation `json:"location,omitempty" cql:"location"`
 
 }
 
@@ -38,8 +53,8 @@ func NewEdgeControllerFromGRPC(eic * grpc_inventory_go.AddEdgeControllerRequest)
 	if eic == nil{
 		return nil
 	}
-	if eic.Location == "" {
-		eic.Location = DefaultLocation
+	if eic.Geolocation == "" {
+		eic.Geolocation = DefaultLocation
 	}
 	return &EdgeController{
 		OrganizationId:   eic.OrganizationId,
@@ -48,7 +63,9 @@ func NewEdgeControllerFromGRPC(eic * grpc_inventory_go.AddEdgeControllerRequest)
 		Created:          time.Now().Unix(),
 		Name:             eic.Name,
 		Labels:           eic.Labels,
-		Location:         eic.Location,
+		Location:         &InventoryLocation{
+			Geolocation:eic.Geolocation,
+		},
 	}
 }
 
@@ -64,7 +81,7 @@ func (ec * EdgeController) ToGRPC() *grpc_inventory_go.EdgeController{
 		Name:                 ec.Name,
 		Labels:               ec.Labels,
 		LastAliveTimestamp:   ec.LastAliveTimestamp,
-		Location: 			  ec.Location,
+		Location: 			  ec.Location.ToGRPC(),
 	}
 }
 
@@ -85,8 +102,14 @@ func (ec * EdgeController) ApplyUpdate(request * grpc_inventory_go.UpdateEdgeCon
 	if request.UpdateLastAlive {
 		ec.LastAliveTimestamp = request.LastAliveTimestamp
 	}
-	if request.UpdateLocation {
-		ec.Location = request.Location
+	if request.UpdateGeolocation {
+		if ec.Location == nil {
+			ec.Location = &InventoryLocation{
+				Geolocation: request.Geolocation,
+			}
+		}else{
+			ec.Location.Geolocation = request.Geolocation
+		}
 	}
 }
 
