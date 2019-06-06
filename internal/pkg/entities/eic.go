@@ -17,13 +17,13 @@ type InventoryLocation struct {
 	Geohash     string `json:"geohash,omitempty" cql:"geohash"`
 }
 
-func (ecl *InventoryLocation) ToGRPC() *grpc_inventory_go.InventoryLocation {
-	if ecl == nil {
+func (il *InventoryLocation) ToGRPC() *grpc_inventory_go.InventoryLocation {
+	if il == nil {
 		return nil
 	}
 	return &grpc_inventory_go.InventoryLocation{
-		Geolocation: ecl.Geolocation,
-		Geohash: ecl.Geohash,
+		Geolocation: il.Geolocation,
+		Geohash: il.Geohash,
 	}
 }
 

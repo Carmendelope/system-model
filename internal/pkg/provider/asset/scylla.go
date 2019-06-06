@@ -20,10 +20,10 @@ const AssetTable = "Asset"
 const AssetTablePK = "asset_id"
 // AllAssetColumns contains the name of all the columns in the asset table.
 var allAssetColumns = []string{"organization_id", "edge_controller_id", "asset_id", "agent_id", "show",
-	"created", "labels", "os", "hardware", "storage", "eic_net_ip", "last_alive_timestamp", "last_op_result"}
+	"created", "labels", "os", "hardware", "storage", "eic_net_ip", "last_alive_timestamp", "last_op_result", "location"}
 // AllAssetColumnsNoPK contains the name of all the columns in the asset table except the PK.
 var allAssetColumnsNoPK = []string{"organization_id", "edge_controller_id", "agent_id", "show",
-	"created", "labels", "os", "hardware", "storage", "eic_net_ip", "last_alive_timestamp", "last_op_result"}
+	"created", "labels", "os", "hardware", "storage", "eic_net_ip", "last_alive_timestamp", "last_op_result", "location"}
 
 type ScyllaAssetProvider struct {
 	scylladb.ScyllaDB

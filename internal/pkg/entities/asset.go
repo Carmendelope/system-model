@@ -225,6 +225,7 @@ func (a * AgentOpSummary) ToGRPC() *grpc_inventory_go.AgentOpSummary {
 		Info: 		a.Info,
 	}
 }
+
 func NewAgentOpSummaryFromGRPC(op *grpc_inventory_go.AgentOpSummary) *AgentOpSummary {
 	return &AgentOpSummary{
 		OperationId:op.OperationId,
@@ -264,6 +265,8 @@ type Asset struct {
 	LastOpResult *AgentOpSummary `json:"last_op_result,omitempty"`
 	// LastAliveTimestamp contains the last alive message received
 	LastAliveTimestamp   int64    `json:"last_alive_timestamp,omitempty"`
+	// location with the asset location
+	Location             *InventoryLocation `json:"location,omitempty"`
 }
 
 func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
@@ -284,6 +287,10 @@ func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
 		Os:             NewOperatingSystemInfoFromGRPC(addRequest.Os),
 		Hardware:       NewHardwareInfoFromGRPC(addRequest.Hardware),
 		Storage:        storage,
+		Location:       &InventoryLocation{
+			Geolocation: addRequest.Location.Geolocation,
+			Geohash: addRequest.Location.Geohash,
+		},
 	}
 }
 
@@ -308,6 +315,7 @@ func (a * Asset) ToGRPC() *grpc_inventory_go.Asset{
 		EicNetIp:             a.EicNetIp,
 		LastAliveTimestamp:   a.LastAliveTimestamp,
 		LastOpResult:         a.LastOpResult.ToGRPC(),
+		Location:             a.Location.ToGRPC(),
 	}
 }
 
@@ -334,7 +342,19 @@ func (a * Asset) ApplyUpdate(request * grpc_inventory_go.UpdateAssetRequest){
 	if request.UpdateIp {
 		a.EicNetIp = request.EicNetIp
 	}
-}
+	if request.UpdateLocation {
+		if a.Location == nil {
+			a.Location = &InventoryLocation{
+				Geolocation: request.Location.Geolocation,
+				Geohash:     request.Location.Geohash,
+			}
+		} else {
+				a.Location.Geolocation = request.Location.Geolocation
+				a.Location.Geohash = request.Location.Geohash
+			}
+		}
+	}
+
 
 func ValidAddAssetRequest(addRequest * grpc_inventory_go.AddAssetRequest) derrors.Error{
 	if addRequest.OrganizationId == "" {
