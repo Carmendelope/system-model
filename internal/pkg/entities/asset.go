@@ -205,13 +205,13 @@ var AgentOpStatusFromGRPC = map[grpc_inventory_go.AgentOpStatus]AgentOpStatus {
 // this is a provisional result!
 type AgentOpSummary struct {
 	// OperationId with the operation identifier.
-	OperationId string `json:"operation_id,omitempty"`
+	OperationId string `json:"operation_id,omitempty" cql:"operation_id"`
 	// Timestamp of the response.
-	Timestamp int64 `json:"timestamp,omitempty"`
+	Timestamp int64 `json:"timestamp,omitempty" cql:"timestamp"`
 	// Status indicates if the operation was successfull
-	Status AgentOpStatus `json:"status,omitempty"`
+	Status AgentOpStatus `json:"status,omitempty" cql:"status"`
 	// Info with additional information for an operation.
-	Info                 string   `json:"info,omitempty"`
+	Info                 string   `json:"info,omitempty" cql:"info"`
 }
 
 func (a * AgentOpSummary) ToGRPC() *grpc_inventory_go.AgentOpSummary {
@@ -259,11 +259,11 @@ type Asset struct {
 	// Storage information.
 	Storage []StorageHardwareInfo `json:"storage,omitempty" cql:"storage"`
 	// EicNetIp contains the current IP address that connects the asset to the EIC.
-	EicNetIp             string   `json:"eic_net_ip,omitempty"`
+	EicNetIp             string   `json:"eic_net_ip,omitempty" cql:"eic_net_ip"`
 	// AgentOpSummary contains the result of the last operation fr this asset
-	LastOpResult *AgentOpSummary `json:"last_op_result,omitempty"`
+	LastOpResult *AgentOpSummary `json:"last_op_result,omitempty" cql: "eic_net_ip"`
 	// LastAliveTimestamp contains the last alive message received
-	LastAliveTimestamp   int64    `json:"last_alive_timestamp,omitempty"`
+	LastAliveTimestamp   int64    `json:"last_alive_timestamp,omitempty" cql:"last_alive_timestamp"`
 }
 
 func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
