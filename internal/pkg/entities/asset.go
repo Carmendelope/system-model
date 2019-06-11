@@ -276,6 +276,15 @@ func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
 		storage = append(storage, * NewStorageHardwareInfoFromGRPC(sto) )
 	}
 
+	location := &InventoryLocation{
+		Geolocation: DefaultLocation,
+		Geohash: "",
+	}
+
+	if addRequest.Location != nil && addRequest.Location.Geolocation != "" {
+		location.Geolocation = addRequest.Location.Geolocation
+	}
+
 	return &Asset{
 		OrganizationId: addRequest.OrganizationId,
 		EdgeControllerId: addRequest.EdgeControllerId,
@@ -287,10 +296,7 @@ func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
 		Os:             NewOperatingSystemInfoFromGRPC(addRequest.Os),
 		Hardware:       NewHardwareInfoFromGRPC(addRequest.Hardware),
 		Storage:        storage,
-		Location:       &InventoryLocation{
-			Geolocation: addRequest.Location.Geolocation,
-			Geohash: addRequest.Location.Geohash,
-		},
+		Location:       location,
 	}
 }
 
