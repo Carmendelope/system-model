@@ -1869,8 +1869,61 @@ func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
 
 
 // ----------------------------------------------
-// AppZtNetwork
+// ServiceProxy
 
+type ServiceProxy struct {
+	// OrganizationId with the organization identifier.
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
+	// AppInstanceId with the application instance identifier.
+	AppInstanceId string `json:"app_instance_id,omitempty" cql: "app_instance_id"`
+	// ServiceGroupInstanceId
+	ServiceGroupInstanceId string `json:"service_group_instance_id" cql: "service_group_instance_id"`
+	// ServiceInstanceId
+	ServiceInstanceId string `json:"service_instance_id" cql: "service_instance_id"`
+	// ServiceGroupId
+	ServiceGroupId string `json:"service_group_id" cql: "service_group_id"`
+	// ServiceId
+	ServiceId string `json:"service_id" cql: "service_id"`
+	// ClusterId
+	ClusterId string `json:"cluster_id" cql: "cluster_id"`
+	// IP
+	IP string `json:"ip" cql: "ip"`
+	//FQDN
+	FQDN string `json:"fqdn" cql: "fqdn"`
+}
+
+func NewServiceProxyFromGRPC(proxy *grpc_application_go.ServiceProxy) *ServiceProxy {
+	return &ServiceProxy{
+		OrganizationId: proxy.OrganizationId,
+		AppInstanceId: proxy.AppInstanceId,
+		ServiceId: proxy.ServiceId,
+		ServiceGroupId: proxy.ServiceGroupId,
+		ServiceInstanceId: proxy.ServiceInstanceId,
+		ServiceGroupInstanceId: proxy.ServiceGroupInstanceId,
+		ClusterId: proxy.ClusterId,
+		FQDN: proxy.Fqdn,
+		IP: proxy.Ip,
+	}
+}
+
+func (s *ServiceProxy) ToGRPC() *grpc_application_go.ServiceProxy {
+	return &grpc_application_go.ServiceProxy{
+		OrganizationId: s.OrganizationId,
+		AppInstanceId: s.AppInstanceId,
+		ServiceId: s.ServiceId,
+		ServiceGroupId: s.ServiceGroupId,
+		ServiceInstanceId: s.ServiceInstanceId,
+		ServiceGroupInstanceId: s.ServiceGroupInstanceId,
+		ClusterId: s.ClusterId,
+		Fqdn: s.FQDN,
+		Ip: s.IP,
+	}
+}
+
+
+
+// ----------------------------------------------
+// AppZtNetwork
 
 type AppZtNetwork struct {
 	// OrganizationId with the organization identifier.
@@ -1879,21 +1932,54 @@ type AppZtNetwork struct {
 	AppInstanceId string `json:"app_instance_id,omitempty" cql: "app_instance_id"`
 	// ZtNetworkId zero-tier network identifier.
 	ZtNetworkId string `json:"zt_network_id,omitempty" cql:"zt_network_id"`
+	// VSAList contains is a mapping of fqdn -> ip representing the VSA
+	VSAList map[string]string `json:"vsa_list,omitempty" cql:"vsa_list"`
+	// Map of available proxies per VSA fqdn -> cluster_id -> service_proxy
+	AvailableProxies map[string]map[string][]ServiceProxy `json:"available_proxies,omitempty" cql:"available_proxies"`
 }
 
 func NewAppZtNetworkFromGRPC(req *grpc_application_go.AppZtNetwork ) *AppZtNetwork {
+	proxies := make(map[string]map[string][]ServiceProxy,0)
+	for fqdn, entry := range req.AvailableProxies {
+		proxiesPerCluster := make(map[string][]ServiceProxy,0)
+		for clusterId, serviceProxies := range entry.ProxiesPerCluster {
+			list := make([]ServiceProxy,len(serviceProxies.List))
+			for i, l := range serviceProxies.List {
+				list[i] = *NewServiceProxyFromGRPC(l)
+			}
+			proxiesPerCluster[clusterId] = list
+		}
+		proxies[fqdn] = proxiesPerCluster
+	}
 	return &AppZtNetwork{
 		OrganizationId: req.OrganizationId,
 		AppInstanceId: req.AppInstanceId,
 		ZtNetworkId: req.NetworkId,
+		VSAList: req.VsaList,
+		AvailableProxies: proxies,
 	}
 }
 
 func(a *AppZtNetwork) ToGRPC() *grpc_application_go.AppZtNetwork {
+	proxies := make(map[string]*grpc_application_go.ServiceProxyClusterMap,0)
+	for fqdn, entry := range a.AvailableProxies {
+		clusterMap := make(map[string]*grpc_application_go.ServiceProxyList)
+		for clusterId, serviceProxies := range entry {
+			list := make([]*grpc_application_go.ServiceProxy,len(serviceProxies))
+			for i, s := range serviceProxies {
+				list[i] = s.ToGRPC()
+			}
+			clusterMap[clusterId] = &grpc_application_go.ServiceProxyList{List: list}
+		}
+		proxies[fqdn] = &grpc_application_go.ServiceProxyClusterMap{ProxiesPerCluster:clusterMap}
+	}
+
 	return &grpc_application_go.AppZtNetwork{
 		NetworkId: a.ZtNetworkId,
 		AppInstanceId: a.AppInstanceId,
 		OrganizationId: a.OrganizationId,
+		VsaList: a.VSAList,
+		AvailableProxies: proxies,
 	}
 }
 

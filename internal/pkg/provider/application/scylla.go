@@ -913,7 +913,7 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetwork(ztNetwork entities.AppZtNet
 	}
 
 	// add the zt network
-	stmt, names := qb.Insert("appztnetworks").Columns("organization_id","app_instance_id","zt_network_id").ToCql()
+	stmt, names := qb.Insert("appztnetworks").Columns("organization_id","app_instance_id","zt_network_id","vsa_list","available_proxies").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(ztNetwork)
 	cqlErr := q.ExecRelease()
 
@@ -950,7 +950,7 @@ func (sp *ScyllaApplicationProvider) GetAppZtNetwork(organizationId string, appI
 		return nil, err
 	}
 
-	stmt, names := qb.Select("appztnetworks").Columns("organization_id", "app_instance_id", "zt_network_id").
+	stmt, names := qb.Select("appztnetworks").Columns("organization_id", "app_instance_id", "zt_network_id","vsa_list","available_proxies").
 		Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"organization_id": organizationId,
