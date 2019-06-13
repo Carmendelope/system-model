@@ -2064,6 +2064,25 @@ func (m *AppZtNetworkMembers) ToArrayGRPC() *grpc_application_go.ZtNetworkMember
 
 // Validation functions
 
+func ValidAddZtNetworkProxy(req * grpc_application_go.ServiceProxy) derrors.Error {
+	if req.OrganizationId == "" || req.ClusterId == "" || req.Fqdn == "" || req.AppInstanceId == "" ||
+		req.ServiceId == "" || req.ServiceGroupId == "" || req.ServiceInstanceId == "" ||
+		req.ServiceGroupInstanceId == "" || req.Ip == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, cluster_id, fqdn, app_instance_id," +
+			"service_id, service_group_id, service_instance_id, service_group_instance_id")
+	}
+	return nil
+}
+
+func ValidRemoveZtNetworkProxy(req * grpc_application_go.RemoveAppZtNetworkProxy) derrors.Error {
+	if req.OrganizationId == "" || req.ClusterId == "" || req.Fqdn == "" || req.AppInstanceId == "" ||
+		req.ServiceInstanceId == "" || req.ServiceGroupInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting organization_id, cluster_id, fqdn, app_instance_id," +
+			"service_instance_id, service_group_instance_id")
+	}
+	return nil
+}
+
 func ValidGetAuthorizedZtNetworkMemberRequest(req * grpc_application_go.GetAuthorizedZtNetworkMemberRequest) derrors.Error {
 	if req.OrganizationId == "" || req.AppInstanceId == "" || req.ServiceGroupInstanceId == "" ||
 		req.ServiceApplicationInstanceId == "" {

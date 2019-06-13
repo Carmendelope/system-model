@@ -395,6 +395,15 @@ func (m *MockupApplicationProvider) GetAppZtNetwork(organizationID string, appIn
 	return &toReturn, nil
 }
 
+// AddZtNetworkProxy add a zt service proxy
+func (m *MockupApplicationProvider) AddZtNetworkProxy(proxy entities.ServiceProxy) derrors.Error {
+	return derrors.NewUnimplementedError("AddZtNetworkProxy not implemented yet")
+}
+
+// RemoveZtNetworkProxy remove an existing zt service proxy
+func (m * MockupApplicationProvider) RemoveZtNetworkProxy(organizationId string, appInstanceId string, fqdn string, clusterId string, serviceGroupInstanceId string, serviceInstanceId string) derrors.Error {
+	return derrors.NewUnimplementedError("RemoveZtNetworkProxy not implemented yet")
+}
 
 func (m *MockupApplicationProvider) AddAppZtNetworkMember(member entities.AppZtNetworkMembers) (*entities.AppZtNetworkMembers, derrors.Error) {
 	return nil, derrors.NewUnimplementedError("AddAppZtNetworkMember not implemented yet")

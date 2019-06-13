@@ -472,7 +472,7 @@ func (h *Handler) AddZtNetworkProxy(ctx context.Context, req *grpc_application_g
 	if err != nil {
 		return nil, err
 	}
-	err = h.Manager.AddZtNetworkProxy(entities.ServiceProxy{
+	err = h.Manager.AddZtNetworkProxy(&entities.ServiceProxy{
 		OrganizationId: req.OrganizationId, AppInstanceId: req.AppInstanceId,
 		ServiceGroupInstanceId: req.ServiceGroupInstanceId, ClusterId:req.ClusterId,
 		FQDN: req.Fqdn, IP: req.Ip, ServiceInstanceId: req.ServiceInstanceId, ServiceGroupId: req.ServiceGroupId,
@@ -491,6 +491,6 @@ func (h *Handler) RemoveZtNetworkProxy(ctx context.Context, req *grpc_applicatio
 	if err != nil {
 		return nil, err
 	}
-	err = h.Manager.RemoveZtNetworkProxy(req.OrganizationId, req.AppInstanceId, req.Fqdn, req.ClusterId, )
+	err = h.Manager.RemoveZtNetworkProxy(req.OrganizationId, req.AppInstanceId, req.Fqdn, req.ClusterId, req.ServiceGroupInstanceId, req.ServiceInstanceId)
 	return nil, nil
 }
