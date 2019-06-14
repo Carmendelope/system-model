@@ -1875,21 +1875,21 @@ type ServiceProxy struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// AppInstanceId with the application instance identifier.
-	AppInstanceId string `json:"app_instance_id,omitempty" cql: "app_instance_id"`
+	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
 	// ServiceGroupInstanceId
-	ServiceGroupInstanceId string `json:"service_group_instance_id" cql: "service_group_instance_id"`
+	ServiceGroupInstanceId string `json:"service_group_instance_id,omitempty" cql:"service_group_instance_id"`
 	// ServiceInstanceId
-	ServiceInstanceId string `json:"service_instance_id" cql: "service_instance_id"`
+	ServiceInstanceId string `json:"service_instance_id,omitempty" cql:"service_instance_id"`
 	// ServiceGroupId
-	ServiceGroupId string `json:"service_group_id" cql: "service_group_id"`
+	ServiceGroupId string `json:"service_group_id,omitempty" cql:"service_group_id"`
 	// ServiceId
-	ServiceId string `json:"service_id" cql: "service_id"`
+	ServiceId string `json:"service_id,omitempty" cql:"service_id"`
 	// ClusterId
-	ClusterId string `json:"cluster_id" cql: "cluster_id"`
+	ClusterId string `json:"cluster_id,omitempty" cql:"cluster_id"`
 	// IP
-	IP string `json:"ip" cql: "ip"`
+	IP string `json:"ip,omitempty" cql:"ip"`
 	//FQDN
-	FQDN string `json:"fqdn" cql: "fqdn"`
+	FQDN string `json:"fqdn,omitempty" cql:"fqdn"`
 }
 
 func NewServiceProxyFromGRPC(proxy *grpc_application_go.ServiceProxy) *ServiceProxy {
@@ -1929,7 +1929,7 @@ type AppZtNetwork struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	// AppInstanceId with the application instance identifier.
-	AppInstanceId string `json:"app_instance_id,omitempty" cql: "app_instance_id"`
+	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
 	// ZtNetworkId zero-tier network identifier.
 	ZtNetworkId string `json:"zt_network_id,omitempty" cql:"zt_network_id"`
 	// VSAList contains is a mapping of fqdn -> ip representing the VSA

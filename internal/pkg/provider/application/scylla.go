@@ -1003,15 +1003,18 @@ func (sp *ScyllaApplicationProvider) AddZtNetworkProxy(proxy entities.ServicePro
 		}
 	}
 
+
+	if ztNetwork.AvailableProxies == nil {
+		ztNetwork.AvailableProxies = make(map[string]map[string][]entities.ServiceProxy,0)
+	}
+
 	// Add the proxy or overwrite if it is already there
 	existingProxies, found := ztNetwork.AvailableProxies[proxy.FQDN]
 	if !found {
-		aux := map[string]map[string][]entities.ServiceProxy{
-			proxy.FQDN : {
+		aux := map[string][]entities.ServiceProxy{
 				proxy.ClusterId: []entities.ServiceProxy{proxy},
-			},
 		}
-		ztNetwork.AvailableProxies = aux
+		ztNetwork.AvailableProxies[proxy.FQDN] = aux
 	} else {
 		// search for the entries
 		clusterEntries, found := existingProxies[proxy.ClusterId]
@@ -1024,6 +1027,7 @@ func (sp *ScyllaApplicationProvider) AddZtNetworkProxy(proxy entities.ServicePro
 		}
 		ztNetwork.AvailableProxies[proxy.FQDN] = existingProxies
 	}
+
 
 	// update the network proxy entry
 	stmt, names = qb.Insert("appztnetworks").Columns("organization_id","app_instance_id","zt_network_id","vsa_list","available_proxies").ToCql()
@@ -1155,8 +1159,6 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 				member.Members[k] = v
 			}
 
-			log.Debug().Interface("members", member).Msg("members to write")
-
 			q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(member)
 			cqlErr := q.Exec()
 			if cqlErr != nil {
@@ -1170,7 +1172,6 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 		}
 	}
 
-	log.Debug().Interface("retrieved",retrievedMembers).Msg("retrieved members from DB")
 
 	// update the map
 	for k,v := range member.Members {
@@ -1178,8 +1179,6 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 		newEntry.CreatedAt = time.Now().Unix()
 		retrievedMembers.Members[k] = newEntry
 	}
-
-	log.Debug().Interface("members", retrievedMembers).Msg("members to update")
 
 
 	// add the zt network member
@@ -1209,9 +1208,6 @@ func (sp *ScyllaApplicationProvider) RemoveAppZtNetworkMember(organizationId str
 		Where(qb.Eq("zt_network_id")).ToCql()
 	query := sp.Session.Query(stmt, organizationId, appInstanceId, serviceGroupInstanceId, serviceInstanceId,ztNetworkId)
 	cqlErr := query.Exec()
-
-	log.Debug().Str("query", query.String()).Msg("generated sql statement")
-
 
 
 	if cqlErr != nil {
