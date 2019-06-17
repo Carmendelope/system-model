@@ -25,6 +25,7 @@ type MockupApplicationProvider struct {
 	appEntryPointsByName map[string][]*entities.AppEndpoint
 
 	appZtNetworks map[string]map[string]entities.AppZtNetwork
+	appZtNetworMembers map[string]map[string]map[string]map[string]map[string]map[string]entities.AppNetworkMember
 
 }
 
@@ -37,6 +38,7 @@ func NewMockupOrganizationProvider() * MockupApplicationProvider {
 		parametrizedDescriptor: make(map[string]entities.ParametrizedDescriptor, 0),
 		appEntryPointsByName: make(map[string][]*entities.AppEndpoint, 0),
 		appZtNetworks: make(map[string]map[string]entities.AppZtNetwork,0),
+		appZtNetworMembers: make(map[string]map[string]map[string]map[string]map[string]map[string]entities.AppNetworkMember,0),
 	}
 }
 
@@ -397,7 +399,33 @@ func (m *MockupApplicationProvider) GetAppZtNetwork(organizationID string, appIn
 
 // AddZtNetworkProxy add a zt service proxy
 func (m *MockupApplicationProvider) AddZtNetworkProxy(proxy entities.ServiceProxy) derrors.Error {
-	return derrors.NewUnimplementedError("AddZtNetworkProxy not implemented yet")
+	m.Lock()
+	defer m.Unlock()
+
+	appInstance, found := m.appZtNetworks[proxy.OrganizationId]
+	if !found {
+		return derrors.NewNotFoundError("not found organization id")
+	}
+	theInstance, found := appInstance[proxy.AppInstanceId]
+	if !found {
+		return derrors.NewNotFoundError("not found service group instance id")
+	}
+
+	// add the proxy
+	fqdn, found := theInstance.AvailableProxies[proxy.FQDN]
+	if !found {
+		fqdn = make(map[string][]entities.ServiceProxy,0)
+	}
+
+	cluster, found := fqdn[proxy.ClusterId]
+	if !found {
+		cluster = []entities.ServiceProxy{}
+	}
+
+	cluster = append(cluster, proxy)
+
+
+	return nil
 }
 
 // RemoveZtNetworkProxy remove an existing zt service proxy
@@ -406,13 +434,115 @@ func (m * MockupApplicationProvider) RemoveZtNetworkProxy(organizationId string,
 }
 
 func (m *MockupApplicationProvider) AddAppZtNetworkMember(member entities.AppZtNetworkMembers) (*entities.AppZtNetworkMembers, derrors.Error) {
-	return nil, derrors.NewUnimplementedError("AddAppZtNetworkMember not implemented yet")
+	m.Lock()
+	defer m.Unlock()
+
+	instance_id, found := m.appZtNetworMembers[member.OrganizationId]
+	if !found {
+		instance_id = map[string]map[string]map[string]map[string]map[string]entities.AppNetworkMember{
+			member.OrganizationId: make(map[string]map[string]map[string]map[string]entities.AppNetworkMember,0),
+		}
+	}
+	service_group_instance, found := instance_id[member.AppInstanceId]
+	if !found {
+		service_group_instance = map[string]map[string]map[string]map[string]entities.AppNetworkMember{
+			member.AppInstanceId: make(map[string]map[string]map[string]entities.AppNetworkMember,0),
+		}
+	}
+
+	service_app_instance, found := service_group_instance[member.ServiceGroupInstanceId]
+	if !found {
+		service_app_instance = map[string]map[string]map[string]entities.AppNetworkMember{
+			member.ServiceApplicationInstanceId: make(map[string]map[string]entities.AppNetworkMember,0),
+		}
+	}
+
+
+	zt_network, found := service_app_instance[member.ServiceApplicationInstanceId]
+	if !found {
+		zt_network = map[string]map[string]entities.AppNetworkMember{
+			member.ZtNetworkId: make(map[string]entities.AppNetworkMember, 0),
+		}
+	}
+
+	members, found := zt_network[member.ZtNetworkId]
+	if !found {
+		members = make(map[string]entities.AppNetworkMember,0)
+	}
+
+	for k,v := range member.Members {
+		members[k] = v
+	}
+
+	toReturn := entities.AppZtNetworkMembers{
+		ZtNetworkId: member.ZtNetworkId, ServiceApplicationInstanceId: member.ServiceApplicationInstanceId,
+		ServiceGroupInstanceId: member.ServiceApplicationInstanceId, AppInstanceId: member.AppInstanceId,
+		OrganizationId: member.OrganizationId, Members: members,
+	}
+
+	return &toReturn, nil
 }
 
 func (m *MockupApplicationProvider) RemoveAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstance string, ztNetworkId string) derrors.Error {
-	return derrors.NewUnimplementedError("RemoveAppZtNetworkMember not implemented yet")
+	m.Lock()
+	defer m.Unlock()
+
+	instance_id, found := m.appZtNetworMembers[organizationId]
+	if !found {
+		return derrors.NewNotFoundError("not found organization id")
+	}
+	service_group_instance, found := instance_id[appInstanceId]
+	if !found {
+		return derrors.NewNotFoundError("not found service group instance")
+	}
+
+	service_app_instance, found := service_group_instance[serviceGroupInstanceId]
+	if !found {
+		return derrors.NewNotFoundError("not found application service instance")
+	}
+
+	delete(service_app_instance, ztNetworkId)
+
+	return nil
 }
 
 func (m *MockupApplicationProvider) GetAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string) (*entities.AppZtNetworkMembers, derrors.Error) {
-	return nil,derrors.NewUnimplementedError("GetAppZtNetworkMember not implemented yet")
+
+	m.Lock()
+	defer m.Unlock()
+
+	instance_id, found := m.appZtNetworMembers[organizationId]
+	if !found {
+		return nil,derrors.NewNotFoundError("not found organization id")
+	}
+	service_group_instance, found := instance_id[appInstanceId]
+	if !found {
+		return nil,derrors.NewNotFoundError("not found service group instance")
+	}
+
+	service_app_instance, found := service_group_instance[serviceGroupInstanceId]
+	if !found {
+		return nil, derrors.NewNotFoundError("not found application service instance")
+	}
+
+	ztNetwork, found := service_app_instance[serviceApplicationInstanceId]
+	if !found {
+		return nil, derrors.NewNotFoundError("not found service application instance")
+	}
+
+	members := make(map[string]entities.AppNetworkMember,0)
+	ztNetworkId := ""
+	for k,v := range ztNetwork {
+		ztNetworkId = k
+		members = v
+		break
+	}
+
+	toReturn := entities.AppZtNetworkMembers{
+		ZtNetworkId: ztNetworkId, ServiceApplicationInstanceId: serviceApplicationInstanceId,
+		ServiceGroupInstanceId: serviceApplicationInstanceId, AppInstanceId: appInstanceId,
+		OrganizationId: organizationId, Members: members,
+	}
+
+	return &toReturn,nil
 }
