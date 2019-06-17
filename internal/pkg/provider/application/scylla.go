@@ -1,6 +1,9 @@
 package application
 
 import (
+	"sync"
+	"time"
+
 	"github.com/gocql/gocql"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-utils/pkg/conversions"
@@ -8,10 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
-	"sync"
-	"time"
 )
-
 
 //const addInstance = "INSERT INTO applications (app_instance_id, app_descriptor_id, configuration_options, description, environment_variables, groups, labels, name, organization_id, rules, services, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 //const selectInstance = "SELECT organization_id, app_descriptor_id, name, description, configuration_options, environment_variables, labels, rules, groups, services, status FROM applications WHERE app_instance_id = ?"
@@ -30,16 +30,16 @@ const instanceParamTablePK = "app_instance_id"
 
 const rowNotFound = "not found"
 
-type ScyllaApplicationProvider struct{
-	Address string
-	Port int
+type ScyllaApplicationProvider struct {
+	Address  string
+	Port     int
 	Keyspace string
-	Session *gocql.Session
+	Session  *gocql.Session
 	sync.Mutex
 }
 
-func NewScyllaApplicationProvider (address string, port int, keyspace string) * ScyllaApplicationProvider {
-	provider := ScyllaApplicationProvider{Address:address, Port: port, Keyspace: keyspace, Session: nil}
+func NewScyllaApplicationProvider(address string, port int, keyspace string) *ScyllaApplicationProvider {
+	provider := ScyllaApplicationProvider{Address: address, Port: port, Keyspace: keyspace, Session: nil}
 	provider.connect()
 	return &provider
 }
@@ -50,6 +50,7 @@ func (sp *ScyllaApplicationProvider) connect() derrors.Error {
 	conf := gocql.NewCluster(sp.Address)
 	conf.Keyspace = sp.Keyspace
 	conf.Port = sp.Port
+	conf.Timeout = 10 * time.Minute
 
 	session, err := conf.CreateSession()
 	if err != nil {
@@ -62,7 +63,7 @@ func (sp *ScyllaApplicationProvider) connect() derrors.Error {
 	return nil
 }
 
-func (sp *ScyllaApplicationProvider) Disconnect () {
+func (sp *ScyllaApplicationProvider) Disconnect() {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -74,21 +75,21 @@ func (sp *ScyllaApplicationProvider) Disconnect () {
 }
 
 // check if the session is created
-func (sp *ScyllaApplicationProvider) checkConnection () derrors.Error {
-	if sp.Session == nil{
+func (sp *ScyllaApplicationProvider) checkConnection() derrors.Error {
+	if sp.Session == nil {
 		return derrors.NewGenericError("Session not created")
 	}
 	return nil
 }
 
-func (sp *ScyllaApplicationProvider) checkAndConnect () derrors.Error{
+func (sp *ScyllaApplicationProvider) checkAndConnect() derrors.Error {
 
 	err := sp.checkConnection()
 	if err != nil {
 		log.Info().Msg("session no created, trying to reconnect...")
 		// try to reconnect
 		err = sp.connect()
-		if err != nil  {
+		if err != nil {
 			return err
 		}
 	}
@@ -96,7 +97,6 @@ func (sp *ScyllaApplicationProvider) checkAndConnect () derrors.Error{
 }
 
 func (sp *ScyllaApplicationProvider) unsafeDescriptorExists(appDescriptorID string) (bool, derrors.Error) {
-
 
 	var count int
 
@@ -124,7 +124,7 @@ func (sp *ScyllaApplicationProvider) unsafeInstanceExists(appInstanceID string) 
 
 	err := q.GetRelease(&count)
 	if err != nil {
-			return false, derrors.AsError(err, "cannot determinate if appInstance exists")
+		return false, derrors.AsError(err, "cannot determinate if appInstance exists")
 	}
 
 	return count == 1, nil
@@ -132,7 +132,6 @@ func (sp *ScyllaApplicationProvider) unsafeInstanceExists(appInstanceID string) 
 }
 
 func (sp *ScyllaApplicationProvider) unsafeInstanceParametersExists(appInstanceID string) (bool, derrors.Error) {
-
 
 	var count int
 
@@ -144,7 +143,7 @@ func (sp *ScyllaApplicationProvider) unsafeInstanceParametersExists(appInstanceI
 	err := q.GetRelease(&count)
 	if err != nil {
 
-			return false, derrors.AsError(err, "cannot determinate if instance parameters exists")
+		return false, derrors.AsError(err, "cannot determinate if instance parameters exists")
 
 	}
 
@@ -152,7 +151,6 @@ func (sp *ScyllaApplicationProvider) unsafeInstanceParametersExists(appInstanceI
 }
 
 func (sp *ScyllaApplicationProvider) unsafeParametrizedDescriptorExists(appInstanceID string) (bool, derrors.Error) {
-
 
 	var count int
 
@@ -170,6 +168,7 @@ func (sp *ScyllaApplicationProvider) unsafeParametrizedDescriptorExists(appInsta
 
 	return count > 0, nil
 }
+
 // ---------------------------------------------------------------------------------------------------------------------
 
 // AddDescriptor adds a new application descriptor to the system
@@ -177,7 +176,6 @@ func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescri
 
 	sp.Lock()
 	defer sp.Unlock()
-
 
 	// check connection
 	err := sp.checkAndConnect()
@@ -195,8 +193,8 @@ func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescri
 	}
 
 	// insert the application instance
-	stmt, names := qb.Insert(applicationDescriptorTable).Columns("organization_id","app_descriptor_id", "name",
-		"configuration_options","environment_variables","labels","rules","groups", "parameters").ToCql()
+	stmt, names := qb.Insert(applicationDescriptorTable).Columns("organization_id", "app_descriptor_id", "name",
+		"configuration_options", "environment_variables", "labels", "rules", "groups", "parameters").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(descriptor)
 	cqlErr := q.ExecRelease()
 
@@ -208,7 +206,7 @@ func (sp *ScyllaApplicationProvider) AddDescriptor(descriptor entities.AppDescri
 }
 
 // GetDescriptors retrieves an application descriptor.
-func (sp *ScyllaApplicationProvider) GetDescriptor(appDescriptorID string) (* entities.AppDescriptor, derrors.Error) {
+func (sp *ScyllaApplicationProvider) GetDescriptor(appDescriptorID string) (*entities.AppDescriptor, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -229,7 +227,7 @@ func (sp *ScyllaApplicationProvider) GetDescriptor(appDescriptorID string) (* en
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return nil, derrors.NewNotFoundError("descriptor").WithParams(appDescriptorID)
-		}else {
+		} else {
 			return nil, derrors.AsError(err, "cannot get appDescriptor")
 		}
 	}
@@ -257,7 +255,7 @@ func (sp *ScyllaApplicationProvider) GetDescriptorParameters(appDescriptorID str
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return nil, derrors.NewNotFoundError("descriptor").WithParams(appDescriptorID)
-		}else {
+		} else {
 			return nil, derrors.AsError(err, "cannot get descriptor parameters")
 		}
 	}
@@ -274,7 +272,7 @@ func (sp *ScyllaApplicationProvider) DescriptorExists(appDescriptorID string) (b
 	defer sp.Unlock()
 
 	// check connection
-	if  err := sp.checkAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -289,7 +287,7 @@ func (sp *ScyllaApplicationProvider) DescriptorExists(appDescriptorID string) (b
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return false, nil
-		}else{
+		} else {
 			return false, derrors.AsError(err, "cannot determinate if appDescriptor exists")
 		}
 	}
@@ -311,13 +309,13 @@ func (sp *ScyllaApplicationProvider) UpdateDescriptor(descriptor entities.AppDes
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError(descriptor.AppDescriptorId)
 	}
 	// TODO: parameters can not be updated, review if that is true
 	// insert the application instance
 	stmt, names := qb.Update(applicationDescriptorTable).Set("organization_id", "name",
-		"configuration_options","environment_variables","labels","rules","groups").Where(qb.Eq(applicationDescriptorTablePK)).ToCql()
+		"configuration_options", "environment_variables", "labels", "rules", "groups").Where(qb.Eq(applicationDescriptorTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(descriptor)
 	cqlErr := q.ExecRelease()
 
@@ -336,7 +334,7 @@ func (sp *ScyllaApplicationProvider) DeleteDescriptor(appDescriptorID string) de
 
 	// check connection
 	err := sp.checkAndConnect()
-	if  err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -345,7 +343,7 @@ func (sp *ScyllaApplicationProvider) DeleteDescriptor(appDescriptorID string) de
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError("descriptor").WithParams(appDescriptorID)
 	}
 
@@ -359,8 +357,6 @@ func (sp *ScyllaApplicationProvider) DeleteDescriptor(appDescriptorID string) de
 
 	return nil
 }
-
-
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -386,8 +382,8 @@ func (sp *ScyllaApplicationProvider) AddInstance(instance entities.AppInstance) 
 	}
 
 	// insert the application instance
-	stmt, names := qb.Insert(applicationTable).Columns("organization_id","app_descriptor_id","app_instance_id",
-		"name","configuration_options","environment_variables","labels","metadata","rules","groups", "status").ToCql()
+	stmt, names := qb.Insert(applicationTable).Columns("organization_id", "app_descriptor_id", "app_instance_id",
+		"name", "configuration_options", "environment_variables", "labels", "metadata", "rules", "groups", "status").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(instance)
 	cqlErr := q.ExecRelease()
 
@@ -406,7 +402,7 @@ func (sp *ScyllaApplicationProvider) InstanceExists(appInstanceID string) (bool,
 	defer sp.Unlock()
 
 	// check connection
-	if  err := sp.checkAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -421,7 +417,7 @@ func (sp *ScyllaApplicationProvider) InstanceExists(appInstanceID string) (bool,
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return false, nil
-		}else {
+		} else {
 			return false, derrors.AsError(err, "cannot determinate if appInstance exists")
 		}
 	}
@@ -431,7 +427,7 @@ func (sp *ScyllaApplicationProvider) InstanceExists(appInstanceID string) (bool,
 }
 
 // GetInstance retrieves an application instance.
-func (sp *ScyllaApplicationProvider) GetInstance(appInstanceID string) (* entities.AppInstance, derrors.Error) {
+func (sp *ScyllaApplicationProvider) GetInstance(appInstanceID string) (*entities.AppInstance, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -452,8 +448,8 @@ func (sp *ScyllaApplicationProvider) GetInstance(appInstanceID string) (* entiti
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return nil, derrors.NewNotFoundError("instance").WithParams(appInstanceID)
-		}else{
-			return nil, derrors.AsError(err,"cannot get appInstance")
+		} else {
+			return nil, derrors.AsError(err, "cannot get appInstance")
 		}
 	}
 
@@ -469,7 +465,7 @@ func (sp *ScyllaApplicationProvider) DeleteInstance(appInstanceID string) derror
 
 	// check connection
 	err := sp.checkAndConnect()
-	if  err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -478,7 +474,7 @@ func (sp *ScyllaApplicationProvider) DeleteInstance(appInstanceID string) derror
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError("instance").WithParams(appInstanceID)
 	}
 
@@ -510,13 +506,13 @@ func (sp *ScyllaApplicationProvider) UpdateInstance(instance entities.AppInstanc
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError("instance").WithParams(instance.AppInstanceId)
 	}
 
 	// update the application instance
-	stmt, names := qb.Update(applicationTable).Set("organization_id","app_descriptor_id",
-		"name","configuration_options","environment_variables","labels","rules","groups", "status","info").Where(qb.Eq(applicationTablePK)).ToCql()
+	stmt, names := qb.Update(applicationTable).Set("organization_id", "app_descriptor_id",
+		"name", "configuration_options", "environment_variables", "labels", "rules", "groups", "status", "info").Where(qb.Eq(applicationTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(instance)
 	cqlErr := q.ExecRelease()
 
@@ -531,21 +527,21 @@ func (sp *ScyllaApplicationProvider) UpdateInstance(instance entities.AppInstanc
 // -- Instance parameters -------------------- //
 // ------------------------------------------- //
 // AddInstanceParameters adds deploy parameters of an instance in the system
-func (sp *ScyllaApplicationProvider)AddInstanceParameters (appInstanceID string, parameters []entities.InstanceParameter) derrors.Error{
+func (sp *ScyllaApplicationProvider) AddInstanceParameters(appInstanceID string, parameters []entities.InstanceParameter) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 
 	// check connection
 	if err := sp.checkAndConnect(); err != nil {
-		return  err
+		return err
 	}
 
 	exists, err := sp.unsafeInstanceParametersExists(appInstanceID)
-	if err != nil{
-		return  err
+	if err != nil {
+		return err
 	}
 
-	if exists{
+	if exists {
 		return derrors.NewAlreadyExistsError("parameters").WithParams(appInstanceID)
 	}
 
@@ -553,7 +549,7 @@ func (sp *ScyllaApplicationProvider)AddInstanceParameters (appInstanceID string,
 	stmt, names := qb.Insert(instanceParamTable).Columns("app_instance_id", "parameters").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"app_instance_id": appInstanceID,
-		"parameters": parameters,
+		"parameters":      parameters,
 	})
 	cqlErr := q.ExecRelease()
 
@@ -565,8 +561,9 @@ func (sp *ScyllaApplicationProvider)AddInstanceParameters (appInstanceID string,
 
 	return nil
 }
+
 // GetInstanceParameters retrieves the params of an instance
-func (sp *ScyllaApplicationProvider) GetInstanceParameters (appInstanceID string) ([]entities.InstanceParameter, derrors.Error) {
+func (sp *ScyllaApplicationProvider) GetInstanceParameters(appInstanceID string) ([]entities.InstanceParameter, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -586,10 +583,10 @@ func (sp *ScyllaApplicationProvider) GetInstanceParameters (appInstanceID string
 	err := q.GetRelease(&parameters)
 	if err != nil {
 		if err.Error() == rowNotFound {
-			parameters := make ([]entities.InstanceParameter, 0)
+			parameters := make([]entities.InstanceParameter, 0)
 			return parameters, nil
-		}else{
-			return nil, derrors.AsError(err,"cannot get instance parameters")
+		} else {
+			return nil, derrors.AsError(err, "cannot get instance parameters")
 		}
 	}
 
@@ -597,15 +594,14 @@ func (sp *ScyllaApplicationProvider) GetInstanceParameters (appInstanceID string
 
 }
 
-
 // DeleteInstanceParameters removes the params of an instance
-func (sp *ScyllaApplicationProvider) DeleteInstanceParameters (appInstanceID string) derrors.Error {
+func (sp *ScyllaApplicationProvider) DeleteInstanceParameters(appInstanceID string) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 
 	// check connection
 	err := sp.checkAndConnect()
-	if  err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -623,11 +619,10 @@ func (sp *ScyllaApplicationProvider) DeleteInstanceParameters (appInstanceID str
 // ------ Parametrized Descriptor -- //
 // --------------------------------- //
 // AddParametrizedDescriptor adds a new parametrized descriptor to the system.
-func (sp *ScyllaApplicationProvider)AddParametrizedDescriptor(descriptor entities.ParametrizedDescriptor) derrors.Error {
+func (sp *ScyllaApplicationProvider) AddParametrizedDescriptor(descriptor entities.ParametrizedDescriptor) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
-
 
 	// check connection
 	err := sp.checkAndConnect()
@@ -645,8 +640,8 @@ func (sp *ScyllaApplicationProvider)AddParametrizedDescriptor(descriptor entitie
 	}
 
 	// insert the application instance
-	stmt, names := qb.Insert(parametrizedDescriptorTable).Columns("organization_id","app_descriptor_id",
-		"app_instance_id", "name", "configuration_options","environment_variables","labels","rules","groups").ToCql()
+	stmt, names := qb.Insert(parametrizedDescriptorTable).Columns("organization_id", "app_descriptor_id",
+		"app_instance_id", "name", "configuration_options", "environment_variables", "labels", "rules", "groups").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(descriptor)
 	cqlErr := q.ExecRelease()
 
@@ -658,7 +653,7 @@ func (sp *ScyllaApplicationProvider)AddParametrizedDescriptor(descriptor entitie
 }
 
 // GetParametrizedDescriptor retrieves a parametrized descriptor
-func (sp * ScyllaApplicationProvider) GetParametrizedDescriptor(appInstanceID string) (*entities.ParametrizedDescriptor, derrors.Error){
+func (sp *ScyllaApplicationProvider) GetParametrizedDescriptor(appInstanceID string) (*entities.ParametrizedDescriptor, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -678,8 +673,8 @@ func (sp * ScyllaApplicationProvider) GetParametrizedDescriptor(appInstanceID st
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return nil, derrors.NewNotFoundError("parametrized descriptor").WithParams(appInstanceID)
-		}else{
-			return nil, derrors.AsError(err,"cannot get parametrized Descriptor")
+		} else {
+			return nil, derrors.AsError(err, "cannot get parametrized Descriptor")
 		}
 	}
 
@@ -687,12 +682,12 @@ func (sp * ScyllaApplicationProvider) GetParametrizedDescriptor(appInstanceID st
 }
 
 // ParametrizedDescriptorExists checks if a parametrized descriptor exists on the system.
-func (sp * ScyllaApplicationProvider) ParametrizedDescriptorExists (appInstanceID string) (*bool, derrors.Error) {
+func (sp *ScyllaApplicationProvider) ParametrizedDescriptorExists(appInstanceID string) (*bool, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
 	// check connection
-	if  err := sp.checkAndConnect(); err != nil {
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -704,13 +699,13 @@ func (sp * ScyllaApplicationProvider) ParametrizedDescriptorExists (appInstanceI
 }
 
 // DeleteParametrizedDescriptor removes a parametrized Descriptor from the system
-func (sp * ScyllaApplicationProvider)DeleteParametrizedDescriptor (appInstanceID string) derrors.Error{
+func (sp *ScyllaApplicationProvider) DeleteParametrizedDescriptor(appInstanceID string) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 
 	// check connection
 	err := sp.checkAndConnect()
-	if  err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -719,7 +714,7 @@ func (sp * ScyllaApplicationProvider)DeleteParametrizedDescriptor (appInstanceID
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError("parametrized descriptor").WithParams(appInstanceID)
 	}
 
@@ -796,10 +791,9 @@ func (sp *ScyllaApplicationProvider) Clear() derrors.Error {
 	return nil
 }
 
-
 // ---------------------------------------------------------------------------------------------------------------------
 // AddAppEndPoint adds a new entry point to the system
-func (sp *ScyllaApplicationProvider) AddAppEndpoint (appEntryPoint entities.AppEndpoint) derrors.Error {
+func (sp *ScyllaApplicationProvider) AddAppEndpoint(appEntryPoint entities.AppEndpoint) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -811,8 +805,8 @@ func (sp *ScyllaApplicationProvider) AddAppEndpoint (appEntryPoint entities.AppE
 	}
 
 	// insert the appEntryPoint
-	stmt, names := qb.Insert("appentrypoints").Columns("organization_id","app_instance_id","service_group_instance_id",
-		"service_instance_id","port","endpoint_instance_id","fqdn","global_fqdn","protocol","type").ToCql()
+	stmt, names := qb.Insert("appentrypoints").Columns("organization_id", "app_instance_id", "service_group_instance_id",
+		"service_instance_id", "port", "endpoint_instance_id", "fqdn", "global_fqdn", "protocol", "type").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(appEntryPoint)
 	cqlErr := q.ExecRelease()
 
@@ -855,8 +849,8 @@ func (sp *ScyllaApplicationProvider) DeleteAppEndpoints(organizationID string, a
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil{
-		return  err
+	if err := sp.checkAndConnect(); err != nil {
+		return err
 	}
 	// delete app instance
 	stmt, _ := qb.Delete("appentrypoints").Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
@@ -868,7 +862,7 @@ func (sp *ScyllaApplicationProvider) DeleteAppEndpoints(organizationID string, a
 	return nil
 }
 
-func (sp *ScyllaApplicationProvider) GetAppEndpointList(organizationID string , appInstanceId string,
+func (sp *ScyllaApplicationProvider) GetAppEndpointList(organizationID string, appInstanceId string,
 	serviceGroupInstanceID string) ([]*entities.AppEndpoint, derrors.Error) {
 
 	sp.Lock()
@@ -899,6 +893,7 @@ func (sp *ScyllaApplicationProvider) GetAppEndpointList(organizationID string , 
 
 	return list, nil
 }
+
 // ---------------------------------------------------------------------------------------------------------------------
 // AppZtNetwork related methods
 
@@ -913,7 +908,7 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetwork(ztNetwork entities.AppZtNet
 	}
 
 	// add the zt network
-	stmt, names := qb.Insert("appztnetworks").Columns("organization_id","app_instance_id","zt_network_id").ToCql()
+	stmt, names := qb.Insert("appztnetworks").Columns("organization_id", "app_instance_id", "zt_network_id").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(ztNetwork)
 	cqlErr := q.ExecRelease()
 
@@ -923,7 +918,6 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetwork(ztNetwork entities.AppZtNet
 
 	return nil
 }
-
 
 func (sp *ScyllaApplicationProvider) RemoveAppZtNetwork(organizationID string, appInstanceID string) derrors.Error {
 	sp.Lock()
@@ -963,7 +957,7 @@ func (sp *ScyllaApplicationProvider) GetAppZtNetwork(organizationId string, appI
 	if cqlErr != nil {
 		if cqlErr.Error() == rowNotFound {
 			return nil, derrors.NewNotFoundError("appZtNetwork").WithParams(organizationId).WithParams(appInstanceId)
-		}else {
+		} else {
 			return nil, derrors.AsError(err, "cannot get appZtNetwork")
 		}
 	}
@@ -987,16 +981,16 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 
 	// if we already have an entry, simply add a new member
 	stmt, names := qb.Select("appztnetworkmembers").Columns("organization_id", "app_instance_id",
-		"service_group_instance_id", "service_application_instance_id", "zt_network_id","members").
+		"service_group_instance_id", "service_application_instance_id", "zt_network_id", "members").
 		Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).
 		Where(qb.Eq("service_group_instance_id")).Where(qb.Eq("service_application_instance_id")).
 		Where(qb.Eq("zt_network_id")).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": member.OrganizationId,
-		"app_instance_id": member.AppInstanceId,
-		"service_group_instance_id": member.ServiceGroupInstanceId,
+		"organization_id":                 member.OrganizationId,
+		"app_instance_id":                 member.AppInstanceId,
+		"service_group_instance_id":       member.ServiceGroupInstanceId,
 		"service_application_instance_id": member.ServiceApplicationInstanceId,
-		"zt_network_id": member.ZtNetworkId,
+		"zt_network_id":                   member.ZtNetworkId,
 	})
 
 	var retrievedMembers entities.AppZtNetworkMembers
@@ -1006,7 +1000,7 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 		if cqlErr.Error() == rowNotFound {
 			// insert a new row
 			stmt, names := qb.Insert("appztnetworkmembers").Columns("organization_id", "app_instance_id",
-				"service_group_instance_id", "service_application_instance_id", "zt_network_id","members").ToCql()
+				"service_group_instance_id", "service_application_instance_id", "zt_network_id", "members").ToCql()
 			// update creation time
 			for k, v := range member.Members {
 				v.CreatedAt = time.Now().Unix()
@@ -1018,27 +1012,26 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 			q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(member)
 			cqlErr := q.Exec()
 			if cqlErr != nil {
-				return nil, derrors.NewInternalError("appZtNetworkMembers",err).WithParams(member.OrganizationId).
+				return nil, derrors.NewInternalError("appZtNetworkMembers", err).WithParams(member.OrganizationId).
 					WithParams(member.AppInstanceId).WithParams(member.ServiceGroupInstanceId).WithParams(member.AppInstanceId).
 					WithParams(member.ZtNetworkId)
 			}
 			return &member, nil
-		}else {
+		} else {
 			return nil, derrors.AsError(err, "cannot get appZtNetworkMembers")
 		}
 	}
 
-	log.Debug().Interface("retrieved",retrievedMembers).Msg("retrieved members from DB")
+	log.Debug().Interface("retrieved", retrievedMembers).Msg("retrieved members from DB")
 
 	// update the map
-	for k,v := range member.Members {
+	for k, v := range member.Members {
 		newEntry := v
 		newEntry.CreatedAt = time.Now().Unix()
 		retrievedMembers.Members[k] = newEntry
 	}
 
 	log.Debug().Interface("members", retrievedMembers).Msg("members to update")
-
 
 	// add the zt network member
 	stmt, names = qb.Update("appztnetworkmembers").Set("members").
@@ -1049,7 +1042,7 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 	cqlErr = q.ExecRelease()
 
 	if cqlErr != nil {
-		return nil,derrors.AsError(cqlErr, "cannot update app zt network member")
+		return nil, derrors.AsError(cqlErr, "cannot update app zt network member")
 	}
 
 	return &member, nil
@@ -1065,19 +1058,16 @@ func (sp *ScyllaApplicationProvider) RemoveAppZtNetworkMember(organizationId str
 	stmt, _ := qb.Delete("appztnetworkmembers").Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).
 		Where(qb.Eq("service_group_instance_id")).Where(qb.Eq("service_application_instance_id")).
 		Where(qb.Eq("zt_network_id")).ToCql()
-	query := sp.Session.Query(stmt, organizationId, appInstanceId, serviceGroupInstanceId, serviceInstanceId,ztNetworkId)
+	query := sp.Session.Query(stmt, organizationId, appInstanceId, serviceGroupInstanceId, serviceInstanceId, ztNetworkId)
 	cqlErr := query.Exec()
 
 	log.Debug().Str("query", query.String()).Msg("generated sql statement")
-
-
 
 	if cqlErr != nil {
 		return derrors.AsError(cqlErr, "cannot delete an app zt network member")
 	}
 	return nil
 }
-
 
 func (sp *ScyllaApplicationProvider) GetAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string) (*entities.AppZtNetworkMembers, derrors.Error) {
 	sp.Lock()
@@ -1091,13 +1081,13 @@ func (sp *ScyllaApplicationProvider) GetAppZtNetworkMember(organizationId string
 
 	// if we already have an entry, simply add a new member
 	stmt, names := qb.Select("appztnetworkmembers").Columns("organization_id", "app_instance_id",
-		"service_group_instance_id", "service_application_instance_id", "zt_network_id","members").
+		"service_group_instance_id", "service_application_instance_id", "zt_network_id", "members").
 		Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).
 		Where(qb.Eq("service_group_instance_id")).Where(qb.Eq("service_application_instance_id")).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationId,
-		"app_instance_id": appInstanceId,
-		"service_group_instance_id": serviceGroupInstanceId,
+		"organization_id":                 organizationId,
+		"app_instance_id":                 appInstanceId,
+		"service_group_instance_id":       serviceGroupInstanceId,
 		"service_application_instance_id": serviceApplicationInstanceId,
 	})
 
@@ -1107,11 +1097,10 @@ func (sp *ScyllaApplicationProvider) GetAppZtNetworkMember(organizationId string
 	if cqlErr != nil {
 		if cqlErr.Error() == rowNotFound {
 			return nil, derrors.NewNotFoundError("get app zt network member")
-		}else{
-			return nil, derrors.AsError(err,"cannot get app zt network member")
+		} else {
+			return nil, derrors.AsError(err, "cannot get app zt network member")
 		}
 	}
 	return &retrievedMembers, nil
 
 }
-
