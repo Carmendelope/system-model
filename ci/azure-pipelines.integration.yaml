@@ -133,6 +133,7 @@ jobs:
         jobs=$(kubectl --kubeconfig $(kubeconfig) -n$(namespace) get jobs integration-tests -ojson | jq '.status.succeeded >= 1')
         if [ "$jobs" == "true" ]; then
           echo "Job finished"
+          kubectl --kubeconfig $(kubeconfig) -n$(namespace) logs $(kubectl --kubeconfig $(kubeconfig) -n$(namespace) get pods --selector=job-name=scylla-systemmodel --output=jsonpath={.items..metadata.name})
           break;
         else
           echo "Job is not done yet"
