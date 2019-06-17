@@ -35,6 +35,7 @@ create type IF NOT EXISTS nalej.instance_parameter(parameter_name text, value te
 create type IF NOT EXISTS nalej.descriptor_parameter(name text, description text, path text, type int, default_value text, category int, enum_values list<text>, required boolean);
 
 create type IF NOT EXISTS nalej.app_network_member(member_id text, is_proxy boolean, ip text, created_at bigint);
+create type IF NOT EXISTS nalej.service_proxy(organization_id text, app_instance_id text, service_group_instance_id text, service_instance_id text, service_group_id text, service_id text, cluster_id text, ip text, fqdn text);
 
 
 ------------
@@ -62,7 +63,7 @@ create table IF NOT EXISTS nalej.AppEntrypoints(organization_id text, app_instan
 create table IF NOT EXISTS nalej.Devices (organization_id text, device_group_id text, device_id text, register_since bigint, labels map<text, text>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, PRIMARY KEY ( (organization_id, device_group_id), device_id));
 create table IF NOT EXISTS nalej.DeviceGroups (organization_id text, device_group_id text, name text, created bigint, labels map<text, text>, primary KEY (organization_id, device_group_id));
 
-create table IF NOT EXISTS nalej.AppZtNetworks(organization_id text, app_instance_id text, zt_network_id text,  PRIMARY KEY ((organization_id, app_instance_id), zt_network_id));
+create table IF NOT EXISTS nalej.AppZtNetworks(organization_id text, app_instance_id text, zt_network_id text, vsa_list map<text,text>, available_proxies map<text,FROZEN<map<text,FROZEN<list<FROZEN<service_proxy>>>>>>,  PRIMARY KEY ((organization_id, app_instance_id), zt_network_id));
 create table IF NOT EXISTS nalej.AppZtNetworkMembers(organization_id text, app_instance_id text, service_group_instance_id text, service_application_instance_id text, zt_network_id text, members map<text,FROZEN<app_network_member>>,  PRIMARY KEY ((organization_id, app_instance_id, service_group_instance_id, service_application_instance_id), zt_network_id));
 
 

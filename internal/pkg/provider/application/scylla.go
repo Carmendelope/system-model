@@ -1,6 +1,7 @@
 package application
 
 import (
+	"fmt"
 	"github.com/gocql/gocql"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-utils/pkg/conversions"
@@ -913,7 +914,7 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetwork(ztNetwork entities.AppZtNet
 	}
 
 	// add the zt network
-	stmt, names := qb.Insert("appztnetworks").Columns("organization_id","app_instance_id","zt_network_id").ToCql()
+	stmt, names := qb.Insert("appztnetworks").Columns("organization_id","app_instance_id","zt_network_id","vsa_list","available_proxies").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(ztNetwork)
 	cqlErr := q.ExecRelease()
 
@@ -950,7 +951,7 @@ func (sp *ScyllaApplicationProvider) GetAppZtNetwork(organizationId string, appI
 		return nil, err
 	}
 
-	stmt, names := qb.Select("appztnetworks").Columns("organization_id", "app_instance_id", "zt_network_id").
+	stmt, names := qb.Select("appztnetworks").Columns("organization_id", "app_instance_id", "zt_network_id","vsa_list","available_proxies").
 		Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"organization_id": organizationId,
@@ -969,6 +970,151 @@ func (sp *ScyllaApplicationProvider) GetAppZtNetwork(organizationId string, appI
 	}
 
 	return &ztNetwork, nil
+}
+
+
+// AddZtNetworkProxy add a zt service proxy
+func (sp *ScyllaApplicationProvider) AddZtNetworkProxy(proxy entities.ServiceProxy) derrors.Error {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return err
+	}
+
+	// find the service proxy
+	stmt, names := qb.Select("appztnetworks").Columns("organization_id", "app_instance_id", "zt_network_id","vsa_list","available_proxies").
+		Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": proxy.OrganizationId,
+		"app_instance_id": proxy.AppInstanceId,
+	})
+
+	var ztNetwork entities.AppZtNetwork
+	cqlErr := gocqlx.Get(&ztNetwork, q.Query)
+
+	if cqlErr != nil {
+		if cqlErr.Error() == rowNotFound {
+			return derrors.NewNotFoundError("appZtNetworks").WithParams(proxy.OrganizationId).WithParams(proxy.AppInstanceId)
+		}else {
+			return derrors.AsError(err, "cannot get appZtNetwork")
+		}
+	}
+
+
+	if ztNetwork.AvailableProxies == nil {
+		ztNetwork.AvailableProxies = make(map[string]map[string][]entities.ServiceProxy,0)
+	}
+
+	// Add the proxy or overwrite if it is already there
+	existingProxies, found := ztNetwork.AvailableProxies[proxy.FQDN]
+	if !found {
+		aux := map[string][]entities.ServiceProxy{
+				proxy.ClusterId: []entities.ServiceProxy{proxy},
+		}
+		ztNetwork.AvailableProxies[proxy.FQDN] = aux
+	} else {
+		// search for the entries
+		clusterEntries, found := existingProxies[proxy.ClusterId]
+		if !found {
+			existingProxies[proxy.ClusterId] = []entities.ServiceProxy{proxy}
+		} else {
+			// add it to the list
+			clusterEntries = append(clusterEntries, proxy)
+			existingProxies[proxy.ClusterId] = clusterEntries
+		}
+		ztNetwork.AvailableProxies[proxy.FQDN] = existingProxies
+	}
+
+
+	// update the network proxy entry
+	stmt, names = qb.Insert("appztnetworks").Columns("organization_id","app_instance_id","zt_network_id","vsa_list","available_proxies").ToCql()
+	q = gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(ztNetwork)
+	cqlErr = q.ExecRelease()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot add appEntryPoint")
+	}
+	return nil
+}
+
+// RemoveZtNetworkProxy remove an existing zt service proxy
+func (sp *ScyllaApplicationProvider) RemoveZtNetworkProxy(organizationId string, appInstanceId string, fqdn string, clusterId string, serviceGroupInstanceId string, serviceInstanceId string) derrors.Error {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return err
+	}
+
+	// find the service proxy
+	stmt, names := qb.Select("appztnetworks").Columns("organization_id", "app_instance_id", "zt_network_id","vsa_list","available_proxies").
+		Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": organizationId,
+		"app_instance_id": appInstanceId,
+	})
+
+	var ztNetwork entities.AppZtNetwork
+	cqlErr := gocqlx.Get(&ztNetwork, q.Query)
+
+	if cqlErr != nil {
+		if cqlErr.Error() == rowNotFound {
+			return derrors.NewNotFoundError("appZtNetworks").WithParams(organizationId).WithParams(appInstanceId)
+		}else {
+			return derrors.AsError(err, "cannot get appZtNetwork")
+		}
+	}
+
+	// remove it
+	existingProxies, found := ztNetwork.AvailableProxies[fqdn]
+	if !found {
+		return derrors.NewNotFoundError(fmt.Sprintf("impossible to find proxy for fqdn %s", fqdn))
+	} else {
+		// search for the entries
+		clusterEntries, found := existingProxies[clusterId]
+		if !found {
+			return derrors.NewNotFoundError(fmt.Sprintf("impossible to find proxy for fqdn %s in cluster %s", fqdn, clusterId))
+		} else {
+			// look for it and remove it
+			indexToDelete := -1
+			for i, proxy := range clusterEntries {
+				if proxy.ServiceInstanceId == serviceInstanceId && proxy.ServiceGroupInstanceId == serviceInstanceId {
+					indexToDelete = i
+					break
+				}
+			}
+			if indexToDelete == -1 {
+				return derrors.NewNotFoundError(fmt.Sprintf("impossible to find proxy for fqdn %s in cluster %s with serviceInstanceId %s",
+					fqdn, clusterId, serviceInstanceId))
+			}
+			if len(clusterEntries) == 1 {
+				// remove this cluster entry
+				delete(ztNetwork.AvailableProxies[fqdn],clusterId)
+			} else {
+				ztNetwork.AvailableProxies[fqdn][clusterId] = append(clusterEntries[:indexToDelete], clusterEntries[indexToDelete+1:]...)
+			}
+		}
+		if len(ztNetwork.AvailableProxies[fqdn]) == 0 {
+			delete(ztNetwork.AvailableProxies,fqdn)
+		}
+	}
+
+	// update
+	// update the network proxy entry
+	stmt, names = qb.Insert("appztnetworks").Columns("organization_id","app_instance_id","zt_network_id","vsa_list","available_proxies").ToCql()
+	q = gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(ztNetwork)
+	cqlErr = q.ExecRelease()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot add appEntryPoint")
+	}
+
+	return nil
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -1013,8 +1159,6 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 				member.Members[k] = v
 			}
 
-			log.Debug().Interface("members", member).Msg("members to write")
-
 			q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(member)
 			cqlErr := q.Exec()
 			if cqlErr != nil {
@@ -1028,7 +1172,6 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 		}
 	}
 
-	log.Debug().Interface("retrieved",retrievedMembers).Msg("retrieved members from DB")
 
 	// update the map
 	for k,v := range member.Members {
@@ -1036,8 +1179,6 @@ func (sp *ScyllaApplicationProvider) AddAppZtNetworkMember(member entities.AppZt
 		newEntry.CreatedAt = time.Now().Unix()
 		retrievedMembers.Members[k] = newEntry
 	}
-
-	log.Debug().Interface("members", retrievedMembers).Msg("members to update")
 
 
 	// add the zt network member
@@ -1067,9 +1208,6 @@ func (sp *ScyllaApplicationProvider) RemoveAppZtNetworkMember(organizationId str
 		Where(qb.Eq("zt_network_id")).ToCql()
 	query := sp.Session.Query(stmt, organizationId, appInstanceId, serviceGroupInstanceId, serviceInstanceId,ztNetworkId)
 	cqlErr := query.Exec()
-
-	log.Debug().Str("query", query.String()).Msg("generated sql statement")
-
 
 
 	if cqlErr != nil {

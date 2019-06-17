@@ -774,11 +774,21 @@ func (m * Manager) RemoveAppEndpoints(removeRequest *grpc_application_go.RemoveA
 }
 
 func (m * Manager) AddZtNetwork(request *grpc_application_go.AddAppZtNetworkRequest) derrors.Error{
-	return m.AppProvider.AddAppZtNetwork(entities.AppZtNetwork{request.OrganizationId, request.AppInstanceId, request.NetworkId})
+	return m.AppProvider.AddAppZtNetwork(entities.AppZtNetwork{OrganizationId: request.OrganizationId,
+		AppInstanceId: request.AppInstanceId, ZtNetworkId: request.NetworkId, VSAList: request.VsaList})
 }
 
 func (m * Manager) RemoveZtNetwork(request *grpc_application_go.RemoveAppZtNetworkRequest) derrors.Error{
 	return m.AppProvider.RemoveAppZtNetwork(request.OrganizationId, request.AppInstanceId)
+}
+
+func (m * Manager) AddZtNetworkProxy(request *entities.ServiceProxy) derrors.Error {
+	return m.AppProvider.AddZtNetworkProxy(*request)
+}
+
+func (m * Manager) RemoveZtNetworkProxy(organizationId string, appInstanceId string, fqdn string, clusterId string,
+	serviceGroupInstanceId string, serviceInstanceId string) derrors.Error {
+	return m.AppProvider.RemoveZtNetworkProxy(organizationId, appInstanceId, fqdn, clusterId, serviceGroupInstanceId, serviceInstanceId)
 }
 
 func (m * Manager) GetAppZtNetwork(request *grpc_application_go.GetAppZtNetworkRequest) (*entities.AppZtNetwork, derrors.Error) {
