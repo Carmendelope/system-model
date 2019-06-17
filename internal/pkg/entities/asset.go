@@ -10,14 +10,36 @@ import (
 	"time"
 )
 
+
+type OperatingSystemClass int
+const (
+	LINUX   = iota +1
+	WINDOWS
+	DARWIN
+)
+
+var OperatingSystemClassToGRPC = map[OperatingSystemClass]grpc_inventory_go.OperatingSystemClass{
+	LINUX:    	grpc_inventory_go.OperatingSystemClass_LINUX,
+	WINDOWS:	grpc_inventory_go.OperatingSystemClass_WINDOWS,
+	DARWIN: 	grpc_inventory_go.OperatingSystemClass_DARWIN,
+}
+var OperatingSystemClassFromGRPC = map[grpc_inventory_go.OperatingSystemClass]OperatingSystemClass{
+	grpc_inventory_go.OperatingSystemClass_LINUX: 	LINUX,
+	grpc_inventory_go.OperatingSystemClass_WINDOWS: WINDOWS,
+	grpc_inventory_go.OperatingSystemClass_DARWIN: 	DARWIN,
+}
 // OperatingSystemInfo contains information about the operating system of an asset. Notice that no
 // enums have been used for either the name or the version as to no constraint the elements of the
 // inventory even if we do not have an agent running supporting those.
 type OperatingSystemInfo struct {
 	// Name of the operating system. Expecting full name.
-	Name string `json:"name,omitempty" cql:"name"`
+	Name 			string `json:"name,omitempty" cql:"name"`
 	// Version installed.
-	Version              string   `json:"version,omitempty" cql:"version"`
+	Version 		string   `json:"version,omitempty" cql:"version"`
+	// Class of the operating system - determines the binary format together with architecture
+	Class 			OperatingSystemClass `json:"class,omitempty" cql:"op_class"`
+	// Architecture of the OS.
+	Architecture	string   `json:"architecture,omitempty" cql:"architecture"`
 }
 
 func NewOperatingSystemInfoFromGRPC(osInfo *grpc_inventory_go.OperatingSystemInfo) *OperatingSystemInfo{
@@ -27,6 +49,8 @@ func NewOperatingSystemInfoFromGRPC(osInfo *grpc_inventory_go.OperatingSystemInf
 	return &OperatingSystemInfo{
 		Name:    osInfo.Name,
 		Version: osInfo.Version,
+		Class: 	 OperatingSystemClassFromGRPC[osInfo.Class],
+		Architecture: osInfo.Architecture,
 	}
 }
 
@@ -35,8 +59,10 @@ func (os * OperatingSystemInfo) ToGRPC() *grpc_inventory_go.OperatingSystemInfo{
 		return nil
 	}
 	return &grpc_inventory_go.OperatingSystemInfo{
-		Name:                 os.Name,
-		Version:              os.Version,
+		Name:           os.Name,
+		Version:		os.Version,
+		Class:			OperatingSystemClassToGRPC[os.Class],
+		Architecture: 	os.Architecture,
 	}
 }
 
