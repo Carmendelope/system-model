@@ -116,6 +116,11 @@ jobs:
       kubeconfig: $(kubeconfig)
       namespace: $(namespace)
 
+  - script: |
+      kubectl --kubeconfig $(kubeconfig) -n$(namespace) exec scylladb-0 -i < scripts/database.cql
+    workingDirectory: $(modulePath)
+    displayName: Create database structure
+
   - template: k8s/yaml/integration-tests.yaml@ci_templates
     parameters:
       dockerImage: "$(devDockerRegistry)/ci/$(componentName):$(Build.SourceVersion).$(Build.BuildId)"
@@ -133,7 +138,7 @@ jobs:
         jobs=$(kubectl --kubeconfig $(kubeconfig) -n$(namespace) get jobs integration-tests -ojson | jq '.status.succeeded >= 1')
         if [ "$jobs" == "true" ]; then
           echo "Job finished"
-          kubectl --kubeconfig $(kubeconfig) -n$(namespace) logs $(kubectl --kubeconfig $(kubeconfig) -n$(namespace) get pods --selector=job-name=scylla-systemmodel --output=jsonpath={.items..metadata.name})
+          kubectl --kubeconfig $(kubeconfig) -n$(namespace) logs $(kubectl --kubeconfig $(kubeconfig) -n$(namespace) get pods --selector=job-name=integration-tests --output=jsonpath={.items..metadata.name})
           break;
         else
           echo "Job is not done yet"

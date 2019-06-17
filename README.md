@@ -43,7 +43,16 @@ You can run ScyllaDB tests using the following approach:
 
 ```
 docker run --name scylla -p 9042:9042 -d scylladb/scylla
-docker exec -it scylla cqlsh
+docker exec -it scylla cqlsh < ./scripts/database.cql
 ```
 
-Load the data
+# Integration tests
+
+The following table contains the variables that activate the integration tests
+
+| Variable  | Example Value | Description |
+| ------------- | ------------- |------------- |
+| RUN_INTEGRATION_TEST  | true | Run integration tests |
+| IT_SCYLLA_HOST  | 127.0.0.1 | ScyllaDB host |
+| IT_SCYLLA_PORT  | 9042 | ScyllaDB port |
+| IT_NALEJ_KEYSPACE  | nalej | ScyllaDB Nalej keyspace name |

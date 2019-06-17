@@ -12,4 +12,13 @@ spec:
       containers:
         - name: integration-tests
           image: __NPH_INTEGRATION_TESTS_IMAGE
+          env:
+          - name: RUN_INTEGRATION_TEST
+            value: "true"
+          - name: IT_SCYLLA_HOST
+            value: "scylladb.__NPH_NAMESPACE"
+          - name: IT_SCYLLA_PORT
+            value: "9042"
+          - name: IT_NALEJ_KEYSPACE
+            value: "nalej"
           tty: true
