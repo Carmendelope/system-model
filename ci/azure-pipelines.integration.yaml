@@ -112,7 +112,7 @@ jobs:
 
   - template: k8s/yaml/integration-tests.yaml@ci_templates
     parameters:
-      dockerImage: "$(developmentDockerRegistry)/ci/$(componentName):$(Build.SourceVersion).$(Build.BuildId)"
+      dockerImage: "$(devDockerRegistry)/ci/$(componentName):$(Build.SourceVersion).$(Build.BuildId)"
       namespace: $(namespace)
       yamlPath: $(modulePath)/ci/resources
 
