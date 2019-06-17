@@ -17,7 +17,7 @@ variables:
   - name: componentName
     value: system-model
   - name: namespace
-    value: $(Build.SourceVersion)-$(Build.BuildId)
+    value: nalej
   - name: kubeconfig
     value: $(Agent.TempDirectory)/ci_kubeconfig.yaml
   - name: authorName
