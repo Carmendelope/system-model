@@ -28,7 +28,7 @@ create type IF NOT EXISTS nalej.networking_hardware_info (type text, link_capaci
 create type IF NOT EXISTS nalej.hardware_info (cpus list<FROZEN<cpu_info>>, installed_ram int, net_interfaces list<FROZEN<networking_hardware_info>>);
 create type IF NOT EXISTS nalej.storage_hardware_info (type text, total_capacity int);
 create type IF NOT EXISTS nalej.agent_op_summary (operation_id text, timestamp int, status int, info text);
-    create type IF NOT EXISTS nalej.inventory_location (geolocation text, geohash text);
+create type IF NOT EXISTS nalej.inventory_location (geolocation text, geohash text);
 
 
 create type IF NOT EXISTS nalej.instance_parameter(parameter_name text, value text);
@@ -59,7 +59,7 @@ create table IF NOT EXISTS nalej.ParametrizedDescriptors (organization_id text, 
 
 create table IF NOT EXISTS nalej.AppEntrypoints(organization_id text, app_instance_id text, service_group_instance_id text, service_instance_id text, port int, protocol int, endpoint_instance_id text, type int, fqdn text, global_fqdn text,  PRIMARY KEY ((organization_id, app_instance_id), service_group_instance_id, service_instance_id, port));
 
-create table IF NOT EXISTS nalej.Devices (organization_id text, device_group_id text, device_id text, register_since bigint, labels map<text, text>, PRIMARY KEY ( (organization_id, device_group_id), device_id));
+create table IF NOT EXISTS nalej.Devices (organization_id text, device_group_id text, device_id text, register_since bigint, labels map<text, text>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, PRIMARY KEY ( (organization_id, device_group_id), device_id));
 create table IF NOT EXISTS nalej.DeviceGroups (organization_id text, device_group_id text, name text, created bigint, labels map<text, text>, primary KEY (organization_id, device_group_id));
 
 create table IF NOT EXISTS nalej.AppZtNetworks(organization_id text, app_instance_id text, zt_network_id text,  PRIMARY KEY ((organization_id, app_instance_id), zt_network_id));

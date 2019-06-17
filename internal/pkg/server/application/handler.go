@@ -6,6 +6,7 @@ package application
 
 import (
 	"context"
+	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
@@ -466,3 +467,13 @@ func (h *Handler) GetAuthorizedZtNetworkMember(ctx context.Context, req *grpc_ap
 	return retrieved.ToArrayGRPC(), err
 }
 
+// AddZtNetworkProxy adds a new network proxy for an existing private network
+func (h *Handler) AddZtNetworkProxy(context.Context, *grpc_application_go.ServiceProxy) (*grpc_common_go.Success, error) {
+
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet"))
+}
+
+// RemoveZtnetworkProxy removes a proxy from the list of available entries of a private network
+func (h *Handler) RemoveZtNetworkProxy(context.Context, *grpc_application_go.RemoveAppZtNetworkProxy) (*grpc_common_go.Success, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet"))
+}

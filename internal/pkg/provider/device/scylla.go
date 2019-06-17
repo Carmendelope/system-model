@@ -14,16 +14,22 @@ import (
 
 // table and field names
 const (
-	deviceGroupTable = "DeviceGroups"
-	deviceTable = "Devices"
+	deviceGroupTable	= "DeviceGroups"
+	deviceTable 		= "Devices"
+
 	organizationIdField = "organization_id"
-	deviceGroupIdField = "device_group_id"
-	deviceIdField = "device_id"
-	labelsField  = "labels"
-	registerSinceField = "register_since"
+	deviceGroupIdField 	= "device_group_id"
+	deviceIdField 		= "device_id"
+	labelsField  		= "labels"
+	registerSinceField	= "register_since"
+	osField 			= "os"
+	hardwareField 		= "hardware"
+	storageField 		= "storage"
+
 	rowNotFound = "not found"
 )
 
+//     hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, PRIMARY KEY ( (organization_id, device_group_id), device_id));
 type ScyllaDeviceProvider struct {
 	Address string
 	Port int
@@ -371,7 +377,7 @@ func (sp *ScyllaDeviceProvider) AddDevice (device device.Device) derrors.Error {
 	}
 	// add it into database
 	stmt, names := qb.Insert(deviceTable).Columns(organizationIdField, deviceGroupIdField, deviceIdField,
-		labelsField, registerSinceField).ToCql()
+		labelsField, registerSinceField, osField, hardwareField, storageField).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(device)
 	cqlErr := q.ExecRelease()
 

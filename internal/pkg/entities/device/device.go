@@ -3,17 +3,21 @@ package device
 import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-device-go"
+	"github.com/nalej/grpc-inventory-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"time"
 )
 
 //  Device model the information available regarding a Device of an organization
 type Device struct {
-	OrganizationId	string
-	DeviceGroupId 	string
-	DeviceId 		string
-	RegisterSince	int64
-	Labels			map[string]string
+	OrganizationId	string `json:"organization_id,omitempty"`
+	DeviceGroupId 	string `json:"device_group_id,omitempty"`
+	DeviceId 		string `json:"device_id,omitempty"`
+	RegisterSince	int64  `json:"register_since,omitempty"`
+	Labels			map[string]string `json:"labels,omitempty"`
+	Os 				*entities.OperatingSystemInfo `json:"os,omitempty" cql:"os"`
+	Hardware 		*entities.HardwareInfo `json:"hardware,omitempty" cql:"hardware"`
+	Storage 		[]*entities.StorageHardwareInfo `json:"storage,omitempty" cql:"storage"`
 }
 
 type DeviceGroup struct {
@@ -106,22 +110,50 @@ func ValidGetDeviceGroupsRequest (request *grpc_device_go.GetDeviceGroupsRequest
 
 // ----------- Device ----------- //
 func NewDeviceFromGRPC (addRequest * grpc_device_go.AddDeviceRequest) * Device{
+
+	var os *entities.OperatingSystemInfo
+	var hardware 		*entities.HardwareInfo
+	var storage 		[]*entities.StorageHardwareInfo
+	storage = make ([]*entities.StorageHardwareInfo, 0)
+
+	if addRequest.AssetInfo != nil {
+		os = entities.NewOperatingSystemInfoFromGRPC(addRequest.AssetInfo.Os)
+		hardware = entities.NewHardwareInfoFromGRPC(addRequest.AssetInfo.Hardware)
+		for _, sto := range addRequest.AssetInfo.Storage {
+			storage = append(storage, entities.NewStorageHardwareInfoFromGRPC(sto))
+		}
+	}
+
 	return &Device{
-		OrganizationId: addRequest.OrganizationId,
-		DeviceGroupId: addRequest.DeviceGroupId,
-		DeviceId:     addRequest.DeviceId,
+		OrganizationId:	addRequest.OrganizationId,
+		DeviceGroupId: 	addRequest.DeviceGroupId,
+		DeviceId:     	addRequest.DeviceId,
 		Labels:			addRequest.Labels,
-		RegisterSince: time.Now().Unix(),
+		RegisterSince: 	time.Now().Unix(),
+		Os: 		  	os,
+		Hardware: 		hardware,
+		Storage: 		storage,
 	}
 }
 
 func (d * Device) ToGRPC() *grpc_device_go.Device {
+
+	storage := make ([]*grpc_inventory_go.StorageHardwareInfo, 0)
+	for _, sto := range d.Storage {
+		storage = append(storage, sto.ToGRPC())
+	}
+
 	return &grpc_device_go.Device{
 		OrganizationId: d.OrganizationId,
 		DeviceGroupId: d.DeviceGroupId,
 		DeviceId: d.DeviceId,
 		RegisterSince: d.RegisterSince,
 		Labels:d.Labels,
+		AssetInfo: &grpc_inventory_go.AssetInfo{
+			Os: d.Os.ToGRPC(),
+			Hardware: d.Hardware.ToGRPC(),
+			Storage:storage,
+		},
 	}
 }
 
