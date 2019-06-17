@@ -49,6 +49,8 @@ func (d *DeviceTestHelper) CreateOs () *entities.OperatingSystemInfo {
 	return &entities.OperatingSystemInfo{
 		Name: "Linux ubuntu",
 		Version: "3.0.0",
+		Architecture: "arch",
+		Class: entities.DARWIN,
 	}
 }
 func (d *DeviceTestHelper) CreateHardware () *entities.HardwareInfo {
