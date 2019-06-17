@@ -117,7 +117,7 @@ jobs:
       namespace: $(namespace)
 
   - script: |
-      kubectl --kubeconfig $(kubeconfig) -n$(namespace) exec scylladb-0 -i < scripts/database.cql
+      kubectl --kubeconfig $(kubeconfig) -n$(namespace) exec -i scylladb-0 cqlsh < ./scripts/database.cql
     workingDirectory: $(modulePath)
     displayName: Create database structure
 
