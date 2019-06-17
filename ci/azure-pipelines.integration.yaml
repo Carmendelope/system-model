@@ -42,14 +42,14 @@ jobs:
   steps:
   - template: misc/variables.yaml@ci_templates
 
-  - template: slack/build/start.yaml@ci_templates
-    parameters:
-      author: $(authorName)
-      repository: $(Build.Repository.Name)
-      branch: $(Build.SourceBranch)
-      commit: $(Build.SourceVersionMessage)
-      buildUrl: $(buildUrl)$(Build.BuildId)
-      slackWebhook: $(slackBuilds)
+  # - template: slack/build/start.yaml@ci_templates
+  #   parameters:
+  #     author: $(authorName)
+  #     repository: $(Build.Repository.Name)
+  #     branch: $(Build.SourceBranch)
+  #     commit: $(Build.SourceVersionMessage)
+  #     buildUrl: $(buildUrl)$(Build.BuildId)
+  #     slackWebhook: $(slackBuilds)
 
   - script: |
       mkdir -p '$(GOBIN)'
@@ -118,7 +118,7 @@ jobs:
 
   - script: |
       kubectl --kubeconfig $(kubeconfig) create -f integration-tests.job.yaml
-    workingDirectory: $(system.defaultWorkingDirectory)/ci/resources
+    workingDirectory: $(modulePath)/ci/resources
     displayName: Create integration tests job resource
   
   - script: |
