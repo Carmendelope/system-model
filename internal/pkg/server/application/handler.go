@@ -493,4 +493,5 @@ func (h *Handler) RemoveZtNetworkProxy(ctx context.Context, req *grpc_applicatio
 	}
 	err = h.Manager.RemoveZtNetworkProxy(req.OrganizationId, req.AppInstanceId, req.Fqdn, req.ClusterId, req.ServiceGroupInstanceId, req.ServiceInstanceId)
 	return nil, nil
+
 }
