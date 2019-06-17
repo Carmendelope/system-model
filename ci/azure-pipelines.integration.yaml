@@ -61,6 +61,12 @@ jobs:
       echo '##vso[task.prependpath]$(GOBIN)'
       echo '##vso[task.prependpath]$(GOROOT)/bin'
     displayName: 'Set up the Go workspace'
+
+  - template: go/dep.yaml@ci_templates
+    parameters:
+      sshHostName: $(hostName)
+      sshPublicKey: $(sshPublicKey)
+      modulePath: $(modulePath)
   
   - task: Docker@2
     inputs:
