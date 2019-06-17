@@ -75,7 +75,7 @@ jobs:
       repository: ci/$(componentName)
       tags: |
         $(Build.SourceVersion).$(Build.BuildId)
-      Dockerfile: ci/resources/Dockerfile.integration
+      Dockerfile: $(modulePath)/ci/resources/Dockerfile.integration
       buildContext: $(modulePath)
     displayName: Build and push integration test docker image
     
@@ -91,18 +91,19 @@ jobs:
 
   - template: ci/templates/download_artifact.yaml@scylla_deploy
     parameters:
-      downloadPath: $(system.defaultWorkingDirectory)/dist/yaml/$(stagingDockerRegistry)
+      downloadPath: $(modulePath)/dist/yaml/$(stagingDockerRegistry)
   
   - template: k8s/yaml/namespace.yaml@ci_templates
     parameters:
       namespace: $(namespace)
-      yamlPath: dist/yaml/$(stagingDockerRegistry)
+      yamlPath: $(modulePath)/dist/yaml/$(stagingDockerRegistry)
 
   - template: k8s/resources/create.yaml@ci_templates
     parameters:
       kubeconfig: $(kubeconfig)
       platform: mngtcluster
       dockerRegistry: $(stagingDockerRegistry)
+      yamlPath: $(modulePath)/dist/yaml
   
   - template: ci/templates/verify_deploy.yaml@scylla_deploy
     parameters:
@@ -113,7 +114,7 @@ jobs:
     parameters:
       dockerImage: "$(developmentDockerRegistry)/ci/$(componentName):$(Build.SourceVersion).$(Build.BuildId)"
       namespace: $(namespace)
-      yamlPath: ci/resources
+      yamlPath: $(modulePath)/ci/resources
 
   - script: |
       kubectl --kubeconfig $(kubeconfig) create -f integration-tests.job.yaml
@@ -139,10 +140,10 @@ jobs:
   #     kubeconfig: $(kubeconfig)
   #     namespace: $(namespace)      
 
-  # - template: k8s/ns/delete.yaml@ci_templates
-  #   parameters:
-  #     kubeconfig: $(kubeconfig)
-  #     namespace: $(namespace)
+  - template: k8s/ns/delete.yaml@ci_templates
+    parameters:
+      kubeconfig: $(kubeconfig)
+      namespace: $(namespace)
  
   # - template: slack/build/finish.yaml@ci_templates
   #   parameters:
