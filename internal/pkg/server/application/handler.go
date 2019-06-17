@@ -466,3 +466,31 @@ func (h *Handler) GetAuthorizedZtNetworkMember(ctx context.Context, req *grpc_ap
 	return retrieved.ToArrayGRPC(), err
 }
 
+// AddZtNetworkProxy adds a new network proxy for an existing private network
+func (h *Handler) AddZtNetworkProxy(ctx context.Context, req *grpc_application_go.ServiceProxy) (*grpc_common_go.Success, error) {
+	err := entities.ValidAddZtNetworkProxy(req)
+	if err != nil {
+		return nil, err
+	}
+	err = h.Manager.AddZtNetworkProxy(&entities.ServiceProxy{
+		OrganizationId: req.OrganizationId, AppInstanceId: req.AppInstanceId,
+		ServiceGroupInstanceId: req.ServiceGroupInstanceId, ClusterId:req.ClusterId,
+		FQDN: req.Fqdn, IP: req.Ip, ServiceInstanceId: req.ServiceInstanceId, ServiceGroupId: req.ServiceGroupId,
+		ServiceId: req.ServiceId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &grpc_common_go.Success{}, nil
+}
+
+// RemoveZtnetworkProxy removes a proxy from the list of available entries of a private network
+func (h *Handler) RemoveZtNetworkProxy(ctx context.Context, req *grpc_application_go.RemoveAppZtNetworkProxy) (*grpc_common_go.Success, error) {
+	err := entities.ValidRemoveZtNetworkProxy(req)
+	if err != nil {
+		return nil, err
+	}
+	err = h.Manager.RemoveZtNetworkProxy(req.OrganizationId, req.AppInstanceId, req.Fqdn, req.ClusterId, req.ServiceGroupInstanceId, req.ServiceInstanceId)
+	return nil, nil
+}
