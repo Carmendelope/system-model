@@ -1,0 +1,8 @@
+FROM  golang:1.12
+
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+COPY ci/resources/integration.sh /integration.sh
+COPY ./ src/github.com/nalej/system-model
+
+ENTRYPOINT [ "/integration.sh" ]

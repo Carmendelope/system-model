@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: integration-tests
+  namespace: __NPH_NAMESPACE
+spec:
+  template:
+    metadata:
+      name: integration-tests
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: integration-tests
+          image: __NPH_INTEGRATION_TESTS_IMAGE
+          tty: true

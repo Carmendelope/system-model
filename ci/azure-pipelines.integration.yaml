@@ -1,0 +1,163 @@
+trigger: none
+pr: none
+
+variables:
+  - group: common-vars
+  - group: slack-webhooks
+  - group: docker-registries
+  - group: ssh-credentials
+  - name: GOBIN
+    value: '$(GOPATH)/bin'
+  - name: GOROOT
+    value: '/usr/local/go1.11'
+  - name: GOPATH
+    value: '$(system.defaultWorkingDirectory)/gopath'
+  - name: modulePath
+    value: '$(GOPATH)/src/github.com/$(Build.Repository.Name)'
+  - name: componentName
+    value: system-model
+  - name: namespace
+    value: $(Build.SourceVersion)-$(Build.BuildId)
+  - name: kubeconfig
+    value: $(Agent.TempDirectory)/ci_kubeconfig.yaml
+  - name: authorName
+    value: ""
+
+resources:
+  repositories:
+    - repository: ci_templates
+      type: github
+      name: nalej/ci-templates
+      endpoint: nalej
+    - repository: scylla_deploy
+      type: github
+      name: nalej/scylla-deploy
+      endpoint: nalej
+
+jobs:
+- job: DeployComponent
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  
+  steps:
+  - template: misc/variables.yaml@ci_templates
+
+  - template: slack/build/start.yaml@ci_templates
+    parameters:
+      author: $(authorName)
+      repository: $(Build.Repository.Name)
+      branch: $(Build.SourceBranch)
+      commit: $(Build.SourceVersionMessage)
+      buildUrl: $(buildUrl)$(Build.BuildId)
+      slackWebhook: $(slackBuilds)
+
+  - script: |
+      mkdir -p '$(GOBIN)'
+      mkdir -p '$(GOPATH)/pkg'
+      mkdir -p '$(modulePath)'
+      shopt -s extglob
+      shopt -s dotglob
+      mv !(gopath) '$(modulePath)'
+      echo '##vso[task.prependpath]$(GOBIN)'
+      echo '##vso[task.prependpath]$(GOROOT)/bin'
+    displayName: 'Set up the Go workspace'
+  
+  - task: Docker@2
+    inputs:
+      command: login
+      containerRegistry: acr_development
+    displayName: Login to development ACR
+
+  - task: Docker@2
+    inputs:
+      command: buildAndPush
+      containerRegistry: acr_development
+      repository: ci/$(componentName)
+      tags: |
+        $(Build.SourceVersion).$(Build.BuildId)
+      Dockerfile: ci/resources/Dockerfile.integration
+      buildContext: $(modulePath)
+    displayName: Build and push integration test docker image
+    
+  - task: DownloadSecureFile@1
+    inputs:
+      secureFile: ci_kubeconfig.yaml
+    displayName: "Get K8S configuration file"
+  
+  - template: k8s/ns/create.yaml@ci_templates
+    parameters:
+      kubeconfig: $(kubeconfig)
+      namespace: $(namespace)
+
+  - template: ci/templates/download_artifact.yaml@scylla_deploy
+    parameters:
+      downloadPath: $(system.defaultWorkingDirectory)/dist/yaml/$(stagingDockerRegistry)
+  
+  - template: k8s/yaml/namespace.yaml@ci_templates
+    parameters:
+      namespace: $(namespace)
+      yamlPath: dist/yaml/$(stagingDockerRegistry)
+
+  - template: k8s/resources/create.yaml@ci_templates
+    parameters:
+      kubeconfig: $(kubeconfig)
+      platform: mngtcluster
+      dockerRegistry: $(stagingDockerRegistry)
+  
+  - template: ci/templates/verify_deploy.yaml@scylla_deploy
+    parameters:
+      kubeconfig: $(kubeconfig)
+      namespace: $(namespace)
+
+  - template: k8s/yaml/integration-tests.yaml@ci_templates
+    parameters:
+      dockerImage: "$(developmentDockerRegistry)/ci/$(componentName):$(Build.SourceVersion).$(Build.BuildId)"
+      namespace: $(namespace)
+      yamlPath: ci/resources
+
+  - script: |
+      kubectl --kubeconfig $(kubeconfig) create -f integration-tests.job.yaml
+    workingDirectory: $(system.defaultWorkingDirectory)/ci/resources
+    displayName: Create integration tests job resource
+  
+  - script: |
+      for (( i=0; i<36; i++ ))
+      do
+        jobs=$(kubectl --kubeconfig $(kubeconfig) -n$(namespace) get jobs integration-tests -ojson | jq '.status.succeeded >= 1')
+        if [ "$jobs" == "true" ]; then
+          echo "Job finished"
+          break;
+        else
+          echo "Job is not done yet"
+          sleep 30
+        fi
+      done
+      # TODO: Add error handling here
+
+  # - template: k8s/logs/archive.yaml@ci_templates
+  #   parameters:
+  #     kubeconfig: $(kubeconfig)
+  #     namespace: $(namespace)      
+
+  # - template: k8s/ns/delete.yaml@ci_templates
+  #   parameters:
+  #     kubeconfig: $(kubeconfig)
+  #     namespace: $(namespace)
+ 
+  # - template: slack/build/finish.yaml@ci_templates
+  #   parameters:
+  #     author: $(authorName)
+  #     repository: $(Build.Repository.Name)
+  #     branch: $(Build.SourceBranch)
+  #     commit: $(Build.SourceVersionMessage)
+  #     buildUrl: $(buildUrl)$(Build.BuildId)
+  #     slackWebhook: $(slackBuilds)
+  
+  # - template: slack/build/failed.yaml@ci_templates
+  #   parameters:
+  #     author: $(authorName)
+  #     repository: $(Build.Repository.Name)
+  #     branch: $(Build.SourceBranch)
+  #     commit: $(Build.SourceVersionMessage)
+  #     buildUrl: $(buildUrl)$(Build.BuildId)
+  #     slackWebhook: $(slackCIFailed)
