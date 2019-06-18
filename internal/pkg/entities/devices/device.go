@@ -1,8 +1,9 @@
-package device
+package devices
 
 import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-device-go"
+	grpc_device_manager_go "github.com/nalej/grpc-device-manager-go"
 	"github.com/nalej/grpc-inventory-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"time"
@@ -10,14 +11,15 @@ import (
 
 //  Device model the information available regarding a Device of an organization
 type Device struct {
-	OrganizationId	string `json:"organization_id,omitempty"`
-	DeviceGroupId 	string `json:"device_group_id,omitempty"`
-	DeviceId 		string `json:"device_id,omitempty"`
-	RegisterSince	int64  `json:"register_since,omitempty"`
-	Labels			map[string]string `json:"labels,omitempty"`
-	Os 				*entities.OperatingSystemInfo `json:"os,omitempty" cql:"os"`
-	Hardware 		*entities.HardwareInfo `json:"hardware,omitempty" cql:"hardware"`
-	Storage 		[]*entities.StorageHardwareInfo `json:"storage,omitempty" cql:"storage"`
+	OrganizationId	string                           `json:"organization_id,omitempty"`
+	DeviceGroupId 	string                           `json:"device_group_id,omitempty"`
+	DeviceId 		string                           `json:"device_id,omitempty"`
+	RegisterSince	int64                            `json:"register_since,omitempty"`
+	Labels			map[string]string                `json:"labels,omitempty"`
+	Os 				*entities.OperatingSystemInfo    `json:"os,omitempty" cql:"os"`
+	Hardware 		*entities.HardwareInfo           `json:"hardware,omitempty" cql:"hardware"`
+	Storage 		[]*entities.StorageHardwareInfo  `json:"storage,omitempty" cql:"storage"`
+	Location        *entities.InventoryLocation      `json:"location,omitempty"`
 }
 
 type DeviceGroup struct {
@@ -47,10 +49,10 @@ func NewDeviceGroupFromGRPC (addRequest * grpc_device_go.AddDeviceGroupRequest) 
 
 	return &DeviceGroup{
 		OrganizationId: addRequest.OrganizationId,
-		DeviceGroupId: entities.GenerateUUID(),
-		Name: addRequest.Name,
-		Labels: addRequest.Labels,
-		Created: time.Now().Unix(),
+		DeviceGroupId:  entities.GenerateUUID(),
+		Name:           addRequest.Name,
+		Labels:         addRequest.Labels,
+		Created:        time.Now().Unix(),
 	}
 
 }
@@ -157,6 +159,28 @@ func (d * Device) ToGRPC() *grpc_device_go.Device {
 	}
 }
 
+func (d * Device) ToGRPCDeviceManager() *grpc_device_manager_go.Device {
+
+	storage := make ([]*grpc_inventory_go.StorageHardwareInfo, 0)
+	for _, sto := range d.Storage {
+		storage = append(storage, sto.ToGRPC())
+	}
+
+	return &grpc_device_manager_go.Device{
+		OrganizationId: d.OrganizationId,
+		DeviceGroupId: d.DeviceGroupId,
+		DeviceId: d.DeviceId,
+		RegisterSince: d.RegisterSince,
+		Labels:d.Labels,
+		AssetInfo: &grpc_inventory_go.AssetInfo{
+			Os:       d.Os.ToGRPC(),
+			Hardware: d.Hardware.ToGRPC(),
+			Storage:  storage,
+		},
+		Location: d.Location.ToGRPC(),
+	}
+}
+
 func (d *Device) ApplyUpdate(updateRequest grpc_device_go.UpdateDeviceRequest) {
 
 	if updateRequest.AddLabels {
@@ -171,6 +195,13 @@ func (d *Device) ApplyUpdate(updateRequest grpc_device_go.UpdateDeviceRequest) {
 		for k, _ := range updateRequest.Labels {
 			delete(d.Labels, k)
 		}
+	}
+}
+
+func (d * Device) ApplyLocationUpdate (request *grpc_device_manager_go.UpdateDeviceLocationRequest) {
+	if request.UpdateLocation {
+		d.Location.Geolocation = request.Location.Geolocation
+		d.Location.Geohash = request.Location.Geohash
 	}
 }
 
@@ -239,3 +270,19 @@ func ValidUpdateDeviceRequest(request * grpc_device_go.UpdateDeviceRequest) derr
 	return nil
 }
 
+func ValidUpdateDeviceLocationRequest(request * grpc_device_manager_go.UpdateDeviceLocationRequest) derrors.Error {
+	if request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
+	}
+	if request.DeviceGroupId == "" {
+		return derrors.NewInvalidArgumentError("device_group_id cannot be empty")
+	}
+	if request.DeviceId == "" {
+		return derrors.NewInvalidArgumentError("device_id cannot be empty")
+	}
+	if request.Location != nil && request.Location.Geolocation == "" {
+		return derrors.NewInvalidArgumentError("location cannot be empty")
+	}
+
+	return nil
+}

@@ -7,7 +7,7 @@ package testhelpers
 import (
 	"fmt"
 	"github.com/nalej/system-model/internal/pkg/entities"
-	"github.com/nalej/system-model/internal/pkg/entities/device"
+	"github.com/nalej/system-model/internal/pkg/entities/devices"
 	devProvider "github.com/nalej/system-model/internal/pkg/provider/device"
 	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
 	"github.com/onsi/ginkgo"
@@ -22,9 +22,9 @@ func CreateOrganization(orgProvider orgProvider.Provider) * entities.Organizatio
 	return toAdd
 }
 
-func CreateDeviceGroup(devProvider devProvider.Provider, organizationID string, deviceGroupName string) *device.DeviceGroup  {
+func CreateDeviceGroup(devProvider devProvider.Provider, organizationID string, deviceGroupName string) *devices.DeviceGroup {
 	labels := make(map[string]string, 0)
-	toAdd := device.NewDeviceGroup( organizationID, entities.GenerateUUID(), deviceGroupName,labels)
+	toAdd := devices.NewDeviceGroup( organizationID, entities.GenerateUUID(), deviceGroupName,labels)
 	err := devProvider.AddDeviceGroup(*toAdd)
 	gomega.Expect(err).To(gomega.Succeed())
 	return toAdd

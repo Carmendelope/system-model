@@ -290,6 +290,8 @@ type Asset struct {
 	LastOpResult *AgentOpSummary `json:"last_op_result,omitempty" cql: "eic_net_ip"`
 	// LastAliveTimestamp contains the last alive message received
 	LastAliveTimestamp   int64    `json:"last_alive_timestamp,omitempty" cql:"last_alive_timestamp"`
+	// Location contains the location of the asset
+	Location             *InventoryLocation `json:"location,omitempty"`
 }
 
 func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
@@ -310,6 +312,7 @@ func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
 		Os:             NewOperatingSystemInfoFromGRPC(addRequest.Os),
 		Hardware:       NewHardwareInfoFromGRPC(addRequest.Hardware),
 		Storage:        storage,
+		Location:       NewLocationFromGRPC(addRequest.Location),
 	}
 }
 
@@ -334,6 +337,7 @@ func (a * Asset) ToGRPC() *grpc_inventory_go.Asset{
 		EicNetIp:             a.EicNetIp,
 		LastAliveTimestamp:   a.LastAliveTimestamp,
 		LastOpResult:         a.LastOpResult.ToGRPC(),
+		Location:             a.Location.ToGRPC(),
 	}
 }
 

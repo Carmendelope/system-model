@@ -5,7 +5,7 @@ import (
 	"github.com/gocql/gocql"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-utils/pkg/conversions"
-	"github.com/nalej/system-model/internal/pkg/entities/device"
+	"github.com/nalej/system-model/internal/pkg/entities/devices"
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
@@ -117,7 +117,7 @@ func (sp * ScyllaDeviceProvider) unsafeExistsGroup (organizationID string, devic
 	return true, nil
 }
 // AddDeviceGroup adds a new device group
-func (sp *ScyllaDeviceProvider) AddDeviceGroup (deviceGroup device.DeviceGroup) derrors.Error {
+func (sp *ScyllaDeviceProvider) AddDeviceGroup (deviceGroup devices.DeviceGroup) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -211,7 +211,7 @@ func (sp * ScyllaDeviceProvider)ExistsDeviceGroupByName(organizationID string, n
 }
 
 // GetDeviceGroup returns a device Group.
-func (sp *ScyllaDeviceProvider) GetDeviceGroup(organizationID string, deviceGroupID string) (* device.DeviceGroup, derrors.Error) {
+func (sp *ScyllaDeviceProvider) GetDeviceGroup(organizationID string, deviceGroupID string) (*devices.DeviceGroup, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -220,7 +220,7 @@ func (sp *ScyllaDeviceProvider) GetDeviceGroup(organizationID string, deviceGrou
 		return nil, err
 	}
 
-	var deviceGroup device.DeviceGroup
+	var deviceGroup devices.DeviceGroup
 
 	stmt, names := qb.Select(deviceGroupTable).Where(qb.Eq(organizationIdField)).
 		Where(qb.Eq(deviceGroupIdField)).ToCql()
@@ -241,7 +241,7 @@ func (sp *ScyllaDeviceProvider) GetDeviceGroup(organizationID string, deviceGrou
 
 }
 // ListDeviceGroups returns a list of device groups in a organization.
-func (sp *ScyllaDeviceProvider) ListDeviceGroups(organizationID string) ([]device.DeviceGroup, derrors.Error) {
+func (sp *ScyllaDeviceProvider) ListDeviceGroups(organizationID string) ([]devices.DeviceGroup, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -256,7 +256,7 @@ func (sp *ScyllaDeviceProvider) ListDeviceGroups(organizationID string) ([]devic
 		"organization_id": organizationID,
 	})
 
-	groups := make([]device.DeviceGroup, 0)
+	groups := make([]devices.DeviceGroup, 0)
 	cqlErr := gocqlx.Select(&groups, q.Query)
 
 	if cqlErr != nil {
@@ -267,7 +267,7 @@ func (sp *ScyllaDeviceProvider) ListDeviceGroups(organizationID string) ([]devic
 
 }
 
-func (sp * ScyllaDeviceProvider) GetDeviceGroupsByName(organizationID string, groupNames []string) ([]device.DeviceGroup, derrors.Error){
+func (sp * ScyllaDeviceProvider) GetDeviceGroupsByName(organizationID string, groupNames []string) ([]devices.DeviceGroup, derrors.Error){
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -276,7 +276,7 @@ func (sp * ScyllaDeviceProvider) GetDeviceGroupsByName(organizationID string, gr
 		return nil, err
 	}
 
-	var groups []device.DeviceGroup
+	var groups []devices.DeviceGroup
 	stmt, names := qb.Select("devicegroupname_index").Columns("name", "organization_id", "device_group_id").Where(qb.In("name")).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"name": groupNames,
@@ -286,7 +286,7 @@ func (sp * ScyllaDeviceProvider) GetDeviceGroupsByName(organizationID string, gr
 	if cqlErr != nil {
 		return nil, derrors.AsError(cqlErr, "cannot list device groups of an organization")
 	}
-	result := make([]device.DeviceGroup, 0)
+	result := make([]devices.DeviceGroup, 0)
 	for _, group := range groups{
 		if group.OrganizationId == organizationID{
 			result = append(result, group)
@@ -357,7 +357,7 @@ func (sp * ScyllaDeviceProvider) unsafeExistsDevice (organizationID string, devi
 	return true, nil
 }
 // AddDevice adds a new device group
-func (sp *ScyllaDeviceProvider) AddDevice (device device.Device) derrors.Error {
+func (sp *ScyllaDeviceProvider) AddDevice (device devices.Device) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -422,7 +422,7 @@ func (sp *ScyllaDeviceProvider) ExistsDevice(organizationID string, deviceGroupI
 	return true, nil
 }
 // GetDevice returns a device .
-func (sp *ScyllaDeviceProvider) GetDevice(organizationID string, deviceGroupID string, deviceID string) (* device.Device, derrors.Error) {
+func (sp *ScyllaDeviceProvider) GetDevice(organizationID string, deviceGroupID string, deviceID string) (*devices.Device, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -431,7 +431,7 @@ func (sp *ScyllaDeviceProvider) GetDevice(organizationID string, deviceGroupID s
 		return nil, err
 	}
 
-	var device device.Device
+	var device devices.Device
 
 	stmt, names := qb.Select(deviceTable).Where(qb.Eq(organizationIdField)).
 		Where(qb.Eq(deviceGroupIdField)).Where(qb.Eq(deviceIdField)).ToCql()
@@ -453,7 +453,7 @@ func (sp *ScyllaDeviceProvider) GetDevice(organizationID string, deviceGroupID s
 	return &device, nil
 }
 // ListDevice returns a list of device in a group.
-func (sp *ScyllaDeviceProvider) ListDevices(organizationID string, deviceGroupID string) ([]device.Device, derrors.Error) {
+func (sp *ScyllaDeviceProvider) ListDevices(organizationID string, deviceGroupID string) ([]devices.Device, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -471,7 +471,7 @@ func (sp *ScyllaDeviceProvider) ListDevices(organizationID string, deviceGroupID
 		deviceGroupIdField: deviceGroupID,
 	})
 
-	devices := make([]device.Device, 0)
+	devices := make([]devices.Device, 0)
 	cqlErr := gocqlx.Select(&devices, q.Query)
 
 	if cqlErr != nil {
@@ -512,7 +512,7 @@ func (sp *ScyllaDeviceProvider) RemoveDevice(organizationID string, deviceGroupI
 	return nil
 }
 
-func (sp * ScyllaDeviceProvider) UpdateDevice(device device.Device) derrors.Error{
+func (sp * ScyllaDeviceProvider) UpdateDevice(device devices.Device) derrors.Error{
 	sp.Lock()
 	defer sp.Unlock()
 

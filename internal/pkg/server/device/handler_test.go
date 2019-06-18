@@ -9,7 +9,7 @@ import (
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/test"
 	"github.com/nalej/system-model/internal/pkg/entities"
-	devEntities "github.com/nalej/system-model/internal/pkg/entities/device"
+	"github.com/nalej/system-model/internal/pkg/entities/devices"
 	"github.com/nalej/system-model/internal/pkg/provider/device"
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
 	"github.com/nalej/system-model/internal/pkg/server/testhelpers"
@@ -99,7 +99,7 @@ var _ = ginkgo.Describe("Applications", func(){
 
 	// Target organization.
 	var targetOrganization * entities.Organization
-	var targetDeviceGroup * devEntities.DeviceGroup
+	var targetDeviceGroup *devices.DeviceGroup
 
 	// Organization Provider
 	var organizationProvider organization.Provider
