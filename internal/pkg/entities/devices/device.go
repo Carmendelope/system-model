@@ -260,11 +260,8 @@ func ValidUpdateDeviceRequest(request * grpc_device_go.UpdateDeviceRequest) derr
 	if request.AddLabels && request.RemoveLabels {
 		return derrors.NewInvalidArgumentError("add_labels and remove_labels can not be true at the same time")
 	}
-	if ! request.AddLabels && !request.RemoveLabels {
-		return derrors.NewInvalidArgumentError("add_labels and remove_labels cannot be false at the same time")
-	}
-	if request == nil || len(request.Labels) == 0{
-		return derrors.NewInvalidArgumentError("labels cannot be empty")
+	if request == nil || len(request.Labels) == 0 || request.Location == nil {
+		return derrors.NewInvalidArgumentError("request cannot be empty")
 	}
 
 	return nil
