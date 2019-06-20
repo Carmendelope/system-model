@@ -3,7 +3,7 @@ package devices
 import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-device-go"
-	grpc_device_manager_go "github.com/nalej/grpc-device-manager-go"
+	"github.com/nalej/grpc-device-manager-go"
 	"github.com/nalej/grpc-inventory-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"time"
@@ -196,6 +196,12 @@ func (d *Device) ApplyUpdate(updateRequest grpc_device_go.UpdateDeviceRequest) {
 			delete(d.Labels, k)
 		}
 	}
+	if updateRequest.UpdateLocation {
+		d.Location = &entities.InventoryLocation{
+			Geolocation: updateRequest.Location.Geolocation,
+			Geohash: updateRequest.Location.Geohash,
+		}
+	}
 }
 
 func (d * Device) ApplyLocationUpdate (request *grpc_device_manager_go.UpdateDeviceLocationRequest) {
@@ -260,7 +266,7 @@ func ValidUpdateDeviceRequest(request * grpc_device_go.UpdateDeviceRequest) derr
 	if request.AddLabels && request.RemoveLabels {
 		return derrors.NewInvalidArgumentError("add_labels and remove_labels can not be true at the same time")
 	}
-	if request == nil || len(request.Labels) == 0 || request.Location == nil {
+	if request == nil || request.Location == nil {
 		return derrors.NewInvalidArgumentError("request cannot be empty")
 	}
 

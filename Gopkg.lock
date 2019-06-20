@@ -134,12 +134,12 @@
   version = "v0.0.8"
 
 [[projects]]
-  digest = "1:f18300a019aa912c9ef686b87ba734cdc851295ffc72c5b3cebcad54507d57cc"
+  digest = "1:3ca41f78bb85f99af2d8700df5eb03447f0660fba1360d78bf3fa6d10d89ac85"
   name = "github.com/nalej/grpc-device-go"
   packages = ["."]
   pruneopts = ""
-  revision = "047fcac2cd225b26c5a768691100c7912b6202ed"
-  version = "v0.0.36"
+  revision = "4d8993a2e3a050aff85f5f34e0508f84a6ccb270"
+  version = "v0.0.38"
 
 [[projects]]
   digest = "1:8bf6a4f61d120a58f7d0f5c623dfd0767ae7719fc98f9ebd12c0cd96205c6e12"
