@@ -144,7 +144,6 @@ func (h *Handler) GetDevice(ctx context.Context, deviceRequest *grpc_device_go.D
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
-	log.Debug().Interface("device", device).Interface("toGRPC", device.ToGRPC()).Msg("retrieved device")
 	return device.ToGRPC(), nil
 }
 // RemoveDevice removes a given device
