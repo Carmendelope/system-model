@@ -306,7 +306,7 @@ func RunTest (provider Provider) {
 
 		})
 
-		ginkgo.FIt("Should be able to update a device adding location", func(){
+		ginkgo.It("Should be able to update a device adding location", func(){
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			err := provider.AddDevice(*toAdd)
