@@ -25,6 +25,7 @@ const (
 	osField 			= "os"
 	hardwareField 		= "hardware"
 	storageField 		= "storage"
+	locationField = "location"
 
 	rowNotFound = "not found"
 )
@@ -463,7 +464,7 @@ func (sp *ScyllaDeviceProvider) ListDevices(organizationID string, deviceGroupID
 	}
 
 	stmt, names := qb.Select(deviceTable).Columns(organizationIdField, deviceGroupIdField, deviceIdField,
-		labelsField, registerSinceField).Where(qb.Eq(organizationIdField)).
+		labelsField, registerSinceField, locationField).Where(qb.Eq(organizationIdField)).
 		Where(qb.Eq(deviceGroupIdField)).ToCql()
 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
@@ -475,6 +476,7 @@ func (sp *ScyllaDeviceProvider) ListDevices(organizationID string, deviceGroupID
 	cqlErr := gocqlx.Select(&devices, q.Query)
 
 	if cqlErr != nil {
+		log.Error().Err(cqlErr).Interface("query", q.Query).Msg("cannot list devices of a group")
 		return nil, derrors.AsError(cqlErr, "cannot list devices of a group")
 	}
 
@@ -516,17 +518,23 @@ func (sp * ScyllaDeviceProvider) UpdateDevice(device devices.Device) derrors.Err
 	sp.Lock()
 	defer sp.Unlock()
 
+	if err := sp.checkAndConnect(); err != nil{
+		return err
+	}
+
 	// check if the device exists
 	exists, err := sp.unsafeExistsDevice(device.OrganizationId, device.DeviceGroupId, device.DeviceId)
 	if err != nil {
+		log.Error().Err(err).Msg("cannot check if device exists")
 		return err
 	}
 	if !exists {
+		log.Error().Interface("device", device).Msg("requested device does not exists for update")
 		return derrors.NewNotFoundError("device").WithParams(device.OrganizationId, device.DeviceGroupId, device.DeviceId)
 	}
 
 	// insert the cluster instance
-	stmt, names := qb.Update(deviceTable).Set("labels").
+	stmt, names := qb.Update(deviceTable).Set(labelsField, locationField).
 		Where(qb.Eq(organizationIdField)).
 		Where(qb.Eq(deviceGroupIdField)).
 		Where(qb.Eq(deviceIdField)).ToCql()
@@ -534,7 +542,8 @@ func (sp * ScyllaDeviceProvider) UpdateDevice(device devices.Device) derrors.Err
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return derrors.AsError(err,"cannot update device labels")
+		log.Error().Err(cqlErr).Msg("Cannot update device")
+		return derrors.AsError(err,"cannot update device")
 	}
 
 	return nil

@@ -19,15 +19,9 @@ docker exec -it scylla cqlsh
 
 create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 use nalej;
-create type IF NOT EXISTS nalej.operating_system_info (name text, version text);
-create type IF NOT EXISTS nalej.cpu_info (manufacturer text, model text, architecture text, num_cores int);
-create type IF NOT EXISTS nalej.networking_hardware_info (type text, link_capacity int);
-create type IF NOT EXISTS nalej.hardware_info (cpus list<FROZEN<cpu_info>>, installed_ram int, net_interfaces list<FROZEN<networking_hardware_info>>);
-create type IF NOT EXISTS nalej.storage_hardware_info (type text, total_capacity int);
 
-create table IF NOT EXISTS nalej.Asset (organization_id text, asset_id text, agent_id text, show boolean, created int, labels map<text, text>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage FROZEN<storage_hardware_info>, eic_net_ip text, PRIMARY KEY (asset_id));
-    create index IF NOT EXISTS assetOrg ON nalej.Asset (organization_id);
-    create index IF NOT EXISTS assetEdgeController ON nalej.Asset (edge_controller_id);
+create the tables using data from the creation script
+
 */
 
 var _ = ginkgo.Describe("Scylla asset provider", func(){

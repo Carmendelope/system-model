@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-device-go"
-	grpc_device_manager_go "github.com/nalej/grpc-device-manager-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
@@ -145,6 +144,7 @@ func (h *Handler) GetDevice(ctx context.Context, deviceRequest *grpc_device_go.D
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
+	log.Debug().Interface("device", device).Interface("toGRPC", device.ToGRPC()).Msg("retrieved device")
 	return device.ToGRPC(), nil
 }
 // RemoveDevice removes a given device
@@ -161,27 +161,16 @@ func (h *Handler) RemoveDevice(ctx context.Context, removeRequest *grpc_device_g
 	return &grpc_common_go.Success{}, nil
 }
 // UpdateDevice updates the device info (labels)
-func (h *Handler) UpdateDevice(ctx context.Context, deviceRequest *grpc_device_go.UpdateDeviceRequest) (*grpc_device_go.Device, error){
-	err := devices.ValidUpdateDeviceRequest(deviceRequest)
+func (h *Handler) UpdateDevice(ctx context.Context, request *grpc_device_go.UpdateDeviceRequest) (*grpc_device_go.Device, error){
+	err := devices.ValidUpdateDeviceRequest(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
-	device, err := h.Manager.UpdateDevice(deviceRequest)
-	if err != nil {
-		return nil, conversions.ToGRPCError(err)
-	}
-	return device.ToGRPC(), nil
-}
 
-// UpdateDeviceLocation updates the location of a device
-func (h * Handler) UpdateDeviceLocation (ctx context.Context, request *grpc_device_manager_go.UpdateDeviceLocationRequest) (*grpc_device_manager_go.Device, error) {
-	err := devices.ValidUpdateDeviceLocationRequest(request)
+	updated, err := h.Manager.UpdateDevice(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
-	updated, err := h.Manager.UpdateDeviceLocation(request)
-	if err != nil {
-		return nil, conversions.ToGRPCError(err)
-	}
-	return updated, nil
+
+	return updated.ToGRPC(), nil
 }

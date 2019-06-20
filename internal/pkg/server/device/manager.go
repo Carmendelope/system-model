@@ -3,7 +3,6 @@ package device
 import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-device-go"
-	grpc_device_manager_go "github.com/nalej/grpc-device-manager-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/system-model/internal/pkg/entities/devices"
 	"github.com/nalej/system-model/internal/pkg/provider/device"
@@ -257,18 +256,4 @@ func (m *Manager) UpdateDevice(deviceRequest *grpc_device_go.UpdateDeviceRequest
 	}
 	return device, nil
 
-}
-
-func (m * Manager) UpdateDeviceLocation (request *grpc_device_manager_go.UpdateDeviceLocationRequest) (*grpc_device_manager_go.Device, derrors.Error) {
-	device, err := m.DevProvider.GetDevice(request.OrganizationId, request.DeviceGroupId, request.DeviceId)
-	if err != nil{
-		return nil, err
-	}
-	device.ApplyLocationUpdate(request)
-	err = m.DevProvider.UpdateDevice(*device)
-	if err != nil{
-		return nil, err
-	}
-	device.ToGRPC()
-	return device.ToGRPCDeviceManager(), nil
 }

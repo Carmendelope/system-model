@@ -6,6 +6,7 @@ import (
 	"github.com/nalej/grpc-device-manager-go"
 	"github.com/nalej/grpc-inventory-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/rs/zerolog/log"
 	"time"
 )
 
@@ -19,7 +20,7 @@ type Device struct {
 	Os 				*entities.OperatingSystemInfo    `json:"os,omitempty" cql:"os"`
 	Hardware 		*entities.HardwareInfo           `json:"hardware,omitempty" cql:"hardware"`
 	Storage 		[]*entities.StorageHardwareInfo  `json:"storage,omitempty" cql:"storage"`
-	Location        *entities.InventoryLocation      `json:"location,omitempty"`
+	Location        *entities.InventoryLocation      `json:"location,omitempty" cql:"location"`
 }
 
 type DeviceGroup struct {
@@ -147,14 +148,15 @@ func (d * Device) ToGRPC() *grpc_device_go.Device {
 
 	return &grpc_device_go.Device{
 		OrganizationId: d.OrganizationId,
-		DeviceGroupId: d.DeviceGroupId,
-		DeviceId: d.DeviceId,
-		RegisterSince: d.RegisterSince,
-		Labels:d.Labels,
+		DeviceGroupId:  d.DeviceGroupId,
+		DeviceId:       d.DeviceId,
+		RegisterSince:  d.RegisterSince,
+		Labels:         d.Labels,
+		Location:       d.Location.ToGRPC(),
 		AssetInfo: &grpc_inventory_go.AssetInfo{
-			Os: d.Os.ToGRPC(),
+			Os:       d.Os.ToGRPC(),
 			Hardware: d.Hardware.ToGRPC(),
-			Storage:storage,
+			Storage:  storage,
 		},
 	}
 }
@@ -168,16 +170,16 @@ func (d * Device) ToGRPCDeviceManager() *grpc_device_manager_go.Device {
 
 	return &grpc_device_manager_go.Device{
 		OrganizationId: d.OrganizationId,
-		DeviceGroupId: d.DeviceGroupId,
-		DeviceId: d.DeviceId,
-		RegisterSince: d.RegisterSince,
-		Labels:d.Labels,
+		DeviceGroupId:  d.DeviceGroupId,
+		DeviceId:       d.DeviceId,
+		RegisterSince:  d.RegisterSince,
+		Labels:         d.Labels,
+		Location:       d.Location.ToGRPC(),
 		AssetInfo: &grpc_inventory_go.AssetInfo{
 			Os:       d.Os.ToGRPC(),
 			Hardware: d.Hardware.ToGRPC(),
 			Storage:  storage,
 		},
-		Location: d.Location.ToGRPC(),
 	}
 }
 
@@ -202,13 +204,7 @@ func (d *Device) ApplyUpdate(updateRequest grpc_device_go.UpdateDeviceRequest) {
 			Geohash: updateRequest.Location.Geohash,
 		}
 	}
-}
-
-func (d * Device) ApplyLocationUpdate (request *grpc_device_manager_go.UpdateDeviceLocationRequest) {
-	if request.UpdateLocation {
-		d.Location.Geolocation = request.Location.Geolocation
-		d.Location.Geohash = request.Location.Geohash
-	}
+	log.Debug().Interface("updated", d).Msg("after applying update")
 }
 
 func ValidDeviceID (device * grpc_device_go.DeviceId) derrors.Error {
@@ -268,23 +264,6 @@ func ValidUpdateDeviceRequest(request * grpc_device_go.UpdateDeviceRequest) derr
 	}
 	if request == nil || request.Location == nil {
 		return derrors.NewInvalidArgumentError("request cannot be empty")
-	}
-
-	return nil
-}
-
-func ValidUpdateDeviceLocationRequest(request * grpc_device_manager_go.UpdateDeviceLocationRequest) derrors.Error {
-	if request.OrganizationId == "" {
-		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
-	}
-	if request.DeviceGroupId == "" {
-		return derrors.NewInvalidArgumentError("device_group_id cannot be empty")
-	}
-	if request.DeviceId == "" {
-		return derrors.NewInvalidArgumentError("device_id cannot be empty")
-	}
-	if request.Location != nil && request.Location.Geolocation == "" {
-		return derrors.NewInvalidArgumentError("location cannot be empty")
 	}
 
 	return nil
