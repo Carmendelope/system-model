@@ -3,26 +3,26 @@ package device
 import (
 	"fmt"
 	"github.com/nalej/derrors"
-	"github.com/nalej/system-model/internal/pkg/entities/device"
+	"github.com/nalej/system-model/internal/pkg/entities/devices"
 	"sync"
 )
 
 type MockupDeviceProvider struct {
 	sync.Mutex
 	// deviceGroup indexed by organization_id -> device_group_id
-	deviceGroups map[string]map[string]device.DeviceGroup
+	deviceGroups map[string]map[string]devices.DeviceGroup
 	// deviceGroupsByName indexed by organization_id#device_group_name
-	deviceGroupsByName map[string]device.DeviceGroup
+	deviceGroupsByName map[string]devices.DeviceGroup
 	// devices indexed by (organization_id#device_group_id) -> device_id
-	devices 	 map[string]map[string]device.Device
+	devices 	 map[string]map[string]devices.Device
 
 }
 
 func NewMockupDeviceProvider () * MockupDeviceProvider {
 	return &MockupDeviceProvider{
-		deviceGroups:	make (map[string]map[string]device.DeviceGroup, 0),
-		deviceGroupsByName:	make (map[string]device.DeviceGroup, 0),
-		devices: 		make (map[string]map[string]device.Device, 0),
+		deviceGroups:	make (map[string]map[string]devices.DeviceGroup, 0),
+		deviceGroupsByName:	make (map[string]devices.DeviceGroup, 0),
+		devices: 		make (map[string]map[string]devices.Device, 0),
 	}
 }
 
@@ -45,12 +45,12 @@ func (m * MockupDeviceProvider) unsafeExistsOrganization (organizationID string)
 	return exists
 }
 
-func (m * MockupDeviceProvider) AddDeviceGroup (deviceGroup device.DeviceGroup) derrors.Error {
+func (m * MockupDeviceProvider) AddDeviceGroup (deviceGroup devices.DeviceGroup) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
 	if !m.unsafeExistsOrganization(deviceGroup.OrganizationId){
-		device := make(map[string]device.DeviceGroup)
+		device := make(map[string]devices.DeviceGroup)
 		device[deviceGroup.DeviceGroupId] = deviceGroup
 		m.deviceGroups[deviceGroup.OrganizationId] = device
 	} else if !m.unsafeExistsGroup(deviceGroup.OrganizationId, deviceGroup.DeviceGroupId) {
@@ -83,7 +83,7 @@ func (m * MockupDeviceProvider) ExistsDeviceGroupByName(organizationID string, n
 
 }
 
-func (m * MockupDeviceProvider) GetDeviceGroup(organizationID string, deviceGroupID string) (* device.DeviceGroup, derrors.Error) {
+func (m * MockupDeviceProvider) GetDeviceGroup(organizationID string, deviceGroupID string) (*devices.DeviceGroup, derrors.Error) {
 
 	m.Lock()
 	defer m.Unlock()
@@ -99,12 +99,12 @@ func (m * MockupDeviceProvider) GetDeviceGroup(organizationID string, deviceGrou
 	return  nil, derrors.NewNotFoundError("device group").WithParams(organizationID, deviceGroupID)
 }
 
-func (m * MockupDeviceProvider) GetDeviceGroupsByName(organizationID string, groupNames []string) ([]device.DeviceGroup, derrors.Error){
+func (m * MockupDeviceProvider) GetDeviceGroupsByName(organizationID string, groupNames []string) ([]devices.DeviceGroup, derrors.Error){
 
 	m.Lock()
 	defer m.Unlock()
 
-	deviceGroups := make([]device.DeviceGroup, 0)
+	deviceGroups := make([]devices.DeviceGroup, 0)
 
 	for _, name := range groupNames {
 		group, exists := m.deviceGroupsByName[fmt.Sprintf("%s#%s", organizationID, name)]
@@ -118,12 +118,12 @@ func (m * MockupDeviceProvider) GetDeviceGroupsByName(organizationID string, gro
 	return deviceGroups, nil
 }
 
-func (m * MockupDeviceProvider) ListDeviceGroups(organizationID string) ([]device.DeviceGroup, derrors.Error) {
+func (m * MockupDeviceProvider) ListDeviceGroups(organizationID string) ([]devices.DeviceGroup, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
 	groups, exists := m.deviceGroups[organizationID]
-	list := make([]device.DeviceGroup, 0)
+	list := make([]devices.DeviceGroup, 0)
 
 	if  ! exists {
 		return list, nil
@@ -189,14 +189,14 @@ func (m * MockupDeviceProvider) unsafeExistsDevice (organizationID string, devic
 	return exists
 }
 
-func (m * MockupDeviceProvider) AddDevice (dev device.Device) derrors.Error {
+func (m * MockupDeviceProvider) AddDevice (dev devices.Device) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
 	key := CreateDeviceIndex(dev.OrganizationId, dev.DeviceGroupId)
 
 	if !m.unsafeExistDevicesInGroup(dev.OrganizationId, dev.DeviceGroupId){
-		device := make(map[string]device.Device)
+		device := make(map[string]devices.Device)
 		device[dev.DeviceId] = dev
 		m.devices[key] = device
 	} else if !m.unsafeExistsDevice(dev.OrganizationId, dev.DeviceGroupId, dev.DeviceId) {
@@ -216,7 +216,7 @@ func (m * MockupDeviceProvider) ExistsDevice(organizationID string, deviceGroupI
 	return m.unsafeExistsDevice(organizationID, deviceGroupID, deviceID), nil
 }
 
-func (m * MockupDeviceProvider) GetDevice(organizationID string, deviceGroupID string, deviceID string) (* device.Device, derrors.Error){
+func (m * MockupDeviceProvider) GetDevice(organizationID string, deviceGroupID string, deviceID string) (*devices.Device, derrors.Error){
 
 	m.Lock()
 	defer m.Unlock()
@@ -235,12 +235,12 @@ func (m * MockupDeviceProvider) GetDevice(organizationID string, deviceGroupID s
 
 }
 
-func (m * MockupDeviceProvider) ListDevices(organizationID string, deviceGroupID string) ([]device.Device, derrors.Error) {
+func (m * MockupDeviceProvider) ListDevices(organizationID string, deviceGroupID string) ([]devices.Device, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
 	key := CreateDeviceIndex(organizationID, deviceGroupID)
-	devList := make([]device.Device, 0)
+	devList := make([]devices.Device, 0)
 
 	devices, exists := m.devices[key]
 
@@ -277,7 +277,7 @@ func (m * MockupDeviceProvider) RemoveDevice(organizationID string, deviceGroupI
 	return derrors.NewNotFoundError("device").WithParams(organizationID, deviceGroupID, deviceID)
 }
 
-func (m * MockupDeviceProvider)	UpdateDevice(device device.Device) derrors.Error {
+func (m * MockupDeviceProvider)	UpdateDevice(device devices.Device) derrors.Error {
 
 	m.Lock()
 	defer m.Unlock()
@@ -295,8 +295,8 @@ func (m * MockupDeviceProvider)	UpdateDevice(device device.Device) derrors.Error
 // ----------------------------------------------------------------------------------------------------
 
 func (m * MockupDeviceProvider) Clear()  derrors.Error{
-	m.devices = make(map[string]map[string]device.Device, 0)
-	m.deviceGroups = make(map[string]map[string]device.DeviceGroup, 0)
+	m.devices = make(map[string]map[string]devices.Device, 0)
+	m.deviceGroups = make(map[string]map[string]devices.DeviceGroup, 0)
 
 	return nil
 }
