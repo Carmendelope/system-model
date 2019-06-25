@@ -11,6 +11,32 @@ import (
 	"time"
 )
 
+func CreateTestCPU() []*entities.CPUInfo{
+	cpus := make([]*entities.CPUInfo, 0)
+	size := rand.Intn(10) +1
+	for i:=0; i<size; i++{
+		cpus = append(cpus, &entities.CPUInfo{
+			Manufacturer: fmt.Sprintf("manufacturer_%d", i),
+			Model:        fmt.Sprintf("model_%d", i),
+			Architecture: fmt.Sprintf("architecture_%d", i),
+			NumCores:     2,
+		})
+	}
+	return cpus
+}
+
+func CreateTestNetInterfaces() []*entities.NetworkingHardwareInfo{
+	netCards := make([]*entities.NetworkingHardwareInfo, 0)
+	size := rand.Intn(10) +1
+	for i:=0; i<size; i++{
+		netCards = append(netCards, &entities.NetworkingHardwareInfo{
+			Type:         fmt.Sprintf("type_%d", i),
+			LinkCapacity: 100,
+		})
+	}
+	return netCards
+}
+
 func CreateTestEdgeController() *entities.EdgeController{
 	id:= rand.Intn(200)
 	labels := make (map[string]string, 0)
@@ -18,6 +44,21 @@ func CreateTestEdgeController() *entities.EdgeController{
 	for i:=0; i<size; i++{
 		labels[fmt.Sprintf("label-%d", i)] = fmt.Sprintf("value-%d", i)
 	}
+
+	os := &entities.OperatingSystemInfo{
+		Name:    "FakeOS",
+		Version: "1.0",
+	}
+	hardware := &entities.HardwareInfo{
+		Cpus:          CreateTestCPU(),
+		InstalledRam:  100,
+		NetInterfaces: CreateTestNetInterfaces(),
+	}
+	storage := entities.StorageHardwareInfo{
+		Type:          "FakeStorage",
+		TotalCapacity: 100,
+	}
+
 	return &entities.EdgeController{
 		OrganizationId:   fmt.Sprintf("organization_%d", id),
 		EdgeControllerId: entities.GenerateUUID(),
@@ -29,5 +70,8 @@ func CreateTestEdgeController() *entities.EdgeController{
 			Geolocation: "geolocation",
 			Geohash: "geohash",
 		},
+		Os:             os,
+		Hardware:       hardware,
+		Storage:        []*entities.StorageHardwareInfo{&storage},
 	}
 }
