@@ -25,7 +25,7 @@ create type IF NOT EXISTS nalej.service_group (organization_id text, app_descrip
 create type IF NOT EXISTS nalej.operating_system_info (name text, version text, op_class int, architecture text);
 create type IF NOT EXISTS nalej.cpu_info (manufacturer text, model text, architecture text, num_cores int);
 create type IF NOT EXISTS nalej.networking_hardware_info (type text, link_capacity int);
-create type IF NOT EXISTS nalej.hardware_info (cpus list<FROZEN<cpu_info>>, installed_ram int, net_interfaces list<FROZEN<networking_hardware_info>>);
+create type IF NOT EXISTS nalej.hardware_info (cpus list<FROZEN<cpu_info>>, installed_ram bigint, net_interfaces list<FROZEN<networking_hardware_info>>);
 create type IF NOT EXISTS nalej.storage_hardware_info (type text, total_capacity int);
 create type IF NOT EXISTS nalej.agent_op_summary (operation_id text, timestamp int, status int, info text);
 create type IF NOT EXISTS nalej.inventory_location (geolocation text, geohash text);
