@@ -16,6 +16,7 @@ const (
 	OpStatusInProgress
 	OpStatusSuccess
 	OpStatusFail
+	OpStatusCanceled
 )
 
 var OpStatusToGRPC = map[OpStatus]grpc_inventory_go.OpStatus{
@@ -23,6 +24,7 @@ var OpStatusToGRPC = map[OpStatus]grpc_inventory_go.OpStatus{
 	OpStatusInProgress: grpc_inventory_go.OpStatus_INPROGRESS,
 	OpStatusSuccess: grpc_inventory_go.OpStatus_SUCCESS,
 	OpStatusFail: grpc_inventory_go.OpStatus_FAIL,
+	OpStatusCanceled: grpc_inventory_go.OpStatus_CANCELED,
 }
 
 var OpStatusFromGRPC = map[grpc_inventory_go.OpStatus]OpStatus {
@@ -30,6 +32,8 @@ var OpStatusFromGRPC = map[grpc_inventory_go.OpStatus]OpStatus {
 	grpc_inventory_go.OpStatus_INPROGRESS: OpStatusInProgress,
 	grpc_inventory_go.OpStatus_SUCCESS: OpStatusSuccess,
 	grpc_inventory_go.OpStatus_FAIL: OpStatusFail,
+	grpc_inventory_go.OpStatus_CANCELED: OpStatusCanceled,
+
 }
 
 type OperatingSystemClass int
