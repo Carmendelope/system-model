@@ -37,6 +37,43 @@ func NewLocationFromGRPC(location *grpc_inventory_go.InventoryLocation)*Inventor
 	}
 }
 
+func (a * ECOpSummary) ToGRPC() *grpc_inventory_go.ECOpSummary {
+	if a == nil {
+		return nil
+	}
+	return &grpc_inventory_go.ECOpSummary{
+		OperationId:a.OperationId,
+		Timestamp:	a.Timestamp,
+		Status: 	OpStatusToGRPC[a.Status],
+		Info: 		a.Info,
+	}
+}
+
+func NewECOpSummaryFromGRPC(op *grpc_inventory_go.ECOpSummary) *ECOpSummary {
+	if op == nil {
+		return &ECOpSummary{}
+	}
+	return &ECOpSummary{
+		OperationId:op.OperationId,
+		Timestamp:	op.Timestamp,
+		Status: 	OpStatusFromGRPC[op.Status],
+		Info: 		op.Info,
+	}
+}
+
+
+// ECOpSummary contains the result of an edge controller operation
+type ECOpSummary struct {
+	// OperationId with the operation identifier.
+	OperationId string `json:"operationId,omitempty" cql:"operation_id"`
+	// Timestamp of the response.
+	Timestamp int64 `json:"timestamp,omitempty" cql:"timestamp"`
+	// Status indicates if the operation was successful
+	Status OpStatus `json:"status,omitempty" cql:"status"`
+	// Info with additional information for an operation.
+	Info string   `json:"info,omitempty" cql:"info"`
+}
+
 // EdgeController entity.
 type EdgeController struct {
 	// OrganizationId with the organization identifier.
@@ -56,6 +93,8 @@ type EdgeController struct {
 	LastAliveTimestamp 	int64    `json:"last_alive_timestamp,omitempty" cql:"last_alive_timestamp"`
 	// location with the EC location
 	Location            *InventoryLocation `json:"location,omitempty" cql:"location"`
+	// ECOpSummary contains the result of the last operation for this edge controller
+	LastOpResult *ECOpSummary `json:"last_op_result,omitempty" cql:"last_op_result"`
 	Os 					*OperatingSystemInfo    `json:"os,omitempty" cql:"os"`
 	Hardware 			*HardwareInfo           `json:"hardware,omitempty" cql:"hardware"`
 	Storage 			[]*StorageHardwareInfo  `json:"storage,omitempty" cql:"storage"`
@@ -115,6 +154,7 @@ func (ec * EdgeController) ToGRPC() *grpc_inventory_go.EdgeController{
 		Labels:               ec.Labels,
 		LastAliveTimestamp:   ec.LastAliveTimestamp,
 		Location: 			  ec.Location.ToGRPC(),
+		LastOpResult:         ec.LastOpResult.ToGRPC(),
 		AssetInfo: 			  &grpc_inventory_go.AssetInfo{
 			Os:       ec.Os.ToGRPC(),
 			Hardware: ec.Hardware.ToGRPC(),
@@ -148,6 +188,9 @@ func (ec * EdgeController) ApplyUpdate(request * grpc_inventory_go.UpdateEdgeCon
 		}else{
 			ec.Location.Geolocation = request.Geolocation
 		}
+	}
+	if request.UpdateLastOpSummary {
+		ec.LastOpResult = NewECOpSummaryFromGRPC(request.LastOpSummary)
 	}
 }
 

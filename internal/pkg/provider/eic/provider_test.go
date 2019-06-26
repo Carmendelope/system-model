@@ -76,5 +76,21 @@ func RunTest(provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(exists).To(gomega.BeFalse())
 	})
+	ginkgo.It("should be able to update an EIC", func(){
+		toAdd := CreateTestEdgeController()
+		err := provider.Add(*toAdd)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		toAdd.Name = "new Name"
+		err = provider.Update(*toAdd)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		ec, err := provider.Get(toAdd.EdgeControllerId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(ec).NotTo(gomega.BeNil())
+		gomega.Expect(ec.Name).Should(gomega.Equal("new Name"))
+
+
+	})
 
 }
