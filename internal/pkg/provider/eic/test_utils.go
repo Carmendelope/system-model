@@ -59,6 +59,13 @@ func CreateTestEdgeController() *entities.EdgeController{
 		TotalCapacity: 100,
 	}
 
+	operationSummary := entities.ECOpSummary{
+		OperationId : entities.GenerateUUID(),
+		Timestamp: time.Now().Unix(),
+		Status: entities.OpStatusInProgress,
+		Info: "operation summary info",
+	}
+
 	return &entities.EdgeController{
 		OrganizationId:   fmt.Sprintf("organization_%d", id),
 		EdgeControllerId: entities.GenerateUUID(),
@@ -73,5 +80,6 @@ func CreateTestEdgeController() *entities.EdgeController{
 		Os:             os,
 		Hardware:       hardware,
 		Storage:        []*entities.StorageHardwareInfo{&storage},
+		LastOpResult: &operationSummary,
 	}
 }

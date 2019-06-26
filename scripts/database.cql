@@ -28,6 +28,8 @@ create type IF NOT EXISTS nalej.networking_hardware_info (type text, link_capaci
 create type IF NOT EXISTS nalej.hardware_info (cpus list<FROZEN<cpu_info>>, installed_ram bigint, net_interfaces list<FROZEN<networking_hardware_info>>);
 create type IF NOT EXISTS nalej.storage_hardware_info (type text, total_capacity int);
 create type IF NOT EXISTS nalej.agent_op_summary (operation_id text, timestamp int, status int, info text);
+create type IF NOT EXISTS nalej.ec_op_summary (operation_id text, timestamp int, status int, info text);
+
 create type IF NOT EXISTS nalej.inventory_location (geolocation text, geohash text);
 
 
@@ -68,7 +70,7 @@ create table IF NOT EXISTS nalej.AppZtNetworkMembers(organization_id text, app_i
 
 
 create table IF NOT EXISTS nalej.Asset (organization_id text, edge_controller_id text, asset_id text, agent_id text, show boolean, created int, labels map<text, text>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, eic_net_ip text, last_op_result FROZEN<agent_op_summary>, last_alive_timestamp int, PRIMARY KEY (asset_id));
-create table IF NOT EXISTS nalej.Controller (organization_id text, edge_controller_id text, show boolean, created int, name text, labels map<text, text>, last_alive_timestamp int, location FROZEN<inventory_location>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, PRIMARY KEY(edge_controller_id));
+create table IF NOT EXISTS nalej.Controller (organization_id text, edge_controller_id text, show boolean, created int, name text, labels map<text, text>, last_alive_timestamp int, location FROZEN<inventory_location>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, last_op_result FROZEN<ec_op_summary>, PRIMARY KEY(edge_controller_id));
 
 create table IF NOT EXISTS nalej.InstanceParameters(app_instance_id text, parameters list<FROZEN<instance_parameter>>, PRIMARY KEY (app_instance_id));
 

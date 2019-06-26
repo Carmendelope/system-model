@@ -17,6 +17,7 @@ import (
 	"github.com/onsi/gomega"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
+	"time"
 )
 
 func createAddEdgeControllerRequest(organizationID string) *grpc_inventory_go.AddEdgeControllerRequest{
@@ -136,6 +137,31 @@ var _ = ginkgo.Describe("Asset service", func() {
 			value, exits := updated.Labels["k1"]
 			gomega.Expect(exits).To(gomega.BeTrue())
 			gomega.Expect(value).Should(gomega.Equal("v1"))
+		})
+		ginkgo.It("should be able to update last operations", func(){
+			toAdd := createAddEdgeControllerRequest(targetOrganization.ID)
+			added, err := client.Add(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+
+			updateRequest := &grpc_inventory_go.UpdateEdgeControllerRequest{
+				OrganizationId:       added.OrganizationId,
+				EdgeControllerId:     added.EdgeControllerId,
+				AddLabels:            false,
+				RemoveLabels:         false,
+				UpdateLastOpSummary:  true,
+				LastOpSummary: &grpc_inventory_go.ECOpSummary{
+					OperationId : entities.GenerateUUID(),
+					Timestamp: time.Now().Unix(),
+					Status: grpc_inventory_go.OpStatus_INPROGRESS,
+					Info: "operation summary info",
+					},
+			}
+
+			updated, err := client.Update(context.Background(), updateRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(updated.LastOpResult).NotTo(gomega.BeNil())
+			gomega.Expect(updated.LastOpResult.Info).Should(gomega.Equal("operation summary info"))
 		})
 	})
 
