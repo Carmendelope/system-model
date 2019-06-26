@@ -211,20 +211,23 @@ type AgentOpStatus int32
 
 const (
 	AgentOpStatusScheduled AgentOpStatus = iota + 1
+	AgentOpStatusInprogress
 	AgentOpStatusSuccess
 	AgentOpStatusFail
 )
 
 var AgentOpStatusToGRPC = map[AgentOpStatus]grpc_inventory_go.OpStatus{
-	AgentOpStatusScheduled : grpc_inventory_go.OpStatus_SCHEDULED,
-	AgentOpStatusSuccess : grpc_inventory_go.OpStatus_SUCCESS,
-	AgentOpStatusFail : grpc_inventory_go.OpStatus_FAIL,
+	AgentOpStatusScheduled: grpc_inventory_go.OpStatus_SCHEDULED,
+	AgentOpStatusInprogress: grpc_inventory_go.OpStatus_INPROGRESS,
+	AgentOpStatusSuccess: grpc_inventory_go.OpStatus_SUCCESS,
+	AgentOpStatusFail: grpc_inventory_go.OpStatus_FAIL,
 }
 
 var AgentOpStatusFromGRPC = map[grpc_inventory_go.OpStatus]AgentOpStatus {
-	grpc_inventory_go.OpStatus_SCHEDULED:AgentOpStatusScheduled,
-	grpc_inventory_go.OpStatus_SUCCESS:AgentOpStatusSuccess,
-	grpc_inventory_go.OpStatus_FAIL:AgentOpStatusFail,
+	grpc_inventory_go.OpStatus_SCHEDULED: AgentOpStatusScheduled,
+	grpc_inventory_go.OpStatus_INPROGRESS: AgentOpStatusInprogress,
+	grpc_inventory_go.OpStatus_SUCCESS: AgentOpStatusSuccess,
+	grpc_inventory_go.OpStatus_FAIL: AgentOpStatusFail,
 }
 
 // AgentOpSummary contains the result of an asset operation
