@@ -2,14 +2,15 @@ package application
 
 import (
 	"fmt"
+	"math/rand"
+	"os"
+	"strconv"
+
 	"github.com/google/uuid"
 	"github.com/nalej/system-model/internal/pkg/utils"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/rs/zerolog/log"
-	"math/rand"
-	"os"
-	"strconv"
 )
 
 /*
@@ -34,11 +35,11 @@ create table IF NOT EXISTS nalej.ApplicationInstances (organization_id text, app
 create table IF NOT EXISTS nalej.ApplicationDescriptors (organization_id text, app_descriptor_id text, name text, description text, configuration_options map<text, text>, environment_variables map<text, text>, labels map <text, text>, rules list<FROZEN<security_rule>>, groups list<FROZEN<service_group>>, services list <FROZEN<service>>, PRIMARY KEY (app_descriptor_id));
 */
 
-var _ = ginkgo.Describe("Scylla application provider", func(){
+var _ = ginkgo.Describe("Scylla application provider", func() {
 
-	var numApps = rand.Intn(50) +1
+	var numApps = rand.Intn(50) + 1
 
-	if ! utils.RunIntegrationTests() {
+	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
 	}
@@ -69,22 +70,24 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 
 	RunTest(sp)
 
-	ginkgo.It("Should be able to add Applications", func(){
+	ginkgo.It("Should be able to add Applications", func() {
 
 		id := uuid.New().String()
 
 		for i := 0; i < numApps; i++ {
-			appId := fmt.Sprintf("00%d", i)
+			appID := fmt.Sprintf("00%d", i)
 
-			app := CreateTestApplication(id, appId)
+			app := CreateTestApplication(id, appID)
 
 			err := sp.AddInstance(*app)
 			gomega.Expect(err).To(gomega.Succeed())
+
+			_ := sp.DeleteInstance(appID)
 		}
 
 	})
 
-	ginkgo.It("Should be able to add Descriptors", func(){
+	ginkgo.It("Should be able to add Descriptors", func() {
 
 		for i := 0; i < numApps; i++ {
 
@@ -92,8 +95,9 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 
 			err := sp.AddDescriptor(*descriptor)
 			gomega.Expect(err).To(gomega.Succeed())
+
+			_ := sp.DeleteDescriptor(descriptor.AppDescriptorId)
 		}
 
 	})
 })
-

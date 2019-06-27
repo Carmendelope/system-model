@@ -21,4 +21,6 @@ spec:
             value: "9042"
           - name: IT_NALEJ_KEYSPACE
             value: "nalej"
+          - name: IT_CLEAR_PROVIDER
+            value: "false"
           tty: true

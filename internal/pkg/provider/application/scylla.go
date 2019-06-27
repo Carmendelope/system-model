@@ -52,7 +52,6 @@ func (sp *ScyllaApplicationProvider) connect() derrors.Error {
 	conf := gocql.NewCluster(sp.Address)
 	conf.Keyspace = sp.Keyspace
 	conf.Port = sp.Port
-	conf.Timeout = 10 * time.Minute
 
 	session, err := conf.CreateSession()
 	if err != nil {
