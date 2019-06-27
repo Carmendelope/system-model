@@ -117,7 +117,9 @@ jobs:
       namespace: $(namespace)
 
   - script: |
-      kubectl --kubeconfig $(kubeconfig) -n$(namespace) exec -i scylladb-0 cqlsh < ./scripts/database.cql
+      python3 -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin, Loader=yaml.Loader), sys.stdout, indent=4)' < systemmodel-scylla.configmap.yaml | jq -r '.data."systemmodel-scylla.cql"' > database.cql
+      kubectl --kubeconfig $(kubeconfig) -n$(namespace) exec -i scylladb-0 cqlsh < ./database.cql
+      rm -rf database.cql
     workingDirectory: $(modulePath)
     displayName: Create database structure
 
