@@ -22,12 +22,14 @@ create type IF NOT EXISTS nalej.service_group_instance (organization_id text, ap
 create type IF NOT EXISTS nalej.service (organization_id text, app_descriptor_id text, service_group_id text, service_id text, name text, type int, image text, credentials FROZEN <credential>, specs FROZEN<deploy_spec>,storage list<FROZEN<storage>>,exposed_ports list<FROZEN<port>>, environment_variables map<text, text>, configs list<FROZEN<config_file>>, labels map<text, text>,deploy_after list<text>,  run_arguments list<text>);
 create type IF NOT EXISTS nalej.service_group (organization_id text, app_descriptor_id text, service_group_id text, name text, services list<FROZEN<service>>, policy int, specs FROZEN<service_group_deployment_specs>, labels map<text, text>);
 
-create type IF NOT EXISTS nalej.operating_system_info (name text, version text);
+create type IF NOT EXISTS nalej.operating_system_info (name text, version text, op_class int, architecture text);
 create type IF NOT EXISTS nalej.cpu_info (manufacturer text, model text, architecture text, num_cores int);
 create type IF NOT EXISTS nalej.networking_hardware_info (type text, link_capacity int);
-create type IF NOT EXISTS nalej.hardware_info (cpus list<FROZEN<cpu_info>>, installed_ram int, net_interfaces list<FROZEN<networking_hardware_info>>);
+create type IF NOT EXISTS nalej.hardware_info (cpus list<FROZEN<cpu_info>>, installed_ram bigint, net_interfaces list<FROZEN<networking_hardware_info>>);
 create type IF NOT EXISTS nalej.storage_hardware_info (type text, total_capacity int);
 create type IF NOT EXISTS nalej.agent_op_summary (operation_id text, timestamp int, status int, info text);
+create type IF NOT EXISTS nalej.ec_op_summary (operation_id text, timestamp int, status int, info text);
+
 create type IF NOT EXISTS nalej.inventory_location (geolocation text, geohash text);
 
 
@@ -35,6 +37,7 @@ create type IF NOT EXISTS nalej.instance_parameter(parameter_name text, value te
 create type IF NOT EXISTS nalej.descriptor_parameter(name text, description text, path text, type int, default_value text, category int, enum_values list<text>, required boolean);
 
 create type IF NOT EXISTS nalej.app_network_member(member_id text, is_proxy boolean, ip text, created_at bigint);
+create type IF NOT EXISTS nalej.service_proxy(organization_id text, app_instance_id text, service_group_instance_id text, service_instance_id text, service_group_id text, service_id text, cluster_id text, ip text, fqdn text);
 
 
 ------------
@@ -59,15 +62,15 @@ create table IF NOT EXISTS nalej.ParametrizedDescriptors (organization_id text, 
 
 create table IF NOT EXISTS nalej.AppEntrypoints(organization_id text, app_instance_id text, service_group_instance_id text, service_instance_id text, port int, protocol int, endpoint_instance_id text, type int, fqdn text, global_fqdn text,  PRIMARY KEY ((organization_id, app_instance_id), service_group_instance_id, service_instance_id, port));
 
-create table IF NOT EXISTS nalej.Devices (organization_id text, device_group_id text, device_id text, register_since bigint, labels map<text, text>, PRIMARY KEY ( (organization_id, device_group_id), device_id));
+create table IF NOT EXISTS nalej.Devices (organization_id text, device_group_id text, device_id text, register_since bigint, labels map<text, text>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, PRIMARY KEY ( (organization_id, device_group_id), device_id));
 create table IF NOT EXISTS nalej.DeviceGroups (organization_id text, device_group_id text, name text, created bigint, labels map<text, text>, primary KEY (organization_id, device_group_id));
 
-create table IF NOT EXISTS nalej.AppZtNetworks(organization_id text, app_instance_id text, zt_network_id text,  PRIMARY KEY ((organization_id, app_instance_id), zt_network_id));
+create table IF NOT EXISTS nalej.AppZtNetworks(organization_id text, app_instance_id text, zt_network_id text, vsa_list map<text,text>, available_proxies map<text,FROZEN<map<text,FROZEN<list<FROZEN<service_proxy>>>>>>,  PRIMARY KEY ((organization_id, app_instance_id), zt_network_id));
 create table IF NOT EXISTS nalej.AppZtNetworkMembers(organization_id text, app_instance_id text, service_group_instance_id text, service_application_instance_id text, zt_network_id text, members map<text,FROZEN<app_network_member>>,  PRIMARY KEY ((organization_id, app_instance_id, service_group_instance_id, service_application_instance_id), zt_network_id));
 
 
 create table IF NOT EXISTS nalej.Asset (organization_id text, edge_controller_id text, asset_id text, agent_id text, show boolean, created int, labels map<text, text>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, eic_net_ip text, last_op_result FROZEN<agent_op_summary>, last_alive_timestamp int, PRIMARY KEY (asset_id));
-create table IF NOT EXISTS nalej.Controller (organization_id text, edge_controller_id text, show boolean, created int, name text, labels map<text, text>, last_alive_timestamp int, location FROZEN<inventory_location>, PRIMARY KEY(edge_controller_id));
+create table IF NOT EXISTS nalej.Controller (organization_id text, edge_controller_id text, show boolean, created int, name text, labels map<text, text>, last_alive_timestamp int, location FROZEN<inventory_location>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, last_op_result FROZEN<ec_op_summary>, PRIMARY KEY(edge_controller_id));
 
 create table IF NOT EXISTS nalej.InstanceParameters(app_instance_id text, parameters list<FROZEN<instance_parameter>>, PRIMARY KEY (app_instance_id));
 

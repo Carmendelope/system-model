@@ -2,6 +2,7 @@ package device
 
 import (
 	"github.com/google/uuid"
+	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 )
@@ -265,7 +266,7 @@ func RunTest (provider Provider) {
 
 		})
 
-		ginkgo.It("Should be able to update a device", func(){
+		ginkgo.It("Should be able to update a device removing all labels", func(){
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			err := provider.AddDevice(*toAdd)
@@ -285,7 +286,7 @@ func RunTest (provider Provider) {
 
 		})
 
-		ginkgo.It("Should be able to update a device", func(){
+		ginkgo.It("Should be able to update a device adding labels", func(){
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			err := provider.AddDevice(*toAdd)
@@ -304,6 +305,30 @@ func RunTest (provider Provider) {
 
 
 		})
+
+		ginkgo.It("Should be able to update a device adding location", func(){
+			toAdd := NewDeviceTestHepler().CreateDevice()
+
+			err := provider.AddDevice(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			// remove labels
+			toAdd.Location = &entities.InventoryLocation{
+				Geolocation: "Spain",
+				Geohash:     "SP",
+			}
+			err = provider.UpdateDevice(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			// check the update
+			retrieve, err := provider.GetDevice(toAdd.OrganizationId, toAdd.DeviceGroupId, toAdd.DeviceId)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(retrieve).NotTo(gomega.BeNil())
+			gomega.Expect(retrieve.Location).ShouldNot(gomega.BeNil())
+			gomega.Expect(retrieve.Location.Geolocation).Should(gomega.Equal(toAdd.Location.Geolocation))
+			gomega.Expect(retrieve.Location.Geohash).Should(gomega.Equal(toAdd.Location.Geohash))
+		})
+
 		ginkgo.It("Should not be able to update a non existing device", func(){
 			toAdd := NewDeviceTestHepler().CreateDevice()
 

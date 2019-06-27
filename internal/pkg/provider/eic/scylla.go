@@ -19,10 +19,10 @@ const ControllerTable = "Controller"
 const ControllerTablePK = "edge_controller_id"
 // AllControllerColumns contains the name of all the columns in the controller table.
 var allControllerColumns = []string{"organization_id", "edge_controller_id", "show",
-	"created", "name", "labels", "last_alive_timestamp", "location"}
+	"created", "name", "labels", "last_alive_timestamp", "location", "os", "hardware", "storage", "last_op_result"}
 // AllControllerColumnsNoPK contains the name of all the columns in the controller table except the PK.
 var allControllerColumnsNoPK = []string{"organization_id", "show",
-	"created", "name", "labels", "last_alive_timestamp", "location"}
+	"created", "name", "labels", "last_alive_timestamp", "location", "os", "hardware", "storage", "last_op_result"}
 
 type ScyllaControllerProvider struct {
 	scylladb.ScyllaDB

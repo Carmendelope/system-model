@@ -1,19 +1,26 @@
-package device
+package devices
 
 import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-device-go"
+	"github.com/nalej/grpc-device-manager-go"
+	"github.com/nalej/grpc-inventory-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/rs/zerolog/log"
 	"time"
 )
 
 //  Device model the information available regarding a Device of an organization
 type Device struct {
-	OrganizationId	string
-	DeviceGroupId 	string
-	DeviceId 		string
-	RegisterSince	int64
-	Labels			map[string]string
+	OrganizationId	string                           `json:"organization_id,omitempty"`
+	DeviceGroupId 	string                           `json:"device_group_id,omitempty"`
+	DeviceId 		string                           `json:"device_id,omitempty"`
+	RegisterSince	int64                            `json:"register_since,omitempty"`
+	Labels			map[string]string                `json:"labels,omitempty"`
+	Os 				*entities.OperatingSystemInfo    `json:"os,omitempty" cql:"os"`
+	Hardware 		*entities.HardwareInfo           `json:"hardware,omitempty" cql:"hardware"`
+	Storage 		[]*entities.StorageHardwareInfo  `json:"storage,omitempty" cql:"storage"`
+	Location        *entities.InventoryLocation      `json:"location,omitempty" cql:"location"`
 }
 
 type DeviceGroup struct {
@@ -43,10 +50,10 @@ func NewDeviceGroupFromGRPC (addRequest * grpc_device_go.AddDeviceGroupRequest) 
 
 	return &DeviceGroup{
 		OrganizationId: addRequest.OrganizationId,
-		DeviceGroupId: entities.GenerateUUID(),
-		Name: addRequest.Name,
-		Labels: addRequest.Labels,
-		Created: time.Now().Unix(),
+		DeviceGroupId:  entities.GenerateUUID(),
+		Name:           addRequest.Name,
+		Labels:         addRequest.Labels,
+		Created:        time.Now().Unix(),
 	}
 
 }
@@ -106,22 +113,73 @@ func ValidGetDeviceGroupsRequest (request *grpc_device_go.GetDeviceGroupsRequest
 
 // ----------- Device ----------- //
 func NewDeviceFromGRPC (addRequest * grpc_device_go.AddDeviceRequest) * Device{
+
+	var os *entities.OperatingSystemInfo
+	var hardware 		*entities.HardwareInfo
+	var storage 		[]*entities.StorageHardwareInfo
+	storage = make ([]*entities.StorageHardwareInfo, 0)
+
+	if addRequest.AssetInfo != nil {
+		os = entities.NewOperatingSystemInfoFromGRPC(addRequest.AssetInfo.Os)
+		hardware = entities.NewHardwareInfoFromGRPC(addRequest.AssetInfo.Hardware)
+		for _, sto := range addRequest.AssetInfo.Storage {
+			storage = append(storage, entities.NewStorageHardwareInfoFromGRPC(sto))
+		}
+	}
+
 	return &Device{
-		OrganizationId: addRequest.OrganizationId,
-		DeviceGroupId: addRequest.DeviceGroupId,
-		DeviceId:     addRequest.DeviceId,
+		OrganizationId:	addRequest.OrganizationId,
+		DeviceGroupId: 	addRequest.DeviceGroupId,
+		DeviceId:     	addRequest.DeviceId,
 		Labels:			addRequest.Labels,
-		RegisterSince: time.Now().Unix(),
+		RegisterSince: 	time.Now().Unix(),
+		Os: 		  	os,
+		Hardware: 		hardware,
+		Storage: 		storage,
 	}
 }
 
 func (d * Device) ToGRPC() *grpc_device_go.Device {
+
+	storage := make ([]*grpc_inventory_go.StorageHardwareInfo, 0)
+	for _, sto := range d.Storage {
+		storage = append(storage, sto.ToGRPC())
+	}
+
 	return &grpc_device_go.Device{
 		OrganizationId: d.OrganizationId,
-		DeviceGroupId: d.DeviceGroupId,
-		DeviceId: d.DeviceId,
-		RegisterSince: d.RegisterSince,
-		Labels:d.Labels,
+		DeviceGroupId:  d.DeviceGroupId,
+		DeviceId:       d.DeviceId,
+		RegisterSince:  d.RegisterSince,
+		Labels:         d.Labels,
+		Location:       d.Location.ToGRPC(),
+		AssetInfo: &grpc_inventory_go.AssetInfo{
+			Os:       d.Os.ToGRPC(),
+			Hardware: d.Hardware.ToGRPC(),
+			Storage:  storage,
+		},
+	}
+}
+
+func (d * Device) ToGRPCDeviceManager() *grpc_device_manager_go.Device {
+
+	storage := make ([]*grpc_inventory_go.StorageHardwareInfo, 0)
+	for _, sto := range d.Storage {
+		storage = append(storage, sto.ToGRPC())
+	}
+
+	return &grpc_device_manager_go.Device{
+		OrganizationId: d.OrganizationId,
+		DeviceGroupId:  d.DeviceGroupId,
+		DeviceId:       d.DeviceId,
+		RegisterSince:  d.RegisterSince,
+		Labels:         d.Labels,
+		Location:       d.Location.ToGRPC(),
+		AssetInfo: &grpc_inventory_go.AssetInfo{
+			Os:       d.Os.ToGRPC(),
+			Hardware: d.Hardware.ToGRPC(),
+			Storage:  storage,
+		},
 	}
 }
 
@@ -140,6 +198,13 @@ func (d *Device) ApplyUpdate(updateRequest grpc_device_go.UpdateDeviceRequest) {
 			delete(d.Labels, k)
 		}
 	}
+	if updateRequest.UpdateLocation {
+		d.Location = &entities.InventoryLocation{
+			Geolocation: updateRequest.Location.Geolocation,
+			Geohash: updateRequest.Location.Geohash,
+		}
+	}
+	log.Debug().Interface("updated", d).Msg("after applying update")
 }
 
 func ValidDeviceID (device * grpc_device_go.DeviceId) derrors.Error {
@@ -197,13 +262,9 @@ func ValidUpdateDeviceRequest(request * grpc_device_go.UpdateDeviceRequest) derr
 	if request.AddLabels && request.RemoveLabels {
 		return derrors.NewInvalidArgumentError("add_labels and remove_labels can not be true at the same time")
 	}
-	if ! request.AddLabels && !request.RemoveLabels {
-		return derrors.NewInvalidArgumentError("add_labels and remove_labels cannot be false at the same time")
-	}
-	if request == nil || len(request.Labels) == 0{
-		return derrors.NewInvalidArgumentError("labels cannot be empty")
+	if request.UpdateLocation && request.Location == nil {
+		return derrors.NewInvalidArgumentError("location cannot be empty")
 	}
 
 	return nil
 }
-
