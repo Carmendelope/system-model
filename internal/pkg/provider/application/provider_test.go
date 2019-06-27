@@ -27,7 +27,7 @@ func RunTest(provider Provider) {
 			err := provider.AddDescriptor(*descriptor)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			_ := provider.DeleteDescriptor(descriptor.AppDescriptorId)
+			_ = provider.DeleteDescriptor(descriptor.AppDescriptorId)
 		})
 
 		// GetDescriptors
@@ -46,7 +46,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(descriptor).NotTo(gomega.BeNil())
 
-			_ := provider.DeleteDescriptor(descriptorID)
+			_ = provider.DeleteDescriptor(descriptorID)
 		})
 		ginkgo.It("Should not be able to get the descriptor", func() {
 			app, err := provider.GetDescriptor(uuid.New().String())
@@ -68,7 +68,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(exists).To(gomega.BeTrue())
 
-			_ := provider.DeleteDescriptor(descriptor.AppDescriptorId)
+			_ = provider.DeleteDescriptor(descriptor.AppDescriptorId)
 		})
 		ginkgo.It("Should not be able to find the descriptor", func() {
 			exists, err := provider.DescriptorExists(uuid.New().String())
@@ -91,7 +91,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(descriptor).NotTo(gomega.BeNil())
 			gomega.Expect(descriptor.Name).Should(gomega.Equal(descriptor.Name))
 
-			_ := provider.DeleteDescriptor(descriptor.AppDescriptorId)
+			_ = provider.DeleteDescriptor(descriptor.AppDescriptorId)
 		})
 
 		// DeleteDescriptor
@@ -123,7 +123,7 @@ func RunTest(provider Provider) {
 			err := provider.AddInstance(*app)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			_ := provider.DeleteInstance(app.AppInstanceId)
+			_ = provider.DeleteInstance(app.AppInstanceId)
 		})
 
 		// Update Application Instance
@@ -142,7 +142,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(recovered).NotTo(gomega.BeNil())
 			gomega.Expect(recovered.Status).Should(gomega.Equal(entities.Deploying))
 
-			_ := provider.DeleteInstance(app.AppInstanceId)
+			_ = provider.DeleteInstance(app.AppInstanceId)
 
 		})
 		ginkgo.It("Should not be able to update an application", func() {
@@ -166,7 +166,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(exists).To(gomega.BeTrue())
 
-			_ := provider.DeleteInstance(app.AppInstanceId)
+			_ = provider.DeleteInstance(app.AppInstanceId)
 		})
 		ginkgo.It("Should not be able to find the appInstance", func() {
 			exists, err := provider.InstanceExists("application instance")
@@ -188,7 +188,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(app).NotTo(gomega.BeNil())
 
-			_ := provider.DeleteInstance(app.AppInstanceId)
+			_ = provider.DeleteInstance(app.AppInstanceId)
 		})
 		ginkgo.It("Should not be able to get the appInstance", func() {
 			app, err := provider.GetInstance("application instance")
@@ -221,7 +221,7 @@ func RunTest(provider Provider) {
 			err := provider.AddAppEndpoint(*endpoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			_ := provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
+			_ = provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
 
 		})
 		ginkgo.It("should be able to add an appEndPoint twice", func() {
@@ -233,7 +233,7 @@ func RunTest(provider Provider) {
 			err = provider.AddAppEndpoint(*endpoint)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			_ := provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
+			_ = provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
 		})
 		ginkgo.It("should be able to get EndPoints by name", func() {
 			endpoint := CreateAppEndPoint()
@@ -245,7 +245,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(retrieved).NotTo(gomega.BeEmpty())
 			gomega.Expect(retrieved[0].OrganizationId).Should(gomega.Equal(endpoint.OrganizationId))
 
-			_ := provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
+			_ = provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
 		})
 		ginkgo.It("should be able to get EndPoint list by name", func() {
 			endpoint := CreateAppEndPoint()
@@ -261,7 +261,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(retrieved).NotTo(gomega.BeEmpty())
 			gomega.Expect(len(retrieved)).Should(gomega.Equal(2))
 
-			_ := provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
+			_ = provider.DeleteAppEndpoints(endpoint.OrganizationId, endpoint.AppInstanceId)
 		})
 		ginkgo.It("should be able to delete an appEndpoint", func() {
 			endpoint := CreateAppEndPoint()
@@ -298,7 +298,7 @@ func RunTest(provider Provider) {
 			err := provider.AddInstanceParameters(appInstanceID, parameters)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			_ := provider.DeleteInstanceParameters(appInstanceID)
+			_ = provider.DeleteInstanceParameters(appInstanceID)
 		})
 		ginkgo.It("Should not be able to add instance parameters twice", func() {
 			appInstanceID := uuid.New().String()
@@ -312,7 +312,7 @@ func RunTest(provider Provider) {
 			err = provider.AddInstanceParameters(appInstanceID, parameters)
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
-			_ := provider.DeleteInstanceParameters(appInstanceID)
+			_ = provider.DeleteInstanceParameters(appInstanceID)
 		})
 		ginkgo.It("Should be able to retrieve the params of an instance", func() {
 			instanceID := uuid.New().String()
@@ -328,7 +328,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(params).NotTo(gomega.BeNil())
 			gomega.Expect(len(params)).Should(gomega.Equal(2))
 
-			_ := provider.DeleteInstanceParameters(appInstanceID)
+			_ = provider.DeleteInstanceParameters(appInstanceID)
 		})
 		ginkgo.It("Should be able to retrieve an empty list if the instance has no params", func() {
 			instanceID := uuid.New().String()
@@ -370,7 +370,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(params).NotTo(gomega.BeEmpty())
 
-			_ := provider.DeleteDescriptor(appDescriptorID)
+			_ = provider.DeleteDescriptor(appDescriptorID)
 		})
 		ginkgo.It("should be able to retrieves an empty list when the descriptor has no parameters", func() {
 			appDescriptorID := uuid.New().String()
@@ -384,7 +384,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(params).NotTo(gomega.BeNil())
 			gomega.Expect(params).To(gomega.BeEmpty())
 
-			_ := provider.DeleteDescriptor(appDescriptorID)
+			_ = provider.DeleteDescriptor(appDescriptorID)
 		})
 	})
 
@@ -395,7 +395,7 @@ func RunTest(provider Provider) {
 			err := provider.AddParametrizedDescriptor(*descriptor)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			_ := provider.DeleteParametrizedDescriptor(descriptor.AppInstanceId)
+			_ = provider.DeleteParametrizedDescriptor(descriptor.AppInstanceId)
 		})
 		ginkgo.It("Should not be able to add a parametrized descriptor twice", func() {
 
@@ -406,7 +406,7 @@ func RunTest(provider Provider) {
 			err = provider.AddParametrizedDescriptor(*descriptor)
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
-			_ := provider.DeleteParametrizedDescriptor(descriptor.AppInstanceId)
+			_ = provider.DeleteParametrizedDescriptor(descriptor.AppInstanceId)
 		})
 		ginkgo.It("Should be able to get a parametrized descriptor", func() {
 
@@ -418,7 +418,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(parametrized).NotTo(gomega.BeNil())
 
-			_ := provider.DeleteParametrizedDescriptor(descriptor.AppInstanceId)
+			_ = provider.DeleteParametrizedDescriptor(descriptor.AppInstanceId)
 		})
 		ginkgo.It("Should not be able to get a non-existent parametrized descriptor", func() {
 
@@ -436,7 +436,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(*exists).To(gomega.BeTrue())
 
-			_ := provider.DeleteParametrizedDescriptor(descriptor.AppInstanceId)
+			_ = provider.DeleteParametrizedDescriptor(descriptor.AppInstanceId)
 		})
 		ginkgo.It("Should be able to determinate a parametrized descriptor does not exist", func() {
 

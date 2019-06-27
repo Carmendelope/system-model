@@ -82,7 +82,7 @@ var _ = ginkgo.Describe("Scylla application provider", func() {
 			err := sp.AddInstance(*app)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			_ := sp.DeleteInstance(appID)
+			_ = sp.DeleteInstance(appID)
 		}
 
 	})
@@ -96,7 +96,7 @@ var _ = ginkgo.Describe("Scylla application provider", func() {
 			err := sp.AddDescriptor(*descriptor)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			_ := sp.DeleteDescriptor(descriptor.AppDescriptorId)
+			_ = sp.DeleteDescriptor(descriptor.AppDescriptorId)
 		}
 
 	})
