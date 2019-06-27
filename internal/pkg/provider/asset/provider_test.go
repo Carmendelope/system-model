@@ -82,14 +82,14 @@ func RunTest(provider Provider) {
 			toAdd.OrganizationId = organizationID
 			err := provider.Add(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
-			createdAssets = append(createdAssets, toAdd)
+			createdAssets = append(createdAssets, *toAdd)
 		}
 		// Add elements to other organizations
 		for index := 0; index < numAssets; index++ {
 			toAdd := CreateTestAsset()
 			err := provider.Add(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
-			createdAssets = append(createdAssets, toAdd)
+			createdAssets = append(createdAssets, *toAdd)
 		}
 		retrieved, err := provider.List(organizationID)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -113,7 +113,7 @@ func RunTest(provider Provider) {
 			}
 			err := provider.Add(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
-			createdAssets = append(createdAssets, toAdd)
+			createdAssets = append(createdAssets, *toAdd)
 		}
 
 		retrieved, err := provider.ListControllerAssets(edgeControllerID)
