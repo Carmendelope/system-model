@@ -2,12 +2,13 @@ package cluster
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/nalej/system-model/internal/pkg/utils"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/rs/zerolog/log"
-	"os"
-	"strconv"
 )
 
 /*
@@ -21,11 +22,11 @@ use nalej;
 
 create table nalej.Clusters (organization_id text, cluster_id text, name text, description text, cluster_type int, hostname text, control_plane_hostname text, multitenant int, status int, labels map<text, text>, cordon boolean, PRIMARY KEY (cluster_id));
 create table nalej.Cluster_Nodes (cluster_id text, node_id text, PRIMARY KEY (cluster_id, node_id));
- */
+*/
 
-var _ = ginkgo.Describe("Scylla cluster provider", func(){
+var _ = ginkgo.Describe("Scylla cluster provider", func() {
 
-	if ! utils.RunIntegrationTests() {
+	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
 	}
@@ -52,18 +53,19 @@ var _ = ginkgo.Describe("Scylla cluster provider", func(){
 
 	RunTest(sp)
 
-	ginkgo.It("Should be able to add clusters", func(){
+	ginkgo.It("Should be able to add clusters", func() {
 
 		numClusters := 100
-		for i:= 0; i<numClusters; i++ {
+		for i := 0; i < numClusters; i++ {
 
-			clusterId := fmt.Sprintf("ClusterId_XX%d", i)
+			clusterID := fmt.Sprintf("ClusterId_XX%d", i)
 			cluster := CreateTestCluster(clusterId)
 
 			err := sp.Add(*cluster)
 			gomega.Expect(err).To(gomega.Succeed())
-		}
 
+			_ = sp.Remove(clusterID)
+		}
 
 	})
 
