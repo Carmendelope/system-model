@@ -315,15 +315,15 @@ func RunTest(provider Provider) {
 			_ = provider.DeleteInstanceParameters(appInstanceID)
 		})
 		ginkgo.It("Should be able to retrieve the params of an instance", func() {
-			instanceID := uuid.New().String()
+			appInstanceID := uuid.New().String()
 			parameters := []entities.InstanceParameter{
 				{"param1", "value1"},
 				{"param2", "value2"},
 			}
-			err := provider.AddInstanceParameters(instanceID, parameters)
+			err := provider.AddInstanceParameters(appInstanceID, parameters)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			params, err := provider.GetInstanceParameters(instanceID)
+			params, err := provider.GetInstanceParameters(appInstanceID)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(params).NotTo(gomega.BeNil())
 			gomega.Expect(len(params)).Should(gomega.Equal(2))
@@ -331,29 +331,29 @@ func RunTest(provider Provider) {
 			_ = provider.DeleteInstanceParameters(appInstanceID)
 		})
 		ginkgo.It("Should be able to retrieve an empty list if the instance has no params", func() {
-			instanceID := uuid.New().String()
+			appInstanceID := uuid.New().String()
 
-			params, err := provider.GetInstanceParameters(instanceID)
+			params, err := provider.GetInstanceParameters(appInstanceID)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(params).NotTo(gomega.BeNil())
 			gomega.Expect(len(params)).Should(gomega.Equal(0))
 		})
 		ginkgo.It("should be able to remove the params of an instance", func() {
-			instanceID := uuid.New().String()
+			appInstanceID := uuid.New().String()
 			parameters := []entities.InstanceParameter{
 				{"param1", "value1"},
 				{"param2", "value2"},
 			}
-			err := provider.AddInstanceParameters(instanceID, parameters)
+			err := provider.AddInstanceParameters(appInstanceID, parameters)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			err = provider.DeleteInstanceParameters(instanceID)
+			err = provider.DeleteInstanceParameters(appInstanceID)
 			gomega.Expect(err).To(gomega.Succeed())
 		})
 		ginkgo.It("should not fail when deleting the parameters of an instance (which do not exist)", func() {
-			instanceID := uuid.New().String()
+			appInstanceID := uuid.New().String()
 
-			err := provider.DeleteInstanceParameters(instanceID)
+			err := provider.DeleteInstanceParameters(appInstanceID)
 			gomega.Expect(err).To(gomega.Succeed())
 		})
 	})
