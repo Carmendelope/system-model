@@ -175,6 +175,9 @@ func RunTest(provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(exists).To(gomega.BeTrue())
 
+		_ = provider.DeleteNode(clusterID, nodeID)
+		_ = provider.Remove(cluster.ClusterId)
+
 	})
 	ginkgo.It("Should not be able to find the node of the cluster", func() {
 
