@@ -59,7 +59,7 @@ var _ = ginkgo.Describe("Scylla cluster provider", func() {
 		for i := 0; i < numClusters; i++ {
 
 			clusterID := fmt.Sprintf("ClusterId_XX%d", i)
-			cluster := CreateTestCluster(clusterId)
+			cluster := CreateTestCluster(clusterID)
 
 			err := sp.Add(*cluster)
 			gomega.Expect(err).To(gomega.Succeed())

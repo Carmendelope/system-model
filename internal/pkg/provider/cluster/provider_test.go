@@ -251,7 +251,7 @@ func RunTest(provider Provider) {
 		err = provider.DeleteNode(cluster.ClusterId, nodeID)
 		gomega.Expect(err).To(gomega.Succeed())
 
-		_ = provider.DeleteNode(cluter.ClusterId, "node0002")
+		_ = provider.DeleteNode(cluster.ClusterId, "node0002")
 		_ = provider.Remove(cluster.ClusterId)
 	})
 	ginkgo.It("Should not be able to delete a Node in a cluster", func() {
