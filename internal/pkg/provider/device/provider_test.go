@@ -98,22 +98,22 @@ func RunTest(provider Provider) {
 
 		})
 		ginkgo.It("Should be able to list a device groups", func() {
-			var createdDeviceGroups []entities.DeviceGroup
+			var createdDeviceGroups []devices.DeviceGroup
 			helper := NewDeviceTestHepler()
 
 			toAdd := helper.CreateDeviceGroup()
 			err := provider.AddDeviceGroup(*toAdd)
-			createdDeviceGroups = append(createdDeviceGroups, toAdd)
+			createdDeviceGroups = append(createdDeviceGroups, *toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			toAdd = helper.CreateOrganizationDeviceGroup(toAdd.OrganizationId)
 			err = provider.AddDeviceGroup(*toAdd)
-			createdDeviceGroups = append(createdDeviceGroups, toAdd)
+			createdDeviceGroups = append(createdDeviceGroups, *toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			toAdd = helper.CreateOrganizationDeviceGroup(toAdd.OrganizationId)
 			err = provider.AddDeviceGroup(*toAdd)
-			createdDeviceGroups = append(createdDeviceGroups, toAdd)
+			createdDeviceGroups = append(createdDeviceGroups, *toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			list, err := provider.ListDeviceGroups(toAdd.OrganizationId)
@@ -160,7 +160,7 @@ func RunTest(provider Provider) {
 
 		})
 		ginkgo.It("should be able to get devices groups by name", func() {
-			var createdDeviceGroups []entities.DeviceGroup
+			var createdDeviceGroups []devices.DeviceGroup
 			names := make([]string, 0)
 			helper := NewDeviceTestHepler()
 			organizationID := uuid.New().String()
@@ -170,6 +170,7 @@ func RunTest(provider Provider) {
 				err := provider.AddDeviceGroup(*toAdd)
 				gomega.Expect(err).To(gomega.Succeed())
 				names = append(names, toAdd.Name)
+				createdDeviceGroups = append(createdDeviceGroups, *toAdd)
 			}
 
 			deviceGroups, err := provider.GetDeviceGroupsByName(organizationID, names)
@@ -257,17 +258,17 @@ func RunTest(provider Provider) {
 
 			toAdd := helper.CreateDevice()
 			err := provider.AddDevice(*toAdd)
-			createdDevices = append(createdDevices, toAdd)
+			createdDevices = append(createdDevices, *toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			toAdd = helper.CreateGroupDevices(toAdd.OrganizationId, toAdd.DeviceGroupId)
 			err = provider.AddDevice(*toAdd)
-			createdDevices = append(createdDevices, toAdd)
+			createdDevices = append(createdDevices, *toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			toAdd = helper.CreateGroupDevices(toAdd.OrganizationId, toAdd.DeviceGroupId)
 			err = provider.AddDevice(*toAdd)
-			createdDevices = append(createdDevices, toAdd)
+			createdDevices = append(createdDevices, *toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			list, err := provider.ListDevices(toAdd.OrganizationId, toAdd.DeviceGroupId)
@@ -275,7 +276,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(list).To(gomega.HaveLen(3))
 
 			for i := 0; i < len(createdDevices); i++ {
-				device = createdDevices[i]
+				device := createdDevices[i]
 				_ = provider.RemoveDevice(device.OrganizationId, device.DeviceGroupId, device.DeviceId)
 			}
 		})
