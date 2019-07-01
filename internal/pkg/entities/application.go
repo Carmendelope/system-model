@@ -1584,6 +1584,9 @@ func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AddAppEndpointRequest)
 
 func (d * AppDescriptor) ApplyUpdate(request grpc_application_go.UpdateAppDescriptorRequest){
 	if request.AddLabels {
+		if d.Labels == nil {
+			d.Labels = make(map[string]string,0)
+		}
 		for k, v := range request.Labels {
 			d.Labels[k] = v
 		}
