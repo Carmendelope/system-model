@@ -294,14 +294,17 @@ func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([
 	for _, instID := range instances {
 		toAdd, err := m.AppProvider.GetInstance(instID)
 		if err != nil {
-			return nil, err
+			// NP-1593.
+			// It can happen, that while an  instance is being undeploying, a list of the instances is requested (and the join fails)
+			log.Warn().Str("instance", instID).Msg("not found!!")
+		}else {
+			// Fill Global FQdn
+			err = m.fillGlobalFqdn(toAdd)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, *toAdd)
 		}
-		// Fill Global FQdn
-		err = m.fillGlobalFqdn(toAdd)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, *toAdd)
 	}
 
 	return result, nil
