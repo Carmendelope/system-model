@@ -464,7 +464,7 @@ func (sp *ScyllaDeviceProvider) ListDevices(organizationID string, deviceGroupID
 	}
 
 	stmt, names := qb.Select(deviceTable).Columns(organizationIdField, deviceGroupIdField, deviceIdField,
-		labelsField, registerSinceField, locationField).Where(qb.Eq(organizationIdField)).
+		labelsField, registerSinceField, locationField, osField, hardwareField, storageField).Where(qb.Eq(organizationIdField)).
 		Where(qb.Eq(deviceGroupIdField)).ToCql()
 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
