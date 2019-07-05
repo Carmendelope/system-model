@@ -106,7 +106,7 @@ func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
 		Os:             NewOperatingSystemInfoFromGRPC(addRequest.Os),
 		Hardware:       NewHardwareInfoFromGRPC(addRequest.Hardware),
 		Storage:        storage,
-		Location:       NewLocationFromGRPC(addRequest.Location),
+		Location:       location,
 	}
 }
 
