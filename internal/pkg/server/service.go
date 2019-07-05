@@ -26,16 +26,15 @@ import (
 
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-organization-go"
-	"github.com/nalej/grpc-utils/pkg/tools"
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
+	aProvider "github.com/nalej/system-model/internal/pkg/provider/asset"
 	clusterProvider "github.com/nalej/system-model/internal/pkg/provider/cluster"
 	devProvider "github.com/nalej/system-model/internal/pkg/provider/device"
+	eicProvider "github.com/nalej/system-model/internal/pkg/provider/eic"
 	nodeProvider "github.com/nalej/system-model/internal/pkg/provider/node"
 	orgProvider "github.com/nalej/system-model/internal/pkg/provider/organization"
 	rProvider "github.com/nalej/system-model/internal/pkg/provider/role"
 	uProvider "github.com/nalej/system-model/internal/pkg/provider/user"
-	aProvider "github.com/nalej/system-model/internal/pkg/provider/asset"
-	eicProvider "github.com/nalej/system-model/internal/pkg/provider/eic"
 	"github.com/nalej/system-model/internal/pkg/server/application"
 	"github.com/nalej/system-model/internal/pkg/server/organization"
 )
@@ -43,14 +42,12 @@ import (
 // Service structure containing the configuration and gRPC server.
 type Service struct {
 	Configuration Config
-	Server * tools.GenericGRPCServer
 }
 
 // NewService creates a new system model service.
 func NewService(conf Config) *Service {
 	return &Service{
 		conf,
-		tools.NewGenericGRPCServer(uint32(conf.Port)),
 	}
 }
 
