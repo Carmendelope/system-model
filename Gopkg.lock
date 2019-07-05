@@ -371,7 +371,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:80177f66172504b67f0c8b46ae8be70c95b81297b9359dfbbef008b4f95ca2cb"
+  digest = "1:2ad4db7088b8cb174b051191bc2722722ad0f599db99d8eb5074358135f1580b"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
@@ -381,10 +381,10 @@
     "protobuf/field_mask",
   ]
   pruneopts = ""
-  revision = "eb59cef1c072c61ea4f7623910448d5e9c6a4455"
+  revision = "710ae3a149df3775bfc2e9efb7f4fb97b186b233"
 
 [[projects]]
-  digest = "1:6881653b963cd12dc1a9824aed5e122d0ff38e53e3ee07862f969a56ad2f2e9c"
+  digest = "1:3608095d1dc06a2ff2e6f0476c9cc9584dd8e4b64151fed41a3663b9033a8b63"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -418,14 +418,15 @@
     "resolver",
     "resolver/dns",
     "resolver/passthrough",
+    "serviceconfig",
     "stats",
     "status",
     "tap",
     "test/bufconn",
   ]
   pruneopts = ""
-  revision = "501c41df7f472c740d0674ff27122f3f48c80ce7"
-  version = "v1.21.1"
+  revision = "1d89a3c832915b2314551c1d2a506874d62e53f7"
+  version = "v1.22.0"
 
 [[projects]]
   digest = "1:eb53021a8aa3f599d29c7102e65026242bdedce998a54837dc67f14b6a97c5fd"
@@ -462,7 +463,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4b37f38075006d5c5a683aefaef6faf9d2c28f885a0724e15bcec03ce7ed8561"
+  digest = "1:014e43b5f03922b95015499002ca8ec8c3035b80eb725666795146ed95d12cf1"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/util/errors",
@@ -471,7 +472,7 @@
     "pkg/util/validation/field",
   ]
   pruneopts = ""
-  revision = "05b5762916b3dbc115737640b04ce9f7c003c793"
+  revision = "4cfb76a8bf76b405d82fb36bc1c172d13ca86988"
 
 [solve-meta]
   analyzer-name = "dep"
