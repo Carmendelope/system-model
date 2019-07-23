@@ -5,9 +5,10 @@
 package organization
 
 import (
+	"sync"
+
 	"github.com/nalej/derrors"
 	"github.com/nalej/system-model/internal/pkg/entities"
-	"sync"
 )
 
 type MockupOrganizationProvider struct {
@@ -32,14 +33,14 @@ type MockupOrganizationProvider struct {
 
 func NewMockupOrganizationProvider() *MockupOrganizationProvider {
 	return &MockupOrganizationProvider{
-		organizations: make(map[string]entities.Organization, 0),
-		clusters:      make(map[string][]string, 0),
-		nodes:         make(map[string][]string, 0),
-		descriptors:   make(map[string][]string, 0),
-		instances:     make(map[string][]string, 0),
-		users:         make(map[string][]string, 0),
-		roles:         make(map[string][]string, 0),
-		organizationNames: make (map[string]bool, 0),
+		organizations:     make(map[string]entities.Organization, 0),
+		clusters:          make(map[string][]string, 0),
+		nodes:             make(map[string][]string, 0),
+		descriptors:       make(map[string][]string, 0),
+		instances:         make(map[string][]string, 0),
+		users:             make(map[string][]string, 0),
+		roles:             make(map[string][]string, 0),
+		organizationNames: make(map[string]bool, 0),
 	}
 }
 
@@ -150,7 +151,7 @@ func (m *MockupOrganizationProvider) unsafeExistsRole(organizationID string, rol
 func (m *MockupOrganizationProvider) Add(org entities.Organization) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(org.ID) && !m.unsafeExistsByName(org.Name){
+	if !m.unsafeExists(org.ID) && !m.unsafeExistsByName(org.Name) {
 		m.organizations[org.ID] = org
 		m.organizationNames[org.Name] = true
 		return nil
@@ -183,12 +184,26 @@ func (m *MockupOrganizationProvider) Get(organizationID string) (*entities.Organ
 }
 
 // List the set of organizations.
-func (m *MockupOrganizationProvider) List() ([] entities.Organization, derrors.Error) {
-	result := make([] entities.Organization,0, len(m.organizations))
+func (m *MockupOrganizationProvider) List() ([]entities.Organization, derrors.Error) {
+	result := make([]entities.Organization, 0, len(m.organizations))
 	for _, value := range m.organizations {
 		result = append(result, value)
 	}
 	return result, nil
+}
+
+// Remove an organization.
+func (m *MockupOrganizationProvider) Remove(organizationID string) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+	if !m.unsafeExists(organizationID) {
+		return derrors.NewNotFoundError("organization").WithParams(organizationID)
+	}
+	org := Get(organizationID)
+	organizationName := org.Name
+	delete(m.organizations, organizationID)
+	delete(m.organizationNames, organizationName)
+	return nil
 }
 
 // AddCluster adds a new cluster ID to the organization.
@@ -235,7 +250,7 @@ func (m *MockupOrganizationProvider) DeleteCluster(organizationID string, cluste
 	defer m.Unlock()
 	if m.unsafeExistsCluster(organizationID, clusterID) {
 		previous := m.clusters[organizationID]
-		newList := make([] string, 0, len(previous)-1)
+		newList := make([]string, 0, len(previous)-1)
 		for _, id := range previous {
 			if id != clusterID {
 				newList = append(newList, id)
@@ -291,7 +306,7 @@ func (m *MockupOrganizationProvider) DeleteNode(organizationID string, nodeID st
 	defer m.Unlock()
 	if m.unsafeExistsNode(organizationID, nodeID) {
 		previous := m.nodes[organizationID]
-		newList := make([] string, 0, len(previous)-1)
+		newList := make([]string, 0, len(previous)-1)
 		for _, id := range previous {
 			if id != nodeID {
 				newList = append(newList, id)
@@ -347,7 +362,7 @@ func (m *MockupOrganizationProvider) DeleteDescriptor(organizationID string, app
 	defer m.Unlock()
 	if m.unsafeExistsAppDesc(organizationID, appDescriptorID) {
 		previous := m.descriptors[organizationID]
-		newList := make([] string, 0, len(previous)-1)
+		newList := make([]string, 0, len(previous)-1)
 		for _, id := range previous {
 			if id != appDescriptorID {
 				newList = append(newList, id)
@@ -403,7 +418,7 @@ func (m *MockupOrganizationProvider) DeleteInstance(organizationID string, appIn
 	defer m.Unlock()
 	if m.unsafeExistsAppInst(organizationID, appInstanceID) {
 		previous := m.instances[organizationID]
-		newList := make([] string, 0, len(previous)-1)
+		newList := make([]string, 0, len(previous)-1)
 		for _, id := range previous {
 			if id != appInstanceID {
 				newList = append(newList, id)
@@ -459,7 +474,7 @@ func (m *MockupOrganizationProvider) DeleteUser(organizationID string, email str
 	defer m.Unlock()
 	if m.unsafeExistsUser(organizationID, email) {
 		previous := m.users[organizationID]
-		newList := make([] string, 0, len(previous)-1)
+		newList := make([]string, 0, len(previous)-1)
 		for _, id := range previous {
 			if id != email {
 				newList = append(newList, id)
@@ -515,7 +530,7 @@ func (m *MockupOrganizationProvider) DeleteRole(organizationID string, roleID st
 	defer m.Unlock()
 	if m.unsafeExistsRole(organizationID, roleID) {
 		previous := m.roles[organizationID]
-		newList := make([] string, 0, len(previous)-1)
+		newList := make([]string, 0, len(previous)-1)
 		for _, id := range previous {
 			if id != roleID {
 				newList = append(newList, id)

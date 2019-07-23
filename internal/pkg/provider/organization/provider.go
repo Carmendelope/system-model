@@ -17,9 +17,11 @@ type Provider interface {
 	// Check if an organization with this name exists on the system
 	ExistsByName(name string) (bool, derrors.Error)
 	// Get an organization.
-	Get(organizationID string) (* entities.Organization, derrors.Error)
+	Get(organizationID string) (*entities.Organization, derrors.Error)
 	// List the set of organizations.
-	List() ([] entities.Organization, derrors.Error)
+	List() ([]entities.Organization, derrors.Error)
+	// Remove an organization
+	Remove(organizationID string) derrors.Error
 
 	// AddCluster adds a new cluster ID to the organization.
 	AddCluster(organizationID string, clusterID string) derrors.Error
