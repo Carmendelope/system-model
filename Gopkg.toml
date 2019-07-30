@@ -42,6 +42,11 @@
     name="github.com/nalej/grpc-inventory-go"
     version="=v0.0.28"
 
+[[constraint]]
+    name="github.com/nalej/scylladb-utils"
+    branch="master"
+
+
 [[override]]
   source = "https://github.com/fsnotify/fsnotify/archive/v1.4.7.tar.gz"
   name = "gopkg.in/fsnotify.v1"
