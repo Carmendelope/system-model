@@ -68,7 +68,7 @@ func RunTest(provider Provider) {
 			// update Account
 			toAdd.Name = "updated name"
 			toAdd.BillingInfo.FullName = "full name updated"
-			toAdd.State = entities.Deactivated
+			toAdd.State = entities.AccountState_Deactivated
 			toAdd.StateInfo = "deactivated for test"
 
 			err = provider.Update(*toAdd)

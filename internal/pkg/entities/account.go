@@ -12,17 +12,17 @@ import (
 type AccountState int32
 
 const (
-	Active AccountState = iota + 1
-	Deactivated
+	AccountState_Active AccountState = iota + 1
+	AccountState_Deactivated
 )
 
 var AccountStateGRPC = map[AccountState]grpc_account_go.AccountState{
-	Active: grpc_account_go.AccountState_ACTIVE,
-	Deactivated : grpc_account_go.AccountState_DEACTIVATED,
+	AccountState_Active: grpc_account_go.AccountState_ACTIVE,
+	AccountState_Deactivated : grpc_account_go.AccountState_DEACTIVATED,
 }
 var AccountStateFromGRPC = map[grpc_account_go.AccountState]AccountState {
-	grpc_account_go.AccountState_ACTIVE: Active,
-	grpc_account_go.AccountState_DEACTIVATED: Deactivated,
+	grpc_account_go.AccountState_ACTIVE: AccountState_Active,
+	grpc_account_go.AccountState_DEACTIVATED: AccountState_Deactivated,
 }
 
 // AccountBillingInfo with the billing information of an account

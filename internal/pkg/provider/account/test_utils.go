@@ -26,7 +26,7 @@ func CreateAccount() *entities.Account{
 		Name: "account test",
 		Created: time.Now().Unix(),
 		BillingInfo: CreateBillingInfo(id),
-		State: entities.Active,
+		State: entities.AccountState_Active,
 		StateInfo: "active info",
 	}
 }
