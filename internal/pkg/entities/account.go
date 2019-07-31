@@ -16,7 +16,7 @@ const (
 	AccountState_Deactivated
 )
 
-var AccountStateGRPC = map[AccountState]grpc_account_go.AccountState{
+var AccountStateToGRPC = map[AccountState]grpc_account_go.AccountState{
 	AccountState_Active: grpc_account_go.AccountState_ACTIVE,
 	AccountState_Deactivated : grpc_account_go.AccountState_DEACTIVATED,
 }
@@ -105,7 +105,7 @@ func (a *Account) ToGRPC() *grpc_account_go.Account{
 		Name: 		a.Name,
 		Created: 	a.Created,
 		BillingInfo:a.BillingInfo.ToGRPC(),
-		State: 		AccountStateGRPC[a.State],
+		State: 		AccountStateToGRPC[a.State],
 		StateInfo:  a.StateInfo,
 	}
 }
