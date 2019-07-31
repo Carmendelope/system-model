@@ -95,3 +95,17 @@ func NewAccountFromGRPC (account *grpc_account_go.Account) *Account{
 		StateInfo: 		account.StateInfo,
 	}
 }
+
+func (a *Account) ToGRPC() *grpc_account_go.Account{
+	if a == nil {
+		return nil
+	}
+	return &grpc_account_go.Account{
+		AccountId: 	a.AccountId,
+		Name: 		a.Name,
+		Created: 	a.Created,
+		BillingInfo:a.BillingInfo.ToGRPC(),
+		State: 		AccountStateGRPC[a.State],
+		StateInfo:  a.StateInfo,
+	}
+}
