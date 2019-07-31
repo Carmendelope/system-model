@@ -17,8 +17,12 @@ type Provider interface {
 	Update(account entities.Account) derrors.Error
 	// Exists checks if an account exists on the system.
 	Exists(accountID string) (bool, derrors.Error)
+	// check if there is an account with the received name
+	ExistsByName(accountName string) (bool, derrors.Error)
 	// Get an account.
 	Get(accountID string) (*entities.Account, derrors.Error)
+	// List all the accounts
+	List() ([]entities.Account, derrors.Error)
 	// Remove an account
 	Remove(accountID string) derrors.Error
 	// Clear all accounts

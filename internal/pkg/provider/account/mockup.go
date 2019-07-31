@@ -15,11 +15,13 @@ type MockupAccountProvider struct {
 	sync.Mutex
 	// accounts with a map of assets indexed by accountID.
 	accounts map[string]entities.Account
+	accountNames map[string]bool
 }
 
 func NewMockupAccountProvider() * MockupAccountProvider{
 	return &MockupAccountProvider{
 		accounts: make(map[string]entities.Account, 0),
+		accountNames: make(map[string]bool, 0),
 	}
 }
 
@@ -35,6 +37,7 @@ func (m *MockupAccountProvider) Add(account entities.Account) derrors.Error{
 
 	if !m.unsafeExists(account.AccountId){
 		m.accounts[account.AccountId] = account
+		m.accountNames[account.Name] = true
 		return nil
 	}
 	return derrors.NewAlreadyExistsError(account.AccountId)
@@ -48,7 +51,9 @@ func (m *MockupAccountProvider) Update(account entities.Account) derrors.Error{
 	if !m.unsafeExists(account.AccountId){
 		return derrors.NewNotFoundError(account.AccountId)
 	}
+	delete (m.accountNames, m.accounts[account.AccountId].Name)
 	m.accounts[account.AccountId] = account
+	m.accountNames[account.Name] = true
 	return nil
 }
 
@@ -58,6 +63,15 @@ func (m *MockupAccountProvider) Exists(accountID string) (bool, derrors.Error){
 	defer m.Unlock()
 
 	return m.unsafeExists(accountID), nil
+}
+
+func (m *MockupAccountProvider) ExistsByName(accountName string) (bool, derrors.Error){
+	m.Lock()
+	defer m.Unlock()
+
+	_, exists := m.accountNames[accountName]
+	return exists, nil
+
 }
 
 // Get an account.
@@ -72,6 +86,18 @@ func (m *MockupAccountProvider) Get(accountID string) (*entities.Account, derror
 	return nil, derrors.NewNotFoundError(accountID)
 }
 
+func (m *MockupAccountProvider) List() ([]entities.Account, derrors.Error){
+	m.Lock()
+	defer m.Unlock()
+
+	list := make ([]entities.Account, 0)
+	for _, account := range m.accounts {
+		list = append(list, account)
+	}
+	return list, nil
+}
+
+
 // Remove an account
 func (m *MockupAccountProvider) Remove(accountID string) derrors.Error{
 	m.Lock()
@@ -80,6 +106,7 @@ func (m *MockupAccountProvider) Remove(accountID string) derrors.Error{
 	if !m.unsafeExists(accountID){
 		return derrors.NewNotFoundError(accountID)
 	}
+	delete(m.accountNames, m.accounts[accountID].Name)
 	delete(m.accounts, accountID)
 	return nil
 }
@@ -89,5 +116,6 @@ func (m *MockupAccountProvider) Clear() derrors.Error{
 	m.Lock()
 	defer m.Unlock()
 	m.accounts = make(map[string]entities.Account, 0)
+	m.accountNames = make(map[string]bool, 0)
 	return nil
 }

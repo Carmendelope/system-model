@@ -5,6 +5,7 @@
 package entities
 
 import (
+	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-account-go"
 	"time"
 )
@@ -39,17 +40,14 @@ type AccountBillingInfo struct {
 	AdditionalInfo string `json:"additional_info,omitempty" cql:"additional_info"`
 }
 
-func NewAccountBillingInfoFromGRPC(accountId string, info *grpc_account_go.AccountBillingInfo) *AccountBillingInfo {
-	if info == nil {
-		return  nil
-	}
+func NewAccountBillingInfoFromGRPC(accountId string, fullName string, companyName string, address string, additionalInfo string) *AccountBillingInfo {
 
 	return &AccountBillingInfo{
 		AccountId:	accountId,
-		FullName: 	info.FullName,
-		CompanyName:info.CompanyName,
-		Address: 	info.Address,
-		AdditionalInfo: info.AdditionalInfo,
+		FullName: 	fullName,
+		CompanyName:companyName,
+		Address: 	address,
+		AdditionalInfo: additionalInfo,
 	}
 }
 
@@ -80,7 +78,7 @@ type Account struct {
 	StateInfo string  	`json:"state_info,omitempty"`
 }
 
-func NewAccountFromGRPC (account *grpc_account_go.Account) *Account{
+func NewAccountFromGRPC (account *grpc_account_go.AddAccountRequest) *Account{
 	if account == nil {
 		return nil
 	}
@@ -90,9 +88,9 @@ func NewAccountFromGRPC (account *grpc_account_go.Account) *Account{
 		AccountId:		id,
 		Name: 			account.Name,
 		Created: 		time.Now().Unix(),
-		BillingInfo: 	NewAccountBillingInfoFromGRPC(id, account.BillingInfo),
-		State: 			AccountStateFromGRPC[account.State],
-		StateInfo: 		account.StateInfo,
+		BillingInfo: 	NewAccountBillingInfoFromGRPC(id, account.FullName, account.CompanyName, account.Address, account.AdditionalInfo),
+		State: 			AccountState_Active,
+		StateInfo: 		"",
 	}
 }
 
@@ -108,4 +106,72 @@ func (a *Account) ToGRPC() *grpc_account_go.Account{
 		State: 		AccountStateToGRPC[a.State],
 		StateInfo:  a.StateInfo,
 	}
+}
+
+// -------------------
+// appy update
+// -------------------
+func (a *Account) ApplyUpdate( update *grpc_account_go.UpdateAccountRequest){
+
+	if update.UpdateName {
+		a.Name = update.Name
+	}
+	if update.UpdateState {
+		a.State = AccountStateFromGRPC[update.State]
+	}
+	if update.UpdateStateInfo {
+		a.StateInfo = update.StateInfo
+	}
+
+}
+
+func (a *Account) ApplyUpdateBillingInfo(update *grpc_account_go.UpdateAccountBillingInfoRequest){
+	if a.BillingInfo == nil {
+		a.BillingInfo = &AccountBillingInfo{}
+	}
+
+	if update.UpdateFullName {
+		a.BillingInfo.FullName = update.FullName
+	}
+	if update.UpdateCompanyName {
+		a.BillingInfo.CompanyName = update.CompanyName
+	}
+	if update.UpdateAddress {
+		a.BillingInfo.Address = update.Address
+	}
+	if update.UpdateAdditionalInfo {
+		a.BillingInfo.AdditionalInfo = update.AdditionalInfo
+	}
+}
+
+// -------------------
+// validation methods
+// -------------------
+func ValidateAddAccountRequest(request *grpc_account_go.AddAccountRequest) derrors.Error{
+
+	if request.Name == "" {
+		return derrors.NewInvalidArgumentError(emptyName)
+	}
+	return nil
+}
+
+func ValidateAccountId (request *grpc_account_go.AccountId) derrors.Error {
+	if request.AccountId == "" {
+		return derrors.NewInvalidArgumentError(emptyAccountId)
+	}
+	return nil
+}
+
+func ValidateUpdateAccountRequest (request *grpc_account_go.UpdateAccountRequest) derrors.Error{
+	if request.AccountId == "" {
+		return derrors.NewInvalidArgumentError(emptyAccountId)
+	}
+	return nil
+}
+
+func ValidateUpdateAccountBillingInfoRequest (request *grpc_account_go.UpdateAccountBillingInfoRequest) derrors.Error{
+	if request.AccountId == "" {
+		return derrors.NewInvalidArgumentError(emptyAccountId)
+	}
+	return nil
 }

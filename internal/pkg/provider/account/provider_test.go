@@ -104,4 +104,66 @@ func RunTest(provider Provider) {
 			gomega.Expect(exists).NotTo(gomega.BeTrue())
 		})
 	})
+	ginkgo.Context("checking if exists account by name", func() {
+		ginkgo.It("should be able to check if a name of an account exists", func(){
+			toAdd := CreateAccount()
+			err := provider.Add(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			exists, err := provider.ExistsByName(toAdd.Name)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(exists).To(gomega.BeTrue())
+		})
+		ginkgo.It("should be able to check that a name of an account does not exist", func(){
+			exists, err := provider.ExistsByName(entities.GenerateUUID())
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(exists).NotTo(gomega.BeTrue())
+		})
+		ginkgo.It("should be able to check that a name of an account does not exist after delete it", func(){
+			toAdd := CreateAccount()
+			err := provider.Add(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			// remove the account
+			err = provider.Remove(toAdd.AccountId)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			exists, err := provider.ExistsByName(toAdd.Name)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(exists).NotTo(gomega.BeTrue())
+		})
+		ginkgo.It("should be able to check that a name of an account does not exist after update it", func(){
+			toAdd := CreateAccount()
+			name := toAdd.Name
+			err := provider.Add(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			// update the account
+			toAdd.Name = "name updated"
+			err = provider.Update(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			exists, err := provider.ExistsByName(name)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(exists).NotTo(gomega.BeTrue())
+		})
+	})
+	ginkgo.Context("listing accounts", func() {
+		ginkgo.It("should be able to list accounts where there are", func(){
+			numAccounts  := 10
+			for i:= 0; i<numAccounts; i++{
+				toAdd := CreateAccount()
+				err := provider.Add(*toAdd)
+				gomega.Expect(err).To(gomega.Succeed())
+			}
+			list, err := provider.List()
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(len(list)).Should(gomega.Equal(numAccounts))
+		})
+		ginkgo.It("should be able to return an empty list of accounts", func(){
+			list, err := provider.List()
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(len(list)).Should(gomega.Equal(0))
+		})
+	})
 }

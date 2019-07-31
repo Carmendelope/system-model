@@ -8,6 +8,8 @@ import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/scylladb-utils/pkg/scylladb"
 	"github.com/nalej/system-model/internal/pkg/entities"
+	"github.com/scylladb/gocqlx"
+	"github.com/scylladb/gocqlx/qb"
 	"sync"
 )
 
@@ -63,6 +65,13 @@ func (sp *ScyllaAccountProvider) Exists(accountID string) (bool, derrors.Error){
 	return sp.UnsafeGenericExist(AccountTable, AccountTablePK, accountID)
 }
 
+func (sp *ScyllaAccountProvider)ExistsByName(accountName string) (bool, derrors.Error){
+	sp.Lock()
+	defer sp.Unlock()
+
+	return sp.UnsafeGenericExist(AccountTable, "name", accountName)
+}
+
 // Get an account.
 func (sp *ScyllaAccountProvider) Get(accountID string) (*entities.Account, derrors.Error){
 	sp.Lock()
@@ -75,6 +84,28 @@ func (sp *ScyllaAccountProvider) Get(accountID string) (*entities.Account, derro
 		return nil, err
 	}
 	return account.(*entities.Account), nil
+}
+
+func (sp *ScyllaAccountProvider)List() ([]entities.Account, derrors.Error){
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.CheckAndConnect(); err != nil {
+		return nil, err
+	}
+
+	stmt, names := qb.Select(AccountTable).Columns(allAccountColumns...).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names)
+
+	accounts := make([]entities.Account, 0)
+	cqlErr := gocqlx.Select(&accounts, q.Query)
+
+	if cqlErr != nil {
+		return nil, derrors.AsError(cqlErr, "cannot list accounts")
+	}
+
+	return accounts, nil
+
 }
 
 // Remove an account

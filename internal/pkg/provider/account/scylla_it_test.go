@@ -11,7 +11,8 @@ docker exec -it scylla cqlsh
 
 create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 create type IF NOT EXISTS nalej.account_billing_info (account_id text, full_name text, company_name text, address text, additional_info text);
-create table nalej.Account (account_id text, name text, created bigint, billing_info FROZEN<account_billing_info>, state int, state_info text, primary key (account_id) );
+create table IF NOT EXISTS nalej.Account (account_id text, name text, created bigint, billing_info FROZEN<account_billing_info>, state int, state_info text, primary key (account_id) );
+create index IF NOT EXISTS accountName on nalej.Account(name);
 
 Environment variables
 IT_SCYLLA_HOST=127.0.0.1
