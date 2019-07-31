@@ -13,7 +13,7 @@ import (
 
 const AccountTable = "Account"
 const AccountTablePK = "account_id"
-var allAccountolumns = []string{"account_id", "name", "created", "billing_info", "state", "state_info"}
+var allAccountColumns = []string{"account_id", "name", "created", "billing_info", "state", "state_info"}
 var allAccountColumnsNoPK = []string{"name", "created", "billing_info", "state", "state_info"}
 
 type ScyllaAccountProvider struct {
@@ -44,7 +44,7 @@ func (sp *ScyllaAccountProvider) Disconnect() {
 func (sp *ScyllaAccountProvider) Add(account entities.Account) derrors.Error{
 	sp.Lock()
 	defer sp.Unlock()
-	return sp.UnsafeAdd(AccountTable, AccountTablePK, account.AccountId, allAccountolumns, account)
+	return sp.UnsafeAdd(AccountTable, AccountTablePK, account.AccountId, allAccountColumns, account)
 }
 
 // Update the information of an account.
@@ -70,7 +70,7 @@ func (sp *ScyllaAccountProvider) Get(accountID string) (*entities.Account, derro
 
 	var account interface{} = &entities.Account{}
 
-	err := sp.UnsafeGet(AccountTable, AccountTablePK, accountID, allAccountolumns, &account)
+	err := sp.UnsafeGet(AccountTable, AccountTablePK, accountID, allAccountColumns, &account)
 	if err != nil {
 		return nil, err
 	}
