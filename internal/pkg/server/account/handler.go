@@ -53,9 +53,7 @@ func (h *Handler)GetAccount(ctx context.Context, request *grpc_account_go.Accoun
 		return nil, conversions.ToGRPCError(err)
 	}
 	return account.ToGRPC(), nil
-
-	return nil, nil
-}
+	}
 
 // ListAccounts retrieves a list of all the accounts in the system. This method is only intended to be used by
 // management API as the users will not be able to list other accounts

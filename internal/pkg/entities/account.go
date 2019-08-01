@@ -109,7 +109,7 @@ func (a *Account) ToGRPC() *grpc_account_go.Account{
 }
 
 // -------------------
-// appy update
+// apply update
 // -------------------
 func (a *Account) ApplyUpdate( update *grpc_account_go.UpdateAccountRequest){
 
