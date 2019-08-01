@@ -217,12 +217,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:b4e1d6eff67e4af03e003ac72497357770b8542a8897afab5204cc340d825bcf"
+  digest = "1:205d8c8e145c52c71f70e3d23c68171076244e46425c855373227c6090fb7e43"
   name = "github.com/nalej/scylladb-utils"
   packages = ["pkg/scylladb"]
   pruneopts = ""
-  revision = "572b919a5bf6463cd0c9cd3118fb8fd809198e9c"
+  revision = "16b712dfe473a6e80a898ca875f7d64d628c6f88"
+  version = "v0.0.1"
 
 [[projects]]
   digest = "1:a3735b0978a8b53fc2ac97a6f46ca1189f0712a00df86d6ec4cf26c1a25e6d77"
