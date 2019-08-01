@@ -17,12 +17,12 @@ func RunTest(provider Provider) {
 	})
 
 	ginkgo.Context("adding project", func() {
-		ginkgo.It("should be able to add an account", func() {
+		ginkgo.It("should be able to add a project", func() {
 			toAdd := CreateProject()
 			err := provider.Add(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 		})
-		ginkgo.It("should not be able to add an account twice", func() {
+		ginkgo.It("should not be able to add a project twice", func() {
 			toAdd := CreateProject()
 			err := provider.Add(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())

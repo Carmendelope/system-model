@@ -3,7 +3,11 @@
  */
 package entities
 
-import "github.com/nalej/grpc-project-go"
+import (
+	"github.com/nalej/derrors"
+	"github.com/nalej/grpc-project-go"
+	"time"
+)
 
 type ProjectState int32
 
@@ -37,17 +41,17 @@ type Project struct {
 	StateInfo            string   `json:"state_info,omitempty"`
 }
 
-func NewProjectToGRPC(project *grpc_project_go.Project) *Project {
+func NewProjectToGRPC(project *grpc_project_go.AddProjectRequest) *Project {
 	if project == nil {
 		return nil
 	}
 	return &Project{
 		ProjectId:		GenerateUUID(),
-		OwnerAccountId: project.OwnerAccountId,
+		OwnerAccountId: project.AccountId,
 		Name: 			project.Name,
-		Created: 		project.Created,
-		State: 			ProjectStateFromGRPC[project.State],
-		StateInfo: 		project.StateInfo,
+		Created: 		time.Now().Unix(),
+		State: 			ProjectState_Active,
+		StateInfo: 		"",
 	}
 }
 
@@ -63,4 +67,50 @@ func (p *Project) ToGRPC() *grpc_project_go.Project {
 		State: ProjectStateToGRPC[p.State],
 		StateInfo: p.StateInfo,
 	}
+}
+
+// -------------------
+// apply update
+// -------------------
+func (p *Project) ApplyUpdate( update *grpc_project_go.UpdateProjectRequest){
+
+	if update.UpdateName {
+		p.Name = update.Name
+	}
+	if update.UpdateState {
+		p.State = ProjectStateFromGRPC[update.State]
+	}
+	if update.UpdateStateInfo {
+		p.StateInfo = update.StateInfo
+	}
+
+}
+// -------------------
+// validation methods
+// -------------------
+func ValidateAddProjectRequest(request *grpc_project_go.AddProjectRequest) derrors.Error {
+	if request.AccountId == "" {
+		return derrors.NewInvalidArgumentError(emptyAccountId)
+	}
+	return nil
+}
+
+func ValidateProjectId(request *grpc_project_go.ProjectId) derrors.Error{
+	if request.AccountId == "" {
+		return derrors.NewInvalidArgumentError(emptyAccountId)
+	}
+	if request.ProjectId == "" {
+		return derrors.NewInvalidArgumentError(emptyProjectId)
+	}
+	return nil
+}
+
+func ValidateUpdateProjectRequest (request *grpc_project_go.UpdateProjectRequest) derrors.Error{
+	if request.AccountId == "" {
+		return derrors.NewInvalidArgumentError(emptyAccountId)
+	}
+	if request.ProjectId == "" {
+		return derrors.NewInvalidArgumentError(emptyProjectId)
+	}
+	return nil
 }
