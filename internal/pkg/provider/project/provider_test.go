@@ -106,6 +106,33 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(exists).NotTo(gomega.BeTrue())
 		})
+		ginkgo.It("should be able to check by name a project exists", func(){
+			toAdd := CreateProject()
+			err := provider.Add(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			exists, err := provider.ExistsByName(toAdd.OwnerAccountId, toAdd.Name)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(exists).To(gomega.BeTrue())
+		})
+		ginkgo.It("should be able to check by name when a project does not exist", func(){
+			exists, err := provider.ExistsByName(entities.GenerateUUID(), entities.GenerateUUID())
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(exists).NotTo(gomega.BeTrue())
+		})
+		ginkgo.It("should be able to check by name when a project does not exist after delete it", func(){
+			// add a project
+			toAdd := CreateProject()
+			err := provider.Add(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			// delete it
+			err = provider.Remove(toAdd.OwnerAccountId, toAdd.ProjectId)
+			gomega.Expect(err).To(gomega.Succeed())
+			// check it does not exist
+			exists, err := provider.ExistsByName(entities.GenerateUUID(), entities.GenerateUUID())
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(exists).NotTo(gomega.BeTrue())
+		})
 	})
 	ginkgo.Context("listing projects of an account", func() {
 		ginkgo.It("should be able to list existing projects", func(){

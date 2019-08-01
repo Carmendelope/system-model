@@ -89,6 +89,8 @@ data:
     create index IF NOT EXISTS assetOrg ON nalej.Asset (organization_id);
     create index IF NOT EXISTS assetEdgeController ON nalej.Asset (edge_controller_id);
     create index IF NOT EXISTS accountName on nalej.Account(name);
+    create index IF NOT EXISTS projectName on nalej.project(name);
+
 
   node_alive.sh: |
     #!/bin/bash

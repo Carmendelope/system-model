@@ -18,17 +18,23 @@ type MockupProjectProvider struct {
 	projects map[string]entities.Project
 	// projects by account indexed by accountID
 	account_projects map[string][]string
+	// projectsNames map indexed by projectID#name to know if a name of a project already exists
+	projectNames map[string]bool
 }
 
 func NewMockupProjectProvider() * MockupProjectProvider{
 	return &MockupProjectProvider{
 		projects: make(map[string]entities.Project, 0),
 		account_projects: make (map[string][]string, 0),
+		projectNames: make(map[string]bool, 0),
 	}
 }
 
 func (m *MockupProjectProvider)getPK(accountID string, projectID string) string {
 	return fmt.Sprintf("%s%s", accountID, projectID)
+}
+func (m *MockupProjectProvider)getNameKey(accountID string, name string) string {
+	return fmt.Sprintf("%s%s", accountID, name)
 }
 
 func (m *MockupProjectProvider) unsafeExists(key string) bool{
@@ -45,6 +51,7 @@ func (m * MockupProjectProvider) Add(project entities.Project) derrors.Error{
 
 	if !m.unsafeExists(key){
 		m.projects[key] = project
+		m.projectNames[m.getNameKey(project.OwnerAccountId, project.Name)] = true
 
 		// add into account_projects
 		account, exists := m.account_projects[project.OwnerAccountId]
@@ -68,6 +75,11 @@ func (m * MockupProjectProvider) Update(project entities.Project) derrors.Error{
 	if !m.unsafeExists(key){
 		return derrors.NewNotFoundError("project").WithParams(project.OwnerAccountId, project.ProjectId)
 	}
+
+	// delete the all entry
+	delete (m.projectNames, m.getNameKey(m.projects[key].OwnerAccountId,m.projects[key].Name))
+	// add the new one
+	m.projectNames[m.getNameKey(project.OwnerAccountId, project.Name)] = true
 	m.projects[key] = project
 	return nil
 }
@@ -79,6 +91,17 @@ func (m * MockupProjectProvider) Exists(accountID string, projectID string) (boo
 	key := m.getPK(accountID, projectID)
 
 	return m.unsafeExists(key), nil
+}
+
+// check if there is a project in the account with the received name
+func (m * MockupProjectProvider) ExistsByName(accountID string, name string) (bool, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+	key := m.getNameKey(accountID, name)
+
+	_, exists := m.projectNames[key]
+
+	return exists, nil
 }
 
 // Get a project.
@@ -105,6 +128,8 @@ func (m * MockupProjectProvider) Remove(accountID string, projectID string) derr
 	if !m.unsafeExists(key){
 		return derrors.NewNotFoundError("project").WithParams(accountID, projectID)
 	}
+	delete (m.projectNames, m.getNameKey(m.projects[key].OwnerAccountId, m.projects[key].Name))
+
 	delete(m.projects, key)
 
 	// delete the project from m.account_projects map
@@ -144,6 +169,6 @@ func (m * MockupProjectProvider) Clear() derrors.Error{
 	defer m.Unlock()
 	m.projects = make(map[string]entities.Project, 0)
 	m.account_projects = make (map[string][]string, 0)
-
+	m.projectNames = make(map[string]bool, 0)
 	return nil
 }

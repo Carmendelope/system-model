@@ -85,6 +85,21 @@ func (sp *ScyllaProjectProvider)Exists(accountID string, projectID string) (bool
 	return sp.UnsafeGenericCompositeExist(ProjectTable, pkColumn)
 }
 
+// check if there is a project in the account with the received name
+func (sp * ScyllaProjectProvider) ExistsByName(accountID string, name string) (bool, derrors.Error) {
+	sp.Lock()
+	defer sp.Unlock()
+
+	indexMap := map[string]interface{}{
+		"owner_account_id": accountID,
+		"name": name,
+	}
+
+	return sp.UnsafeGenericCompositeExist(ProjectTable, indexMap)
+
+	return true, nil
+}
+
 // Get a project.
 func (sp *ScyllaProjectProvider)Get(accountID string, projectID string) (*entities.Project, derrors.Error){
 	sp.Lock()

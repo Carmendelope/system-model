@@ -36,6 +36,13 @@ func (m *Manager)AddProject(request *grpc_project_go.AddProjectRequest) (*entiti
 	if !exists{
 		return nil, derrors.NewNotFoundError("account").WithParams(request.AccountId)
 	}
+
+	// check there is no another project with the same name
+	exists, err = m.ProjectProvider.ExistsByName(request.AccountId, request.Name)
+	if exists{
+		return nil, derrors.NewInvalidArgumentError("A Project with that name already exists").WithParams(request.Name)
+	}
+
 	toAdd := entities.NewProjectToGRPC(request)
 	err = m.ProjectProvider.Add(*toAdd)
 	if err != nil {
@@ -98,6 +105,17 @@ func (m *Manager)UpdateProject( request *grpc_project_go.UpdateProjectRequest) d
 	if err != nil {
 		return err
 	}
+	// if the name is been changed, check if the ner one already exists
+	if request.UpdateName{
+		exists, err := m.ProjectProvider.ExistsByName(request.ProjectId, request.Name)
+		if err != nil {
+			return  err
+		}
+		if exists{
+			return  derrors.NewInvalidArgumentError("A Project with that name already exists").WithParams(request.Name)
+		}
+	}
+
 	oldProject.ApplyUpdate(request)
 
 	return  m.ProjectProvider.Update(*oldProject)

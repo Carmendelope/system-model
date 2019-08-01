@@ -97,6 +97,22 @@ var _ = ginkgo.Describe("Project service", func() {
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
 		})
+		ginkgo.It("should not be able to add two projects with the same name", func() {
+
+			toAdd := CreateAddProjectRequest(targetAccount.AccountId)
+
+			project , err := client.AddProject(context.Background(),toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(project).NotTo(gomega.BeNil())
+			gomega.Expect(project.ProjectId).NotTo(gomega.BeEmpty())
+
+			toAdd2 := CreateAddProjectRequest(targetAccount.AccountId)
+			toAdd2.Name = toAdd.Name
+			_ , err = client.AddProject(context.Background(),toAdd2)
+			gomega.Expect(err).ShouldNot(gomega.Succeed())
+
+		})
+
 	})
 	// 	GetProject(context.Context, *ProjectId) (*Project, error)
 	ginkgo.Context("getting project", func() {
@@ -244,6 +260,34 @@ var _ = ginkgo.Describe("Project service", func() {
 				ProjectId: entities.GenerateUUID(),
 				UpdateName: true,
 				Name: "name updated",
+				UpdateState: true,
+				State: grpc_project_go.ProjectState_DEACTIVATED,
+				UpdateStateInfo: true,
+				StateInfo: "deactivated for test",
+			})
+			gomega.Expect(err).NotTo(gomega.Succeed())
+			gomega.Expect(success).To(gomega.BeNil())
+
+		})
+		ginkgo.It("should not be able to update a a project if the new name already exists", func() {
+
+			toAdd := CreateAddProjectRequest(targetAccount.AccountId)
+
+			project , err := client.AddProject(context.Background(),toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(project).NotTo(gomega.BeNil())
+
+			toAdd2 := CreateAddProjectRequest(targetAccount.AccountId)
+
+			project2 , err := client.AddProject(context.Background(),toAdd2)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(project).NotTo(gomega.BeNil())
+
+			success, err := client.UpdateProject(context.Background(), &grpc_project_go.UpdateProjectRequest{
+				AccountId:targetAccount.AccountId,
+				ProjectId: entities.GenerateUUID(),
+				UpdateName: true,
+				Name: project2.Name,
 				UpdateState: true,
 				State: grpc_project_go.ProjectState_DEACTIVATED,
 				UpdateStateInfo: true,

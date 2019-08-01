@@ -11,6 +11,7 @@ docker exec -it scylla cqlsh
 
 create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 create table nalej.Project (owner_account_id text, project_id text, name text, created bigint, state int, state_info text, primary key (owner_account_id, project_id) );
+create index IF NOT EXISTS projectName on nalej.project(name);
 
 Environment variables
 IT_SCYLLA_HOST=127.0.0.1
