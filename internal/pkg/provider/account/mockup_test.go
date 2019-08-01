@@ -7,7 +7,7 @@ package account
 import "github.com/onsi/ginkgo"
 
 var _ = ginkgo.Describe("Mockup Account provider", func(){
-	//provider := NewMockupAccountProvider()
-	//RunTest(provider)
+	provider := NewMockupAccountProvider()
+	RunTest(provider)
 })
 
