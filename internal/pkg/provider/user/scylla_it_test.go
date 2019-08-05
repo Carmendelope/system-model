@@ -25,7 +25,12 @@ Prepare the database...
 
 docker exec -it scylla cqlsh
 create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-create table nalej.Users (organization_id text, email text, name text, photo_url text, member_since int, PRIMARY KEY (email));
+create type IF NOT EXISTS nalej.UserContactInfo (full_name text, address text, phone map<text, text>, alt_email text, company_name text, title text);
+create table IF NOT EXISTS nalej.Users (organization_id text, email text, name text, photo_url text, member_since int, contact_info FROZEN<UserContactInfo>, PRIMARY KEY (email));
+create table IF NOT EXISTS nalej.AccountUser (account_id text, email text, role_id text, internal boolean, status int, PRIMARY KEY (email, account_id));
+create table IF NOT EXISTS nalej.AccountUserInvite (account_id text, email text, role_id text, invited_by text, msg text, expires bigint, PRIMARY KEY (email, account_id));
+create table IF NOT EXISTS nalej.ProjectUser (account_id text, project_id text, email text, role_id text, internal boolean, status int, PRIMARY KEY (account_id, project_id, email));
+create table IF NOT EXISTS nalej.ProjectUserInvite (account_id text, project_id text, email text, role_id text, invited_by text, msg text, expires bigint, PRIMARY KEY (email, account_id, project_id));
 
  */
 
@@ -58,11 +63,6 @@ var _ = ginkgo.Describe("Scylla user provider", func(){
 
 	// create a provider and connect it
 	sp := NewScyllaUserProvider(scyllaHost, scyllaPort, nalejKeySpace)
-	//err :=	sp.Connect()
-
-	//if err != nil {
-	//	ginkgo.Fail("unable to connect")
-	//}
 
 	// disconnect
 	ginkgo.AfterSuite(func() {

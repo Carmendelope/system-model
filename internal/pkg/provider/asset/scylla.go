@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright (C)  2019 Nalej - All Rights Reserved
  */
 
@@ -6,8 +6,8 @@ package asset
 
 import (
 	"github.com/nalej/derrors"
+	"github.com/nalej/scylladb-utils/pkg/scylladb"
 	"github.com/nalej/system-model/internal/pkg/entities"
-	"github.com/nalej/system-model/internal/pkg/provider/scylladb"
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"

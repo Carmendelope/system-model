@@ -201,6 +201,14 @@
   version = "v1.4.0"
 
 [[projects]]
+  digest = "1:205d8c8e145c52c71f70e3d23c68171076244e46425c855373227c6090fb7e43"
+  name = "github.com/nalej/scylladb-utils"
+  packages = ["pkg/scylladb"]
+  pruneopts = ""
+  revision = "16b712dfe473a6e80a898ca875f7d64d628c6f88"
+  version = "v0.0.1"
+
+[[projects]]
   digest = "1:a3735b0978a8b53fc2ac97a6f46ca1189f0712a00df86d6ec4cf26c1a25e6d77"
   name = "github.com/onsi/ginkgo"
   packages = [
@@ -491,6 +499,7 @@
     "github.com/nalej/grpc-user-go",
     "github.com/nalej/grpc-utils/pkg/conversions",
     "github.com/nalej/grpc-utils/pkg/test",
+    "github.com/nalej/scylladb-utils/pkg/scylladb",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/rs/zerolog",
