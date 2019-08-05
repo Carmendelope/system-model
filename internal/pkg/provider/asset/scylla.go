@@ -54,6 +54,7 @@ func (sp *ScyllaAssetProvider) Add(asset entities.Asset) derrors.Error {
 	defer sp.Unlock()
 	log.Debug().Interface("asset", asset).Msg("provider add asset")
 	return sp.UnsafeAdd(AssetTable, AssetTablePK, asset.AssetId, allAssetColumns, asset)
+
 }
 
 func (sp *ScyllaAssetProvider) Update(asset entities.Asset) derrors.Error {
