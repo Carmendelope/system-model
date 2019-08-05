@@ -6,8 +6,8 @@ package eic
 
 import (
 	"github.com/nalej/derrors"
+	"github.com/nalej/scylladb-utils/pkg/scylladb"
 	"github.com/nalej/system-model/internal/pkg/entities"
-	"github.com/nalej/system-model/internal/pkg/provider/scylladb"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
 	"sync"

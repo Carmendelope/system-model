@@ -6,8 +6,8 @@ package asset
 
 import (
 	"github.com/nalej/derrors"
+	"github.com/nalej/scylladb-utils/pkg/scylladb"
 	"github.com/nalej/system-model/internal/pkg/entities"
-	"github.com/nalej/system-model/internal/pkg/provider/scylladb"
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
 	"github.com/scylladb/gocqlx/qb"
@@ -54,6 +54,7 @@ func (sp *ScyllaAssetProvider) Add(asset entities.Asset) derrors.Error {
 	defer sp.Unlock()
 	log.Debug().Interface("asset", asset).Msg("provider add asset")
 	return sp.UnsafeAdd(AssetTable, AssetTablePK, asset.AssetId, allAssetColumns, asset)
+
 }
 
 func (sp *ScyllaAssetProvider) Update(asset entities.Asset) derrors.Error {

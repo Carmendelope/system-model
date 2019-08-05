@@ -102,6 +102,14 @@
   version = "v2.0.0"
 
 [[projects]]
+  digest = "1:516a1ea0b1ca3e3ee4ee7e6a6e9eded2b43f4330c4e3a1fa816a47eedfe16cfc"
+  name = "github.com/nalej/grpc-account-go"
+  packages = ["."]
+  pruneopts = ""
+  revision = "5f5186186c7c5914f26a657b24de07a5ca69af5b"
+  version = "v0.0.2"
+
+[[projects]]
   digest = "1:68d84b15d67868fa490659de39b2d14f5d68674b9ad22406ee21f249d7a3ae04"
   name = "github.com/nalej/grpc-application-go"
   packages = ["."]
@@ -174,6 +182,14 @@
   version = "v0.0.29"
 
 [[projects]]
+  digest = "1:742e280a68c2cbefdcc03e076ba7a2b22250cb9ba15e7e466eee55b0882e5282"
+  name = "github.com/nalej/grpc-project-go"
+  packages = ["."]
+  pruneopts = ""
+  revision = "37e82bc6c0190263e4856f6464b0cf06c9962dd5"
+  version = "v0.0.2"
+
+[[projects]]
   digest = "1:42ef9303277d93d495231a91fc362c8392a9c1ffd7ced70f500bf1be72bdf25c"
   name = "github.com/nalej/grpc-role-go"
   packages = ["."]
@@ -199,6 +215,14 @@
   pruneopts = ""
   revision = "926e5152669ee71c0e6904055ebe6cfb5492b599"
   version = "v1.4.0"
+
+[[projects]]
+  digest = "1:205d8c8e145c52c71f70e3d23c68171076244e46425c855373227c6090fb7e43"
+  name = "github.com/nalej/scylladb-utils"
+  packages = ["pkg/scylladb"]
+  pruneopts = ""
+  revision = "16b712dfe473a6e80a898ca875f7d64d628c6f88"
+  version = "v0.0.1"
 
 [[projects]]
   digest = "1:a3735b0978a8b53fc2ac97a6f46ca1189f0712a00df86d6ec4cf26c1a25e6d77"
@@ -480,6 +504,7 @@
     "github.com/gocql/gocql",
     "github.com/google/uuid",
     "github.com/nalej/derrors",
+    "github.com/nalej/grpc-account-go",
     "github.com/nalej/grpc-application-go",
     "github.com/nalej/grpc-common-go",
     "github.com/nalej/grpc-device-go",
@@ -487,10 +512,12 @@
     "github.com/nalej/grpc-infrastructure-go",
     "github.com/nalej/grpc-inventory-go",
     "github.com/nalej/grpc-organization-go",
+    "github.com/nalej/grpc-project-go",
     "github.com/nalej/grpc-role-go",
     "github.com/nalej/grpc-user-go",
     "github.com/nalej/grpc-utils/pkg/conversions",
     "github.com/nalej/grpc-utils/pkg/test",
+    "github.com/nalej/scylladb-utils/pkg/scylladb",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/rs/zerolog",
