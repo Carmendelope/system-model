@@ -278,7 +278,6 @@ var _ = ginkgo.Describe("Applications", func(){
 		listener = test.GetDefaultListener()
 		server = grpc.NewServer()
 
-
 		// Create providers
 		organizationProvider = orgProvider.NewMockupOrganizationProvider()
 		applicationProvider = appProvider.NewMockupOrganizationProvider()

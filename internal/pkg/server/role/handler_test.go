@@ -47,7 +47,6 @@ var _ = ginkgo.Describe("Role service", func() {
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
 		server = grpc.NewServer()
-		test.LaunchServer(server, listener)
 
 		organizationProvider = orgProvider.NewMockupOrganizationProvider()
 		roleProvider = rProvider.NewMockupRoleProvider()
@@ -56,6 +55,8 @@ var _ = ginkgo.Describe("Role service", func() {
 		manager := NewManager(organizationProvider, roleProvider)
 		handler := NewHandler(manager)
 		grpc_role_go.RegisterRolesServer(server, handler)
+
+		test.LaunchServer(server, listener)
 
 		conn, err := test.GetConn(*listener)
 		gomega.Expect(err).Should(gomega.Succeed())

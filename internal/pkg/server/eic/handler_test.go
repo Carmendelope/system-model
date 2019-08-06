@@ -49,7 +49,6 @@ var _ = ginkgo.Describe("Asset service", func() {
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
 		server = grpc.NewServer()
-		test.LaunchServer(server, listener)
 
 		// Register the service
 		organizationProvider = orgProvider.NewMockupOrganizationProvider()
@@ -57,6 +56,8 @@ var _ = ginkgo.Describe("Asset service", func() {
 		manager := NewManager(controllerProvider, organizationProvider)
 		handler := NewHandler(manager)
 		grpc_inventory_go.RegisterControllersServer(server, handler)
+
+		test.LaunchServer(server, listener)
 
 		conn, err := test.GetConn(*listener)
 		gomega.Expect(err).Should(gomega.Succeed())

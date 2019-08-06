@@ -57,7 +57,6 @@ var _ = ginkgo.Describe("Project service", func() {
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
 		server = grpc.NewServer()
-		test.LaunchServer(server, listener)
 
 		// Register the service
 		accountProvider = account.NewMockupAccountProvider()
@@ -65,6 +64,8 @@ var _ = ginkgo.Describe("Project service", func() {
 		manager := NewManager(accountProvider, projectProvider)
 		handler := NewHandler(manager)
 		grpc_project_go.RegisterProjectsServer(server, handler)
+
+		test.LaunchServer(server, listener)
 
 		conn, err := test.GetConn(*listener)
 		gomega.Expect(err).Should(gomega.Succeed())

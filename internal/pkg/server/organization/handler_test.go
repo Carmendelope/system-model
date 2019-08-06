@@ -35,13 +35,14 @@ var _ = ginkgo.Describe("Organization service", func(){
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
 		server = grpc.NewServer()
-		test.LaunchServer(server, listener)
 
 		// Register the service
 		orgProvider = organization.NewMockupOrganizationProvider()
 		manager := NewManager(orgProvider)
 		handler := NewHandler(manager)
 		grpc_organization_go.RegisterOrganizationsServer(server, handler)
+
+		test.LaunchServer(server, listener)
 
 		conn, err := test.GetConn(*listener)
 		gomega.Expect(err).Should(gomega.Succeed())

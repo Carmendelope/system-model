@@ -48,7 +48,6 @@ var _ = ginkgo.Describe("User service", func() {
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
 		server = grpc.NewServer()
-		test.LaunchServer(server, listener)
 
 		organizationProvider = orgProvider.NewMockupOrganizationProvider()
 		userProvider = uProvider.NewMockupUserProvider()
@@ -57,6 +56,8 @@ var _ = ginkgo.Describe("User service", func() {
 		manager := NewManager(organizationProvider, userProvider)
 		handler := NewHandler(manager)
 		grpc_user_go.RegisterUsersServer(server, handler)
+
+		test.LaunchServer(server, listener)
 
 		conn, err := test.GetConn(*listener)
 		gomega.Expect(err).Should(gomega.Succeed())
