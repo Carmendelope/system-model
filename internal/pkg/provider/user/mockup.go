@@ -158,6 +158,26 @@ func (m * MockupUserProvider) RemoveAccountUser(accountID string, email string) 
 	}
 	return nil
 }
+func (m * MockupUserProvider) GetAccountUser(accountID string, email string) (*entities.AccountUser, derrors.Error){
+	m.Lock()
+	defer m.Unlock()
+
+	// ask if the user exists
+	userExists := m.unsafeExists(email)
+	if ! userExists{
+		return nil, derrors.NewNotFoundError("User").WithParams(email)
+	}
+	accounts, exists := m.accountUser[email]
+	if ! exists{
+		return nil, derrors.NewNotFoundError("AccountUser").WithParams(accountID, email)
+	}
+	accountUser, exists := accounts[accountID]
+	if ! exists{
+		return nil, derrors.NewNotFoundError("AccountUser").WithParams(accountID, email)
+	}
+	return &accountUser, nil
+
+}
 func (m * MockupUserProvider) ListAccountUser(email string) ([]entities.AccountUser, derrors.Error){
 	m.Lock()
 	defer m.Unlock()

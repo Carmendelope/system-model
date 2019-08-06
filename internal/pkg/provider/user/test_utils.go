@@ -13,7 +13,7 @@ func CreateUser (email string) *entities.User {
 		Name: "User test",
 		PhotoUrl: "url",
 		MemberSince: time.Now().Unix(),
-		ContactInfo: entities.UserContactInfo{
+		ContactInfo: &entities.UserContactInfo{
 			FullName: "full name",
 			Address: "address",
 			Phone: map[string]string{"home":"00.000.00.00", "mobile":"000.00.00.00"},

@@ -34,7 +34,7 @@ func NewContactInfoFromGRPC (full_name string, address string, phone map[string]
 		Title:		title,
 	}
 }
-/*
+
 func (u *UserContactInfo) ToGRPC() *grpc_user_go.ContactInfo{
 	if u == nil {
 		return nil
@@ -48,7 +48,7 @@ func (u *UserContactInfo) ToGRPC() *grpc_user_go.ContactInfo{
 		Title: u.Title,
 	}
 }
-*/
+
 // User model the information available regarding a User of an organization
 type User struct {
 	OrganizationId       string   `json:"organization_id,omitempty"` //Deprecated, it will be deleted in version 0.5.0
@@ -56,7 +56,7 @@ type User struct {
 	Name                 string   `json:"name,omitempty"`
 	PhotoUrl             string   `json:"photo_url,omitempty"`
 	MemberSince          int64    `json:"member_since,omitempty"`
-	ContactInfo			 UserContactInfo `json:"contact_info,omitempty"`
+	ContactInfo			 *UserContactInfo `json:"contact_info,omitempty"`
 }
 
 func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) * User{
@@ -66,18 +66,25 @@ func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) * User{
 		Name:           addUserRequest.Name,
 		PhotoUrl:       "",
 		MemberSince:    time.Now().Unix(),
-		// TODO: add contactInfo
+		ContactInfo:    NewContactInfoFromGRPC(addUserRequest.FullName,  addUserRequest.Address,
+							addUserRequest.Phone, addUserRequest.AltEmail, addUserRequest.CompanyName,addUserRequest.Title),
 	}
 }
 
 func (u * User) ToGRPC() * grpc_user_go.User {
+
+	var contactInfo *grpc_user_go.ContactInfo
+	if u.ContactInfo != nil {
+		contactInfo = u.ContactInfo.ToGRPC()
+	}
+
 	return &grpc_user_go.User{
 		OrganizationId:       u.OrganizationId,
 		Email:                u.Email,
 		Name:                 u.Name,
 		PhotoUrl:             u.PhotoUrl,
 		MemberSince:          u.MemberSince,
-		// TODO: add contactInfo
+		ContactInfo: 		  contactInfo,
 	}
 }
 
@@ -127,6 +134,13 @@ func ValidUpdateUserRequest(request *grpc_user_go.UpdateUserRequest) derrors.Err
 	return nil
 }
 
+func ValidUpdateContactInfoRequest (request *grpc_user_go.UpdateContactInfoRequest) derrors.Error {
+	if request.Email == "" {
+		return derrors.NewInvalidArgumentError(emptyEmail)
+	}
+	return nil
+}
+
 func ValidRemoveUserRequest(removeRequest *grpc_user_go.RemoveUserRequest) derrors.Error {
 	// OrganizationID is deprecated,
 	// for compatibility of the two versions, we delete this check
@@ -143,13 +157,96 @@ func ValidRemoveUserRequest(removeRequest *grpc_user_go.RemoveUserRequest) derro
 // Account User
 // --------------
 
+type UserStatus int
+
+const (
+	UserStatus_PendingActivation UserStatus = iota + 1
+	UserStatus_Active
+	UserStatus_Invited
+	UserStatus_InviteExpired
+	UserStatus_DeclineInvite
+	UserStatus_Deactivated
+)
+
+var UserStatusToGRPC = map [UserStatus] grpc_user_go.UserStatus {
+	UserStatus_PendingActivation: 	grpc_user_go.UserStatus_PENDING_ACTIVATION,
+	UserStatus_Active: 				grpc_user_go.UserStatus_ACTIVE,
+	UserStatus_Invited: 			grpc_user_go.UserStatus_INVITED,
+	UserStatus_InviteExpired: 		grpc_user_go.UserStatus_INVITE_EXPIRED,
+	UserStatus_DeclineInvite: 		grpc_user_go.UserStatus_DECLINE_INVITE,
+	UserStatus_Deactivated: 		grpc_user_go.UserStatus_DEACTIVATED,
+
+}
+
+var UserStatusFromGRPC = map [grpc_user_go.UserStatus] UserStatus {
+	grpc_user_go.UserStatus_PENDING_ACTIVATION:	UserStatus_PendingActivation,
+	grpc_user_go.UserStatus_ACTIVE: 			UserStatus_Active,
+	grpc_user_go.UserStatus_INVITED: 			UserStatus_Invited,
+	grpc_user_go.UserStatus_INVITE_EXPIRED: 	UserStatus_InviteExpired,
+	grpc_user_go.UserStatus_DECLINE_INVITE: 	UserStatus_DeclineInvite,
+	grpc_user_go.UserStatus_DEACTIVATED: 		UserStatus_Deactivated,
+
+}
+
 // AccountUser message with the information of the status of a user in an account
 type AccountUser struct{
 	AccountId 	string `json:"account_id,omitempty"`
 	Email 		string `json:"email,omitempty"`
 	RoleId  	string `json:"role_id,omitempty"`
 	Internal 	bool   `json:"internal,omitempty"`
-	Status 		int    `json:"status,omitempty"`
+	Status 		UserStatus    `json:"status,omitempty"`
+}
+func NewAccountUserFromGRPC(accountUser *grpc_user_go.AddAccountUserRequest) * AccountUser{
+	return &AccountUser{
+		AccountId: 	accountUser.AccountId,
+		Email:    	accountUser.Email,
+		RoleId:    	accountUser.RoleId,
+		Internal: 	accountUser.Internal,
+		Status:     UserStatusFromGRPC[accountUser.Status],
+	}
+}
+
+func (a *AccountUser) ToGRPC() *grpc_user_go.AccountUser{
+	return &grpc_user_go.AccountUser{
+		AccountId:	a.AccountId,
+		Email: 		a.Email,
+		RoleId: 	a.RoleId,
+		Internal: 	a.Internal,
+		Status: 	UserStatusToGRPC[a.Status],
+	}
+}
+
+func ValidAddAccountUserRequest (request *grpc_user_go.AddAccountUserRequest) derrors.Error {
+	if request.AccountId == "" {
+		return derrors.NewInvalidArgumentError(emptyAccountId)
+	}
+	if request.Email == "" {
+		return derrors.NewInvalidArgumentError(emptyEmail)
+	}
+	if request.RoleId == "" {
+		return derrors.NewInvalidArgumentError(emptyRoleId)
+	}
+	return nil
+}
+
+func ValidAccountUserId (request *grpc_user_go.AccountUserId) derrors.Error{
+	if request.AccountId == "" {
+		return derrors.NewInvalidArgumentError(emptyAccountId)
+	}
+	if request.Email == "" {
+		return derrors.NewInvalidArgumentError(emptyEmail)
+	}
+	return nil
+}
+
+func ValidAccountUserUpdateRequest(request *grpc_user_go.AccountUserUpdateRequest) derrors.Error {
+	if request.AccountId == "" {
+		return derrors.NewInvalidArgumentError(emptyAccountId)
+	}
+	if request.Email == "" {
+		return derrors.NewInvalidArgumentError(emptyEmail)
+	}
+	return nil
 }
 
 // ---------------------

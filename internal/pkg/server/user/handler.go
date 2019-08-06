@@ -6,8 +6,10 @@ package user
 
 import (
 	"context"
+	"github.com/nalej/grpc-account-go"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
+	"github.com/nalej/grpc-project-go"
 	"github.com/nalej/grpc-user-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
@@ -102,3 +104,74 @@ func (h *Handler) RemoveUser(ctx context.Context, removeRequest *grpc_user_go.Re
 		Str("email", removeRequest.Email).Msg("user has been removed")
 	return &grpc_common_go.Success{}, nil
 }
+
+func (h *Handler) UpdateContactInfo(ctx context.Context, request *grpc_user_go.UpdateContactInfoRequest) (*grpc_common_go.Success, error){
+
+	vErr := entities.ValidUpdateContactInfoRequest(request)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	err := h.Manager.UpdateContactInfo(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+func (h *Handler) AddAccountUser(ctx context.Context, request *grpc_user_go.AddAccountUserRequest) (*grpc_user_go.AccountUser, error){
+
+	vErr := entities.ValidAddAccountUserRequest(request)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+
+	accountUser, err := h.Manager.AddAccountUser(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return accountUser.ToGRPC(), nil
+
+}
+func (h *Handler) RemoveAccountUser(ctx context.Context, request *grpc_user_go.AccountUserId) (*grpc_common_go.Success, error){
+	vErr := entities.ValidAccountUserId(request)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+
+	err := h.Manager.RemoveAccountUser(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+}
+func (h *Handler) UpdateAccountUser(ctx context.Context, request *grpc_user_go.AccountUserUpdateRequest) (*grpc_user_go.AccountUser, error){
+	vErr := entities.ValidAccountUserUpdateRequest(request)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+
+	accountUser, err := h.Manager.UpdateAccountUser(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return accountUser.ToGRPC(), nil
+
+}
+func (h *Handler) ListAccountsUser(ctx context.Context, in *grpc_account_go.AccountId) (*grpc_user_go.AccountUserList, error){return nil, nil}
+// ---------------------------------------------------------------------------------------------------------------------
+func (h *Handler) AddAccountUserInvite(ctx context.Context, in *grpc_user_go.AddAccountInviteRequest) (*grpc_user_go.AccountUserInvite, error){return nil, nil}
+func (h *Handler) GetAccountUserInvite(ctx context.Context, in *grpc_user_go.AccountUserInviteId) (*grpc_user_go.AccountUserInvite, error){return nil, nil}
+func (h *Handler) RemoveAccountUserInvite(ctx context.Context, in *grpc_user_go.AccountUserInviteId) (*grpc_common_go.Success, error){return nil, nil}
+func (h *Handler) ListAccountUserInvites(ctx context.Context, in *grpc_user_go.UserId) (*grpc_user_go.AccountInviteList, error){return nil, nil}
+// ---------------------------------------------------------------------------------------------------------------------
+func (h *Handler) AddProjectUser(ctx context.Context, in *grpc_user_go.AddProjectUserRequest) (*grpc_user_go.ProjectUser, error){return nil, nil}
+func (h *Handler) RemoveProjectUser(ctx context.Context, in *grpc_user_go.ProjectUserId) (*grpc_common_go.Success, error){return nil, nil}
+func (h *Handler) UpdateProjectUser(ctx context.Context, in *grpc_user_go.ProjectUserUpdateRequest) (*grpc_user_go.ProjectUser, error){return nil, nil}
+func (h *Handler) ListProjectsUser(ctx context.Context, in *grpc_project_go.ProjectId) (*grpc_user_go.ProjectUserList, error){return nil, nil}
+// ---------------------------------------------------------------------------------------------------------------------
+func (h *Handler) AddProjectUserInvite(ctx context.Context, in *grpc_user_go.AddProjectInviteRequest) (*grpc_user_go.ProjectUserInvite, error){return nil, nil}
+func (h *Handler) GetProjectUserInvite(ctx context.Context, in *grpc_user_go.ProjectUserInviteId) (*grpc_user_go.ProjectUserInvite, error){return nil, nil}
+func (h *Handler) RemoveProjectUserInvite(ctx context.Context, in *grpc_user_go.ProjectUserInviteId) (*grpc_common_go.Success, error){return nil, nil}
+func (h *Handler) ListProjectUserInvites(ctx context.Context, in *grpc_user_go.UserId) (*grpc_user_go.ProjectInviteList, error){return nil, nil}

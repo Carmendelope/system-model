@@ -168,6 +168,32 @@ func (sp *ScyllaUserProvider) RemoveAccountUser(accountID string, email string) 
 
 	return sp.UnsafeCompositeRemove(AccountUserTable, pkColumn)
 }
+
+func (sp *ScyllaUserProvider) GetAccountUser(accountID string, email string) (*entities.AccountUser, derrors.Error) {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// ask if the user exists
+	userExists, err := sp.UnsafeGenericExist(UserTable, UserTablePK, email)
+	if err != nil {
+		return nil, err
+	}
+	if ! userExists{
+		return nil, derrors.NewNotFoundError("User").WithParams(email)
+	}
+
+	pkColumn := sp.createAccountUserPKMap(accountID, email)
+
+	var accountUser interface{} = &entities.AccountUser{}
+
+	err = sp.UnsafeCompositeGet(AccountUserTable, pkColumn, allAccountUserColumns, &accountUser)
+	if err != nil {
+		return nil, err
+	}
+	return accountUser.(*entities.AccountUser), nil
+
+}
+
 // ListAccountUser lists all the accounts of a user
 func (sp *ScyllaUserProvider) ListAccountUser(email string) ([]entities.AccountUser, derrors.Error){
 	sp.Lock()

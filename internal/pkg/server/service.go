@@ -166,7 +166,7 @@ func (s *Service) Run() error {
 	roleManager := role.NewManager(p.organizationProvider, p.roleProvider)
 	roleHandler := role.NewHandler(roleManager)
 	// users
-	userManager := user.NewManager(p.organizationProvider, p.userProvider)
+	userManager := user.NewManager(p.organizationProvider, p.userProvider, p.accountProvider)
 	userHandler := user.NewHandler(userManager)
 	//device
 	deviceManager := device.NewManager(p.deviceProvider, p.organizationProvider)

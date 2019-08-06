@@ -25,6 +25,7 @@ type Provider interface {
 	AddAccountUser(accUser entities.AccountUser) derrors.Error
 	UpdateAccountUser(accUser entities.AccountUser) derrors.Error
 	RemoveAccountUser(accountID string, email string) derrors.Error
+	GetAccountUser(accountID string, email string) (*entities.AccountUser, derrors.Error)
 	// TODO: change to ListAccountUser(AccountID string)
 	ListAccountUser(email string) ([]entities.AccountUser, derrors.Error)
 
