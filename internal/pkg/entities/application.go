@@ -55,6 +55,8 @@ const (
 	AppServices
 	Public
 	DeviceGroup
+	InboundAppnet
+	OutboundAppnet
 )
 
 var PortAccessToGRPC = map[PortAccess]grpc_application_go.PortAccess{
@@ -62,6 +64,9 @@ var PortAccessToGRPC = map[PortAccess]grpc_application_go.PortAccess{
 	AppServices:    grpc_application_go.PortAccess_APP_SERVICES,
 	Public:         grpc_application_go.PortAccess_PUBLIC,
 	DeviceGroup:    grpc_application_go.PortAccess_DEVICE_GROUP,
+	InboundAppnet:	grpc_application_go.PortAccess_INBOUND_APPNET,
+	OutboundAppnet:	grpc_application_go.PortAccess_OUTBOUND_APPNET,
+
 }
 
 var PortAccessFromGRPC = map[grpc_application_go.PortAccess]PortAccess{
@@ -69,6 +74,8 @@ var PortAccessFromGRPC = map[grpc_application_go.PortAccess]PortAccess{
 	grpc_application_go.PortAccess_APP_SERVICES:     AppServices,
 	grpc_application_go.PortAccess_PUBLIC:           Public,
 	grpc_application_go.PortAccess_DEVICE_GROUP:     DeviceGroup,
+	grpc_application_go.PortAccess_INBOUND_APPNET:   InboundAppnet,
+	grpc_application_go.PortAccess_OUTBOUND_APPNET:  OutboundAppnet,
 }
 
 type CollocationPolicy int
@@ -114,6 +121,10 @@ type SecurityRule struct {
 	DeviceGroupIds []string `json:"device_groups,omitempty" cql:"device_group_ids"`
 	// DeviceGroupIds defining a list of device groups that can access the port.
 	DeviceGroupNames []string `json:"device_group_names,omitempty" cql:"device_group_names"`
+	// InboundNetInterface defining the name of the inbound interface is affected by the rule
+	InboundNetInterface string `json:"inbound_net_interface,omitempty" cql:"inbound_net_interface"`
+	// OutboundNetInterface defining the name of the outbound interface is affected by the rule
+	OutboundNetInterface string   `json:"outbound_net_interface,omitempty" cql:"outbound_net_interface"`
 }
 
 // NewSecurityRuleFromGRPC converts a grpc_application_go.SecurityRule into SecurityRule
@@ -140,6 +151,8 @@ func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule
 		AuthServices:    		rule.AuthServices,
 		DeviceGroupNames:  		rule.DeviceGroupNames,
 		DeviceGroupIds:         ids,
+		InboundNetInterface:    rule.InboundNetInterface,
+		OutboundNetInterface:   rule.OutboundNetInterface,
 	}, nil
 }
 
@@ -162,6 +175,8 @@ func CopySecurityRuleFromGRPC(rule *grpc_application_go.SecurityRule) *SecurityR
 		AuthServices:    		rule.AuthServices,
 		DeviceGroupNames:  		rule.DeviceGroupNames,
 		DeviceGroupIds:         rule.DeviceGroupIds,
+		InboundNetInterface:    rule.InboundNetInterface,
+		OutboundNetInterface:   rule.OutboundNetInterface,
 	}
 }
 
@@ -186,6 +201,8 @@ func NewSecurityRuleFromInstantiatedGRPC(rule *grpc_application_go.SecurityRule)
 		AuthServices:    		rule.AuthServices,
 		DeviceGroupNames:  		rule.DeviceGroupNames,
 		DeviceGroupIds:         rule.DeviceGroupIds,
+		InboundNetInterface:    rule.InboundNetInterface,
+		OutboundNetInterface:   rule.OutboundNetInterface,
 	}, nil
 }
 
@@ -204,6 +221,8 @@ func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
 		AuthServices: 			sr.AuthServices,
 		DeviceGroupNames:		sr.DeviceGroupNames,
 		DeviceGroupIds:  		sr.DeviceGroupIds,
+		InboundNetInterface:    sr.InboundNetInterface,
+		OutboundNetInterface:   sr.OutboundNetInterface,
 	}
 }
 
@@ -1265,6 +1284,51 @@ func NewInstanceParamFromGRPC(parameter *grpc_application_go.InstanceParameter) 
 	}
 }
 
+type InboundNetworkInterface struct{
+	// Name of the inbound
+	Name  string   `json:"name,omitempty" cql:"name"`
+}
+
+func NewInboundNetworkInterfaceFromGRPC(inbound *grpc_application_go.InboundNetworkInterface) *InboundNetworkInterface {
+	return &InboundNetworkInterface{
+		Name: inbound.Name,
+	}
+}
+
+func (i * InboundNetworkInterface) ToGRPC () *grpc_application_go.InboundNetworkInterface {
+	if i == nil {
+		return nil
+	}
+	return &grpc_application_go.InboundNetworkInterface{
+		Name: i.Name,
+	}
+}
+
+// OutboundNetworkInterface defines an outbound
+type OutboundNetworkInterface struct {
+	// Name of the outbound
+	Name 		string	`json:"name,omitempty" cql:"name"`
+	// Required is a flag to indicate if the outbound should be defined when deploying an instance
+	Required 	bool 	` json:"required,omitempty" cql:"required"`
+}
+
+func NewOutboundNetworkInterfaceFromGRPC(outbound *grpc_application_go.OutboundNetworkInterface) *OutboundNetworkInterface {
+	return &OutboundNetworkInterface{
+		Name: 		outbound.Name,
+		Required:	outbound.Required,
+	}
+}
+
+func (o * OutboundNetworkInterface) ToGRPC () *grpc_application_go.OutboundNetworkInterface {
+	if o == nil {
+		return nil
+	}
+	return &grpc_application_go.OutboundNetworkInterface{
+		Name: 		o.Name,
+		Required: 	o.Required,
+	}
+}
+
 // -- AppDecriptor -- //
 type AppDescriptor struct {
 	// OrganizationId with the organization identifier.
@@ -1286,12 +1350,17 @@ type AppDescriptor struct {
 	Groups []ServiceGroup `json:"groups,omitempty" cql:"groups"`
 	// Parameters with the parameters of an application
 	Parameters []Parameter `json:"paramters,omitempty" cql:"parameters"`
+	// InboundNetInterfaces with a list of inbounds
+	InboundNetInterfaces []InboundNetworkInterface `json:"inbound_net_interfaces,omitempty" cql:"inbound_net_interfaces"`
+	// OutboundNetInterfaces with a list of outbounds
+	OutboundNetInterfaces []OutboundNetworkInterface `json:"outbound_net_interfaces,omitempty" cql:"outbound_net_interfaces"`
 }
 
 func NewAppDescriptor(organizationID string, appDescriptorID string, name string,
 	configOptions map[string]string, envVars map[string]string,
 	labels map[string]string,
-	rules []SecurityRule, groups []ServiceGroup, parameters []Parameter) *AppDescriptor {
+	rules []SecurityRule, groups []ServiceGroup, parameters []Parameter,
+	inbounds []InboundNetworkInterface, outbounds []OutboundNetworkInterface) *AppDescriptor {
 	return &AppDescriptor{
 		OrganizationId: 		organizationID,
 	 	AppDescriptorId: 		appDescriptorID,
@@ -1302,6 +1371,8 @@ func NewAppDescriptor(organizationID string, appDescriptorID string, name string
 		Rules:					rules,
 		Groups:					groups,
 		Parameters:  			parameters,
+		InboundNetInterfaces: 	inbounds,
+		OutboundNetInterfaces: 	outbounds,
 		}
 }
 
@@ -1333,6 +1404,15 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 		parameters = append(parameters, *NewParamFromGRPC(param))
 	}
 
+	inbounds := make ([]InboundNetworkInterface, 0)
+	for _, inbound := range addRequest.InboundNetInterfaces {
+		inbounds = append(inbounds, *NewInboundNetworkInterfaceFromGRPC(inbound))
+	}
+
+	outbounds := make ([]OutboundNetworkInterface, 0)
+	for _, outbound := range addRequest.OutboundNetInterfaces {
+		outbounds = append(outbounds, *NewOutboundNetworkInterfaceFromGRPC(outbound))
+	}
 	return NewAppDescriptor(
 		addRequest.OrganizationId,
 		uuid,
@@ -1340,7 +1420,8 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 		addRequest.ConfigurationOptions,
 		addRequest.EnvironmentVariables,
 		addRequest.Labels,
-		rules, groups, parameters), nil
+		rules, groups, parameters,
+		inbounds, outbounds), nil
 }
 
 func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
@@ -1359,6 +1440,16 @@ func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
 		parameters = append(parameters, param.ToGRPC())
 	}
 
+	inbounds := make ([]*grpc_application_go.InboundNetworkInterface, 0)
+	for _, inbound := range d.InboundNetInterfaces {
+		inbounds = append(inbounds, inbound.ToGRPC())
+	}
+
+	outbounds := make ([]*grpc_application_go.OutboundNetworkInterface, 0)
+	for _, outbound := range d.OutboundNetInterfaces {
+		outbounds = append(outbounds, outbound.ToGRPC())
+	}
+
 	return &grpc_application_go.AppDescriptor{
 		OrganizationId:       d.OrganizationId,
 		AppDescriptorId:      d.AppDescriptorId,
@@ -1369,6 +1460,8 @@ func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
 		Rules:                rules,
 		Groups:               groups,
 		Parameters:           parameters,
+		InboundNetInterfaces: inbounds,
+		OutboundNetInterfaces:outbounds,
 	}
 }
 
@@ -1393,6 +1486,10 @@ type ParametrizedDescriptor struct {
 	Rules []SecurityRule `json:"rules,omitempty" cql:"rules"`
 	// Groups with the Service collocation strategies.
 	Groups []ServiceGroup `json:"groups,omitempty" cql:"groups"`
+	// InboundNetInterfaces with a list of inbounds
+	InboundNetInterfaces []InboundNetworkInterface `json:"inbound_net_interfaces,omitempty" cql:"inbound_net_interfaces"`
+	// OutboundNetInterfaces with a list of outbounds
+	OutboundNetInterfaces []OutboundNetworkInterface `json:"outbound_net_interfaces,omitempty" cql:"outbound_net_interfaces"`
 }
 
 // NewParametrizedDescriptorFromGRPC converts grpc_application_go.ParametrizedDescriptor to ParametrizedDescriptor
@@ -1409,6 +1506,16 @@ func NewParametrizedDescriptorFromGRPC(descriptor * grpc_application_go.Parametr
 		groups = append(groups, *CopyServiceGroupFromGRPC(group))
 	}
 
+	inbounds := make ([]InboundNetworkInterface, 0)
+	for _, inbound := range descriptor.InboundNetInterfaces {
+		inbounds = append(inbounds, *NewInboundNetworkInterfaceFromGRPC(inbound))
+	}
+
+	outbounds := make ([]OutboundNetworkInterface, 0)
+	for _, outbound := range descriptor.OutboundNetInterfaces {
+		outbounds = append(outbounds, *NewOutboundNetworkInterfaceFromGRPC(outbound))
+	}
+
 	return &ParametrizedDescriptor{
 		OrganizationId:       descriptor.OrganizationId,
 		AppDescriptorId:      descriptor.AppDescriptorId,
@@ -1419,6 +1526,8 @@ func NewParametrizedDescriptorFromGRPC(descriptor * grpc_application_go.Parametr
 		Labels:               descriptor.Labels,
 		Rules:                rules,
 		Groups:               groups,
+		InboundNetInterfaces: inbounds,
+		OutboundNetInterfaces: outbounds,
 	}
 
 }
@@ -1436,6 +1545,14 @@ func (d *ParametrizedDescriptor) ToGRPC() *grpc_application_go.ParametrizedDescr
 	for _, g := range d.Groups {
 		groups = append(groups, g.ToGRPC())
 	}
+	inbounds := make ([]*grpc_application_go.InboundNetworkInterface, 0)
+	for _, inbound := range d.InboundNetInterfaces {
+		inbounds = append(inbounds, inbound.ToGRPC())
+	}
+	outbounds := make ([]*grpc_application_go.OutboundNetworkInterface, 0)
+	for _, outbound := range d.OutboundNetInterfaces {
+		outbounds = append(outbounds, outbound.ToGRPC())
+	}
 
 	return &grpc_application_go.ParametrizedDescriptor{
 		OrganizationId:       d.OrganizationId,
@@ -1447,6 +1564,8 @@ func (d *ParametrizedDescriptor) ToGRPC() *grpc_application_go.ParametrizedDescr
 		Labels:               d.Labels,
 		Rules:                rules,
 		Groups:               groups,
+		InboundNetInterfaces: inbounds,
+		OutboundNetInterfaces: outbounds,
 	}
 }
 // -------------
@@ -1711,6 +1830,11 @@ type AppInstance struct {
 	Metadata []InstanceMetadata `json:"metadata,omitempty" cql:"metadata"`
 	// Textual information for this application instance
 	Info string `json:"info,omitempty" cql:"info"`
+	// InboundNetInterfaces with a list of inbounds
+	InboundNetInterfaces []InboundNetworkInterface `json:"inbound_net_interfaces,omitempty" cql:"inbound_net_interfaces"`
+	// OutboundNetInterfaces with a list of outbounds
+	OutboundNetInterfaces []OutboundNetworkInterface `json:"outbound_net_interfaces,omitempty" cql:"outbound_net_interfaces"`
+
 }
 func (sg * ServiceGroup) ToServiceGroupInstance(appInstanceID string) *ServiceGroupInstance {
 	serviceGroupInstanceID := uuid.New().String()
@@ -1786,6 +1910,8 @@ func NewServiceGroupInstanceFromGRPC(group *grpc_application_go.ServiceGroupInst
 
 
 func NewAppInstanceFromAddInstanceRequestGRPC(addRequest * grpc_application_go.AddAppInstanceRequest, descriptor * AppDescriptor) * AppInstance {
+
+
 	uuid := GenerateUUID()
 
 	return &AppInstance{
@@ -1801,6 +1927,8 @@ func NewAppInstanceFromAddInstanceRequestGRPC(addRequest * grpc_application_go.A
 		//Groups:               groups,
 		Status: Queued,
 		Info:                 "",
+		InboundNetInterfaces: descriptor.InboundNetInterfaces,
+		OutboundNetInterfaces: descriptor.OutboundNetInterfaces,
 	}
 }
 
@@ -1821,6 +1949,14 @@ func NewAppInstanceFromGRPC(appInstance * grpc_application_go.AppInstance) * App
 		}
 		rules = append(rules, *newR)
 	}
+	inbounds := make ([]InboundNetworkInterface, 0)
+	for _, inbound := range appInstance.InboundNetInterfaces {
+		inbounds = append(inbounds, *NewInboundNetworkInterfaceFromGRPC(inbound))
+	}
+	outbounds := make ([]OutboundNetworkInterface, 0)
+	for _, outbound := range appInstance.OutboundNetInterfaces {
+		outbounds = append(outbounds, *NewOutboundNetworkInterfaceFromGRPC(outbound))
+	}
 
 	return &AppInstance{
 		OrganizationId: appInstance.OrganizationId,
@@ -1835,6 +1971,8 @@ func NewAppInstanceFromGRPC(appInstance * grpc_application_go.AppInstance) * App
 		EnvironmentVariables: appInstance.EnvironmentVariables,
 		Rules: rules,
 		ConfigurationOptions: appInstance.ConfigurationOptions,
+		InboundNetInterfaces: inbounds,
+		OutboundNetInterfaces: outbounds,
 	}
 }
 
@@ -1850,6 +1988,14 @@ func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
 	metadata := make ([]*grpc_application_go.InstanceMetadata, 0)
 	for _, md := range i.Metadata {
 		metadata = append(metadata, md.ToGRPC())
+	}
+	inbounds := make ([]*grpc_application_go.InboundNetworkInterface, 0)
+	for _, inbound := range i.InboundNetInterfaces {
+		inbounds = append(inbounds, inbound.ToGRPC())
+	}
+	outbounds := make ([]*grpc_application_go.OutboundNetworkInterface, 0)
+	for _, outbound := range i.OutboundNetInterfaces {
+		outbounds = append(outbounds, outbound.ToGRPC())
 	}
 
 	status, _ := AppStatusToGRPC[i.Status]
@@ -1867,6 +2013,8 @@ func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
 		Status:               status,
 		Metadata:             metadata,
 		Info:                 i.Info,
+		InboundNetInterfaces: inbounds,
+		OutboundNetInterfaces: outbounds,
 	}
 }
 
