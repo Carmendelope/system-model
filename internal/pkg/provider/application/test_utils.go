@@ -17,7 +17,9 @@ func CreateTestConfigFile (organizationID string, appDescriptorID string) entiti
 		AppDescriptorId:appDescriptorID,
 		ConfigFileId: "Config file",
 		Content: content,
-		MountPath: "../../path"}
+		MountPath: "../../path",
+		Name: "configFileName",
+	}
 }
 
 func CreateTestInstanceMetadata(organizationID string, AppDescriptorID string, AppInstanceID string ) entities.InstanceMetadata {
@@ -218,6 +220,7 @@ func CreateTestServiceGroup(organizationID string, appDescriptorId string) entit
 	specs := &entities.ServiceGroupDeploymentSpecs {
 		Replicas:            5,
 		MultiClusterReplica: false,
+		DeploymentSelectors: map[string]string{"deploy1":"select1", "deploy2":"select2"},
 	}
 
 	return entities.ServiceGroup{
@@ -246,7 +249,12 @@ func CreateTestRule(organizationID string, appDescriptorID string) entities.Secu
 		Access: entities.AllAppServices,
 		AuthServiceGroupName: "auth service group name",
 		AuthServices: []string{"authService1", "authService2"},
-		DeviceGroupNames: []string{"deviceGroup1", "deviceGroup2"}}
+		DeviceGroupNames: []string{"deviceGroup1", "deviceGroup2"},
+		DeviceGroupIds:[]string{"device001", "device002"},
+		InboundNetInterface: "inbound1",
+		OutboundNetInterface: "outbound1",
+	}
+
 
 	return rule
 }
@@ -276,6 +284,8 @@ func CreateTestApplication(organizationID string, appDescriptorID string) *entit
 		Groups:groups,
 		Status: entities.Queued,
 		Metadata: metadata,
+		InboundNetInterfaces: []entities.InboundNetworkInterface{{Name:"inbound1"},{Name: "inbound2"}},
+		OutboundNetInterfaces: []entities.OutboundNetworkInterface{{Name:"inbound1", Required:true},{Name: "inbound2", Required:false}},
 		}
 
 	return &app
@@ -322,6 +332,17 @@ func CreateTestApplicationDescriptor (organizationID string) *entities.AppDescri
 		Labels:map[string]string{"label1":"value1", "label2":"value2", "label3":"value3"},
 		Rules:rules,
 		Groups: groups,
+		Parameters: []entities.Parameter{{
+			Name: "Param1",
+			Description: "param1 descriptor",
+			Path: "xpath",
+			Type: entities.String,
+			DefaultValue: "default",
+			Category: entities.Advanced,
+			Required: true},
+		},
+		InboundNetInterfaces: []entities.InboundNetworkInterface{{Name:"inbound1"},{Name: "inbound2"}},
+		OutboundNetInterfaces: []entities.OutboundNetworkInterface{{Name:"inbound1", Required:true},{Name: "inbound2", Required:false}},
 	}
 
 	return &descriptor

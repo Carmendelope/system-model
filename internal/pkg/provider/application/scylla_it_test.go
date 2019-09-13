@@ -25,6 +25,7 @@ create type IF NOT EXISTS nalej.credential (username text, password text, email 
 create type IF NOT EXISTS nalej.deploy_spec (cpu bigint, memory bigint, replicas int, multi_cluster_replica_set boolean);
 create type IF NOT EXISTS nalej.storage (size bigint, mount_path text, type int);
 create type IF NOT EXISTS nalej.endpoint (type int, path text);
+create type IF NOT EXISTS nalej.endpoint_instance (endpoint_instance_id text, type int, fqdn text, port int);
 create type IF NOT EXISTS nalej.port (name text, internal_port int, exposed_port int, endpoint list<FROZEN<endpoint>>);
 create type IF NOT EXISTS nalej.config_file (organization_id text, app_descriptor_id text, config_file_id text, content blob, mount_path text);
 create type IF NOT EXISTS nalej.service_instance (organization_id text, app_descriptor_id text, app_instance_id text, service_group_id text, service_group_instance_id text, service_id text, service_instance_id text, name text, type int, image text, credentials FROZEN <credential>, specs FROZEN<deploy_spec>,storage list<FROZEN<storage>>,exposed_ports list<FROZEN<port>>, environment_variables map<text, text>, configs list<FROZEN<config_file>>, labels map<text, text>,deploy_after list<text>, status int, endpoints list<FROZEN<endpoint_instance>>, deployed_on_cluster_id text,  run_arguments list<text>, info text, deployment_selectors map<text, text>);
