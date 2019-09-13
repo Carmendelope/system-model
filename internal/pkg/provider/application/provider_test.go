@@ -72,13 +72,15 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			// update
 			descriptor.Name = "newName"
+			descriptor.InboundNetInterfaces = []entities.InboundNetworkInterface{{Name:"inbound1mod"},{Name: "inbound2mod"}}
 			err = provider.UpdateDescriptor(*descriptor)
 			gomega.Expect(err).To(gomega.Succeed())
 			// check the update
-			descriptor, err = provider.GetDescriptor(descriptor.AppDescriptorId)
+			descriptorAux, err := provider.GetDescriptor(descriptor.AppDescriptorId)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(descriptor).NotTo(gomega.BeNil())
-			gomega.Expect(descriptor.Name).Should(gomega.Equal(descriptor.Name))
+			gomega.Expect(descriptor.Name).Should(gomega.Equal(descriptorAux.Name))
+			gomega.Expect(descriptor.InboundNetInterfaces).Should(gomega.Equal(descriptorAux.InboundNetInterfaces))
 		})
 
 		// DeleteDescriptor
@@ -341,6 +343,7 @@ func RunTest(provider Provider) {
 		ginkgo.It("should be able to retrieves an empty list when the descriptor has no parameters", func() {
 			appDescriptorID := uuid.New().String()
 			descriptor := CreateTestApplicationDescriptor(appDescriptorID)
+			descriptor.Parameters = nil
 
 			err := provider.AddDescriptor(*descriptor)
 			gomega.Expect(err).To(gomega.Succeed())
