@@ -15,7 +15,7 @@ import (
 
 const (
 	ConnectionInstanceTable = "Connection_Instances"
-	ConnectionInstanceIdIx  = "connection_id"
+	ConnectionInstanceIdIx  = "connection_id" // TODO NP-1990 Check if this index can be potentially harmful or useful
 
 	ConnectionInsanceLinkTable = "Connection_Instance_Links"
 )
