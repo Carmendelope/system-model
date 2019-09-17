@@ -1,5 +1,5 @@
 /*
- * Copyright (C)  2018 Nalej - All Rights Reserved
+ * Copyright (C) 2019 Nalej - All Rights Reserved
  */
 
 package application
@@ -13,47 +13,46 @@ import (
 
 type MockupApplicationProvider struct {
 	sync.Mutex
-	appDescriptors map[string] entities.AppDescriptor
-	appInstances map[string] entities.AppInstance
+	appDescriptors map[string]entities.AppDescriptor
+	appInstances   map[string]entities.AppInstance
 
 	// parametrizedDescriptor indexed by AppInstanceID
-	parametrizedDescriptor map[string] entities.ParametrizedDescriptor
+	parametrizedDescriptor map[string]entities.ParametrizedDescriptor
 
-	instanceParameters map[string] []entities.InstanceParameter
+	instanceParameters map[string][]entities.InstanceParameter
 
-	appEntryPoints map[string] entities.AppEndpoint
+	appEntryPoints       map[string]entities.AppEndpoint
 	appEntryPointsByName map[string][]*entities.AppEndpoint
 
-	appZtNetworks map[string]map[string]entities.AppZtNetwork
+	appZtNetworks      map[string]map[string]entities.AppZtNetwork
 	appZtNetworMembers map[string]map[string]map[string]map[string]map[string]map[string]entities.AppNetworkMember
-
 }
 
-func NewMockupOrganizationProvider() * MockupApplicationProvider {
+func NewMockupApplicationProvider() *MockupApplicationProvider {
 	return &MockupApplicationProvider{
-		appDescriptors:make(map[string]entities.AppDescriptor, 0),
-		appInstances: make(map[string]entities.AppInstance, 0),
-		appEntryPoints:make(map[string]entities.AppEndpoint, 0),
-		instanceParameters: make(map[string][]entities.InstanceParameter, 0),
+		appDescriptors:         make(map[string]entities.AppDescriptor, 0),
+		appInstances:           make(map[string]entities.AppInstance, 0),
+		appEntryPoints:         make(map[string]entities.AppEndpoint, 0),
+		instanceParameters:     make(map[string][]entities.InstanceParameter, 0),
 		parametrizedDescriptor: make(map[string]entities.ParametrizedDescriptor, 0),
-		appEntryPointsByName: make(map[string][]*entities.AppEndpoint, 0),
-		appZtNetworks: make(map[string]map[string]entities.AppZtNetwork,0),
-		appZtNetworMembers: make(map[string]map[string]map[string]map[string]map[string]map[string]entities.AppNetworkMember,0),
+		appEntryPointsByName:   make(map[string][]*entities.AppEndpoint, 0),
+		appZtNetworks:          make(map[string]map[string]entities.AppZtNetwork, 0),
+		appZtNetworMembers:     make(map[string]map[string]map[string]map[string]map[string]map[string]entities.AppNetworkMember, 0),
 	}
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupApplicationProvider) Clear()  derrors.Error{
+func (m *MockupApplicationProvider) Clear() derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
-	m.appDescriptors = make(map[string] entities.AppDescriptor, 0)
-	m.appInstances = make(map[string] entities.AppInstance, 0)
+	m.appDescriptors = make(map[string]entities.AppDescriptor, 0)
+	m.appInstances = make(map[string]entities.AppInstance, 0)
 	m.appEntryPoints = make(map[string]entities.AppEndpoint, 0)
 	m.parametrizedDescriptor = make(map[string]entities.ParametrizedDescriptor, 0)
 
 	m.appEntryPointsByName = make(map[string][]*entities.AppEndpoint, 0)
-	m.appZtNetworks = make(map[string]map[string]entities.AppZtNetwork,0)
+	m.appZtNetworks = make(map[string]map[string]entities.AppZtNetwork, 0)
 
 	m.instanceParameters = make(map[string][]entities.InstanceParameter, 0)
 
@@ -80,7 +79,7 @@ func (m *MockupApplicationProvider) AddDescriptor(descriptor entities.AppDescrip
 
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExistsAppDesc(descriptor.AppDescriptorId){
+	if !m.unsafeExistsAppDesc(descriptor.AppDescriptorId) {
 		m.appDescriptors[descriptor.AppDescriptorId] = descriptor
 		return nil
 	}
@@ -95,16 +94,15 @@ func (m *MockupApplicationProvider) DescriptorExists(appDescriptorID string) (bo
 }
 
 // UpdateDescriptor updates the information of an application descriptor.
-func (m *MockupApplicationProvider) UpdateDescriptor(descriptor entities.AppDescriptor) derrors.Error{
+func (m *MockupApplicationProvider) UpdateDescriptor(descriptor entities.AppDescriptor) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExistsAppDesc(descriptor.AppDescriptorId){
+	if !m.unsafeExistsAppDesc(descriptor.AppDescriptorId) {
 		return derrors.NewNotFoundError(descriptor.AppDescriptorId)
 	}
 	m.appDescriptors[descriptor.AppDescriptorId] = descriptor
 	return nil
 }
-
 
 // GetDescriptors retrieves an application descriptor.
 func (m *MockupApplicationProvider) GetDescriptor(appDescriptorID string) (*entities.AppDescriptor, derrors.Error) {
@@ -117,7 +115,7 @@ func (m *MockupApplicationProvider) GetDescriptor(appDescriptorID string) (*enti
 	return &d, nil
 }
 
-func (m * MockupApplicationProvider) GetDescriptorParameters(appDescriptorID string) ([]entities.Parameter, derrors.Error) {
+func (m *MockupApplicationProvider) GetDescriptorParameters(appDescriptorID string) ([]entities.Parameter, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -133,7 +131,7 @@ func (m * MockupApplicationProvider) GetDescriptorParameters(appDescriptorID str
 }
 
 // DeleteDescriptor removes a given descriptor from the system.
-func (m * MockupApplicationProvider) DeleteDescriptor(appDescriptorID string) derrors.Error {
+func (m *MockupApplicationProvider) DeleteDescriptor(appDescriptorID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 	if !m.unsafeExistsAppDesc(appDescriptorID) {
@@ -147,7 +145,7 @@ func (m * MockupApplicationProvider) DeleteDescriptor(appDescriptorID string) de
 func (m *MockupApplicationProvider) AddInstance(instance entities.AppInstance) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExistsAppDesc(instance.AppInstanceId){
+	if !m.unsafeExistsAppDesc(instance.AppInstanceId) {
 		m.appInstances[instance.AppInstanceId] = instance
 
 		return nil
@@ -197,7 +195,7 @@ func (m *MockupApplicationProvider) UpdateInstance(instance entities.AppInstance
 
 // -- Instance parameters
 // AddInstanceParameters adds deploy parameters of an instance in the system
-func (m * MockupApplicationProvider)AddInstanceParameters (appInstanceID string, parameters []entities.InstanceParameter) derrors.Error{
+func (m *MockupApplicationProvider) AddInstanceParameters(appInstanceID string, parameters []entities.InstanceParameter) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -211,36 +209,36 @@ func (m * MockupApplicationProvider)AddInstanceParameters (appInstanceID string,
 
 	return nil
 }
+
 // GetInstanceParameters retrieves the params of an instance
-func (m * MockupApplicationProvider) GetInstanceParameters (appInstanceID string) ([]entities.InstanceParameter, derrors.Error) {
+func (m *MockupApplicationProvider) GetInstanceParameters(appInstanceID string) ([]entities.InstanceParameter, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
 	params, exists := m.instanceParameters[appInstanceID]
 
 	if !exists {
-		params := make ([]entities.InstanceParameter, 0)
+		params := make([]entities.InstanceParameter, 0)
 		return params, nil
 	}
 	return params, nil
 }
 
-
 // DeleteInstanceParameters removes the params of an instance
-func (m * MockupApplicationProvider)DeleteInstanceParameters (appInstanceID string) derrors.Error {
+func (m *MockupApplicationProvider) DeleteInstanceParameters(appInstanceID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
-	delete (m.instanceParameters, appInstanceID)
+	delete(m.instanceParameters, appInstanceID)
 
 	return nil
 }
 
 // AddParametrizedDescriptor adds a new parametrized descriptor to the system.
-func (m * MockupApplicationProvider)AddParametrizedDescriptor(descriptor entities.ParametrizedDescriptor) derrors.Error {
+func (m *MockupApplicationProvider) AddParametrizedDescriptor(descriptor entities.ParametrizedDescriptor) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExistsParamDesc(descriptor.AppInstanceId){
+	if !m.unsafeExistsParamDesc(descriptor.AppInstanceId) {
 		m.parametrizedDescriptor[descriptor.AppInstanceId] = descriptor
 
 		return nil
@@ -249,7 +247,7 @@ func (m * MockupApplicationProvider)AddParametrizedDescriptor(descriptor entitie
 }
 
 // GetParametrizedDescriptor retrieves a parametrized descriptor
-func (m * MockupApplicationProvider) GetParametrizedDescriptor(appInstanceID string) (*entities.ParametrizedDescriptor, derrors.Error) {
+func (m *MockupApplicationProvider) GetParametrizedDescriptor(appInstanceID string) (*entities.ParametrizedDescriptor, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	i, e := m.parametrizedDescriptor[appInstanceID]
@@ -260,7 +258,7 @@ func (m * MockupApplicationProvider) GetParametrizedDescriptor(appInstanceID str
 }
 
 // ParametrizedDescriptorExists checks if a parametrized descriptor exists on the system.
-func (m * MockupApplicationProvider)	ParametrizedDescriptorExists (appInstanceID string) (*bool, derrors.Error) {
+func (m *MockupApplicationProvider) ParametrizedDescriptorExists(appInstanceID string) (*bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -270,7 +268,7 @@ func (m * MockupApplicationProvider)	ParametrizedDescriptorExists (appInstanceID
 }
 
 // DeleteParametrizedDescriptor removes a parametrized Descriptor from the system
-func (m * MockupApplicationProvider) DeleteParametrizedDescriptor (appInstanceID string) derrors.Error {
+func (m *MockupApplicationProvider) DeleteParametrizedDescriptor(appInstanceID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 	if !m.unsafeExistsParamDesc(appInstanceID) {
@@ -280,13 +278,13 @@ func (m * MockupApplicationProvider) DeleteParametrizedDescriptor (appInstanceID
 	return nil
 }
 
-func (m*MockupApplicationProvider)getAppEndpointKey(appEntryPoint entities.AppEndpoint) string {
+func (m *MockupApplicationProvider) getAppEndpointKey(appEntryPoint entities.AppEndpoint) string {
 	return fmt.Sprintf("%s-%s-%s-%s-%d", appEntryPoint.OrganizationId, appEntryPoint.AppInstanceId,
 		appEntryPoint.ServiceGroupInstanceId, appEntryPoint.ServiceInstanceId, appEntryPoint.Port)
 }
 
 // AddAppEntryPoint adds a new entry point to the system
-func (m *MockupApplicationProvider)AddAppEndpoint (appEntryPoint entities.AppEndpoint) derrors.Error {
+func (m *MockupApplicationProvider) AddAppEndpoint(appEntryPoint entities.AppEndpoint) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -294,9 +292,9 @@ func (m *MockupApplicationProvider)AddAppEndpoint (appEntryPoint entities.AppEnd
 	m.appEntryPoints[key] = appEntryPoint
 
 	list, exists := m.appEntryPointsByName[appEntryPoint.GlobalFqdn]
-	if exists{
+	if exists {
 		m.appEntryPointsByName[appEntryPoint.GlobalFqdn] = append(list, &appEntryPoint)
-	}else {
+	} else {
 		m.appEntryPointsByName[appEntryPoint.GlobalFqdn] = []*entities.AppEndpoint{&appEntryPoint}
 	}
 
@@ -309,9 +307,9 @@ func (m *MockupApplicationProvider) GetAppEndpointByFQDN(fqdn string) ([]*entiti
 	defer m.Unlock()
 
 	list, exists := m.appEntryPointsByName[fqdn]
-	if exists{
+	if exists {
 		return list, nil
-	}else {
+	} else {
 		return nil, derrors.NewNotFoundError("appEndPoint").WithParams(fqdn)
 	}
 }
@@ -320,30 +318,31 @@ func (m *MockupApplicationProvider) DeleteAppEndpoints(organizationID string, ap
 	m.Lock()
 	defer m.Unlock()
 
-	for key, endpoint := range m.appEntryPoints{
+	for key, endpoint := range m.appEntryPoints {
 		if endpoint.OrganizationId == organizationID && endpoint.AppInstanceId == appInstanceID {
-			delete (m.appEntryPointsByName, endpoint.GlobalFqdn)
+			delete(m.appEntryPointsByName, endpoint.GlobalFqdn)
 			delete(m.appEntryPoints, key)
 		}
 	}
 	return nil
 }
 
-func (m *MockupApplicationProvider) GetAppEndpointList(organizationID string , appInstanceId string,
+func (m *MockupApplicationProvider) GetAppEndpointList(organizationID string, appInstanceId string,
 	serviceGroupInstanceID string) ([]*entities.AppEndpoint, derrors.Error) {
 
 	m.Lock()
 	defer m.Unlock()
 
-	list := make ([]*entities.AppEndpoint, 0)
-	for _, endpoint := range m.appEntryPoints{
+	list := make([]*entities.AppEndpoint, 0)
+	for _, endpoint := range m.appEntryPoints {
 		if endpoint.OrganizationId == organizationID && endpoint.AppInstanceId == appInstanceId &&
 			endpoint.ServiceGroupInstanceId == serviceGroupInstanceID {
-			list = append (list, &endpoint)
+			list = append(list, &endpoint)
 		}
 	}
 	return list, nil
 }
+
 // AppZtNetwork functions
 
 func (m *MockupApplicationProvider) AddAppZtNetwork(ztNetwork entities.AppZtNetwork) derrors.Error {
@@ -352,14 +351,13 @@ func (m *MockupApplicationProvider) AddAppZtNetwork(ztNetwork entities.AppZtNetw
 
 	_, foundOrg := m.appZtNetworks[ztNetwork.OrganizationId]
 	if !foundOrg {
-		m.appZtNetworks[ztNetwork.OrganizationId] = map[string]entities.AppZtNetwork{ztNetwork.AppInstanceId:ztNetwork}
+		m.appZtNetworks[ztNetwork.OrganizationId] = map[string]entities.AppZtNetwork{ztNetwork.AppInstanceId: ztNetwork}
 	} else {
 		m.appZtNetworks[ztNetwork.OrganizationId][ztNetwork.AppInstanceId] = ztNetwork
 	}
-	
+
 	return nil
 }
-
 
 func (m *MockupApplicationProvider) RemoveAppZtNetwork(organizationID string, appInstanceID string) derrors.Error {
 	m.Lock()
@@ -369,13 +367,13 @@ func (m *MockupApplicationProvider) RemoveAppZtNetwork(organizationID string, ap
 	if !foundOrg {
 		return derrors.NewNotFoundError("non existing organization")
 	}
-	_,foundAppInstance := m.appZtNetworks[organizationID][appInstanceID]
+	_, foundAppInstance := m.appZtNetworks[organizationID][appInstanceID]
 	if !foundAppInstance {
 		return derrors.NewNotFoundError("not existing application instance")
 	}
-	delete(m.appZtNetworks[organizationID],appInstanceID)
-	if len(m.appZtNetworks[organizationID])==0{
-		delete(m.appZtNetworks,organizationID)
+	delete(m.appZtNetworks[organizationID], appInstanceID)
+	if len(m.appZtNetworks[organizationID]) == 0 {
+		delete(m.appZtNetworks, organizationID)
 	}
 
 	return nil
@@ -389,9 +387,9 @@ func (m *MockupApplicationProvider) GetAppZtNetwork(organizationID string, appIn
 	if !foundOrg {
 		return nil, derrors.NewNotFoundError("non existing organization")
 	}
-	toReturn,foundAppInstance := m.appZtNetworks[organizationID][appInstanceID]
+	toReturn, foundAppInstance := m.appZtNetworks[organizationID][appInstanceID]
 	if !foundAppInstance {
-		return nil,derrors.NewNotFoundError("not existing application instance")
+		return nil, derrors.NewNotFoundError("not existing application instance")
 	}
 
 	return &toReturn, nil
@@ -414,7 +412,7 @@ func (m *MockupApplicationProvider) AddZtNetworkProxy(proxy entities.ServiceProx
 	// add the proxy
 	fqdn, found := theInstance.AvailableProxies[proxy.FQDN]
 	if !found {
-		fqdn = make(map[string][]entities.ServiceProxy,0)
+		fqdn = make(map[string][]entities.ServiceProxy, 0)
 	}
 
 	cluster, found := fqdn[proxy.ClusterId]
@@ -424,12 +422,11 @@ func (m *MockupApplicationProvider) AddZtNetworkProxy(proxy entities.ServiceProx
 
 	cluster = append(cluster, proxy)
 
-
 	return nil
 }
 
 // RemoveZtNetworkProxy remove an existing zt service proxy
-func (m * MockupApplicationProvider) RemoveZtNetworkProxy(organizationId string, appInstanceId string, fqdn string, clusterId string, serviceGroupInstanceId string, serviceInstanceId string) derrors.Error {
+func (m *MockupApplicationProvider) RemoveZtNetworkProxy(organizationId string, appInstanceId string, fqdn string, clusterId string, serviceGroupInstanceId string, serviceInstanceId string) derrors.Error {
 	return derrors.NewUnimplementedError("RemoveZtNetworkProxy not implemented yet")
 }
 
@@ -440,23 +437,22 @@ func (m *MockupApplicationProvider) AddAppZtNetworkMember(member entities.AppZtN
 	instance_id, found := m.appZtNetworMembers[member.OrganizationId]
 	if !found {
 		instance_id = map[string]map[string]map[string]map[string]map[string]entities.AppNetworkMember{
-			member.OrganizationId: make(map[string]map[string]map[string]map[string]entities.AppNetworkMember,0),
+			member.OrganizationId: make(map[string]map[string]map[string]map[string]entities.AppNetworkMember, 0),
 		}
 	}
 	service_group_instance, found := instance_id[member.AppInstanceId]
 	if !found {
 		service_group_instance = map[string]map[string]map[string]map[string]entities.AppNetworkMember{
-			member.AppInstanceId: make(map[string]map[string]map[string]entities.AppNetworkMember,0),
+			member.AppInstanceId: make(map[string]map[string]map[string]entities.AppNetworkMember, 0),
 		}
 	}
 
 	service_app_instance, found := service_group_instance[member.ServiceGroupInstanceId]
 	if !found {
 		service_app_instance = map[string]map[string]map[string]entities.AppNetworkMember{
-			member.ServiceApplicationInstanceId: make(map[string]map[string]entities.AppNetworkMember,0),
+			member.ServiceApplicationInstanceId: make(map[string]map[string]entities.AppNetworkMember, 0),
 		}
 	}
-
 
 	zt_network, found := service_app_instance[member.ServiceApplicationInstanceId]
 	if !found {
@@ -467,10 +463,10 @@ func (m *MockupApplicationProvider) AddAppZtNetworkMember(member entities.AppZtN
 
 	members, found := zt_network[member.ZtNetworkId]
 	if !found {
-		members = make(map[string]entities.AppNetworkMember,0)
+		members = make(map[string]entities.AppNetworkMember, 0)
 	}
 
-	for k,v := range member.Members {
+	for k, v := range member.Members {
 		members[k] = v
 	}
 
@@ -513,11 +509,11 @@ func (m *MockupApplicationProvider) GetAppZtNetworkMember(organizationId string,
 
 	instance_id, found := m.appZtNetworMembers[organizationId]
 	if !found {
-		return nil,derrors.NewNotFoundError("not found organization id")
+		return nil, derrors.NewNotFoundError("not found organization id")
 	}
 	service_group_instance, found := instance_id[appInstanceId]
 	if !found {
-		return nil,derrors.NewNotFoundError("not found service group instance")
+		return nil, derrors.NewNotFoundError("not found service group instance")
 	}
 
 	service_app_instance, found := service_group_instance[serviceGroupInstanceId]
@@ -530,9 +526,9 @@ func (m *MockupApplicationProvider) GetAppZtNetworkMember(organizationId string,
 		return nil, derrors.NewNotFoundError("not found service application instance")
 	}
 
-	members := make(map[string]entities.AppNetworkMember,0)
+	members := make(map[string]entities.AppNetworkMember, 0)
 	ztNetworkId := ""
-	for k,v := range ztNetwork {
+	for k, v := range ztNetwork {
 		ztNetworkId = k
 		members = v
 		break
@@ -544,5 +540,5 @@ func (m *MockupApplicationProvider) GetAppZtNetworkMember(organizationId string,
 		OrganizationId: organizationId, Members: members,
 	}
 
-	return &toReturn,nil
+	return &toReturn, nil
 }
