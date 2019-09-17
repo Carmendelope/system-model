@@ -19,6 +19,10 @@
   version="=v0.0.85"
 
 [[constraint]]
+  name="github.com/nalej/grpc-application-network-go"
+  version="=v0.0.1"
+
+[[constraint]]
     name="github.com/nalej/grpc-infrastructure-go"
     version="=v0.0.37"
 
