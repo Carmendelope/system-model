@@ -86,7 +86,6 @@ func ValidRemoveConnectionRequest(request *grpc_application_network_go.RemoveCon
 	return nil
 }
 
-/*
 // ConnectionInstanceLink model with the info of a connection between two fragments on each cluster
 type ConnectionInstanceLink struct {
 	// OrganizationId with the organization identifier
@@ -107,35 +106,18 @@ type ConnectionInstanceLink struct {
 	OutboundName string `json:"outbound_name,omitempty" cql:"outbound_name"`
 }
 
-func NewConnectionInstanceLinkFromGRPC (link *grpc_application_network_go.ConnectionInstanceLink) *ConnectionInstanceLink {
-	if link == nil {
-		return nil
-	}
-	return &ConnectionInstanceLink{
-		OrganizationId:   link.OrganizationId,
-		ConnectionId:     link.ConnectionId,
-		SourceInstanceId: link.SourceInstanceId,
-		SourceClusterId:  link.SourceClusterId,
-		TargetInstanceId: link.TargetInstanceId,
-		TargetClusterId:  link.TargetClusterId,
-		InboundName:      link.InboundName,
-		OutboundName:     link.OutboundName,
-	}
-}
-
 func (c *ConnectionInstanceLink) toGRPC() *grpc_application_network_go.ConnectionInstanceLink {
 	if c == nil {
 		return nil
 	}
 	return &grpc_application_network_go.ConnectionInstanceLink{
-		OrganizationId:       c.OrganizationId,
-		ConnectionId:         c.ConnectionId,
-		SourceInstanceId:     c.SourceInstanceId,
-		SourceClusterId:      c.SourceClusterId,
-		TargetInstanceId:     c.TargetInstanceId,
-		TargetClusterId:      c.TargetClusterId,
-		InboundName:          c.InboundName,
-		OutboundName:         c.OutboundName,
+		OrganizationId:   c.OrganizationId,
+		ConnectionId:     c.ConnectionId,
+		SourceInstanceId: c.SourceInstanceId,
+		SourceClusterId:  c.SourceClusterId,
+		TargetInstanceId: c.TargetInstanceId,
+		TargetClusterId:  c.TargetClusterId,
+		InboundName:      c.InboundName,
+		OutboundName:     c.OutboundName,
 	}
 }
-*/
