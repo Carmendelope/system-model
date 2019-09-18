@@ -23,16 +23,13 @@ func RunTest(provider Provider) {
 			SourceInstanceName: entities.GenerateUUID(),
 			TargetInstanceId:   entities.GenerateUUID(),
 			TargetInstanceName: entities.GenerateUUID(),
-			InboundName:        "",
-			OutboundName:       "",
+			InboundName:        entities.GenerateUUID(),
+			OutboundName:       entities.GenerateUUID(),
 			OutboundRequired:   false,
 		}
 		err := provider.AddConnectionInstance(toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
-		exists, err := provider.ExistsConnectionInstanceById(toAdd.ConnectionId)
-		gomega.Expect(err).To(gomega.Succeed())
-		gomega.Expect(exists).To(gomega.BeTrue())
-		exists, err = provider.ExistsConnectionInstance(
+		exists, err := provider.ExistsConnectionInstance(
 			toAdd.OrganizationId,
 			toAdd.SourceInstanceId,
 			toAdd.TargetInstanceId,
@@ -51,8 +48,8 @@ func RunTest(provider Provider) {
 			SourceInstanceName: entities.GenerateUUID(),
 			TargetInstanceId:   entities.GenerateUUID(),
 			TargetInstanceName: entities.GenerateUUID(),
-			InboundName:        "",
-			OutboundName:       "",
+			InboundName:        entities.GenerateUUID(),
+			OutboundName:       entities.GenerateUUID(),
 			OutboundRequired:   false,
 		}
 		_ = provider.AddConnectionInstance(toAdd)
@@ -67,24 +64,6 @@ func RunTest(provider Provider) {
 		gomega.Expect(*connectionInstance).To(gomega.Equal(toAdd))
 	})
 
-	ginkgo.It("should be able to retrieve a previously inserted ConnectionInstance using connectionId", func() {
-		toAdd := entities.ConnectionInstance{
-			OrganizationId:     entities.GenerateUUID(),
-			ConnectionId:       entities.GenerateUUID(),
-			SourceInstanceId:   entities.GenerateUUID(),
-			SourceInstanceName: entities.GenerateUUID(),
-			TargetInstanceId:   entities.GenerateUUID(),
-			TargetInstanceName: entities.GenerateUUID(),
-			InboundName:        "",
-			OutboundName:       "",
-			OutboundRequired:   false,
-		}
-		_ = provider.AddConnectionInstance(toAdd)
-		connectionInstance, err := provider.GetConnectionInstanceById(toAdd.ConnectionId)
-		gomega.Expect(err).To(gomega.Succeed())
-		gomega.Expect(*connectionInstance).To(gomega.Equal(toAdd))
-	})
-
 	ginkgo.It("should be able to retrieve a list of inserted ConnectionInstances", func() {
 		organizationId := entities.GenerateUUID()
 		toAdd := []entities.ConnectionInstance{
@@ -95,8 +74,8 @@ func RunTest(provider Provider) {
 				SourceInstanceName: entities.GenerateUUID(),
 				TargetInstanceId:   entities.GenerateUUID(),
 				TargetInstanceName: entities.GenerateUUID(),
-				InboundName:        "",
-				OutboundName:       "",
+				InboundName:        entities.GenerateUUID(),
+				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
 			},
 			{
@@ -106,8 +85,8 @@ func RunTest(provider Provider) {
 				SourceInstanceName: entities.GenerateUUID(),
 				TargetInstanceId:   entities.GenerateUUID(),
 				TargetInstanceName: entities.GenerateUUID(),
-				InboundName:        "",
-				OutboundName:       "",
+				InboundName:        entities.GenerateUUID(),
+				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
 			},
 		}
@@ -129,8 +108,8 @@ func RunTest(provider Provider) {
 				SourceInstanceName: entities.GenerateUUID(),
 				TargetInstanceId:   entities.GenerateUUID(),
 				TargetInstanceName: entities.GenerateUUID(),
-				InboundName:        "",
-				OutboundName:       "",
+				InboundName:        entities.GenerateUUID(),
+				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
 			},
 			{
@@ -140,8 +119,8 @@ func RunTest(provider Provider) {
 				SourceInstanceName: entities.GenerateUUID(),
 				TargetInstanceId:   entities.GenerateUUID(),
 				TargetInstanceName: entities.GenerateUUID(),
-				InboundName:        "",
-				OutboundName:       "",
+				InboundName:        entities.GenerateUUID(),
+				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
 			},
 		}
@@ -163,156 +142,170 @@ func RunTest(provider Provider) {
 
 	// Connection Instance Link
 	// ------------------------
-	/*
-		ginkgo.It("should be able to add a ConnectionInstanceLink", func() {
-			instance := entities.ConnectionInstance{
-				OrganizationId:     entities.GenerateUUID(),
-				ConnectionId:       entities.GenerateUUID(),
-				SourceInstanceId:   entities.GenerateUUID(),
-				SourceInstanceName: entities.GenerateUUID(),
-				TargetInstanceId:   entities.GenerateUUID(),
-				TargetInstanceName: entities.GenerateUUID(),
-				InboundName:        "",
-				OutboundName:       "",
-				OutboundRequired:   false,
-			}
-			_ = provider.AddConnectionInstance(instance)
+	ginkgo.It("should be able to add a ConnectionInstanceLink", func() {
+		instance := entities.ConnectionInstance{
+			OrganizationId:     entities.GenerateUUID(),
+			ConnectionId:       entities.GenerateUUID(),
+			SourceInstanceId:   entities.GenerateUUID(),
+			SourceInstanceName: entities.GenerateUUID(),
+			TargetInstanceId:   entities.GenerateUUID(),
+			TargetInstanceName: entities.GenerateUUID(),
+			InboundName:        entities.GenerateUUID(),
+			OutboundName:       entities.GenerateUUID(),
+			OutboundRequired:   false,
+		}
+		_ = provider.AddConnectionInstance(instance)
 
-			toAdd := entities.ConnectionInstanceLink{
+		toAdd := entities.ConnectionInstanceLink{
+			OrganizationId:   instance.OrganizationId,
+			ConnectionId:     instance.ConnectionId,
+			SourceInstanceId: instance.SourceInstanceId,
+			SourceClusterId:  entities.GenerateUUID(),
+			TargetInstanceId: instance.TargetInstanceId,
+			TargetClusterId:  entities.GenerateUUID(),
+			InboundName:      instance.InboundName,
+			OutboundName:     instance.OutboundName,
+		}
+		err := provider.AddConnectionInstanceLink(toAdd)
+		gomega.Expect(err).To(gomega.Succeed())
+		exists, err := provider.ExistsConnectionInstanceLink(
+			toAdd.OrganizationId,
+			toAdd.SourceInstanceId,
+			toAdd.TargetInstanceId,
+			toAdd.SourceClusterId,
+			toAdd.TargetClusterId,
+			toAdd.InboundName,
+			toAdd.OutboundName,
+		)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(exists).To(gomega.BeTrue())
+	})
+
+	ginkgo.It("should be able to retrieve a previously inserted ConnectionInstanceLink", func() {
+		instance := entities.ConnectionInstance{
+			OrganizationId:     entities.GenerateUUID(),
+			ConnectionId:       entities.GenerateUUID(),
+			SourceInstanceId:   entities.GenerateUUID(),
+			SourceInstanceName: entities.GenerateUUID(),
+			TargetInstanceId:   entities.GenerateUUID(),
+			TargetInstanceName: entities.GenerateUUID(),
+			InboundName:        entities.GenerateUUID(),
+			OutboundName:       entities.GenerateUUID(),
+			OutboundRequired:   false,
+		}
+		_ = provider.AddConnectionInstance(instance)
+
+		toAdd := entities.ConnectionInstanceLink{
+			OrganizationId:   instance.OrganizationId,
+			ConnectionId:     instance.ConnectionId,
+			SourceInstanceId: instance.SourceInstanceId,
+			SourceClusterId:  entities.GenerateUUID(),
+			TargetInstanceId: instance.TargetInstanceId,
+			TargetClusterId:  entities.GenerateUUID(),
+			InboundName:      instance.InboundName,
+			OutboundName:     instance.OutboundName,
+		}
+		err := provider.AddConnectionInstanceLink(toAdd)
+		link, err := provider.GetConnectionInstanceLink(
+			toAdd.OrganizationId,
+			toAdd.SourceInstanceId,
+			toAdd.TargetInstanceId,
+			toAdd.SourceClusterId,
+			toAdd.TargetClusterId,
+			toAdd.InboundName,
+			toAdd.OutboundName,
+		)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(*link).To(gomega.Equal(toAdd))
+	})
+
+	ginkgo.It("should be able to list all the ConnectionInstanceLinks associated to a ConnectionInstance", func() {
+		instance := entities.ConnectionInstance{
+			OrganizationId:     entities.GenerateUUID(),
+			ConnectionId:       entities.GenerateUUID(),
+			SourceInstanceId:   entities.GenerateUUID(),
+			SourceInstanceName: entities.GenerateUUID(),
+			TargetInstanceId:   entities.GenerateUUID(),
+			TargetInstanceName: entities.GenerateUUID(),
+			InboundName:        entities.GenerateUUID(),
+			OutboundName:       entities.GenerateUUID(),
+			OutboundRequired:   false,
+		}
+		_ = provider.AddConnectionInstance(instance)
+
+		toAdd := []entities.ConnectionInstanceLink{
+			{
 				OrganizationId:   instance.OrganizationId,
 				ConnectionId:     instance.ConnectionId,
 				SourceInstanceId: instance.SourceInstanceId,
 				SourceClusterId:  entities.GenerateUUID(),
 				TargetInstanceId: instance.TargetInstanceId,
 				TargetClusterId:  entities.GenerateUUID(),
-				InboundName:      entities.GenerateUUID(),
-				OutboundName:     entities.GenerateUUID(),
-			}
-			err := provider.AddConnectionInstanceLink(toAdd)
-			gomega.Expect(err).To(gomega.Succeed())
-			exists, err := provider.ExistsConnectionInstanceLink(toAdd.ConnectionId, toAdd.SourceClusterId, toAdd.TargetClusterId)
-			gomega.Expect(err).To(gomega.Succeed())
-			gomega.Expect(exists).To(gomega.BeTrue())
-		})
-
-		ginkgo.It("should be able to retrieve a previously inserted ConnectionInstanceLink", func() {
-			instance := entities.ConnectionInstance{
-				OrganizationId:     entities.GenerateUUID(),
-				ConnectionId:       entities.GenerateUUID(),
-				SourceInstanceId:   entities.GenerateUUID(),
-				SourceInstanceName: entities.GenerateUUID(),
-				TargetInstanceId:   entities.GenerateUUID(),
-				TargetInstanceName: entities.GenerateUUID(),
-				InboundName:        "",
-				OutboundName:       "",
-				OutboundRequired:   false,
-			}
-			_ = provider.AddConnectionInstance(instance)
-
-			toAdd := entities.ConnectionInstanceLink{
+				InboundName:      instance.InboundName,
+				OutboundName:     instance.OutboundName,
+			},
+			{
 				OrganizationId:   instance.OrganizationId,
 				ConnectionId:     instance.ConnectionId,
 				SourceInstanceId: instance.SourceInstanceId,
 				SourceClusterId:  entities.GenerateUUID(),
 				TargetInstanceId: instance.TargetInstanceId,
 				TargetClusterId:  entities.GenerateUUID(),
-				InboundName:      entities.GenerateUUID(),
-				OutboundName:     entities.GenerateUUID(),
-			}
-			err := provider.AddConnectionInstanceLink(toAdd)
-			link, err := provider.GetConnectionInstanceLink(toAdd.ConnectionId, toAdd.SourceClusterId, toAdd.TargetClusterId)
-			gomega.Expect(err).To(gomega.Succeed())
-			gomega.Expect(*link).To(gomega.Equal(toAdd))
-		})
+				InboundName:      instance.InboundName,
+				OutboundName:     instance.OutboundName,
+			},
+		}
+		for _, link := range toAdd {
+			_ = provider.AddConnectionInstanceLink(link)
+		}
+		links, err := provider.ListConnectionInstanceLinks(instance.OrganizationId, instance.SourceInstanceId, instance.TargetInstanceId, instance.InboundName, instance.OutboundName)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(links).To(gomega.ConsistOf(toAdd))
+	})
 
-		ginkgo.It("should be able to list all the ConnectionInstanceLinks associated to a ConnectionInstance", func() {
-			instance := entities.ConnectionInstance{
-				OrganizationId:     entities.GenerateUUID(),
-				ConnectionId:       entities.GenerateUUID(),
-				SourceInstanceId:   entities.GenerateUUID(),
-				SourceInstanceName: entities.GenerateUUID(),
-				TargetInstanceId:   entities.GenerateUUID(),
-				TargetInstanceName: entities.GenerateUUID(),
-				InboundName:        "",
-				OutboundName:       "",
-				OutboundRequired:   false,
-			}
-			_ = provider.AddConnectionInstance(instance)
+	ginkgo.It("should be able to remove all the ConnectionInstanceLinks from a connectionInstance", func() {
+		instance := entities.ConnectionInstance{
+			OrganizationId:     entities.GenerateUUID(),
+			ConnectionId:       entities.GenerateUUID(),
+			SourceInstanceId:   entities.GenerateUUID(),
+			SourceInstanceName: entities.GenerateUUID(),
+			TargetInstanceId:   entities.GenerateUUID(),
+			TargetInstanceName: entities.GenerateUUID(),
+			InboundName:        entities.GenerateUUID(),
+			OutboundName:       entities.GenerateUUID(),
+			OutboundRequired:   false,
+		}
+		_ = provider.AddConnectionInstance(instance)
 
-			toAdd := []entities.ConnectionInstanceLink{
-				{
-					OrganizationId:   instance.OrganizationId,
-					ConnectionId:     instance.ConnectionId,
-					SourceInstanceId: instance.SourceInstanceId,
-					SourceClusterId:  entities.GenerateUUID(),
-					TargetInstanceId: instance.TargetInstanceId,
-					TargetClusterId:  entities.GenerateUUID(),
-					InboundName:      entities.GenerateUUID(),
-					OutboundName:     entities.GenerateUUID(),
-				},
-				{
-					OrganizationId:   instance.OrganizationId,
-					ConnectionId:     instance.ConnectionId,
-					SourceInstanceId: instance.SourceInstanceId,
-					SourceClusterId:  entities.GenerateUUID(),
-					TargetInstanceId: instance.TargetInstanceId,
-					TargetClusterId:  entities.GenerateUUID(),
-					InboundName:      entities.GenerateUUID(),
-					OutboundName:     entities.GenerateUUID(),
-				},
-			}
-			for _, link := range toAdd {
-				_ = provider.AddConnectionInstanceLink(link)
-			}
-			links, err := provider.ListConnectionInstanceLinks(instance.ConnectionId)
-			gomega.Expect(err).To(gomega.Succeed())
-			gomega.Expect(links).To(gomega.ConsistOf(toAdd))
-		})
-
-		ginkgo.It("should be able to remove all the ConnectionInstanceLinks from a connectionInstance", func() {
-			instance := entities.ConnectionInstance{
-				OrganizationId:     entities.GenerateUUID(),
-				ConnectionId:       entities.GenerateUUID(),
-				SourceInstanceId:   entities.GenerateUUID(),
-				SourceInstanceName: entities.GenerateUUID(),
-				TargetInstanceId:   entities.GenerateUUID(),
-				TargetInstanceName: entities.GenerateUUID(),
-				InboundName:        "",
-				OutboundName:       "",
-				OutboundRequired:   false,
-			}
-			_ = provider.AddConnectionInstance(instance)
-
-			toAdd := []entities.ConnectionInstanceLink{
-				{
-					OrganizationId:   instance.OrganizationId,
-					ConnectionId:     instance.ConnectionId,
-					SourceInstanceId: instance.SourceInstanceId,
-					SourceClusterId:  entities.GenerateUUID(),
-					TargetInstanceId: instance.TargetInstanceId,
-					TargetClusterId:  entities.GenerateUUID(),
-					InboundName:      entities.GenerateUUID(),
-					OutboundName:     entities.GenerateUUID(),
-				},
-				{
-					OrganizationId:   instance.OrganizationId,
-					ConnectionId:     instance.ConnectionId,
-					SourceInstanceId: instance.SourceInstanceId,
-					SourceClusterId:  entities.GenerateUUID(),
-					TargetInstanceId: instance.TargetInstanceId,
-					TargetClusterId:  entities.GenerateUUID(),
-					InboundName:      entities.GenerateUUID(),
-					OutboundName:     entities.GenerateUUID(),
-				},
-			}
-			for _, link := range toAdd {
-				_ = provider.AddConnectionInstanceLink(link)
-			}
-			err := provider.RemoveConnectionInstanceLinks(instance.ConnectionId)
-			gomega.Expect(err).To(gomega.Succeed())
-			links, err := provider.ListConnectionInstanceLinks(instance.ConnectionId)
-			gomega.Expect(err).To(gomega.Succeed())
-			gomega.Expect(links).To(gomega.BeEmpty())
-		})
-	*/
+		toAdd := []entities.ConnectionInstanceLink{
+			{
+				OrganizationId:   instance.OrganizationId,
+				ConnectionId:     instance.ConnectionId,
+				SourceInstanceId: instance.SourceInstanceId,
+				SourceClusterId:  entities.GenerateUUID(),
+				TargetInstanceId: instance.TargetInstanceId,
+				TargetClusterId:  entities.GenerateUUID(),
+				InboundName:      instance.InboundName,
+				OutboundName:     instance.OutboundName,
+			},
+			{
+				OrganizationId:   instance.OrganizationId,
+				ConnectionId:     instance.ConnectionId,
+				SourceInstanceId: instance.SourceInstanceId,
+				SourceClusterId:  entities.GenerateUUID(),
+				TargetInstanceId: instance.TargetInstanceId,
+				TargetClusterId:  entities.GenerateUUID(),
+				InboundName:      instance.InboundName,
+				OutboundName:     instance.OutboundName,
+			},
+		}
+		for _, link := range toAdd {
+			_ = provider.AddConnectionInstanceLink(link)
+		}
+		err := provider.RemoveConnectionInstanceLinks(instance.OrganizationId, instance.SourceInstanceId, instance.TargetInstanceId, instance.InboundName, instance.OutboundName)
+		gomega.Expect(err).To(gomega.Succeed())
+		links, err := provider.ListConnectionInstanceLinks(instance.OrganizationId, instance.SourceInstanceId, instance.TargetInstanceId, instance.InboundName, instance.OutboundName)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(links).To(gomega.BeEmpty())
+	})
 }

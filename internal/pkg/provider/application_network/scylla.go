@@ -15,7 +15,6 @@ import (
 
 const (
 	ConnectionInstanceTable = "Connection_Instances"
-	ConnectionInstanceIdIx  = "connection_id" // TODO NP-1990 Check if this index can be potentially harmful or useful
 
 	ConnectionInsanceLinkTable = "Connection_Instance_Links"
 )
@@ -32,16 +31,16 @@ var (
 		"outbound_name",
 		"outbound_required",
 	}
-	//ConnectionInstanceLinkColumns = []string{
-	//	"organization_id",
-	//	"connection_id",
-	//	"source_instance_id",
-	//	"source_cluster_id",
-	//	"target_instance_id",
-	//	"target_cluster_id",
-	//	"inbound_name",
-	//	"outbound_name",
-	//}
+	ConnectionInstanceLinkColumns = []string{
+		"organization_id",
+		"connection_id",
+		"source_instance_id",
+		"source_cluster_id",
+		"target_instance_id",
+		"target_cluster_id",
+		"inbound_name",
+		"outbound_name",
+	}
 )
 
 func (sap *ScyllaApplicationNetworkProvider) createConnectionInsancePkMap(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) map[string]interface{} {
@@ -54,11 +53,15 @@ func (sap *ScyllaApplicationNetworkProvider) createConnectionInsancePkMap(organi
 	}
 }
 
-func (sap *ScyllaApplicationNetworkProvider) createConnectionInstanceLinkPkMap(connectionId string, sourceClusterId string, targetClusterId string) map[string]interface{} {
+func (sap *ScyllaApplicationNetworkProvider) createConnectionInstanceLinkPkMap(organizationId string, sourceInstanceId string, targetInstanceId string, sourceClusterId string, targetClusterId string, inboundName string, outboundName string) map[string]interface{} {
 	return map[string]interface{}{
-		"connection_id":     connectionId,
-		"source_cluster_id": sourceClusterId,
-		"target_cluster_id": targetClusterId,
+		"organization_id":    organizationId,
+		"source_instance_id": sourceInstanceId,
+		"target_instance_id": targetInstanceId,
+		"source_cluster_id":  sourceClusterId,
+		"target_cluster_id":  targetClusterId,
+		"inbound_name":       inboundName,
+		"outbound_name":      outboundName,
 	}
 }
 
@@ -88,7 +91,8 @@ func (sap *ScyllaApplicationNetworkProvider) Disconnect() {
 func (sap *ScyllaApplicationNetworkProvider) AddConnectionInstance(connectionInstance entities.ConnectionInstance) derrors.Error {
 	sap.Lock()
 	defer sap.Unlock()
-	return sap.UnsafeAdd(ConnectionInstanceTable, ConnectionInstanceIdIx, connectionInstance.ConnectionId, ConnectionInstanceColumns, connectionInstance)
+	pkComposite := sap.createConnectionInsancePkMap(connectionInstance.OrganizationId, connectionInstance.SourceInstanceId, connectionInstance.TargetInstanceId, connectionInstance.InboundName, connectionInstance.OutboundName)
+	return sap.UnsafeCompositeAdd(ConnectionInstanceTable, pkComposite, ConnectionInstanceColumns, connectionInstance)
 }
 
 func (sap *ScyllaApplicationNetworkProvider) ExistsConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) (bool, derrors.Error) {
@@ -96,22 +100,6 @@ func (sap *ScyllaApplicationNetworkProvider) ExistsConnectionInstance(organizati
 	defer sap.Unlock()
 	pkComposite := sap.createConnectionInsancePkMap(organizationId, sourceInstanceId, targetInstanceId, inboundName, outboundName)
 	return sap.UnsafeGenericCompositeExist(ConnectionInstanceTable, pkComposite)
-}
-
-func (sap *ScyllaApplicationNetworkProvider) ExistsConnectionInstanceById(connectionId string) (bool, derrors.Error) {
-	sap.Lock()
-	defer sap.Unlock()
-	return sap.UnsafeGenericExist(ConnectionInstanceTable, ConnectionInstanceIdIx, connectionId)
-}
-
-func (sap *ScyllaApplicationNetworkProvider) GetConnectionInstanceById(connectionId string) (*entities.ConnectionInstance, derrors.Error) {
-	sap.Lock()
-	defer sap.Unlock()
-	result := interface{}(&entities.ConnectionInstance{})
-	if err := sap.UnsafeGet(ConnectionInstanceTable, ConnectionInstanceIdIx, connectionId, ConnectionInstanceColumns, &result); err != nil {
-		return nil, err
-	}
-	return result.(*entities.ConnectionInstance), nil
 }
 
 func (sap *ScyllaApplicationNetworkProvider) GetConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) (*entities.ConnectionInstance, derrors.Error) {
@@ -156,25 +144,32 @@ func (sap *ScyllaApplicationNetworkProvider) RemoveConnectionInstance(organizati
 
 // Connection Instance Link
 // ------------------------
-/*
 func (sap *ScyllaApplicationNetworkProvider) AddConnectionInstanceLink(connectionInstanceLink entities.ConnectionInstanceLink) derrors.Error {
 	sap.Lock()
 	defer sap.Unlock()
-	pkComposite := sap.createConnectionInstanceLinkPkMap(connectionInstanceLink.ConnectionId, connectionInstanceLink.SourceClusterId, connectionInstanceLink.TargetClusterId)
+	pkComposite := sap.createConnectionInstanceLinkPkMap(
+		connectionInstanceLink.OrganizationId,
+		connectionInstanceLink.SourceInstanceId,
+		connectionInstanceLink.TargetInstanceId,
+		connectionInstanceLink.SourceClusterId,
+		connectionInstanceLink.TargetClusterId,
+		connectionInstanceLink.InboundName,
+		connectionInstanceLink.OutboundName,
+	)
 	return sap.UnsafeCompositeAdd(ConnectionInsanceLinkTable, pkComposite, ConnectionInstanceLinkColumns, connectionInstanceLink)
 }
 
-func (sap *ScyllaApplicationNetworkProvider) ExistsConnectionInstanceLink(connectionId string, sourceClusterId string, targetClusterId string) (bool, derrors.Error) {
+func (sap *ScyllaApplicationNetworkProvider) ExistsConnectionInstanceLink(organizationId string, sourceInstanceId string, targetInstanceId string, sourceClusterId string, targetClusterId string, inboundName string, outboundName string) (bool, derrors.Error) {
 	sap.Lock()
 	defer sap.Unlock()
-	pkComposite := sap.createConnectionInstanceLinkPkMap(connectionId, sourceClusterId, targetClusterId)
+	pkComposite := sap.createConnectionInstanceLinkPkMap(organizationId, sourceInstanceId, targetInstanceId, sourceClusterId, targetClusterId, inboundName, outboundName)
 	return sap.UnsafeGenericCompositeExist(ConnectionInsanceLinkTable, pkComposite)
 }
 
-func (sap *ScyllaApplicationNetworkProvider) GetConnectionInstanceLink(connectionId string, sourceClusterId string, targetClusterId string) (*entities.ConnectionInstanceLink, derrors.Error) {
+func (sap *ScyllaApplicationNetworkProvider) GetConnectionInstanceLink(organizationId string, sourceInstanceId string, targetInstanceId string, sourceClusterId string, targetClusterId string, inboundName string, outboundName string) (*entities.ConnectionInstanceLink, derrors.Error) {
 	sap.Lock()
 	defer sap.Unlock()
-	pkComposite := sap.createConnectionInstanceLinkPkMap(connectionId, sourceClusterId, targetClusterId)
+	pkComposite := sap.createConnectionInstanceLinkPkMap(organizationId, sourceInstanceId, targetInstanceId, sourceClusterId, targetClusterId, inboundName, outboundName)
 	result := interface{}(&entities.ConnectionInstanceLink{})
 	if err := sap.UnsafeCompositeGet(ConnectionInsanceLinkTable, pkComposite, ConnectionInstanceLinkColumns, &result); err != nil {
 		return nil, err
@@ -182,7 +177,7 @@ func (sap *ScyllaApplicationNetworkProvider) GetConnectionInstanceLink(connectio
 	return result.(*entities.ConnectionInstanceLink), nil
 }
 
-func (sap *ScyllaApplicationNetworkProvider) ListConnectionInstanceLinks(connectionId string) ([]entities.ConnectionInstanceLink, derrors.Error) {
+func (sap *ScyllaApplicationNetworkProvider) ListConnectionInstanceLinks(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) ([]entities.ConnectionInstanceLink, derrors.Error) {
 	sap.Lock()
 	defer sap.Unlock()
 
@@ -190,11 +185,13 @@ func (sap *ScyllaApplicationNetworkProvider) ListConnectionInstanceLinks(connect
 		return nil, err
 	}
 
-	filterColumn := "connection_id"
-	stmt, names := qb.Select(ConnectionInsanceLinkTable).Columns(ConnectionInstanceLinkColumns...).Where(qb.Eq(filterColumn)).ToCql()
-	q := gocqlx.Query(sap.Session.Query(stmt), names).BindMap(qb.M{
-		filterColumn: connectionId,
-	})
+	pkMap := sap.createConnectionInsancePkMap(organizationId, sourceInstanceId, targetInstanceId, inboundName, outboundName)
+	var whereClause []qb.Cmp
+	for column := range pkMap {
+		whereClause = append(whereClause, qb.Eq(column))
+	}
+	stmt, names := qb.Select(ConnectionInsanceLinkTable).Columns(ConnectionInstanceLinkColumns...).Where(whereClause...).ToCql()
+	q := gocqlx.Query(sap.Session.Query(stmt), names).BindMap(pkMap)
 
 	connectionInstanceLinks := make([]entities.ConnectionInstanceLink, 0)
 	if qerr := q.SelectRelease(&connectionInstanceLinks); qerr != nil {
@@ -203,7 +200,7 @@ func (sap *ScyllaApplicationNetworkProvider) ListConnectionInstanceLinks(connect
 	return connectionInstanceLinks, nil
 }
 
-func (sap *ScyllaApplicationNetworkProvider) RemoveConnectionInstanceLinks(connectionId string) derrors.Error {
+func (sap *ScyllaApplicationNetworkProvider) RemoveConnectionInstanceLinks(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) derrors.Error {
 	sap.Lock()
 	defer sap.Unlock()
 
@@ -211,18 +208,19 @@ func (sap *ScyllaApplicationNetworkProvider) RemoveConnectionInstanceLinks(conne
 		return err
 	}
 
-	filterColumn := "connection_id"
-	stmt, names := qb.Delete(ConnectionInsanceLinkTable).Where(qb.Eq(filterColumn)).ToCql()
-	q := gocqlx.Query(sap.Session.Query(stmt), names).BindMap(qb.M{
-		filterColumn: connectionId,
-	})
+	pkMap := sap.createConnectionInsancePkMap(organizationId, sourceInstanceId, targetInstanceId, inboundName, outboundName)
+	var whereClause []qb.Cmp
+	for column := range pkMap {
+		whereClause = append(whereClause, qb.Eq(column))
+	}
+	stmt, names := qb.Delete(ConnectionInsanceLinkTable).Where(whereClause...).ToCql()
+	q := gocqlx.Query(sap.Session.Query(stmt), names).BindMap(pkMap)
 
 	if qerr := q.ExecRelease(); qerr != nil {
 		return derrors.AsError(qerr, "cannot delete connection instance links")
 	}
 	return nil
 }
-*/
 
 func (sap *ScyllaApplicationNetworkProvider) Clear() derrors.Error {
 	sap.Lock()

@@ -33,8 +33,7 @@ create table if not exists nalej.Connection_Instances
     outbound_required    boolean,
     primary key ((organization_id), source_instance_id, target_instance_id, inbound_name, outbound_name)
 );
-create index if not exists connectionInstanceSK on nalej.Connection_Instances (connection_id);
-create index if not exists connectionInstanceTargetIndex ON nalej.Connection_Instances (organization_id, target_instance_id, source_instance_id, inbound_name, outbound_name);
+create index if not exists connectionInstanceTargetIndex ON nalej.Connection_Instances (target_instance_id);
 
 create table if not exists nalej.Connection_Instance_Links
 (
@@ -46,9 +45,11 @@ create table if not exists nalej.Connection_Instance_Links
     target_cluster_id  text,
     inbound_name       text,
     outbound_name      text,
-    primary key ((organization_id), source_instance_id, target_instance_id, source_cluster_id, target_cluster_id,
-                                    inbound_name, outbound_name)
+    primary key ((organization_id), source_instance_id, target_instance_id, inbound_name, outbound_name,
+                                    source_cluster_id, target_cluster_id
+        )
 );
+
 Environment variables
 IT_SCYLLA_HOST=127.0.0.1
 RUN_INTEGRATION_TEST=true
