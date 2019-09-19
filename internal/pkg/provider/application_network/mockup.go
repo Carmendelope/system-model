@@ -12,7 +12,7 @@ import (
 
 type MockupApplicationNetworkProvider struct {
 	sync.Mutex
-	// connectionInstances indexed by connectionId.
+	// connectionInstances indexed by composite PK organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName.
 	connectionInstances map[string]entities.ConnectionInstance
 	// connectionInstanceLinks derived from a connectionInstance.
 	connectionInstanceLinks map[string][]entities.ConnectionInstanceLink
