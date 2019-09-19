@@ -65,22 +65,17 @@ func (manager *Manager) AddConnectionInstance(addConnectionRequest *grpc_applica
 		return nil, derrors.NewNotFoundError("inboundName").WithParams(addConnectionRequest.OutboundName)
 	}
 
-	instance := entities.ConnectionInstance{
-		OrganizationId:     addConnectionRequest.OrganizationId,
-		ConnectionId:       entities.GenerateUUID(),
-		SourceInstanceId:   sourceInstance.AppInstanceId,
-		SourceInstanceName: sourceInstance.Name,
-		TargetInstanceId:   targetInstance.AppInstanceId,
-		TargetInstanceName: targetInstance.Name,
-		InboundName:        addConnectionRequest.InboundName,
-		OutboundName:       addConnectionRequest.OutboundName,
-		OutboundRequired:   outboundRequired,
-	}
+	instance := entities.NewConnectionInstanceFromGRPC(
+		*addConnectionRequest,
+		sourceInstance.Name,
+		targetInstance.Name,
+		outboundRequired,
+	)
 
-	if err = manager.AppNetProvider.AddConnectionInstance(instance); err != nil {
+	if err = manager.AppNetProvider.AddConnectionInstance(*instance); err != nil {
 		return nil, err
 	}
-	return &instance, nil
+	return instance, nil
 }
 
 // RemoveConnectionInstance Removes the given connection instance

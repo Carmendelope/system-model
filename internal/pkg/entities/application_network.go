@@ -31,6 +31,22 @@ type ConnectionInstance struct {
 	OutboundRequired bool `json:"outbound_required,omitempty" cql:"outbound_required"`
 }
 
+// NewConnectionInstanceFromGRPC Creates a new entities.ConnectionInstance using an grpc_application_network_go.AddConnectionRequest, source and target names, and outbound required flag.
+func NewConnectionInstanceFromGRPC(request grpc_application_network_go.AddConnectionRequest, sourceInstanceName string, targetInstanceName string, outboundRequired bool) *ConnectionInstance {
+	return &ConnectionInstance{
+		OrganizationId:     request.GetOrganizationId(),
+		ConnectionId:       GenerateUUID(),
+		SourceInstanceId:   request.GetSourceInstanceId(),
+		SourceInstanceName: sourceInstanceName,
+		TargetInstanceId:   request.GetTargetInstanceId(),
+		TargetInstanceName: targetInstanceName,
+		InboundName:        request.GetInboundName(),
+		OutboundName:       request.GetOutboundName(),
+		OutboundRequired:   outboundRequired,
+	}
+}
+
+// ToGRPC Converts a entities.ConnectionInstance to a grpc_application_network_go.ConnectionInstance and returns its pointer.
 func (c *ConnectionInstance) ToGRPC() *grpc_application_network_go.ConnectionInstance {
 	if c == nil {
 		return nil
@@ -106,6 +122,7 @@ type ConnectionInstanceLink struct {
 	OutboundName string `json:"outbound_name,omitempty" cql:"outbound_name"`
 }
 
+// toGRPC
 func (c *ConnectionInstanceLink) toGRPC() *grpc_application_network_go.ConnectionInstanceLink {
 	if c == nil {
 		return nil
