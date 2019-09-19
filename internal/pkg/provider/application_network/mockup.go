@@ -10,6 +10,10 @@ import (
 	"sync"
 )
 
+func getCompositePK(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) string {
+	return organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName
+}
+
 type MockupApplicationNetworkProvider struct {
 	sync.Mutex
 	// connectionInstances indexed by composite PK organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName.
@@ -34,7 +38,7 @@ func (m *MockupApplicationNetworkProvider) unsafeExistsConnectionInstance(compos
 
 // unsafeExistsLink Checks the existence of the connection instance link without locking the DB.
 func (m *MockupApplicationNetworkProvider) unsafeExistsLink(organizationId string, sourceInstanceId string, targetInstanceId string, sourceClusterId string, targetClusterId string, inboundName string, outboundName string) bool {
-	compositePK := organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName
+	compositePK := getCompositePK(organizationId, sourceInstanceId, targetInstanceId, inboundName, outboundName)
 	links, exists := m.connectionInstanceLinks[compositePK]
 	if exists {
 		for _, link := range links {
@@ -56,7 +60,7 @@ func (m *MockupApplicationNetworkProvider) unsafeExistsLink(organizationId strin
 func (m *MockupApplicationNetworkProvider) AddConnectionInstance(toAdd entities.ConnectionInstance) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	compositePK := toAdd.OrganizationId + toAdd.SourceInstanceId + toAdd.TargetInstanceId + toAdd.InboundName + toAdd.OutboundName
+	compositePK := getCompositePK(toAdd.OrganizationId, toAdd.SourceInstanceId, toAdd.TargetInstanceId, toAdd.InboundName, toAdd.OutboundName)
 	if !m.unsafeExistsConnectionInstance(compositePK) {
 		m.connectionInstances[compositePK] = toAdd
 		return nil
@@ -68,13 +72,13 @@ func (m *MockupApplicationNetworkProvider) AddConnectionInstance(toAdd entities.
 func (m *MockupApplicationNetworkProvider) ExistsConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	compositePK := organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName
+	compositePK := getCompositePK(organizationId, sourceInstanceId, targetInstanceId, inboundName, outboundName)
 	return m.unsafeExistsConnectionInstance(compositePK), nil
 }
 
 // GetConnectionInstance Retrieves a connection instance using organizationId, sourceInstanceId, targetInstanceId, inboundName, and outboundName.
 func (m *MockupApplicationNetworkProvider) GetConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) (*entities.ConnectionInstance, derrors.Error) {
-	compositePK := organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName
+	compositePK := getCompositePK(organizationId, sourceInstanceId, targetInstanceId, inboundName, outboundName)
 	return m.GetConnectionInstanceById(compositePK)
 }
 
@@ -103,7 +107,7 @@ func (m *MockupApplicationNetworkProvider) ListConnectionInstances(organizationI
 }
 
 func (m *MockupApplicationNetworkProvider) RemoveConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) derrors.Error {
-	compositePK := organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName
+	compositePK := getCompositePK(organizationId, sourceInstanceId, targetInstanceId, inboundName, outboundName)
 	if m.unsafeExistsConnectionInstance(compositePK) {
 		delete(m.connectionInstances, compositePK)
 		return nil
@@ -118,7 +122,7 @@ func (m *MockupApplicationNetworkProvider) RemoveConnectionInstance(organization
 func (m *MockupApplicationNetworkProvider) AddConnectionInstanceLink(link entities.ConnectionInstanceLink) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	compositePK := link.OrganizationId + link.SourceInstanceId + link.TargetInstanceId + link.InboundName + link.OutboundName
+	compositePK := getCompositePK(link.OrganizationId, link.SourceInstanceId, link.TargetInstanceId, link.InboundName, link.OutboundName)
 	if m.unsafeExistsConnectionInstance(compositePK) {
 		if !m.unsafeExistsLink(link.OrganizationId, link.SourceInstanceId, link.TargetInstanceId, link.SourceClusterId, link.TargetClusterId, link.InboundName, link.OutboundName) {
 			m.connectionInstanceLinks[compositePK] = append(m.connectionInstanceLinks[compositePK], link)
@@ -140,7 +144,7 @@ func (m *MockupApplicationNetworkProvider) ExistsConnectionInstanceLink(organiza
 func (m *MockupApplicationNetworkProvider) GetConnectionInstanceLink(organizationId string, sourceInstanceId string, targetInstanceId string, sourceClusterId string, targetClusterId string, inboundName string, outboundName string) (*entities.ConnectionInstanceLink, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	compositePK := organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName
+	compositePK := getCompositePK(organizationId, sourceInstanceId, targetInstanceId, inboundName, outboundName)
 	if m.unsafeExistsConnectionInstance(compositePK) {
 		if m.unsafeExistsLink(organizationId, sourceInstanceId, targetInstanceId, sourceClusterId, targetClusterId, inboundName, outboundName) {
 			var foundLink entities.ConnectionInstanceLink
@@ -161,7 +165,7 @@ func (m *MockupApplicationNetworkProvider) GetConnectionInstanceLink(organizatio
 func (m *MockupApplicationNetworkProvider) ListConnectionInstanceLinks(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) ([]entities.ConnectionInstanceLink, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	compositePK := organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName
+	compositePK := getCompositePK(organizationId, sourceInstanceId, targetInstanceId, inboundName, outboundName)
 	if m.unsafeExistsConnectionInstance(compositePK) {
 		return m.connectionInstanceLinks[compositePK], nil
 	}
@@ -172,7 +176,7 @@ func (m *MockupApplicationNetworkProvider) ListConnectionInstanceLinks(organizat
 func (m *MockupApplicationNetworkProvider) RemoveConnectionInstanceLinks(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	compositePK := organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName
+	compositePK := getCompositePK(organizationId, sourceInstanceId, targetInstanceId, inboundName, outboundName)
 	if m.unsafeExistsConnectionInstance(compositePK) {
 		delete(m.connectionInstanceLinks, compositePK)
 		return nil
