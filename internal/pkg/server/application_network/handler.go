@@ -46,6 +46,9 @@ func (h *Handler) RemoveConnection(ctx context.Context, removeConnectionRequest 
 }
 
 func (h *Handler) ListConnections(_ context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_network_go.ConnectionInstanceList, error) {
+	if err := entities.ValidOrganizationID(orgID); err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
 	list, err := h.Manager.ListConnectionInstances(orgID)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
