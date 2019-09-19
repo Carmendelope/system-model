@@ -26,7 +26,8 @@ func addOrganization(organizationProvider organization.Provider) entities.Organi
 		Name:    "AppNet test org",
 		Created: 0,
 	}
-	_ = organizationProvider.Add(org)
+	err := organizationProvider.Add(org)
+	gomega.Expect(err).To(gomega.Succeed())
 	return org
 }
 
@@ -40,7 +41,8 @@ func addSourceInstance(organizationId string, outboundRequired bool, application
 			Required: outboundRequired,
 		}},
 	}
-	_ = applicationProvider.AddInstance(sourceInstance)
+	err := applicationProvider.AddInstance(sourceInstance)
+	gomega.Expect(err).To(gomega.Succeed())
 	return sourceInstance
 }
 
@@ -51,7 +53,8 @@ func addTargetInstance(organizationId string, applicationProvider application.Pr
 		InboundNetInterfaces:  []entities.InboundNetworkInterface{{Name: "target-inbound"}},
 		OutboundNetInterfaces: nil,
 	}
-	_ = applicationProvider.AddInstance(sourceInstance)
+	err := applicationProvider.AddInstance(sourceInstance)
+	gomega.Expect(err).To(gomega.Succeed())
 	return sourceInstance
 }
 
@@ -131,7 +134,8 @@ var _ = ginkgo.Describe("Application Network service", func() {
 				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
 				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
 			}
-			_, _ = client.AddConnection(context.Background(), addConnectionRequest)
+			_, err := client.AddConnection(context.Background(), addConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
 			connectionInstance, err := client.AddConnection(context.Background(), addConnectionRequest)
 			gomega.Expect(err).ToNot(gomega.Succeed())
 			gomega.Expect(connectionInstance).To(gomega.BeNil())
@@ -222,7 +226,8 @@ var _ = ginkgo.Describe("Application Network service", func() {
 				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
 				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
 			}
-			connectionInstance, _ := client.AddConnection(context.Background(), addConnectionRequest)
+			connectionInstance, err := client.AddConnection(context.Background(), addConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
 			removeConnectionRequest := &grpc_application_network_go.RemoveConnectionRequest{
 				OrganizationId:   connectionInstance.OrganizationId,
 				SourceInstanceId: connectionInstance.SourceInstanceId,
@@ -294,7 +299,8 @@ var _ = ginkgo.Describe("Application Network service", func() {
 				},
 			}
 			for _, addConnectionRequest := range addConnectionRequests {
-				_, _ = client.AddConnection(context.Background(), addConnectionRequest)
+				_, err := client.AddConnection(context.Background(), addConnectionRequest)
+				gomega.Expect(err).To(gomega.Succeed())
 			}
 
 			connections, err := client.ListConnections(context.Background(), &grpc_organization_go.OrganizationId{OrganizationId: organization.ID})

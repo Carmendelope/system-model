@@ -52,7 +52,8 @@ func RunTest(provider Provider) {
 			OutboundName:       entities.GenerateUUID(),
 			OutboundRequired:   false,
 		}
-		_ = provider.AddConnectionInstance(toAdd)
+		err := provider.AddConnectionInstance(toAdd)
+		gomega.Expect(err).To(gomega.Succeed())
 		connectionInstance, err := provider.GetConnectionInstance(
 			toAdd.OrganizationId,
 			toAdd.SourceInstanceId,
@@ -91,7 +92,8 @@ func RunTest(provider Provider) {
 			},
 		}
 		for _, instance := range toAdd {
-			_ = provider.AddConnectionInstance(instance)
+			err := provider.AddConnectionInstance(instance)
+			gomega.Expect(err).To(gomega.Succeed())
 		}
 		connectionInstances, err := provider.ListConnectionInstances(organizationId)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -125,7 +127,8 @@ func RunTest(provider Provider) {
 			},
 		}
 		for _, instance := range toAdd {
-			_ = provider.AddConnectionInstance(instance)
+			err := provider.AddConnectionInstance(instance)
+			gomega.Expect(err).To(gomega.Succeed())
 		}
 		err := provider.RemoveConnectionInstance(
 			toAdd[0].OrganizationId,
@@ -154,7 +157,8 @@ func RunTest(provider Provider) {
 			OutboundName:       entities.GenerateUUID(),
 			OutboundRequired:   false,
 		}
-		_ = provider.AddConnectionInstance(instance)
+		err := provider.AddConnectionInstance(instance)
+		gomega.Expect(err).To(gomega.Succeed())
 
 		toAdd := entities.ConnectionInstanceLink{
 			OrganizationId:   instance.OrganizationId,
@@ -166,7 +170,7 @@ func RunTest(provider Provider) {
 			InboundName:      instance.InboundName,
 			OutboundName:     instance.OutboundName,
 		}
-		err := provider.AddConnectionInstanceLink(toAdd)
+		err = provider.AddConnectionInstanceLink(toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
 		exists, err := provider.ExistsConnectionInstanceLink(
 			toAdd.OrganizationId,
@@ -256,7 +260,8 @@ func RunTest(provider Provider) {
 			},
 		}
 		for _, link := range toAdd {
-			_ = provider.AddConnectionInstanceLink(link)
+			err := provider.AddConnectionInstanceLink(link)
+			gomega.Expect(err).To(gomega.Succeed())
 		}
 		links, err := provider.ListConnectionInstanceLinks(instance.OrganizationId, instance.SourceInstanceId, instance.TargetInstanceId, instance.InboundName, instance.OutboundName)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -275,7 +280,8 @@ func RunTest(provider Provider) {
 			OutboundName:       entities.GenerateUUID(),
 			OutboundRequired:   false,
 		}
-		_ = provider.AddConnectionInstance(instance)
+		err := provider.AddConnectionInstance(instance)
+		gomega.Expect(err).To(gomega.Succeed())
 
 		toAdd := []entities.ConnectionInstanceLink{
 			{
@@ -300,9 +306,10 @@ func RunTest(provider Provider) {
 			},
 		}
 		for _, link := range toAdd {
-			_ = provider.AddConnectionInstanceLink(link)
+			err = provider.AddConnectionInstanceLink(link)
+			gomega.Expect(err).To(gomega.Succeed())
 		}
-		err := provider.RemoveConnectionInstanceLinks(instance.OrganizationId, instance.SourceInstanceId, instance.TargetInstanceId, instance.InboundName, instance.OutboundName)
+		err = provider.RemoveConnectionInstanceLinks(instance.OrganizationId, instance.SourceInstanceId, instance.TargetInstanceId, instance.InboundName, instance.OutboundName)
 		gomega.Expect(err).To(gomega.Succeed())
 		links, err := provider.ListConnectionInstanceLinks(instance.OrganizationId, instance.SourceInstanceId, instance.TargetInstanceId, instance.InboundName, instance.OutboundName)
 		gomega.Expect(err).To(gomega.Succeed())
