@@ -123,8 +123,19 @@ func (manager *Manager) RemoveConnectionInstance(removeConnectionRequest *grpc_a
 		return derrors.NewNotFoundError("inboundName").WithParams(removeConnectionRequest.OutboundName)
 	}
 
-	// TODO This precondition may not be required if the connection links are not finally used
-	// TODO Check that connection links were previously removed before remove connection
+	links, err := manager.AppNetProvider.ListConnectionInstanceLinks(
+		removeConnectionRequest.OrganizationId,
+		removeConnectionRequest.SourceInstanceId,
+		removeConnectionRequest.TargetInstanceId,
+		removeConnectionRequest.InboundName,
+		removeConnectionRequest.OutboundName,
+	)
+	if err != nil {
+		return err
+	}
+	if len(links) > 0 {
+		return derrors.NewFailedPreconditionError("the connectionInstance still has links associated")
+	}
 
 	err = manager.AppNetProvider.RemoveConnectionInstance(
 		removeConnectionRequest.OrganizationId,
