@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9cf92442229081fe51048ee107192d8800fbb18bfd6fe5bf67c4978a02ad3e2a"
+  digest = "1:e1fab6411407c7cacf64c5bc52fc40b75c9e3aec925958ced4d3317885e37235"
   name = "github.com/gocql/gocql"
   packages = [
     ".",
@@ -12,7 +12,7 @@
     "internal/streams",
   ]
   pruneopts = ""
-  revision = "d63913db787cb78353a9826eccce4cb7fbf21c8f"
+  revision = "16cf9ea1b3e28090d416d36528f304e4553e6b56"
 
 [[projects]]
   digest = "1:b852d2b62be24e445fcdbad9ce3015b44c207815d631230dfce3f14e7803f5bf"
@@ -52,7 +52,7 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:0ebfd2f00a84ee4fb31913b49011b7fa2fb6b12040991d8b948db821a15f7f77"
+  digest = "1:ae32d227228900622c8e5db5da79d18fdb595d613c17c0d45d8038010a4b700b"
   name = "github.com/grpc-ecosystem/grpc-gateway"
   packages = [
     "internal",
@@ -60,8 +60,8 @@
     "utilities",
   ]
   pruneopts = ""
-  revision = "471f45a5a99a578de7a8638dc7ed29e245bde097"
-  version = "v1.11.1"
+  revision = "2dfdd971e2e70fb436ffcdf845b7313c43606848"
+  version = "v1.11.2"
 
 [[projects]]
   branch = "master"
@@ -116,6 +116,14 @@
   pruneopts = ""
   revision = "e56034675512e6591fa2d0fe2035c729bd58dc99"
   version = "v0.0.85"
+
+[[projects]]
+  digest = "1:ea312c9f68cc9ca90bc95fa83f4be8d199a8070246680cf8a1ba25149e6776db"
+  name = "github.com/nalej/grpc-application-network-go"
+  packages = ["."]
+  pruneopts = ""
+  revision = "8d98dbfcc4c93e233b56a0173225e8bdd31863c4"
+  version = "v0.0.2"
 
 [[projects]]
   digest = "1:be9824efa8944bc7180a51b2e0c1b62d49902a3e5faa3a1ed57a15358e465096"
@@ -329,16 +337,16 @@
   version = "v0.0.5"
 
 [[projects]]
-  digest = "1:cbaf13cdbfef0e4734ed8a7504f57fe893d471d62a35b982bf6fb3f036449a66"
+  digest = "1:688428eeb1ca80d92599eb3254bdf91b51d7e232fead3a73844c1f201a281e51"
   name = "github.com/spf13/pflag"
   packages = ["."]
   pruneopts = ""
-  revision = "298182f68c66c05229eb03ac171abe6e309ee79a"
-  version = "v1.0.3"
+  revision = "2e9d26c8c37aae03e3f9d4e90b7116f5accb7cab"
+  version = "v1.0.5"
 
 [[projects]]
   branch = "master"
-  digest = "1:3feebd8c7f8c56efb8dd591ccb3227ba5e05863ead67a7e64cbba4c3957f61b4"
+  digest = "1:ce26d94b8841936fff59bb524f4b96ac434f411b780b3aa784da90ee96ae2367"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -353,15 +361,15 @@
     "trace",
   ]
   pruneopts = ""
-  revision = "a7b16738d86b947dd0fadb08ca2c2342b51958b6"
+  revision = "a8b05e9114ab0cb08faec337c959aed24b68bf50"
 
 [[projects]]
   branch = "master"
-  digest = "1:0c8be8c385496c91dd86d6cc727041eafdc2f42537c9f58ec992e8efad0fa923"
+  digest = "1:c04d252619a11f0ba51313ad9ee728c0b7bb61c34c7ab65e841a05ac350e65a0"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = ""
-  revision = "7ad0cfa0b7b5a50bdf0fb49923febdf3742a975c"
+  revision = "0c1ff786ef13daa914a3351c5e6b0321aed5960e"
 
 [[projects]]
   digest = "1:740b51a55815493a8d0f2b1e0d0ae48fe48953bf7eaf3fcc4198823bf67768c0"
@@ -402,7 +410,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f9e92b6d2b267abfae825d2a674c5d18a8a5c05354c428bff7b9e8536a23a2b6"
+  digest = "1:6112f28261ff024a08e50da048719d3be7bd39397ec64aab2aa25aac97e668c7"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
@@ -412,7 +420,7 @@
     "protobuf/field_mask",
   ]
   pruneopts = ""
-  revision = "1774047e7e5133fa3573a4e51b37a586b6b0360c"
+  revision = "f660b865573183437d2d868f703fe88bb8af0b55"
 
 [[projects]]
   digest = "1:7ed022f305690d5843ba3f0bb94f9890a1f9c9459f0158a28304798213326d88"
@@ -494,7 +502,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2cdb075cb56bc50c13e35bf926fcab6f08232ce6543aea1411ffd1b67b27dc8f"
+  digest = "1:d8738da45ab1d7f8d77113ecfb9a0f39d7fa12038c8d72bcc4cd0150d3770bcd"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/util/errors",
@@ -503,7 +511,7 @@
     "pkg/util/validation/field",
   ]
   pruneopts = ""
-  revision = "461753078381c979582f217a28eb759ebee5295d"
+  revision = "83fef8059749edaaa8826ca1e46b40149318b983"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -514,6 +522,7 @@
     "github.com/nalej/derrors",
     "github.com/nalej/grpc-account-go",
     "github.com/nalej/grpc-application-go",
+    "github.com/nalej/grpc-application-network-go",
     "github.com/nalej/grpc-cluster-watcher-go",
     "github.com/nalej/grpc-common-go",
     "github.com/nalej/grpc-device-go",
