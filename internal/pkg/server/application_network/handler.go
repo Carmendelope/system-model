@@ -5,6 +5,7 @@
 package application_network
 
 import (
+	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-application-network-go"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
@@ -61,4 +62,43 @@ func (h *Handler) ListConnections(_ context.Context, orgID *grpc_organization_go
 		Connections: grpcArray,
 	}
 	return result, nil
+}
+
+// ListInboundConnections retrieves a list with all the connections where the appInstanceId is the target
+func (h *Handler) ListInboundConnections(_ context.Context, appInstanceID *grpc_application_go.AppInstanceId) (*grpc_application_network_go.ConnectionInstanceList, error){
+	err := entities.ValidAppInstanceId(appInstanceID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	list, err := h.Manager.ListInboundConnections(appInstanceID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	connList := make([]*grpc_application_network_go.ConnectionInstance, 0, len(list))
+	for _, instance := range list {
+		connList = append(connList, instance.ToGRPC())
+	}
+	return &grpc_application_network_go.ConnectionInstanceList{
+		Connections: connList,
+	}, nil
+
+}
+
+// ListOutboundConnections retrieves a list with all the connections where the appInstanceId is the source
+func (h *Handler) ListOutboundConnections(_ context.Context, appInstanceID *grpc_application_go.AppInstanceId) (*grpc_application_network_go.ConnectionInstanceList, error){
+	err := entities.ValidAppInstanceId(appInstanceID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	list, err := h.Manager.ListOutboundConnections(appInstanceID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	connList := make([]*grpc_application_network_go.ConnectionInstance, 0, len(list))
+	for _, instance := range list {
+		connList = append(connList, instance.ToGRPC())
+	}
+	return &grpc_application_network_go.ConnectionInstanceList{
+		Connections: connList,
+	}, nil
 }

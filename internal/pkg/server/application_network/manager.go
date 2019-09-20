@@ -6,6 +6,7 @@ package application_network
 
 import (
 	"github.com/nalej/derrors"
+	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-application-network-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
@@ -168,4 +169,45 @@ func (manager *Manager) validOrganization(orgID string) derrors.Error {
 		return derrors.NewNotFoundError("organizationID").WithParams(orgID)
 	}
 	return nil
+}
+
+// ListInboundConnections retrieves a list with all the connections where the appInstanceId is the target
+func (manager *Manager) ListInboundConnections(appInstanceID *grpc_application_go.AppInstanceId) ([]entities.ConnectionInstance, derrors.Error){
+
+	err := manager.validOrganization(appInstanceID.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = manager.ApplicationProvider.GetInstance(appInstanceID.AppInstanceId)
+	if err != nil {
+		return nil, derrors.NewNotFoundError("appInstance", err).WithParams(appInstanceID.AppInstanceId)
+	}
+
+
+	inboundList, err := manager.AppNetProvider.ListInboundConnections(appInstanceID.OrganizationId, appInstanceID.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	return inboundList, nil
+}
+
+// ListOutboundConnections retrieves a list with all the connections where the appInstanceId is the source
+func (manager *Manager) ListOutboundConnections(appInstanceID *grpc_application_go.AppInstanceId) ([]entities.ConnectionInstance, derrors.Error){
+
+	err := manager.validOrganization(appInstanceID.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = manager.ApplicationProvider.GetInstance(appInstanceID.AppInstanceId)
+	if err != nil {
+		return nil, derrors.NewNotFoundError("appInstance", err).WithParams(appInstanceID.AppInstanceId)
+	}
+
+	outboundList, err := manager.AppNetProvider.ListOutboundConnections(appInstanceID.OrganizationId, appInstanceID.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	return outboundList, nil
 }

@@ -6,8 +6,9 @@ package application_network
 
 import (
 	"context"
+	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-application-network-go"
-	grpc_organization_go "github.com/nalej/grpc-organization-go"
+	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/test"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/application"
@@ -322,6 +323,164 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			connections, err := client.ListConnections(context.Background(), &grpc_organization_go.OrganizationId{OrganizationId: organization.ID})
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(connections.Connections).To(gomega.BeEmpty())
+		})
+	})
+
+	ginkgo.Context("when listing inbound connections", func() {
+
+		ginkgo.It("should list all the inbound connections of an instance", func() {
+			organization := addOrganization(organizationProvider)
+			instanceA := addSourceInstance(organization.ID, false, applicationProvider)
+			instanceB := addSourceInstance(organization.ID, false, applicationProvider)
+			instanceC := addSourceInstance(organization.ID, false, applicationProvider)
+
+			instance1 := addTargetInstance(organization.ID, applicationProvider)
+			instance2 := addTargetInstance(organization.ID, applicationProvider)
+
+			addConnectionRequests := []*grpc_application_network_go.AddConnectionRequest{
+				{
+					OrganizationId:   organization.ID,
+					SourceInstanceId: instanceA.AppInstanceId,
+					TargetInstanceId: instance1.AppInstanceId,
+					InboundName:      instance1.InboundNetInterfaces[0].Name,
+					OutboundName:     instanceA.OutboundNetInterfaces[0].Name,
+				},
+				{
+					OrganizationId:   organization.ID,
+					SourceInstanceId: instanceB.AppInstanceId,
+					TargetInstanceId: instance1.AppInstanceId,
+					InboundName:      instance1.InboundNetInterfaces[0].Name,
+					OutboundName:     instanceB.OutboundNetInterfaces[0].Name,
+				},
+				{
+					OrganizationId:   organization.ID,
+					SourceInstanceId: instanceC.AppInstanceId,
+					TargetInstanceId: instance1.AppInstanceId,
+					InboundName:      instance1.InboundNetInterfaces[0].Name,
+					OutboundName:     instanceC.OutboundNetInterfaces[0].Name,
+				},
+				{
+					OrganizationId:   organization.ID,
+					SourceInstanceId: instanceC.AppInstanceId,
+					TargetInstanceId: instance2.AppInstanceId,
+					InboundName:      instance2.InboundNetInterfaces[0].Name,
+					OutboundName:     instanceC.OutboundNetInterfaces[0].Name,
+				},
+			}
+			for _, addConnectionRequest := range addConnectionRequests {
+				_, err := client.AddConnection(context.Background(), addConnectionRequest)
+				gomega.Expect(err).To(gomega.Succeed())
+			}
+
+			connections, err := client.ListInboundConnections(context.Background(),
+				&grpc_application_go.AppInstanceId{
+					OrganizationId: organization.ID,
+					AppInstanceId:	instance1.AppInstanceId,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connections).NotTo(gomega.BeNil())
+			gomega.Expect(len(connections.Connections)).Should(gomega.Equal(3))
+		})
+
+		ginkgo.It("should not be able to list inbound connections if the organization does not exist", func(){
+			_, err := client.ListInboundConnections(context.Background(),
+				&grpc_application_go.AppInstanceId{
+					OrganizationId: entities.GenerateUUID(),
+					AppInstanceId:	entities.GenerateUUID(),
+				})
+			gomega.Expect(err).NotTo(gomega.Succeed())
+
+		})
+
+		ginkgo.It("should not be able to list inbound connections if the instance does not exist", func(){
+			organization := addOrganization(organizationProvider)
+
+			_, err := client.ListInboundConnections(context.Background(),
+				&grpc_application_go.AppInstanceId{
+					OrganizationId: organization.ID,
+					AppInstanceId:	entities.GenerateUUID(),
+				})
+			gomega.Expect(err).NotTo(gomega.Succeed())
+
+		})
+	})
+
+	ginkgo.Context("when listing outbound connections", func() {
+
+		ginkgo.It("should list all the outbound connections of an instance", func() {
+			organization := addOrganization(organizationProvider)
+			instanceA := addTargetInstance(organization.ID, applicationProvider)
+			instanceB := addTargetInstance(organization.ID, applicationProvider)
+			instanceC := addTargetInstance(organization.ID, applicationProvider)
+
+			instance1 := addSourceInstance(organization.ID, false, applicationProvider)
+			instance2 := addSourceInstance(organization.ID, false, applicationProvider)
+
+			addConnectionRequests := []*grpc_application_network_go.AddConnectionRequest{
+				{
+					OrganizationId:   organization.ID,
+					TargetInstanceId: instanceA.AppInstanceId,
+					SourceInstanceId: instance1.AppInstanceId,
+					OutboundName:     instance1.OutboundNetInterfaces[0].Name,
+					InboundName:      instanceA.InboundNetInterfaces[0].Name,
+				},
+				{
+					OrganizationId:   organization.ID,
+					TargetInstanceId: instanceB.AppInstanceId,
+					SourceInstanceId: instance1.AppInstanceId,
+					OutboundName:     instance1.OutboundNetInterfaces[0].Name,
+					InboundName:      instanceB.InboundNetInterfaces[0].Name,
+				},
+				{
+					OrganizationId:   organization.ID,
+					TargetInstanceId: instanceC.AppInstanceId,
+					SourceInstanceId: instance1.AppInstanceId,
+					OutboundName:     instance1.OutboundNetInterfaces[0].Name,
+					InboundName:      instanceC.InboundNetInterfaces[0].Name,
+				},
+				{
+					OrganizationId:   organization.ID,
+					TargetInstanceId: instanceC.AppInstanceId,
+					SourceInstanceId: instance2.AppInstanceId,
+					OutboundName:     instance2.OutboundNetInterfaces[0].Name,
+					InboundName:      instanceC.InboundNetInterfaces[0].Name,
+				},
+			}
+			for _, addConnectionRequest := range addConnectionRequests {
+				_, err := client.AddConnection(context.Background(), addConnectionRequest)
+				gomega.Expect(err).To(gomega.Succeed())
+			}
+
+			connections, err := client.ListOutboundConnections(context.Background(),
+				&grpc_application_go.AppInstanceId{
+					OrganizationId: organization.ID,
+					AppInstanceId:	instance1.AppInstanceId,
+				})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connections).NotTo(gomega.BeNil())
+			gomega.Expect(len(connections.Connections)).Should(gomega.Equal(3))
+		})
+
+		ginkgo.It("should not be able to list outbouns connections if the organization does not exist", func(){
+			_, err := client.ListOutboundConnections(context.Background(),
+				&grpc_application_go.AppInstanceId{
+					OrganizationId: entities.GenerateUUID(),
+					AppInstanceId:	entities.GenerateUUID(),
+				})
+			gomega.Expect(err).NotTo(gomega.Succeed())
+
+		})
+
+		ginkgo.It("should not be able to list inbound connections if the instance does not exist", func(){
+			organization := addOrganization(organizationProvider)
+
+			_, err := client.ListOutboundConnections(context.Background(),
+				&grpc_application_go.AppInstanceId{
+					OrganizationId: organization.ID,
+					AppInstanceId:	entities.GenerateUUID(),
+				})
+			gomega.Expect(err).NotTo(gomega.Succeed())
+
 		})
 	})
 })
