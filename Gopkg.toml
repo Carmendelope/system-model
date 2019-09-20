@@ -15,12 +15,16 @@
     version="=v0.0.29"
 
 [[constraint]]
+    name="github.com/nalej/grpc-cluster-watcher-go"
+    version="=v0.0.4"
+
+[[constraint]]
   name="github.com/nalej/grpc-application-go"
   version="=v0.0.85"
 
 [[constraint]]
     name="github.com/nalej/grpc-infrastructure-go"
-    version="=v0.0.37"
+    version="=v0.0.40"
 
 [[constraint]]
     name="github.com/nalej/grpc-user-go"

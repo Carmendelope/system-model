@@ -38,7 +38,7 @@ type Node struct {
 	OrganizationId string `json:"organization_id,omitempty"`
 	// ClusterId with the associated cluster identifier the node is assigned to.
 	ClusterId string `json:"cluster_id,omitempty"`
-	// Id with the node identifier.
+	// ClusterId with the node identifier.
 	NodeId string `json:"node_id,omitempty"`
 	// Ip with the node IP.
 	Ip string `json:"ip,omitempty"`
