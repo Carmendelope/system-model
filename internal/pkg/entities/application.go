@@ -2270,8 +2270,8 @@ func ValidAppDescriptorId (descriptorID * grpc_application_go.AppDescriptorId) d
 }
 
 
-func ValidAppInstanceId (descriptorID * grpc_application_go.AppInstanceId) derrors.Error{
-	if descriptorID.OrganizationId == "" || descriptorID.AppInstanceId == ""{
+func ValidAppInstanceId (instanceID * grpc_application_go.AppInstanceId) derrors.Error{
+	if instanceID.OrganizationId == "" || instanceID.AppInstanceId == ""{
 		return derrors.NewInvalidArgumentError("expecting organization_id and app_instance_id")
 	}
 	return nil

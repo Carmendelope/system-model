@@ -93,7 +93,7 @@ func (m *MockupApplicationNetworkProvider) GetConnectionInstanceById(connectionI
 	return nil, derrors.NewNotFoundError(connectionId)
 }
 
-// ListConnectionInstances Retrieves a list with all the connection instances of an organization unsing OrganizationID
+// ListConnectionInstances Retrieves a list with all the connection instances of an organization using OrganizationID
 func (m *MockupApplicationNetworkProvider) ListConnectionInstances(organizationId string) ([]entities.ConnectionInstance, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
@@ -113,6 +113,31 @@ func (m *MockupApplicationNetworkProvider) RemoveConnectionInstance(organization
 		return nil
 	}
 	return derrors.NewNotFoundError("connectionInstance").WithParams(compositePK)
+}
+
+// ListInboundConnections retrieve all the connections where instance is the target
+func (m *MockupApplicationNetworkProvider) ListInboundConnections(organizationId string, appInstanceId string)([]entities.ConnectionInstance, derrors.Error){
+	m.Lock()
+	defer m.Unlock()
+	ret := make([]entities.ConnectionInstance, 0)
+	for _, instance := range m.connectionInstances {
+		if instance.OrganizationId == organizationId && instance.TargetInstanceId == appInstanceId{
+			ret = append(ret, instance)
+		}
+	}
+	return ret, nil
+}
+// ListOutboundConnections retrieve all the connections where instance is the source
+func (m *MockupApplicationNetworkProvider) ListOutboundConnections(organizationId string, appInstanceId string)([]entities.ConnectionInstance, derrors.Error){
+	m.Lock()
+	defer m.Unlock()
+	ret := make([]entities.ConnectionInstance, 0)
+	for _, instance := range m.connectionInstances {
+		if instance.OrganizationId == organizationId && instance.SourceInstanceId == appInstanceId{
+			ret = append(ret, instance)
+		}
+	}
+	return ret, nil
 }
 
 // Connection Instance Link

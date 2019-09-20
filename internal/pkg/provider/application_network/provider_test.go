@@ -143,6 +143,73 @@ func RunTest(provider Provider) {
 		gomega.Expect(connectionInstances).To(gomega.ConsistOf(toAdd[1:]))
 	})
 
+	ginkgo.It("should be able to list ConnectionInstances where the instance is the target", func() {
+		organizationId := entities.GenerateUUID()
+		targetInstanceId := entities.GenerateUUID()
+		numConnections := 5
+		for i := 0; i < numConnections; i++ {
+			toAdd := entities.ConnectionInstance{
+				OrganizationId:     organizationId,
+				ConnectionId:       entities.GenerateUUID(),
+				SourceInstanceId:   entities.GenerateUUID(),
+				SourceInstanceName: entities.GenerateUUID(),
+				TargetInstanceId:   targetInstanceId,
+				TargetInstanceName: targetInstanceId,
+				InboundName:        entities.GenerateUUID(),
+				OutboundName:       entities.GenerateUUID(),
+				OutboundRequired:   false,
+			}
+			err := provider.AddConnectionInstance(toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+		}
+		list, err := provider.ListInboundConnections(organizationId, targetInstanceId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(list).NotTo(gomega.BeNil())
+		gomega.Expect(len(list)).Should(gomega.Equal(numConnections))
+	})
+	ginkgo.It("should be able to retrieve an empty list ConnectionInstance when there are no connections where the instance is the target", func() {
+		organizationId := entities.GenerateUUID()
+		targetInstanceId := entities.GenerateUUID()
+
+		list, err := provider.ListInboundConnections(organizationId, targetInstanceId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(list).NotTo(gomega.BeNil())
+		gomega.Expect(len(list)).Should(gomega.Equal(0))
+	})
+	ginkgo.It("should be able to list ConnectionInstances where the instance is the source", func() {
+		organizationId := entities.GenerateUUID()
+		sourceInstanceId := entities.GenerateUUID()
+		numConnections := 5
+		for i := 0; i < numConnections; i++ {
+			toAdd := entities.ConnectionInstance{
+				OrganizationId:     organizationId,
+				ConnectionId:       entities.GenerateUUID(),
+				SourceInstanceId:   sourceInstanceId,
+				SourceInstanceName: "source instance",
+				TargetInstanceId:   entities.GenerateUUID(),
+				TargetInstanceName: entities.GenerateUUID(),
+				InboundName:        entities.GenerateUUID(),
+				OutboundName:       entities.GenerateUUID(),
+				OutboundRequired:   false,
+			}
+			err := provider.AddConnectionInstance(toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+		}
+		list, err := provider.ListOutboundConnections(organizationId, sourceInstanceId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(list).NotTo(gomega.BeNil())
+		gomega.Expect(len(list)).Should(gomega.Equal(numConnections))
+
+	})
+	ginkgo.It("should be able to retrieve an empty list ConnectionInstance when there are no connections where the instance is the source", func() {
+		organizationId := entities.GenerateUUID()
+		sourceInstanceId := entities.GenerateUUID()
+		list, err := provider.ListOutboundConnections(organizationId, sourceInstanceId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(list).NotTo(gomega.BeNil())
+		gomega.Expect(len(list)).Should(gomega.Equal(0))
+	})
+
 	// Connection Instance Link
 	// ------------------------
 	ginkgo.It("should be able to add a ConnectionInstanceLink", func() {

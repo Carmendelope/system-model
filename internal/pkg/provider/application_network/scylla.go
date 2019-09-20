@@ -142,6 +142,55 @@ func (sap *ScyllaApplicationNetworkProvider) RemoveConnectionInstance(organizati
 	return sap.UnsafeCompositeRemove(ConnectionInstanceTable, pkComposite)
 }
 
+// ListInboundConnections retrieve all the connections where instance is the target
+func (sap *ScyllaApplicationNetworkProvider) ListInboundConnections(organizationId string, appInstanceId string)([]entities.ConnectionInstance, derrors.Error){
+	sap.Lock()
+	defer sap.Unlock()
+
+	if err := sap.CheckAndConnect(); err != nil {
+		return nil, err
+	}
+
+	stmt, names := qb.Select(ConnectionInstanceTable).Columns(ConnectionInstanceColumns...).Where(qb.Eq("organization_id")).
+		Where(qb.Eq("target_instance_id")).ToCql()
+	q := gocqlx.Query(sap.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": organizationId,
+		"target_instance_id": appInstanceId,
+	})
+
+	connections := make([]entities.ConnectionInstance, 0)
+	cqlErr := q.SelectRelease(&connections)
+	if cqlErr != nil {
+		return nil, derrors.AsError(cqlErr, "cannot list inbound connections")
+	}
+
+	return connections, nil
+}
+// ListOutboundConnections retrieve all the connections where instance is the source
+func (sap *ScyllaApplicationNetworkProvider) ListOutboundConnections(organizationId string, appInstanceId string)([]entities.ConnectionInstance, derrors.Error){
+	sap.Lock()
+	defer sap.Unlock()
+
+	if err := sap.CheckAndConnect(); err != nil {
+		return nil, err
+	}
+
+	stmt, names := qb.Select(ConnectionInstanceTable).Columns(ConnectionInstanceColumns...).Where(qb.Eq("organization_id")).
+		Where(qb.Eq("source_instance_id")).ToCql()
+	q := gocqlx.Query(sap.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": organizationId,
+		"source_instance_id": appInstanceId,
+	})
+
+	connections := make([]entities.ConnectionInstance, 0)
+	cqlErr := q.SelectRelease(&connections)
+	if cqlErr != nil {
+		return nil, derrors.AsError(cqlErr, "cannot list outbound connections")
+	}
+
+	return connections, nil
+}
+
 // Connection Instance Link
 // ------------------------
 func (sap *ScyllaApplicationNetworkProvider) AddConnectionInstanceLink(connectionInstanceLink entities.ConnectionInstanceLink) derrors.Error {
