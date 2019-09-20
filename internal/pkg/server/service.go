@@ -7,12 +7,14 @@ package server
 import (
 	"fmt"
 	"github.com/nalej/grpc-account-go"
+	"github.com/nalej/grpc-application-network-go"
 	"github.com/nalej/grpc-device-go"
 	"github.com/nalej/grpc-infrastructure-go"
 	"github.com/nalej/grpc-inventory-go"
 	"github.com/nalej/grpc-project-go"
 	"github.com/nalej/grpc-role-go"
 	"github.com/nalej/grpc-user-go"
+	"github.com/nalej/system-model/internal/pkg/server/application_network"
 	"github.com/nalej/system-model/internal/pkg/server/project"
 
 	"github.com/nalej/system-model/internal/pkg/server/account"
@@ -33,6 +35,7 @@ import (
 	"github.com/nalej/grpc-organization-go"
 	acProvider "github.com/nalej/system-model/internal/pkg/provider/account"
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
+	anProvider "github.com/nalej/system-model/internal/pkg/provider/application_network"
 	aProvider "github.com/nalej/system-model/internal/pkg/provider/asset"
 	clusterProvider "github.com/nalej/system-model/internal/pkg/provider/cluster"
 	devProvider "github.com/nalej/system-model/internal/pkg/provider/device"
@@ -72,6 +75,7 @@ type Providers struct {
 	controllerProvider   eicProvider.Provider
 	accountProvider      acProvider.Provider
 	projectProvider      pProvider.Provider
+	appNetProvider       anProvider.Provider
 }
 
 // Name of the service.
@@ -98,6 +102,7 @@ func (s *Service) CreateInMemoryProviders() *Providers {
 		controllerProvider:   eicProvider.NewMockupEICProvider(),
 		accountProvider:      acProvider.NewMockupAccountProvider(),
 		projectProvider:      pProvider.NewMockupProjectProvider(),
+		appNetProvider:       anProvider.NewMockupApplicationNetworkProvider(),
 	}
 }
 
@@ -125,6 +130,8 @@ func (s *Service) CreateDBScyllaProviders() *Providers {
 		accountProvider: acProvider.NewScyllaAccountProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 		projectProvider: pProvider.NewScyllaProjectProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+		appNetProvider: anProvider.NewScyllaApplicationNetworkProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 	}
 }
@@ -160,6 +167,10 @@ func (s *Service) Run() error {
 	// applications
 	appManager := application.NewManager(p.organizationProvider, p.applicationProvider, p.deviceProvider, s.Configuration.PublicHostDomain)
 	applicationHandler := application.NewHandler(appManager)
+
+	appNetManager := application_network.NewManager(p.organizationProvider, p.applicationProvider, p.appNetProvider)
+	appNetHandler := application_network.NewHandler(appNetManager)
+
 	// roles
 	roleManager := role.NewManager(p.organizationProvider, p.roleProvider)
 	roleHandler := role.NewHandler(roleManager)
@@ -194,6 +205,7 @@ func (s *Service) Run() error {
 	grpc_inventory_go.RegisterControllersServer(grpcServer, controllerHandler)
 	grpc_account_go.RegisterAccountsServer(grpcServer, accountHandler)
 	grpc_project_go.RegisterProjectsServer(grpcServer, projectHandler)
+	grpc_application_network_go.RegisterApplicationNetworkServer(grpcServer, appNetHandler)
 
 	if s.Configuration.Debug {
 		log.Info().Msg("Enabling gRPC server reflection")
