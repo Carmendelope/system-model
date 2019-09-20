@@ -1,5 +1,5 @@
 /*
- * Copyright (C)  2018 Nalej - All Rights Reserved
+ * Copyright (C) 2019 Nalej - All Rights Reserved
  */
 
 package server
@@ -45,8 +45,6 @@ import (
 
 	"github.com/nalej/system-model/internal/pkg/server/application"
 	"github.com/nalej/system-model/internal/pkg/server/organization"
-
-
 )
 
 // Service structure containing the configuration and gRPC server.
@@ -64,16 +62,16 @@ func NewService(conf Config) *Service {
 // Providers structure with all the providers in the system.
 type Providers struct {
 	organizationProvider orgProvider.Provider
-	clusterProvider clusterProvider.Provider
-	nodeProvider nodeProvider.Provider
-	applicationProvider appProvider.Provider
-	roleProvider rProvider.Provider
-	userProvider uProvider.Provider
-	deviceProvider devProvider.Provider
-	assetProvider aProvider.Provider
-	controllerProvider eicProvider.Provider
-	accountProvider acProvider.Provider
-	projectProvider pProvider.Provider
+	clusterProvider      clusterProvider.Provider
+	nodeProvider         nodeProvider.Provider
+	applicationProvider  appProvider.Provider
+	roleProvider         rProvider.Provider
+	userProvider         uProvider.Provider
+	deviceProvider       devProvider.Provider
+	assetProvider        aProvider.Provider
+	controllerProvider   eicProvider.Provider
+	accountProvider      acProvider.Provider
+	projectProvider      pProvider.Provider
 }
 
 // Name of the service.
@@ -87,12 +85,12 @@ func (s *Service) Description() string {
 }
 
 // CreateInMemoryProviders returns a set of in-memory providers.
-func (s *Service) CreateInMemoryProviders() * Providers {
+func (s *Service) CreateInMemoryProviders() *Providers {
 	return &Providers{
 		organizationProvider: orgProvider.NewMockupOrganizationProvider(),
 		clusterProvider:      clusterProvider.NewMockupClusterProvider(),
 		nodeProvider:         nodeProvider.NewMockupNodeProvider(),
-		applicationProvider:  appProvider.NewMockupOrganizationProvider(),
+		applicationProvider:  appProvider.NewMockupApplicationProvider(),
 		roleProvider:         rProvider.NewMockupRoleProvider(),
 		userProvider:         uProvider.NewMockupUserProvider(),
 		deviceProvider:       devProvider.NewMockupDeviceProvider(),
@@ -104,7 +102,7 @@ func (s *Service) CreateInMemoryProviders() * Providers {
 }
 
 // CreateDBScyllaProviders returns a set of in-memory providers.
-func (s *Service) CreateDBScyllaProviders() * Providers {
+func (s *Service) CreateDBScyllaProviders() *Providers {
 	return &Providers{
 		organizationProvider: orgProvider.NewScyllaOrganizationProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
@@ -120,7 +118,7 @@ func (s *Service) CreateDBScyllaProviders() * Providers {
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 		deviceProvider: devProvider.NewScyllaDeviceProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
-		assetProvider:      aProvider.NewScyllaAssetProvider(
+		assetProvider: aProvider.NewScyllaAssetProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 		controllerProvider: eicProvider.NewScyllaControllerProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
@@ -132,7 +130,7 @@ func (s *Service) CreateDBScyllaProviders() * Providers {
 }
 
 // GetProviders builds the providers according to the selected backend.
-func (s *Service) GetProviders() * Providers {
+func (s *Service) GetProviders() *Providers {
 	if s.Configuration.UseInMemoryProviders {
 		return s.CreateInMemoryProviders()
 	} else if s.Configuration.UseDBScyllaProviders {
@@ -184,7 +182,6 @@ func (s *Service) Run() error {
 	projectManager := project.NewManager(p.accountProvider, p.projectProvider)
 	projectHandler := project.NewHandler(projectManager)
 
-
 	grpcServer := grpc.NewServer()
 	grpc_organization_go.RegisterOrganizationsServer(grpcServer, organizationHandler)
 	grpc_infrastructure_go.RegisterClustersServer(grpcServer, clusterHandler)
@@ -198,16 +195,15 @@ func (s *Service) Run() error {
 	grpc_account_go.RegisterAccountsServer(grpcServer, accountHandler)
 	grpc_project_go.RegisterProjectsServer(grpcServer, projectHandler)
 
-	if s.Configuration.Debug{
+	if s.Configuration.Debug {
 		log.Info().Msg("Enabling gRPC server reflection")
 		// Register reflection service on gRPC server.
 		reflection.Register(grpcServer)
 	}
-	
+
 	log.Info().Int("port", s.Configuration.Port).Msg("Launching gRPC server")
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatal().Errs("failed to serve: %v", []error{err})
 	}
 	return nil
 }
-

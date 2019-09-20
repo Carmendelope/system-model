@@ -1,11 +1,14 @@
+/*
+ * Copyright (C) 2019 Nalej - All Rights Reserved
+ */
+
 package application
 
 import "github.com/onsi/ginkgo"
 
-var _ = ginkgo.Describe("Mockup Application provider", func(){
+var _ = ginkgo.Describe("Mockup Application provider", func() {
 
-
-	sp := NewMockupOrganizationProvider()
+	sp := NewMockupApplicationProvider()
 	RunTest(sp)
 
 })
