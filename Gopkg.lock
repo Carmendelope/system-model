@@ -52,7 +52,7 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:0ebfd2f00a84ee4fb31913b49011b7fa2fb6b12040991d8b948db821a15f7f77"
+  digest = "1:ae32d227228900622c8e5db5da79d18fdb595d613c17c0d45d8038010a4b700b"
   name = "github.com/grpc-ecosystem/grpc-gateway"
   packages = [
     "internal",
@@ -60,8 +60,8 @@
     "utilities",
   ]
   pruneopts = ""
-  revision = "471f45a5a99a578de7a8638dc7ed29e245bde097"
-  version = "v1.11.1"
+  revision = "2dfdd971e2e70fb436ffcdf845b7313c43606848"
+  version = "v1.11.2"
 
 [[projects]]
   branch = "master"
@@ -134,6 +134,14 @@
   version = "v0.0.53"
 
 [[projects]]
+  digest = "1:4e897954e75cb3032f468b2837db1a39dfebb75368f2df30f80271c369ab3788"
+  name = "github.com/nalej/grpc-cluster-watcher-go"
+  packages = ["."]
+  pruneopts = ""
+  revision = "cadb3729c93fd583a1519e5cf54a89279904d000"
+  version = "v0.0.4"
+
+[[projects]]
   digest = "1:44f7426538411ea9f774f96e3b102decc9f549b188e55e29ecc15be69542a96b"
   name = "github.com/nalej/grpc-common-go"
   packages = ["."]
@@ -166,12 +174,12 @@
   version = "v0.0.14"
 
 [[projects]]
-  digest = "1:45793a945f1c3fadb8ac997ce0056a790fe626c221792f849ca71b86aa1a96f2"
+  digest = "1:cf5183e87d0895e8991d382c80bedb76210af928a8df84a572188a06135df17a"
   name = "github.com/nalej/grpc-infrastructure-go"
   packages = ["."]
   pruneopts = ""
-  revision = "670c43c3cba1eceadd539001c57a23b0e3791637"
-  version = "v0.0.37"
+  revision = "9e4b371cba464eb116450349c69aabead44b8e9c"
+  version = "v0.0.40"
 
 [[projects]]
   digest = "1:e2212e912901c83e646d4fb637f8942432adf33341252a4c80fc8d0f17eb7920"
@@ -515,6 +523,7 @@
     "github.com/nalej/grpc-account-go",
     "github.com/nalej/grpc-application-go",
     "github.com/nalej/grpc-application-network-go",
+    "github.com/nalej/grpc-cluster-watcher-go",
     "github.com/nalej/grpc-common-go",
     "github.com/nalej/grpc-device-go",
     "github.com/nalej/grpc-device-manager-go",
