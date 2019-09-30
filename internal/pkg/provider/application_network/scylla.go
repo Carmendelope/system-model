@@ -30,6 +30,16 @@ var (
 		"inbound_name",
 		"outbound_name",
 		"outbound_required",
+		"status",
+		"ip_range",
+	}
+	ConnectionInstanceColumnsNoPK = []string{
+		"connection_id",
+		"source_instance_name",
+		"target_instance_name",
+		"outbound_required",
+		"status",
+		"ip_range",
 	}
 	ConnectionInstanceLinkColumns = []string{
 		"organization_id",
@@ -40,6 +50,7 @@ var (
 		"target_cluster_id",
 		"inbound_name",
 		"outbound_name",
+		"status",
 	}
 )
 
@@ -95,6 +106,13 @@ func (sap *ScyllaApplicationNetworkProvider) AddConnectionInstance(connectionIns
 	return sap.UnsafeCompositeAdd(ConnectionInstanceTable, pkComposite, ConnectionInstanceColumns, connectionInstance)
 }
 
+func (sap *ScyllaApplicationNetworkProvider) UpdateConnectionInstance(connectionInstance entities.ConnectionInstance) derrors.Error {
+	sap.Lock()
+	defer sap.Unlock()
+	pkComposite := sap.createConnectionInsancePkMap(connectionInstance.OrganizationId, connectionInstance.SourceInstanceId, connectionInstance.TargetInstanceId, connectionInstance.InboundName, connectionInstance.OutboundName)
+	return sap.UnsafeCompositeUpdate(ConnectionInstanceTable, pkComposite, ConnectionInstanceColumnsNoPK, connectionInstance)
+}
+
 func (sap *ScyllaApplicationNetworkProvider) ExistsConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) (bool, derrors.Error) {
 	sap.Lock()
 	defer sap.Unlock()
@@ -143,7 +161,7 @@ func (sap *ScyllaApplicationNetworkProvider) RemoveConnectionInstance(organizati
 }
 
 // ListInboundConnections retrieve all the connections where instance is the target
-func (sap *ScyllaApplicationNetworkProvider) ListInboundConnections(organizationId string, appInstanceId string)([]entities.ConnectionInstance, derrors.Error){
+func (sap *ScyllaApplicationNetworkProvider) ListInboundConnections(organizationId string, appInstanceId string) ([]entities.ConnectionInstance, derrors.Error) {
 	sap.Lock()
 	defer sap.Unlock()
 
@@ -154,7 +172,7 @@ func (sap *ScyllaApplicationNetworkProvider) ListInboundConnections(organization
 	stmt, names := qb.Select(ConnectionInstanceTable).Columns(ConnectionInstanceColumns...).Where(qb.Eq("organization_id")).
 		Where(qb.Eq("target_instance_id")).ToCql()
 	q := gocqlx.Query(sap.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationId,
+		"organization_id":    organizationId,
 		"target_instance_id": appInstanceId,
 	})
 
@@ -166,8 +184,9 @@ func (sap *ScyllaApplicationNetworkProvider) ListInboundConnections(organization
 
 	return connections, nil
 }
+
 // ListOutboundConnections retrieve all the connections where instance is the source
-func (sap *ScyllaApplicationNetworkProvider) ListOutboundConnections(organizationId string, appInstanceId string)([]entities.ConnectionInstance, derrors.Error){
+func (sap *ScyllaApplicationNetworkProvider) ListOutboundConnections(organizationId string, appInstanceId string) ([]entities.ConnectionInstance, derrors.Error) {
 	sap.Lock()
 	defer sap.Unlock()
 
@@ -178,7 +197,7 @@ func (sap *ScyllaApplicationNetworkProvider) ListOutboundConnections(organizatio
 	stmt, names := qb.Select(ConnectionInstanceTable).Columns(ConnectionInstanceColumns...).Where(qb.Eq("organization_id")).
 		Where(qb.Eq("source_instance_id")).ToCql()
 	q := gocqlx.Query(sap.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationId,
+		"organization_id":    organizationId,
 		"source_instance_id": appInstanceId,
 	})
 
