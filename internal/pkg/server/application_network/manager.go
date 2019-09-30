@@ -79,6 +79,58 @@ func (manager *Manager) AddConnectionInstance(addConnectionRequest *grpc_applica
 	return instance, nil
 }
 
+func (manager *Manager) UpdateConnectionInstance(updateConnectionRequest *grpc_application_network_go.UpdateConnectionRequest) derrors.Error {
+	err := manager.validOrganization(updateConnectionRequest.OrganizationId)
+	if err != nil {
+		return err
+	}
+
+	sourceInstance, err := manager.ApplicationProvider.GetInstance(updateConnectionRequest.SourceInstanceId)
+	if err != nil {
+		return derrors.NewNotFoundError("sourceInstanceID", err).WithParams(updateConnectionRequest.SourceInstanceId)
+	}
+	found := false
+	for _, iface := range sourceInstance.OutboundNetInterfaces {
+		if iface.Name == updateConnectionRequest.OutboundName {
+			found = true
+		}
+	}
+	if !found {
+		return derrors.NewNotFoundError("outboundName").WithParams(updateConnectionRequest.OutboundName)
+	}
+
+	targetInstance, err := manager.ApplicationProvider.GetInstance(updateConnectionRequest.TargetInstanceId)
+	if err != nil {
+		return derrors.NewNotFoundError("targetInstanceID", err).WithParams(updateConnectionRequest.TargetInstanceId)
+	}
+	found = false
+	for _, iface := range targetInstance.InboundNetInterfaces {
+		if iface.Name == updateConnectionRequest.InboundName {
+			found = true
+		}
+	}
+	if !found {
+		return derrors.NewNotFoundError("inboundName").WithParams(updateConnectionRequest.OutboundName)
+	}
+
+	connectionInstance, err := manager.AppNetProvider.GetConnectionInstance(
+		updateConnectionRequest.OrganizationId,
+		updateConnectionRequest.SourceInstanceId,
+		updateConnectionRequest.TargetInstanceId,
+		updateConnectionRequest.InboundName,
+		updateConnectionRequest.OutboundName)
+	if err != nil {
+		return derrors.NewNotFoundError("connectionInstance").WithParams(updateConnectionRequest)
+	}
+
+	connectionInstance.ApplyUpdate(updateConnectionRequest)
+
+	if err = manager.AppNetProvider.UpdateConnectionInstance(*connectionInstance); err != nil {
+		return err
+	}
+	return nil
+}
+
 // RemoveConnectionInstance Removes the given connection instance
 func (manager *Manager) RemoveConnectionInstance(removeConnectionRequest *grpc_application_network_go.RemoveConnectionRequest) derrors.Error {
 	err := manager.validOrganization(removeConnectionRequest.OrganizationId)
@@ -172,7 +224,7 @@ func (manager *Manager) validOrganization(orgID string) derrors.Error {
 }
 
 // ListInboundConnections retrieves a list with all the connections where the appInstanceId is the target
-func (manager *Manager) ListInboundConnections(appInstanceID *grpc_application_go.AppInstanceId) ([]entities.ConnectionInstance, derrors.Error){
+func (manager *Manager) ListInboundConnections(appInstanceID *grpc_application_go.AppInstanceId) ([]entities.ConnectionInstance, derrors.Error) {
 
 	err := manager.validOrganization(appInstanceID.OrganizationId)
 	if err != nil {
@@ -184,7 +236,6 @@ func (manager *Manager) ListInboundConnections(appInstanceID *grpc_application_g
 		return nil, derrors.NewNotFoundError("appInstance", err).WithParams(appInstanceID.AppInstanceId)
 	}
 
-
 	inboundList, err := manager.AppNetProvider.ListInboundConnections(appInstanceID.OrganizationId, appInstanceID.AppInstanceId)
 	if err != nil {
 		return nil, err
@@ -193,7 +244,7 @@ func (manager *Manager) ListInboundConnections(appInstanceID *grpc_application_g
 }
 
 // ListOutboundConnections retrieves a list with all the connections where the appInstanceId is the source
-func (manager *Manager) ListOutboundConnections(appInstanceID *grpc_application_go.AppInstanceId) ([]entities.ConnectionInstance, derrors.Error){
+func (manager *Manager) ListOutboundConnections(appInstanceID *grpc_application_go.AppInstanceId) ([]entities.ConnectionInstance, derrors.Error) {
 
 	err := manager.validOrganization(appInstanceID.OrganizationId)
 	if err != nil {
