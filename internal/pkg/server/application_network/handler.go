@@ -35,6 +35,17 @@ func (h *Handler) AddConnection(ctx context.Context, addConnectionRequest *grpc_
 	return added.ToGRPC(), nil
 }
 
+func (h *Handler) UpdateConnection(ctx context.Context, updateConnectionRequest *grpc_application_network_go.UpdateConnectionRequest) (*grpc_common_go.Success, error) {
+	if err := entities.ValidUpdateConnectionRequest(updateConnectionRequest); err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	log.Debug().Interface("updateConnectionRequest", updateConnectionRequest).Msg("Updating connectioninstance")
+	if err := h.Manager.UpdateConnectionInstance(updateConnectionRequest); err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+}
+
 func (h *Handler) RemoveConnection(ctx context.Context, removeConnectionRequest *grpc_application_network_go.RemoveConnectionRequest) (*grpc_common_go.Success, error) {
 	if err := entities.ValidRemoveConnectionRequest(removeConnectionRequest); err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -65,7 +76,7 @@ func (h *Handler) ListConnections(_ context.Context, orgID *grpc_organization_go
 }
 
 // ListInboundConnections retrieves a list with all the connections where the appInstanceId is the target
-func (h *Handler) ListInboundConnections(_ context.Context, appInstanceID *grpc_application_go.AppInstanceId) (*grpc_application_network_go.ConnectionInstanceList, error){
+func (h *Handler) ListInboundConnections(_ context.Context, appInstanceID *grpc_application_go.AppInstanceId) (*grpc_application_network_go.ConnectionInstanceList, error) {
 	err := entities.ValidAppInstanceId(appInstanceID)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -85,7 +96,7 @@ func (h *Handler) ListInboundConnections(_ context.Context, appInstanceID *grpc_
 }
 
 // ListOutboundConnections retrieves a list with all the connections where the appInstanceId is the source
-func (h *Handler) ListOutboundConnections(_ context.Context, appInstanceID *grpc_application_go.AppInstanceId) (*grpc_application_network_go.ConnectionInstanceList, error){
+func (h *Handler) ListOutboundConnections(_ context.Context, appInstanceID *grpc_application_go.AppInstanceId) (*grpc_application_network_go.ConnectionInstanceList, error) {
 	err := entities.ValidAppInstanceId(appInstanceID)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)

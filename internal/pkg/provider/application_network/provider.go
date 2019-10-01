@@ -20,9 +20,11 @@ type Provider interface {
 	// ListConnectionInstances Lists all the connection instances.
 	ListConnectionInstances(organizationId string) ([]entities.ConnectionInstance, derrors.Error)
 	// ListInboundConnections retrieve all the connections where instance is the target
-	ListInboundConnections(organizationId string, appInstanceId string)([]entities.ConnectionInstance, derrors.Error)
+	ListInboundConnections(organizationId string, appInstanceId string) ([]entities.ConnectionInstance, derrors.Error)
 	// ListOutboundConnections retrieve all the connections where instance is the source
-	ListOutboundConnections(organizationId string, appInstanceId string)([]entities.ConnectionInstance, derrors.Error)
+	ListOutboundConnections(organizationId string, appInstanceId string) ([]entities.ConnectionInstance, derrors.Error)
+	// UpdateConnectionInstance Updates a connection instance
+	UpdateConnectionInstance(connectionInstance entities.ConnectionInstance) derrors.Error
 	// RemoveConnectionInstance Removes a connection from the system
 	RemoveConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) derrors.Error
 

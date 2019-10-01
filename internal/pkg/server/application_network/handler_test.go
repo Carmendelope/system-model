@@ -143,6 +143,116 @@ var _ = ginkgo.Describe("Application Network service", func() {
 		})
 	})
 
+	ginkgo.Context("when updating a connection", func() {
+		ginkgo.It("should be able to update the status of the connection", func() {
+			organization := addOrganization(organizationProvider)
+			sourceInstance := addSourceInstance(organization.ID, false, applicationProvider)
+			targetInstance := addTargetInstance(organization.ID, applicationProvider)
+
+			addConnectionRequest := &grpc_application_network_go.AddConnectionRequest{
+				OrganizationId:   organization.ID,
+				SourceInstanceId: sourceInstance.AppInstanceId,
+				TargetInstanceId: targetInstance.AppInstanceId,
+				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
+				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+			}
+			_, err := client.AddConnection(context.Background(), addConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			updateConnectionRequest := &grpc_application_network_go.UpdateConnectionRequest{
+				OrganizationId:   addConnectionRequest.OrganizationId,
+				SourceInstanceId: addConnectionRequest.SourceInstanceId,
+				TargetInstanceId: addConnectionRequest.TargetInstanceId,
+				InboundName:      addConnectionRequest.InboundName,
+				OutboundName:     addConnectionRequest.OutboundName,
+				UpdateStatus:     true,
+				Status:           grpc_application_network_go.ConnectionStatus_ESTABLISHED,
+				UpdateIpRange:    false,
+				IpRange:          "",
+			}
+			success, err := client.UpdateConnection(context.Background(), updateConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ToNot(gomega.BeNil())
+			connections, err := client.ListConnections(context.Background(), &grpc_organization_go.OrganizationId{OrganizationId: organization.ID})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connections).ToNot(gomega.BeNil())
+			gomega.Expect(connections.Connections).To(gomega.HaveLen(1))
+			gomega.Expect(connections.Connections[0].Status).To(gomega.Equal(grpc_application_network_go.ConnectionStatus_ESTABLISHED))
+		})
+
+		ginkgo.It("should be able to update the range IP of the connection", func() {
+			organization := addOrganization(organizationProvider)
+			sourceInstance := addSourceInstance(organization.ID, false, applicationProvider)
+			targetInstance := addTargetInstance(organization.ID, applicationProvider)
+
+			addConnectionRequest := &grpc_application_network_go.AddConnectionRequest{
+				OrganizationId:   organization.ID,
+				SourceInstanceId: sourceInstance.AppInstanceId,
+				TargetInstanceId: targetInstance.AppInstanceId,
+				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
+				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+			}
+			_, err := client.AddConnection(context.Background(), addConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			newRange := "172.16.0.1-172.16.0.255"
+			updateConnectionRequest := &grpc_application_network_go.UpdateConnectionRequest{
+				OrganizationId:   addConnectionRequest.OrganizationId,
+				SourceInstanceId: addConnectionRequest.SourceInstanceId,
+				TargetInstanceId: addConnectionRequest.TargetInstanceId,
+				InboundName:      addConnectionRequest.InboundName,
+				OutboundName:     addConnectionRequest.OutboundName,
+				UpdateStatus:     false,
+				Status:           0,
+				UpdateIpRange:    true,
+				IpRange:          newRange,
+			}
+			success, err := client.UpdateConnection(context.Background(), updateConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ToNot(gomega.BeNil())
+			connections, err := client.ListConnections(context.Background(), &grpc_organization_go.OrganizationId{OrganizationId: organization.ID})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connections).ToNot(gomega.BeNil())
+			gomega.Expect(connections.Connections).To(gomega.HaveLen(1))
+			gomega.Expect(connections.Connections[0].IpRange).To(gomega.Equal(newRange))
+		})
+
+		ginkgo.It("should be able to update the range IP and the status of the connection", func() {
+			organization := addOrganization(organizationProvider)
+			sourceInstance := addSourceInstance(organization.ID, false, applicationProvider)
+			targetInstance := addTargetInstance(organization.ID, applicationProvider)
+
+			addConnectionRequest := &grpc_application_network_go.AddConnectionRequest{
+				OrganizationId:   organization.ID,
+				SourceInstanceId: sourceInstance.AppInstanceId,
+				TargetInstanceId: targetInstance.AppInstanceId,
+				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
+				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+			}
+			_, err := client.AddConnection(context.Background(), addConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			newRange := "172.16.0.1-172.16.0.255"
+			updateConnectionRequest := &grpc_application_network_go.UpdateConnectionRequest{
+				OrganizationId:   addConnectionRequest.OrganizationId,
+				SourceInstanceId: addConnectionRequest.SourceInstanceId,
+				TargetInstanceId: addConnectionRequest.TargetInstanceId,
+				InboundName:      addConnectionRequest.InboundName,
+				OutboundName:     addConnectionRequest.OutboundName,
+				UpdateStatus:     true,
+				Status:           grpc_application_network_go.ConnectionStatus_ESTABLISHED,
+				UpdateIpRange:    true,
+				IpRange:          newRange,
+			}
+			success, err := client.UpdateConnection(context.Background(), updateConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ToNot(gomega.BeNil())
+			connections, err := client.ListConnections(context.Background(), &grpc_organization_go.OrganizationId{OrganizationId: organization.ID})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connections).ToNot(gomega.BeNil())
+			gomega.Expect(connections.Connections).To(gomega.HaveLen(1))
+			gomega.Expect(connections.Connections[0].Status).To(gomega.Equal(grpc_application_network_go.ConnectionStatus_ESTABLISHED))
+			gomega.Expect(connections.Connections[0].IpRange).To(gomega.Equal(newRange))
+		})
+	})
+
 	ginkgo.Context("when removing a connection", func() {
 
 		ginkgo.It("should support removing an existing connection with no required outbound", func() {
@@ -375,30 +485,30 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			connections, err := client.ListInboundConnections(context.Background(),
 				&grpc_application_go.AppInstanceId{
 					OrganizationId: organization.ID,
-					AppInstanceId:	instance1.AppInstanceId,
-			})
+					AppInstanceId:  instance1.AppInstanceId,
+				})
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(connections).NotTo(gomega.BeNil())
 			gomega.Expect(len(connections.Connections)).Should(gomega.Equal(3))
 		})
 
-		ginkgo.It("should not be able to list inbound connections if the organization does not exist", func(){
+		ginkgo.It("should not be able to list inbound connections if the organization does not exist", func() {
 			_, err := client.ListInboundConnections(context.Background(),
 				&grpc_application_go.AppInstanceId{
 					OrganizationId: entities.GenerateUUID(),
-					AppInstanceId:	entities.GenerateUUID(),
+					AppInstanceId:  entities.GenerateUUID(),
 				})
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
 		})
 
-		ginkgo.It("should not be able to list inbound connections if the instance does not exist", func(){
+		ginkgo.It("should not be able to list inbound connections if the instance does not exist", func() {
 			organization := addOrganization(organizationProvider)
 
 			_, err := client.ListInboundConnections(context.Background(),
 				&grpc_application_go.AppInstanceId{
 					OrganizationId: organization.ID,
-					AppInstanceId:	entities.GenerateUUID(),
+					AppInstanceId:  entities.GenerateUUID(),
 				})
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
@@ -454,30 +564,30 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			connections, err := client.ListOutboundConnections(context.Background(),
 				&grpc_application_go.AppInstanceId{
 					OrganizationId: organization.ID,
-					AppInstanceId:	instance1.AppInstanceId,
+					AppInstanceId:  instance1.AppInstanceId,
 				})
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(connections).NotTo(gomega.BeNil())
 			gomega.Expect(len(connections.Connections)).Should(gomega.Equal(3))
 		})
 
-		ginkgo.It("should not be able to list outbouns connections if the organization does not exist", func(){
+		ginkgo.It("should not be able to list outbouns connections if the organization does not exist", func() {
 			_, err := client.ListOutboundConnections(context.Background(),
 				&grpc_application_go.AppInstanceId{
 					OrganizationId: entities.GenerateUUID(),
-					AppInstanceId:	entities.GenerateUUID(),
+					AppInstanceId:  entities.GenerateUUID(),
 				})
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
 		})
 
-		ginkgo.It("should not be able to list inbound connections if the instance does not exist", func(){
+		ginkgo.It("should not be able to list inbound connections if the instance does not exist", func() {
 			organization := addOrganization(organizationProvider)
 
 			_, err := client.ListOutboundConnections(context.Background(),
 				&grpc_application_go.AppInstanceId{
 					OrganizationId: organization.ID,
-					AppInstanceId:	entities.GenerateUUID(),
+					AppInstanceId:  entities.GenerateUUID(),
 				})
 			gomega.Expect(err).NotTo(gomega.Succeed())
 

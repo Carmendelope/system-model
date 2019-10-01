@@ -9,6 +9,29 @@ import (
 	"github.com/nalej/grpc-application-network-go"
 )
 
+type ConnectionStatus int32
+
+const (
+	ConnectionStatusWaiting ConnectionStatus = iota + 1
+	ConnectionStatusEstablished
+	ConnectionStatusTerminated
+	ConnectionStatusFailed
+)
+
+var ConnectionStatusToGRPC = map[ConnectionStatus]grpc_application_network_go.ConnectionStatus{
+	ConnectionStatusWaiting:     grpc_application_network_go.ConnectionStatus_WAITING,
+	ConnectionStatusEstablished: grpc_application_network_go.ConnectionStatus_ESTABLISHED,
+	ConnectionStatusTerminated:  grpc_application_network_go.ConnectionStatus_TERMINATED,
+	ConnectionStatusFailed:      grpc_application_network_go.ConnectionStatus_FAILED,
+}
+
+var ConnectionStatusFromGRPC = map[grpc_application_network_go.ConnectionStatus]ConnectionStatus{
+	grpc_application_network_go.ConnectionStatus_WAITING:     ConnectionStatusWaiting,
+	grpc_application_network_go.ConnectionStatus_ESTABLISHED: ConnectionStatusEstablished,
+	grpc_application_network_go.ConnectionStatus_TERMINATED:  ConnectionStatusTerminated,
+	grpc_application_network_go.ConnectionStatus_FAILED:      ConnectionStatusFailed,
+}
+
 // ConnectionInstance model with the info of a connection between two application instances
 type ConnectionInstance struct {
 	// OrganizationId with the organization identifier
@@ -29,6 +52,10 @@ type ConnectionInstance struct {
 	OutboundName string `json:"outbound_name,omitempty" cql:"outbound_name"`
 	// OutboundRequired with the flag `required` of the outbound network interface
 	OutboundRequired bool `json:"outbound_required,omitempty" cql:"outbound_required"`
+	// Status with the status of the connection instance
+	Status ConnectionStatus `json:"status,omitempty" cql:"status"`
+	// IpRange with the IP range of the connection
+	IpRange string `json:"ip_range,omitempty" cql:"ip_range"`
 }
 
 // NewConnectionInstanceFromGRPC Creates a new entities.ConnectionInstance using an grpc_application_network_go.AddConnectionRequest, source and target names, and outbound required flag.
@@ -43,6 +70,8 @@ func NewConnectionInstanceFromGRPC(request grpc_application_network_go.AddConnec
 		InboundName:        request.GetInboundName(),
 		OutboundName:       request.GetOutboundName(),
 		OutboundRequired:   outboundRequired,
+		Status:             ConnectionStatusWaiting,
+		IpRange:            "",
 	}
 }
 
@@ -61,6 +90,17 @@ func (c *ConnectionInstance) ToGRPC() *grpc_application_network_go.ConnectionIns
 		InboundName:        c.InboundName,
 		OutboundName:       c.OutboundName,
 		OutboundRequired:   c.OutboundRequired,
+		Status:             ConnectionStatusToGRPC[c.Status],
+		IpRange:            c.IpRange,
+	}
+}
+
+func (c *ConnectionInstance) ApplyUpdate(updateConnectionRequest *grpc_application_network_go.UpdateConnectionRequest) {
+	if updateConnectionRequest.UpdateStatus {
+		c.Status = ConnectionStatusFromGRPC[updateConnectionRequest.Status]
+	}
+	if updateConnectionRequest.UpdateIpRange {
+		c.IpRange = updateConnectionRequest.IpRange
 	}
 }
 
@@ -79,6 +119,28 @@ func ValidAddConnectionRequest(request *grpc_application_network_go.AddConnectio
 	}
 	if request.TargetInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting an TargetInstanceId")
+	}
+	return nil
+}
+
+func ValidUpdateConnectionRequest(request *grpc_application_network_go.UpdateConnectionRequest) derrors.Error {
+	if request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError("expecting an OrganizationId")
+	}
+	if request.InboundName == "" {
+		return derrors.NewInvalidArgumentError("expecting an InboundName")
+	}
+	if request.SourceInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting a SourceInstanceId")
+	}
+	if request.OutboundName == "" {
+		return derrors.NewInvalidArgumentError("expecting an OutboundName")
+	}
+	if request.TargetInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting a TargetInstanceId")
+	}
+	if request.UpdateIpRange && request.IpRange == "" {
+		return derrors.NewInvalidArgumentError("expecting a RangeIp")
 	}
 	return nil
 }
@@ -120,6 +182,8 @@ type ConnectionInstanceLink struct {
 	InboundName string `json:"inbound_name,omitempty" cql:"inbound_name"`
 	// OutboundName with the name of the outbound network interface
 	OutboundName string `json:"outbound_name,omitempty" cql:"outbound_name"`
+	// Status with the status of the connection instance
+	Status ConnectionStatus `json:"status,omitempty" cql:"status"`
 }
 
 // toGRPC
@@ -136,5 +200,6 @@ func (c *ConnectionInstanceLink) toGRPC() *grpc_application_network_go.Connectio
 		TargetClusterId:  c.TargetClusterId,
 		InboundName:      c.InboundName,
 		OutboundName:     c.OutboundName,
+		Status:           ConnectionStatusToGRPC[c.Status],
 	}
 }
