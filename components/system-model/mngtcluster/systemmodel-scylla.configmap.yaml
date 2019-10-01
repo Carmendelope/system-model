@@ -49,7 +49,7 @@ data:
     create type IF NOT EXISTS nalej.inbound_network_interface(name text);
     create type IF NOT EXISTS nalej.outbound_network_interface(name text, required boolean);
 
-    create type IF NOT EXISTS nalej.cluster_watch_info(name text, organization_id text, cluster_id text, ip text, cilium_id text, cilium_etcd_ca_crt text, cilium_etcd_key text);
+    create type IF NOT EXISTS nalej.cluster_watch_info(name text, organization_id text, cluster_id text, ip text, cilium_id text, cilium_etcd_ca_crt text, cilium_etcd_crt text,cilium_etcd_key text);
 
 
     ------------
