@@ -7,6 +7,7 @@ package entities
 import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-cluster-watcher-go"
+	grpc_connectivity_manager_go "github.com/nalej/grpc-connectivity-manager-go"
 	"github.com/nalej/grpc-infrastructure-go"
 )
 
@@ -48,7 +49,6 @@ var MultitenantSupportFromGRPC = map[grpc_infrastructure_go.MultitenantSupport]M
 	grpc_infrastructure_go.MultitenantSupport_NO:  MultitenantNo,
 }
 
-// InfraStatus enumeration defining the status of an element of the infrastructure.
 type InfraStatus int
 
 const (
@@ -72,6 +72,33 @@ var InfraStatusFromGRPC = map[grpc_infrastructure_go.InfraStatus]InfraStatus{
 	grpc_infrastructure_go.InfraStatus_ERROR:      InfraStatusError,
 }
 
+// ClusterStatus enumeration defining the status of an element of the infrastructure.
+type ClusterStatus int
+
+const (
+	ClusterStatusUnknown ClusterStatus = iota + 1
+	ClusterStatusOffline
+	ClusterStatusOnline
+	ClusterStatusOfflineCordon
+	ClusterStatusOnlineCordon
+)
+
+var ClusterStatusToGRPC = map[ClusterStatus]grpc_connectivity_manager_go.ClusterStatus{
+	ClusterStatusUnknown: grpc_connectivity_manager_go.ClusterStatus_UNKNOWN,
+	ClusterStatusOffline: grpc_connectivity_manager_go.ClusterStatus_OFFLINE,
+	ClusterStatusOnline: grpc_connectivity_manager_go.ClusterStatus_ONLINE,
+	ClusterStatusOfflineCordon:grpc_connectivity_manager_go.ClusterStatus_OFFLINE_CORDON,
+	ClusterStatusOnlineCordon: grpc_connectivity_manager_go.ClusterStatus_ONLINE_CORDON,
+}
+
+var ClusterStatusFromGRPC = map[grpc_connectivity_manager_go.ClusterStatus]ClusterStatus{
+	grpc_connectivity_manager_go.ClusterStatus_UNKNOWN: ClusterStatusUnknown,
+	grpc_connectivity_manager_go.ClusterStatus_OFFLINE:    ClusterStatusOffline,
+	grpc_connectivity_manager_go.ClusterStatus_ONLINE:      ClusterStatusOnline,
+	grpc_connectivity_manager_go.ClusterStatus_OFFLINE_CORDON: ClusterStatusOfflineCordon,
+	grpc_connectivity_manager_go.ClusterStatus_ONLINE_CORDON: ClusterStatusOnlineCordon,
+}
+
 // Cluster entity representing a collection of nodes that supports applicaiton orchestration. This
 // abstraction is used for monitoring and orchestration purposes.
 type Cluster struct {
@@ -90,7 +117,7 @@ type Cluster struct {
 	// Multitenant support definition.
 	Multitenant MultitenantSupport `json:"multitenant,omitempty"`
 	// Status of the cluster based on monitoring information.
-	Status InfraStatus `json:"status,omitempty"`
+	Status ClusterStatus `json:"status,omitempty"`
 	// Labels for the cluster.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Cordon flags to signal conductor not to schedule apps in the cluster.
@@ -163,7 +190,7 @@ func NewCluster(organizationID string, name string, description string, hostname
 		Hostname:             hostname,
 		ControlPlaneHostname: controlPlaneHostname,
 		Multitenant:          MultitenantYes,
-		Status:               InfraStatusInstalling,
+		Status:               ClusterStatusUnknown,
 		Labels:               make(map[string]string, 0),
 		Cordon:               false,
 		// ClusterWatch: this is filled by external components
@@ -180,7 +207,7 @@ func NewClusterFromGRPC(addClusterRequest *grpc_infrastructure_go.AddClusterRequ
 		Hostname:             addClusterRequest.Hostname,
 		ControlPlaneHostname: addClusterRequest.ControlPlaneHostname,
 		Multitenant:          MultitenantYes,
-		Status:               InfraStatusInstalling,
+		Status:               ClusterStatusUnknown,
 		Labels:               addClusterRequest.Labels,
 		Cordon:               false,
 		// ClusterWatch:
@@ -190,7 +217,7 @@ func NewClusterFromGRPC(addClusterRequest *grpc_infrastructure_go.AddClusterRequ
 func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 	clusterType := ClusterTypeToGRPC[c.ClusterType]
 	multitenant := MultitenantSupportToGRPC[c.Multitenant]
-	status := InfraStatusToGRPC[c.Status]
+	status := ClusterStatusToGRPC[c.Status]
 	return &grpc_infrastructure_go.Cluster{
 		OrganizationId:       c.OrganizationId,
 		ClusterId:            c.ClusterId,
@@ -199,9 +226,8 @@ func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 		Hostname:             c.Hostname,
 		ControlPlaneHostname: c.ControlPlaneHostname,
 		Multitenant:          multitenant,
-		Status:               status,
+		ClusterStatus:        status,
 		Labels:               c.Labels,
-		Cordon:               c.Cordon,
 		ClusterWatch:         c.ClusterWatch.ToGRPC(),
 	}
 }
@@ -227,7 +253,7 @@ func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateCluster
 		}
 	}
 	if updateRequest.UpdateStatus {
-		c.Status = InfraStatusFromGRPC[updateRequest.Status]
+		c.Status = ClusterStatusFromGRPC[updateRequest.Status]
 	}
 
 	if updateRequest.UpdateClusterWatch {
