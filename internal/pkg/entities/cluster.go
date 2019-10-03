@@ -124,6 +124,8 @@ type Cluster struct {
 	Cordon bool `json:"cordon,omitempty"`
 	// Cluster watch information
 	ClusterWatch ClusterWatchInfo `json:"cluster_watch,omitempty"`
+	// Last alive timestamp
+	LastAliveTimestamp int64
 }
 
 
@@ -194,6 +196,7 @@ func NewCluster(organizationID string, name string, description string, hostname
 		Labels:               make(map[string]string, 0),
 		Cordon:               false,
 		// ClusterWatch: this is filled by external components
+		// LastAliveTimestamp: this is filled by external components
 	}
 }
 
@@ -211,6 +214,7 @@ func NewClusterFromGRPC(addClusterRequest *grpc_infrastructure_go.AddClusterRequ
 		Labels:               addClusterRequest.Labels,
 		Cordon:               false,
 		// ClusterWatch:
+		// LastAliveTimestamp:
 	}
 }
 
