@@ -7,7 +7,7 @@ package entities
 import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-cluster-watcher-go"
-	grpc_connectivity_manager_go "github.com/nalej/grpc-connectivity-manager-go"
+	"github.com/nalej/grpc-connectivity-manager-go"
 	"github.com/nalej/grpc-infrastructure-go"
 )
 
