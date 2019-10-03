@@ -68,6 +68,17 @@ func (m *MockupApplicationNetworkProvider) AddConnectionInstance(toAdd entities.
 	return derrors.NewAlreadyExistsError(toAdd.ConnectionId)
 }
 
+func (m *MockupApplicationNetworkProvider) UpdateConnectionInstance(toUpdate entities.ConnectionInstance) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+	compositePK := getCompositePK(toUpdate.OrganizationId, toUpdate.SourceInstanceId, toUpdate.TargetInstanceId, toUpdate.InboundName, toUpdate.OutboundName)
+	if m.unsafeExistsConnectionInstance(compositePK) {
+		m.connectionInstances[compositePK] = toUpdate
+		return nil
+	}
+	return derrors.NewNotFoundError(toUpdate.ConnectionId)
+}
+
 // ExistsConnectionInstance Checks the existence of the connection instance using organizationId, sourceInstanceId, targetInstanceId, inboundName, and outboundName.
 func (m *MockupApplicationNetworkProvider) ExistsConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) (bool, derrors.Error) {
 	m.Lock()
@@ -116,24 +127,25 @@ func (m *MockupApplicationNetworkProvider) RemoveConnectionInstance(organization
 }
 
 // ListInboundConnections retrieve all the connections where instance is the target
-func (m *MockupApplicationNetworkProvider) ListInboundConnections(organizationId string, appInstanceId string)([]entities.ConnectionInstance, derrors.Error){
+func (m *MockupApplicationNetworkProvider) ListInboundConnections(organizationId string, appInstanceId string) ([]entities.ConnectionInstance, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	ret := make([]entities.ConnectionInstance, 0)
 	for _, instance := range m.connectionInstances {
-		if instance.OrganizationId == organizationId && instance.TargetInstanceId == appInstanceId{
+		if instance.OrganizationId == organizationId && instance.TargetInstanceId == appInstanceId {
 			ret = append(ret, instance)
 		}
 	}
 	return ret, nil
 }
+
 // ListOutboundConnections retrieve all the connections where instance is the source
-func (m *MockupApplicationNetworkProvider) ListOutboundConnections(organizationId string, appInstanceId string)([]entities.ConnectionInstance, derrors.Error){
+func (m *MockupApplicationNetworkProvider) ListOutboundConnections(organizationId string, appInstanceId string) ([]entities.ConnectionInstance, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	ret := make([]entities.ConnectionInstance, 0)
 	for _, instance := range m.connectionInstances {
-		if instance.OrganizationId == organizationId && instance.SourceInstanceId == appInstanceId{
+		if instance.OrganizationId == organizationId && instance.SourceInstanceId == appInstanceId {
 			ret = append(ret, instance)
 		}
 	}

@@ -39,6 +39,7 @@ create type IF NOT EXISTS nalej.descriptor_parameter(name text, description text
 create type IF NOT EXISTS nalej.app_network_member(member_id text, is_proxy boolean, ip text, created_at bigint);
 create type IF NOT EXISTS nalej.service_proxy(organization_id text, app_instance_id text, service_group_instance_id text, service_instance_id text, service_group_id text, service_id text, cluster_id text, ip text, fqdn text);
 
+create type IF NOT EXISTS nalej.cluster_watch_info(name text, organization_id text, cluster_id text, ip text, cilium_id text, cilium_etcd_ca_crt text, cilium_etcd_key text);
 
 ------------
 -- TABLES --
@@ -53,7 +54,7 @@ create table IF NOT EXISTS nalej.Organization_AppInstances (organization_id text
 create table IF NOT EXISTS nalej.Organization_Users (organization_id text, email text, PRIMARY KEY (organization_id, email));
 create table IF NOT EXISTS nalej.Organization_Roles (organization_id text, role_id text, PRIMARY KEY (organization_id, role_id));
 create table IF NOT EXISTS nalej.Nodes (organization_id text, cluster_id text, node_id text, ip text, labels map<text, text>, status int, state int, PRIMARY KEY(node_id));
-create table IF NOT EXISTS nalej.Clusters (organization_id text, cluster_id text, name text, cluster_type int, hostname text, control_plane_hostname text, multitenant int, status int, labels map<text, text>, cordon boolean, PRIMARY KEY (cluster_id));
+create table IF NOT EXISTS nalej.Clusters (organization_id text, cluster_id text, name text, cluster_type int, hostname text, control_plane_hostname text, multitenant int, status int, labels map<text, text>, cordon boolean, cluster_watch FROZEN <cluster_watch_info>, PRIMARY KEY (cluster_id));
 create table IF NOT EXISTS nalej.Cluster_Nodes (cluster_id text, node_id text, PRIMARY KEY (cluster_id, node_id));
 create table IF NOT EXISTS nalej.ApplicationInstances (organization_id text, app_descriptor_id text, app_instance_id text, name text, configuration_options map<text, text>, environment_variables map<text, text>, labels map<text, text>, rules list<FROZEN<security_rule>>, groups list<FROZEN<service_group_instance>>, status int, metadata list<FROZEN<metadata>>, info text, PRIMARY KEY (app_instance_id));
 create table IF NOT EXISTS nalej.ApplicationDescriptors (organization_id text, app_descriptor_id text, name text, configuration_options map<text, text>, environment_variables map<text, text>, labels map <text, text>, rules list<FROZEN<security_rule>>, groups list<FROZEN<service_group>>, parameters list<FROZEN<descriptor_parameter>>, PRIMARY KEY (app_descriptor_id));

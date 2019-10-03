@@ -26,6 +26,8 @@ func RunTest(provider Provider) {
 			InboundName:        entities.GenerateUUID(),
 			OutboundName:       entities.GenerateUUID(),
 			OutboundRequired:   false,
+			Status:             entities.ConnectionStatusWaiting,
+			IpRange:            "",
 		}
 		err := provider.AddConnectionInstance(toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -51,6 +53,8 @@ func RunTest(provider Provider) {
 			InboundName:        entities.GenerateUUID(),
 			OutboundName:       entities.GenerateUUID(),
 			OutboundRequired:   false,
+			Status:             entities.ConnectionStatusWaiting,
+			IpRange:            "",
 		}
 		err := provider.AddConnectionInstance(toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -63,6 +67,38 @@ func RunTest(provider Provider) {
 		)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(*connectionInstance).To(gomega.Equal(toAdd))
+	})
+
+	ginkgo.It("should be able to update a ConnectionInstance", func() {
+		connectionInstance := entities.ConnectionInstance{
+			OrganizationId:     entities.GenerateUUID(),
+			ConnectionId:       entities.GenerateUUID(),
+			SourceInstanceId:   entities.GenerateUUID(),
+			SourceInstanceName: entities.GenerateUUID(),
+			TargetInstanceId:   entities.GenerateUUID(),
+			TargetInstanceName: entities.GenerateUUID(),
+			InboundName:        entities.GenerateUUID(),
+			OutboundName:       entities.GenerateUUID(),
+			OutboundRequired:   false,
+			Status:             entities.ConnectionStatusWaiting,
+			IpRange:            "",
+		}
+		err := provider.AddConnectionInstance(connectionInstance)
+		gomega.Expect(err).To(gomega.Succeed())
+		connectionInstance.Status = entities.ConnectionStatusEstablished
+		connectionInstance.IpRange = "172.16.0.1-172.16.0.254"
+		err = provider.UpdateConnectionInstance(connectionInstance)
+		gomega.Expect(err).To(gomega.Succeed())
+		updatedInstance, err := provider.GetConnectionInstance(
+			connectionInstance.OrganizationId,
+			connectionInstance.SourceInstanceId,
+			connectionInstance.TargetInstanceId,
+			connectionInstance.InboundName,
+			connectionInstance.OutboundName,
+		)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(updatedInstance.Status).To(gomega.Equal(connectionInstance.Status))
+		gomega.Expect(updatedInstance.IpRange).To(gomega.Equal(connectionInstance.IpRange))
 	})
 
 	ginkgo.It("should be able to retrieve a list of inserted ConnectionInstances", func() {
@@ -78,6 +114,8 @@ func RunTest(provider Provider) {
 				InboundName:        entities.GenerateUUID(),
 				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
+				Status:             entities.ConnectionStatusWaiting,
+				IpRange:            "",
 			},
 			{
 				OrganizationId:     organizationId,
@@ -89,6 +127,8 @@ func RunTest(provider Provider) {
 				InboundName:        entities.GenerateUUID(),
 				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
+				Status:             entities.ConnectionStatusWaiting,
+				IpRange:            "",
 			},
 		}
 		for _, instance := range toAdd {
@@ -113,6 +153,8 @@ func RunTest(provider Provider) {
 				InboundName:        entities.GenerateUUID(),
 				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
+				Status:             entities.ConnectionStatusWaiting,
+				IpRange:            "",
 			},
 			{
 				OrganizationId:     organizationId,
@@ -124,6 +166,8 @@ func RunTest(provider Provider) {
 				InboundName:        entities.GenerateUUID(),
 				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
+				Status:             entities.ConnectionStatusWaiting,
+				IpRange:            "",
 			},
 		}
 		for _, instance := range toAdd {
@@ -158,6 +202,8 @@ func RunTest(provider Provider) {
 				InboundName:        entities.GenerateUUID(),
 				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
+				Status:             entities.ConnectionStatusWaiting,
+				IpRange:            "",
 			}
 			err := provider.AddConnectionInstance(toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -191,6 +237,8 @@ func RunTest(provider Provider) {
 				InboundName:        entities.GenerateUUID(),
 				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
+				Status:             entities.ConnectionStatusWaiting,
+				IpRange:            "",
 			}
 			err := provider.AddConnectionInstance(toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -223,6 +271,8 @@ func RunTest(provider Provider) {
 			InboundName:        entities.GenerateUUID(),
 			OutboundName:       entities.GenerateUUID(),
 			OutboundRequired:   false,
+			Status:             entities.ConnectionStatusWaiting,
+			IpRange:            "",
 		}
 		err := provider.AddConnectionInstance(instance)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -236,6 +286,7 @@ func RunTest(provider Provider) {
 			TargetClusterId:  entities.GenerateUUID(),
 			InboundName:      instance.InboundName,
 			OutboundName:     instance.OutboundName,
+			Status:           entities.ConnectionStatusWaiting,
 		}
 		err = provider.AddConnectionInstanceLink(toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -263,6 +314,8 @@ func RunTest(provider Provider) {
 			InboundName:        entities.GenerateUUID(),
 			OutboundName:       entities.GenerateUUID(),
 			OutboundRequired:   false,
+			Status:             entities.ConnectionStatusWaiting,
+			IpRange:            "",
 		}
 		_ = provider.AddConnectionInstance(instance)
 
@@ -275,6 +328,7 @@ func RunTest(provider Provider) {
 			TargetClusterId:  entities.GenerateUUID(),
 			InboundName:      instance.InboundName,
 			OutboundName:     instance.OutboundName,
+			Status:           entities.ConnectionStatusWaiting,
 		}
 		err := provider.AddConnectionInstanceLink(toAdd)
 		link, err := provider.GetConnectionInstanceLink(
@@ -301,6 +355,8 @@ func RunTest(provider Provider) {
 			InboundName:        entities.GenerateUUID(),
 			OutboundName:       entities.GenerateUUID(),
 			OutboundRequired:   false,
+			Status:             entities.ConnectionStatusWaiting,
+			IpRange:            "",
 		}
 		_ = provider.AddConnectionInstance(instance)
 
@@ -314,6 +370,7 @@ func RunTest(provider Provider) {
 				TargetClusterId:  entities.GenerateUUID(),
 				InboundName:      instance.InboundName,
 				OutboundName:     instance.OutboundName,
+				Status:           entities.ConnectionStatusWaiting,
 			},
 			{
 				OrganizationId:   instance.OrganizationId,
@@ -324,6 +381,7 @@ func RunTest(provider Provider) {
 				TargetClusterId:  entities.GenerateUUID(),
 				InboundName:      instance.InboundName,
 				OutboundName:     instance.OutboundName,
+				Status:           entities.ConnectionStatusWaiting,
 			},
 		}
 		for _, link := range toAdd {
@@ -346,6 +404,8 @@ func RunTest(provider Provider) {
 			InboundName:        entities.GenerateUUID(),
 			OutboundName:       entities.GenerateUUID(),
 			OutboundRequired:   false,
+			Status:             entities.ConnectionStatusWaiting,
+			IpRange:            "",
 		}
 		err := provider.AddConnectionInstance(instance)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -360,6 +420,7 @@ func RunTest(provider Provider) {
 				TargetClusterId:  entities.GenerateUUID(),
 				InboundName:      instance.InboundName,
 				OutboundName:     instance.OutboundName,
+				Status:           entities.ConnectionStatusWaiting,
 			},
 			{
 				OrganizationId:   instance.OrganizationId,
@@ -370,6 +431,7 @@ func RunTest(provider Provider) {
 				TargetClusterId:  entities.GenerateUUID(),
 				InboundName:      instance.InboundName,
 				OutboundName:     instance.OutboundName,
+				Status:           entities.ConnectionStatusWaiting,
 			},
 		}
 		for _, link := range toAdd {

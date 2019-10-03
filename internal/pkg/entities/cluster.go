@@ -6,6 +6,7 @@ package entities
 
 import (
 	"github.com/nalej/derrors"
+	"github.com/nalej/grpc-cluster-watcher-go"
 	"github.com/nalej/grpc-infrastructure-go"
 )
 
@@ -94,6 +95,62 @@ type Cluster struct {
 	Labels map[string]string `json:"labels,omitempty"`
 	// Cordon flags to signal conductor not to schedule apps in the cluster.
 	Cordon bool `json:"cordon,omitempty"`
+	// Cluster watch information
+	ClusterWatch ClusterWatchInfo `json:"cluster_watch,omitempty"`
+}
+
+
+// The cluster watcher contains information to ensure the connectivity between clusters. This data
+// is required by Cilium and other connectivity platforms.
+type ClusterWatchInfo struct {
+	// Name of the cluster
+	Name string `json:"name,omitempty" cql:"name"`
+	// Organization id
+	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
+	// ClusterId of the cluster
+	ClusterId string `json:"cluster_id,omitempty" cql:"cluster_id"`
+	// IP of the cluster
+	Ip string `json:"ip,omitempty" cql:"ip"`
+	// CiliumId ClusterId for the node
+	CiliumId string `json:"cilium_id,omitempty" cql:"cilium_id"`
+	// Cilium etcd-client-ca.crt certification authority to be used
+	CiliumEtcdCaCrt string `json:"cilium_etcd_ca_crt,omitempty" cql:"cilium_etcd_ca_crt"`
+	// Cilium etcd-client.crt certificate
+	CiliumEtcdCrt string `json:"cilium_etcd_crt,omitempty" cql:"cilium_etcd_crt"`
+	// Cilium client public key
+	CiliumEtcdKey string `json:"cilium_etcd_key,omitempty" cql:"cilium_etcd_key"`
+}
+
+func NewClusterWatchInfo(name string, organizationId, clusterId string, ip string, ciliumId string,
+	ciliumEtcdCaCrt string, ciliumEtcdCrt string, ciliumEtcdKey string) *ClusterWatchInfo {
+		return &ClusterWatchInfo{
+			Name:            name,
+			OrganizationId:  organizationId,
+			ClusterId:       clusterId,
+			Ip:              ip,
+			CiliumId:        ciliumId,
+			CiliumEtcdCaCrt: ciliumEtcdCaCrt,
+			CiliumEtcdKey:   ciliumEtcdKey,
+			CiliumEtcdCrt:   ciliumEtcdCrt,
+		}
+}
+
+func(c *ClusterWatchInfo) ToGRPC() *grpc_cluster_watcher_go.ClusterWatchInfo {
+	return &grpc_cluster_watcher_go.ClusterWatchInfo{
+		Name: c.Name,
+		ClusterId: c.ClusterId,
+		Ip: c.Ip,
+		CiliumEtcdCrt: c.CiliumEtcdCrt,
+		CiliumEtcdKey: c.CiliumEtcdKey,
+		CiliumEtcdCaCrt: c.CiliumEtcdCaCrt,
+		CiliumId: c.CiliumId,
+	}
+}
+
+func ClusterWatchInfoFromGRPC(clusterWatch *grpc_cluster_watcher_go.ClusterWatchInfo) *ClusterWatchInfo {
+	return NewClusterWatchInfo(clusterWatch.Name, clusterWatch.OrganizationId, clusterWatch.ClusterId,
+		clusterWatch.Ip,clusterWatch.CiliumId, clusterWatch.CiliumEtcdCaCrt, clusterWatch.CiliumEtcdCrt,
+		clusterWatch.CiliumEtcdKey)
 }
 
 func NewCluster(organizationID string, name string, description string, hostname string, controlPlaneHostname string) *Cluster {
@@ -109,6 +166,7 @@ func NewCluster(organizationID string, name string, description string, hostname
 		Status:               InfraStatusInstalling,
 		Labels:               make(map[string]string, 0),
 		Cordon:               false,
+		// ClusterWatch: this is filled by external components
 	}
 }
 
@@ -125,6 +183,7 @@ func NewClusterFromGRPC(addClusterRequest *grpc_infrastructure_go.AddClusterRequ
 		Status:               InfraStatusInstalling,
 		Labels:               addClusterRequest.Labels,
 		Cordon:               false,
+		// ClusterWatch:
 	}
 }
 
@@ -143,6 +202,7 @@ func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 		Status:               status,
 		Labels:               c.Labels,
 		Cordon:               c.Cordon,
+		ClusterWatch:         c.ClusterWatch.ToGRPC(),
 	}
 }
 
@@ -168,6 +228,10 @@ func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateCluster
 	}
 	if updateRequest.UpdateStatus {
 		c.Status = InfraStatusFromGRPC[updateRequest.Status]
+	}
+
+	if updateRequest.UpdateClusterWatch {
+		c.ClusterWatch = *ClusterWatchInfoFromGRPC(updateRequest.ClusterWatchInfo)
 	}
 }
 
