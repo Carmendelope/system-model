@@ -278,6 +278,19 @@ func (m *MockupApplicationNetworkProvider)ListZTConnections(organizationId strin
 	return list, nil
 }
 
+func (m *MockupApplicationNetworkProvider) 	UpdateZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error{
+	m.Lock()
+	defer m.Unlock()
+	pk := m.getZTPk(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId)
+	_, exists := m.ztNetworkConnections[pk]
+	if !exists{
+		return derrors.NewNotFoundError("ztNetwork")
+	}
+	m.ztNetworkConnections[pk] = ztConnection
+
+	return nil
+}
+
 func (m *MockupApplicationNetworkProvider)RemoveZTConnection(organizationId string, networkId string, appInstanceId string)derrors.Error{
 	m.Lock()
 	defer m.Unlock()

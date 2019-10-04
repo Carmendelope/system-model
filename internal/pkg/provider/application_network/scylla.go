@@ -371,11 +371,17 @@ func (sap *ScyllaApplicationNetworkProvider) ListZTConnections(organizationId st
 }
 
 func (sap *ScyllaApplicationNetworkProvider) RemoveZTConnection(organizationId string, networkId string, appInstanceId string) derrors.Error{
-// func (s* ScyllaDB) UnsafeRemove(table string, pkColumn string, pkValue string) derrors.Error{
 	sap.Lock()
 	defer sap.Unlock()
 	pkComposite := sap.createZTConnectionIPkMap(organizationId, networkId, appInstanceId)
 	return sap.UnsafeCompositeRemove(ZTConnectionTable, pkComposite)
+}
+
+func (sap *ScyllaApplicationNetworkProvider) 	UpdateZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error {
+	sap.Lock()
+	defer sap.Unlock()
+	pkComposite := sap.createZTConnectionIPkMap(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId)
+	return sap.UnsafeCompositeUpdate(ZTConnectionTable, pkComposite, ZTConnectionColumnsNoPK, ztConnection)
 }
 
 func (sap *ScyllaApplicationNetworkProvider) Clear() derrors.Error {
