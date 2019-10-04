@@ -125,7 +125,7 @@ type Cluster struct {
 	// Cluster watch information
 	ClusterWatch ClusterWatchInfo `json:"cluster_watch,omitempty"`
 	// Last alive timestamp
-	LastAliveTimestamp int64
+	LastAliveTimestamp int64 `json:"last_alive_timestamp,omitempty"`
 }
 
 
@@ -233,6 +233,7 @@ func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 		ClusterStatus:        status,
 		Labels:               c.Labels,
 		ClusterWatch:         c.ClusterWatch.ToGRPC(),
+		LastAliveTimestamp:   c.LastAliveTimestamp,
 	}
 }
 
@@ -256,12 +257,17 @@ func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateCluster
 			delete(c.Labels, k)
 		}
 	}
+
 	if updateRequest.UpdateStatus {
 		c.Status = ClusterStatusFromGRPC[updateRequest.Status]
 	}
 
 	if updateRequest.UpdateClusterWatch {
 		c.ClusterWatch = *ClusterWatchInfoFromGRPC(updateRequest.ClusterWatchInfo)
+	}
+
+	if updateRequest.UpdateLastClusterTimestamp {
+		c.LastAliveTimestamp = updateRequest.LastClusterTimestamp
 	}
 }
 
