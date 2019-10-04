@@ -53,6 +53,18 @@ create table if not exists nalej.Connection_Instance_Links
         )
 );
 
+create table if not exists nalej.ztnetworkconnection
+(
+    organization_id text,
+    zt_network_id text,
+    app_instance_id text,
+    zt_member text,
+    zt_ip text,
+    cluster_id text,
+    side int,
+    primary key ((organization_id, zt_network_id), app_instance_id)
+)
+
 Environment variables
 IT_SCYLLA_HOST=127.0.0.1
 RUN_INTEGRATION_TEST=true

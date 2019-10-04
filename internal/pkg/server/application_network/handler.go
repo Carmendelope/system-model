@@ -5,6 +5,7 @@
 package application_network
 
 import (
+	"context"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-application-network-go"
 	"github.com/nalej/grpc-common-go"
@@ -12,7 +13,6 @@ import (
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/rs/zerolog/log"
-	"golang.org/x/net/context"
 )
 
 type Handler struct {
@@ -58,6 +58,7 @@ func (h *Handler) RemoveConnection(ctx context.Context, removeConnectionRequest 
 }
 
 func (h *Handler) ListConnections(_ context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_network_go.ConnectionInstanceList, error) {
+	log.Debug().Msg("ListConnections")
 	if err := entities.ValidOrganizationID(orgID); err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
@@ -85,7 +86,7 @@ func (h *Handler) ListInboundConnections(_ context.Context, appInstanceID *grpc_
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
-	connList := make([]*grpc_application_network_go.ConnectionInstance, 0, len(list))
+	connList := make([]*grpc_application_network_go.ConnectionInstance, 0)
 	for _, instance := range list {
 		connList = append(connList, instance.ToGRPC())
 	}
@@ -112,4 +113,61 @@ func (h *Handler) ListOutboundConnections(_ context.Context, appInstanceID *grpc
 	return &grpc_application_network_go.ConnectionInstanceList{
 		Connections: connList,
 	}, nil
+}
+
+// AddZTNetworkConnection adds a new zt Connection (one per an inbound and one per the inbound)
+func (h *Handler) AddZTNetworkConnection(ctx context.Context, addRequest *grpc_application_network_go.ZTNetworkConnection) (*grpc_application_network_go.ZTNetworkConnection, error){
+
+	vErr := entities.ValidateZTNetworkConnection(addRequest)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	added, err := h.Manager.AddZTNetworkConnection(addRequest)
+	if err != nil {
+		return nil, err
+	}
+	return added.ToGRPC(), nil
+}
+// ListZTNetworkConnection lists the connections in one zt network (one inbound and one outbound)
+func (h *Handler) ListZTNetworkConnection(ctx context.Context, ztNetworkId *grpc_application_network_go.ZTNetworkConnectionId) (*grpc_application_network_go.ZTNetworkConnectionList, error){
+	vErr := entities.ValidateZTNetworkConnectionId(ztNetworkId)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	list, err := h.Manager.ListZTNetworkConnection(ztNetworkId)
+	if err != nil {
+		return nil, err
+	}
+	ztList := make ([]*grpc_application_network_go.ZTNetworkConnection, 0)
+	for _, conn := range list {
+		ztList = append(ztList, conn.ToGRPC())
+	}
+
+	return &grpc_application_network_go.ZTNetworkConnectionList{
+		Connections: ztList,
+	}, nil
+}
+// UpdateZTNetworkConnection updates an existing zt connection
+func (h *Handler) UpdateZTNetworkConnection(ctx context.Context, updateRequest *grpc_application_network_go.UpdateZTNetworkConnectionRequest) (*grpc_common_go.Success, error){
+	vErr := entities.ValidateUpdateZTNetworkConnectionRequest(updateRequest)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	err := h.Manager.UpdateZTNetworkConnection(updateRequest)
+	if err != nil {
+		return nil, err
+	}
+	return &grpc_common_go.Success{}, nil
+}
+// Remove ZTNetwork removes the ztNetworkConnection (the inbound and the outbound)
+func (h *Handler) RemoveZTNetworkConnection(ctx context.Context, ztNetworkId *grpc_application_network_go.ZTNetworkConnectionId) (*grpc_common_go.Success, error){
+	vErr := entities.ValidateZTNetworkConnectionId(ztNetworkId)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	err := h.Manager.RemoveZTNetworkConnection(ztNetworkId)
+	if err != nil {
+		return nil, err
+	}
+	return &grpc_common_go.Success{}, nil
 }

@@ -39,6 +39,14 @@ type Provider interface {
 	// RemoveConnectionInstanceLinks Removes all connection links from a connection instance.
 	RemoveConnectionInstanceLinks(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) derrors.Error
 
+	AddZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error
+	ExistsZTConnection(organizationId string, networkId string, appInstanceId string) (bool, derrors.Error)
+	GetZTConnection(organizationId string, networkId string, appInstanceId string)(*entities.ZTNetworkConnection, derrors.Error)
+	UpdateZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error
+	ListZTConnections(organizationId string, networkId string) ([]entities.ZTNetworkConnection, derrors.Error)
+	RemoveZTConnection(organizationId string, networkId string)derrors.Error
+
+
 	// clear the connections information
 	Clear() derrors.Error
 }
