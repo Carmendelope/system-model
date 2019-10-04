@@ -370,10 +370,14 @@ func (sap *ScyllaApplicationNetworkProvider) ListZTConnections(organizationId st
 	return list, nil
 }
 
-func (sap *ScyllaApplicationNetworkProvider) RemoveZTConnection(organizationId string, networkId string, appInstanceId string) derrors.Error{
+func (sap *ScyllaApplicationNetworkProvider) RemoveZTConnection(organizationId string, networkId string) derrors.Error{
 	sap.Lock()
 	defer sap.Unlock()
-	pkComposite := sap.createZTConnectionIPkMap(organizationId, networkId, appInstanceId)
+	// removes all the connections in the ztNetwork
+	pkComposite:= map[string]interface{}{
+		"organization_id":  organizationId,
+		"zt_network_id": 	networkId,
+	}
 	return sap.UnsafeCompositeRemove(ZTConnectionTable, pkComposite)
 }
 

@@ -291,14 +291,24 @@ func (m *MockupApplicationNetworkProvider) 	UpdateZTConnection(ztConnection enti
 	return nil
 }
 
-func (m *MockupApplicationNetworkProvider)RemoveZTConnection(organizationId string, networkId string, appInstanceId string)derrors.Error{
+func (m *MockupApplicationNetworkProvider)RemoveZTConnection(organizationId string, networkId string)derrors.Error{
 	m.Lock()
 	defer m.Unlock()
-	pk := m.getZTPk(organizationId, networkId, appInstanceId)
-	if ! m.unsafeExistsZTConnection(pk){
-		return derrors.NewNotFoundError("ztNetwork")
+
+	list := make([]entities.ZTNetworkConnection, 0)
+	for _, conn := range m.ztNetworkConnections {
+		if conn.OrganizationId == organizationId && conn.ZtNetworkId == networkId {
+			list = append(list, conn)
+		}
 	}
-	delete (m.ztNetworkConnections, pk)
+	if len(list) == 0 {
+		return derrors.NewNotFoundError("ztnetworkConnection").WithParams(organizationId, networkId)
+	}
+	for _, ztConnection := range list {
+		pk := m.getZTPk(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId)
+		delete (m.ztNetworkConnections, pk)
+	}
+
 	return nil
 }
 

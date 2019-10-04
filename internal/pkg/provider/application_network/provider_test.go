@@ -612,13 +612,34 @@ func RunTest(provider Provider) {
 			err := provider.AddZTConnection(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			err = provider.RemoveZTConnection(toAdd.OrganizationId, toAdd.ZtNetworkId, toAdd.AppInstanceId)
+			err = provider.RemoveZTConnection(toAdd.OrganizationId, toAdd.ZtNetworkId)
 			gomega.Expect(err).To(gomega.Succeed())
 
 		})
 		ginkgo.It("should not be able to remove a ztnetwork connections if it does not exist", func() {
-			err := provider.RemoveZTConnection(uuid.New().String(), uuid.New().String(), uuid.New().String())
+			err := provider.RemoveZTConnection(uuid.New().String(), uuid.New().String())
 			gomega.Expect(err).NotTo(gomega.Succeed())
+		})
+		ginkgo.It("should be able to remove a ztnetwork connections ", func() {
+			toAdd := &entities.ZTNetworkConnection{
+				OrganizationId:	uuid.New().String(),
+				ZtNetworkId:	uuid.New().String(),
+				AppInstanceId:  uuid.New().String(),
+				ZtMember: 		uuid.New().String(),
+				ZtIp: 			"xxx.xxx.xxx.xxx",
+				ClusterId: 		uuid.New().String(),
+				Side: 			entities.ConnectionSideOutbound,
+
+			}
+			err := provider.AddZTConnection(*toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			toAdd.AppInstanceId = uuid.New().String()
+			gomega.Expect(err).To(gomega.Succeed())
+
+			err = provider.RemoveZTConnection(toAdd.OrganizationId, toAdd.ZtNetworkId)
+			gomega.Expect(err).To(gomega.Succeed())
+
 		})
 	})
 

@@ -44,7 +44,7 @@ type Provider interface {
 	GetZTConnection(organizationId string, networkId string, appInstanceId string)(*entities.ZTNetworkConnection, derrors.Error)
 	UpdateZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error
 	ListZTConnections(organizationId string, networkId string) ([]entities.ZTNetworkConnection, derrors.Error)
-	RemoveZTConnection(organizationId string, networkId string, appInstanceId string)derrors.Error
+	RemoveZTConnection(organizationId string, networkId string)derrors.Error
 
 
 	// clear the connections information
