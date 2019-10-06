@@ -276,6 +276,22 @@ func (manager *Manager) ListOutboundConnections(appInstanceID *grpc_application_
 }
 
 
+// check if the instance has a service wich its identifier is serviceId
+func (manager *Manager) checkServiceId (inst *entities.AppInstance, serviceId string) derrors.Error {
+	found := false
+	for  i:=0; i<len(inst.Groups) && !found ; i++ { // , group := range inst.Groups {
+		for j:=0; j<len(inst.Groups[i].ServiceInstances) && ! found; j++ { //, service := range group.ServiceInstances {
+			if inst.Groups[i].ServiceInstances[j].ServiceId == serviceId { // .ServiceId == serviceId{
+				found = true
+			}
+		}
+	}
+	if !found {
+		return derrors.NewNotFoundError("no service found in the instance").WithParams(serviceId, inst.AppInstanceId)
+	}
+	return nil
+}
+
 func (manager *Manager) AddZTNetworkConnection(addRequest *grpc_application_network_go.ZTNetworkConnection) (*entities.ZTNetworkConnection, derrors.Error){
 
 	// check if the organization exists
@@ -284,8 +300,12 @@ func (manager *Manager) AddZTNetworkConnection(addRequest *grpc_application_netw
 		return nil, err
 	}
 
-	// check if the instance exists
-	err = manager.validInstance(addRequest.AppInstanceId)
+	inst, err := manager.ApplicationProvider.GetInstance(addRequest.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = manager.checkServiceId(inst, addRequest.ServiceId)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +344,7 @@ func (manager *Manager) UpdateZTNetworkConnection(updateRequest *grpc_applicatio
 		return err
 	}
 
-	conn, err := manager.AppNetProvider.GetZTConnection(updateRequest.OrganizationId, updateRequest.ZtNetworkId, updateRequest.AppInstanceId)
+	conn, err := manager.AppNetProvider.GetZTConnection(updateRequest.OrganizationId, updateRequest.ZtNetworkId, updateRequest.AppInstanceId, updateRequest.ServiceId)
 	if err != nil {
 		return err
 	}
