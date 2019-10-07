@@ -227,6 +227,8 @@ type ZTNetworkConnection struct {
 	ZtNetworkId string `json:"zt_network_id,omitempty" cql:"zt_network_id"`
 	// Application instance identifier
 	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
+	// ServiceId with the service identifier
+	ServiceId string ` json:"service_id,omitempty" cql:"service_id"`
 	// ZtMember zero tier member identifier
 	ZtMember string `json:"zt_member,omitempty" cql:"zt_member"`
 	// ZtIp
@@ -245,6 +247,7 @@ func NewZTNetworkConnectionFromGRPC(zt *grpc_application_network_go.ZTNetworkCon
 		OrganizationId:zt.OrganizationId,
 		ZtNetworkId: zt.ZtNetworkId,
 		AppInstanceId: zt.AppInstanceId,
+		ServiceId: zt.ServiceId,
 		ZtMember: zt.ZtMember,
 		ZtIp: zt.ZtIp,
 		ClusterId: zt.ClusterId,
@@ -256,6 +259,7 @@ func (zt *ZTNetworkConnection) ToGRPC () *grpc_application_network_go.ZTNetworkC
 		OrganizationId:zt.OrganizationId,
 		ZtNetworkId: zt.ZtNetworkId,
 		AppInstanceId: zt.AppInstanceId,
+		ServiceId: zt.ServiceId,
 		ZtMember: zt.ZtMember,
 		ZtIp: zt.ZtIp,
 		ClusterId: zt.ClusterId,
@@ -282,6 +286,9 @@ func ValidateZTNetworkConnection(request *grpc_application_network_go.ZTNetworkC
 	if request.AppInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting a AppInstanceId")
 	}
+	if request.ServiceId == "" {
+		return derrors.NewInvalidArgumentError("expecting a ServiceId")
+	}
 	return nil
 }
 
@@ -304,6 +311,9 @@ func ValidateUpdateZTNetworkConnectionRequest (request *grpc_application_network
 	}
 	if request.AppInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting a AppInstanceId")
+	}
+	if request.ServiceId == "" {
+		return derrors.NewInvalidArgumentError("expecting a ServiceId")
 	}
 	return nil
 }

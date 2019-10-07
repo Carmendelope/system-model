@@ -59,6 +59,7 @@ var (
 		"organization_id",
 		"zt_network_id",
 		"app_instance_id",
+		"service_id",
 		"zt_member",
 		"zt_ip",
 		"cluster_id",
@@ -94,11 +95,12 @@ func (sap *ScyllaApplicationNetworkProvider) createConnectionInstanceLinkPkMap(o
 	}
 }
 
-func (sap *ScyllaApplicationNetworkProvider) createZTConnectionIPkMap(organizationId string, ztNetworkId string, appInstanceId string) map[string]interface{} {
+func (sap *ScyllaApplicationNetworkProvider) createZTConnectionIPkMap(organizationId string, ztNetworkId string, appInstanceId string, serviceId string) map[string]interface{} {
 	return map[string]interface{}{
 		"organization_id":  organizationId,
 		"zt_network_id": 	ztNetworkId,
 		"app_instance_id":  appInstanceId,
+		"service_id":		serviceId,
 	}
 }
 
@@ -322,21 +324,21 @@ func (sap *ScyllaApplicationNetworkProvider) RemoveConnectionInstanceLinks(organ
 func (sap *ScyllaApplicationNetworkProvider) AddZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error{
 	sap.Lock()
 	defer sap.Unlock()
-	pkComposite := sap.createZTConnectionIPkMap(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId)
+	pkComposite := sap.createZTConnectionIPkMap(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId, ztConnection.ServiceId)
 	return sap.UnsafeCompositeAdd(ZTConnectionTable, pkComposite, ZTConnectionColumns, ztConnection)
 }
 
-func (sap *ScyllaApplicationNetworkProvider) ExistsZTConnection(organizationId string, networkId string, appInstanceId string) (bool, derrors.Error) {
+func (sap *ScyllaApplicationNetworkProvider) ExistsZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string) (bool, derrors.Error) {
 	sap.Lock()
 	defer sap.Unlock()
-	pkComposite := sap.createZTConnectionIPkMap(organizationId, networkId, appInstanceId)
+	pkComposite := sap.createZTConnectionIPkMap(organizationId, networkId, appInstanceId, serviceId)
 	return sap.UnsafeGenericCompositeExist(ZTConnectionTable, pkComposite)
 }
 
-func (sap *ScyllaApplicationNetworkProvider) GetZTConnection(organizationId string, networkId string, appInstanceId string)(*entities.ZTNetworkConnection, derrors.Error){
+func (sap *ScyllaApplicationNetworkProvider) GetZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string)(*entities.ZTNetworkConnection, derrors.Error){
 	sap.Lock()
 	defer sap.Unlock()
-	pkComposite := sap.createZTConnectionIPkMap(organizationId, networkId, appInstanceId)
+	pkComposite := sap.createZTConnectionIPkMap(organizationId, networkId, appInstanceId, serviceId)
 	result := interface{}(&entities.ZTNetworkConnection{})
 	if err := sap.UnsafeCompositeGet(ZTConnectionTable, pkComposite, ZTConnectionColumns, &result); err != nil {
 		return nil, err
@@ -384,7 +386,7 @@ func (sap *ScyllaApplicationNetworkProvider) RemoveZTConnection(organizationId s
 func (sap *ScyllaApplicationNetworkProvider) 	UpdateZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error {
 	sap.Lock()
 	defer sap.Unlock()
-	pkComposite := sap.createZTConnectionIPkMap(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId)
+	pkComposite := sap.createZTConnectionIPkMap(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId, ztConnection.ServiceId)
 	return sap.UnsafeCompositeUpdate(ZTConnectionTable, pkComposite, ZTConnectionColumnsNoPK, ztConnection)
 }
 
