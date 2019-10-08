@@ -56,6 +56,8 @@ type ConnectionInstance struct {
 	Status ConnectionStatus `json:"status,omitempty" cql:"status"`
 	// IpRange with the IP range of the connection
 	IpRange string `json:"ip_range,omitempty" cql:"ip_range"`
+	// ZtNetworkId with the ID of the ZT network created for the connection
+	ZtNetworkId string `json:"zt_network_id,omitempty" cql:"zt_network_id"`
 }
 
 // NewConnectionInstanceFromGRPC Creates a new entities.ConnectionInstance using an grpc_application_network_go.AddConnectionRequest, source and target names, and outbound required flag.
@@ -71,7 +73,8 @@ func NewConnectionInstanceFromGRPC(request grpc_application_network_go.AddConnec
 		OutboundName:       request.GetOutboundName(),
 		OutboundRequired:   outboundRequired,
 		Status:             ConnectionStatusWaiting,
-		IpRange:            "",
+		IpRange:            request.IpRange,
+		ZtNetworkId:        request.ZtNetworkId,
 	}
 }
 
@@ -92,6 +95,7 @@ func (c *ConnectionInstance) ToGRPC() *grpc_application_network_go.ConnectionIns
 		OutboundRequired:   c.OutboundRequired,
 		Status:             ConnectionStatusToGRPC[c.Status],
 		IpRange:            c.IpRange,
+		ZtNetworkId:        c.ZtNetworkId,
 	}
 }
 
@@ -205,18 +209,19 @@ func (c *ConnectionInstanceLink) toGRPC() *grpc_application_network_go.Connectio
 }
 
 type ConnectionSide int
-const(
-	ConnectionSideInbound  ConnectionSide = iota + 1
+
+const (
+	ConnectionSideInbound ConnectionSide = iota + 1
 	ConnectionSideOutbound
 )
 
 var ConnectionSideToGRPC = map[ConnectionSide]grpc_application_network_go.ConnectionSide{
-	ConnectionSideInbound: grpc_application_network_go.ConnectionSide_SIDE_INBOUND,
+	ConnectionSideInbound:  grpc_application_network_go.ConnectionSide_SIDE_INBOUND,
 	ConnectionSideOutbound: grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
 }
 
 var ConnectionSideFromGRPC = map[grpc_application_network_go.ConnectionSide]ConnectionSide{
-	grpc_application_network_go.ConnectionSide_SIDE_INBOUND: ConnectionSideInbound,
+	grpc_application_network_go.ConnectionSide_SIDE_INBOUND:  ConnectionSideInbound,
 	grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND: ConnectionSideOutbound,
 }
 
@@ -236,34 +241,34 @@ type ZTNetworkConnection struct {
 	// ClusterId with the cluster identifier
 	ClusterId string `json:"cluster_id,omitempty" cql:"cluster_id"`
 	// Side to indicate if the instance is the inbound or the outbound in the connection
-	Side   ConnectionSide `json:"side,omitempty" cql:"side"`
+	Side ConnectionSide `json:"side,omitempty" cql:"side"`
 }
 
-func NewZTNetworkConnectionFromGRPC(zt *grpc_application_network_go.ZTNetworkConnection) (* ZTNetworkConnection){
+func NewZTNetworkConnectionFromGRPC(zt *grpc_application_network_go.ZTNetworkConnection) *ZTNetworkConnection {
 	if zt == nil {
 		return nil
 	}
 	return &ZTNetworkConnection{
-		OrganizationId:zt.OrganizationId,
-		ZtNetworkId: zt.ZtNetworkId,
-		AppInstanceId: zt.AppInstanceId,
-		ServiceId: zt.ServiceId,
-		ZtMember: zt.ZtMember,
-		ZtIp: zt.ZtIp,
-		ClusterId: zt.ClusterId,
-		Side: ConnectionSideFromGRPC[zt.Side],
+		OrganizationId: zt.OrganizationId,
+		ZtNetworkId:    zt.ZtNetworkId,
+		AppInstanceId:  zt.AppInstanceId,
+		ServiceId:      zt.ServiceId,
+		ZtMember:       zt.ZtMember,
+		ZtIp:           zt.ZtIp,
+		ClusterId:      zt.ClusterId,
+		Side:           ConnectionSideFromGRPC[zt.Side],
 	}
 }
-func (zt *ZTNetworkConnection) ToGRPC () *grpc_application_network_go.ZTNetworkConnection{
+func (zt *ZTNetworkConnection) ToGRPC() *grpc_application_network_go.ZTNetworkConnection {
 	return &grpc_application_network_go.ZTNetworkConnection{
-		OrganizationId:zt.OrganizationId,
-		ZtNetworkId: zt.ZtNetworkId,
-		AppInstanceId: zt.AppInstanceId,
-		ServiceId: zt.ServiceId,
-		ZtMember: zt.ZtMember,
-		ZtIp: zt.ZtIp,
-		ClusterId: zt.ClusterId,
-		Side: ConnectionSideToGRPC[zt.Side],
+		OrganizationId: zt.OrganizationId,
+		ZtNetworkId:    zt.ZtNetworkId,
+		AppInstanceId:  zt.AppInstanceId,
+		ServiceId:      zt.ServiceId,
+		ZtMember:       zt.ZtMember,
+		ZtIp:           zt.ZtIp,
+		ClusterId:      zt.ClusterId,
+		Side:           ConnectionSideToGRPC[zt.Side],
 	}
 }
 
@@ -271,7 +276,7 @@ func (zt *ZTNetworkConnection) ApplyUpdate(updateRequest *grpc_application_netwo
 	if updateRequest.UpdateClusterId {
 		zt.ClusterId = updateRequest.ClusterId
 	}
-	if updateRequest.UpdateZtIp{
+	if updateRequest.UpdateZtIp {
 		zt.ZtIp = updateRequest.ZtIp
 	}
 }
@@ -292,7 +297,7 @@ func ValidateZTNetworkConnection(request *grpc_application_network_go.ZTNetworkC
 	return nil
 }
 
-func ValidateZTNetworkConnectionId(request *grpc_application_network_go.ZTNetworkConnectionId) derrors.Error{
+func ValidateZTNetworkConnectionId(request *grpc_application_network_go.ZTNetworkConnectionId) derrors.Error {
 	if request.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("expecting an OrganizationId")
 	}
@@ -302,7 +307,7 @@ func ValidateZTNetworkConnectionId(request *grpc_application_network_go.ZTNetwor
 	return nil
 }
 
-func ValidateUpdateZTNetworkConnectionRequest (request *grpc_application_network_go.UpdateZTNetworkConnectionRequest) derrors.Error {
+func ValidateUpdateZTNetworkConnectionRequest(request *grpc_application_network_go.UpdateZTNetworkConnectionRequest) derrors.Error {
 	if request.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("expecting an OrganizationId")
 	}
@@ -317,4 +322,3 @@ func ValidateUpdateZTNetworkConnectionRequest (request *grpc_application_network
 	}
 	return nil
 }
-
