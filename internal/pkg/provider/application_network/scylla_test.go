@@ -33,6 +33,7 @@ create table if not exists nalej.Connection_Instances
     outbound_required    boolean,
     status               int,
     ip_range             text,
+    zt_network_id        text,
     primary key ((organization_id), source_instance_id, target_instance_id, inbound_name, outbound_name)
 );
 create index if not exists connectionInstanceTargetIndex ON nalej.Connection_Instances (target_instance_id);
@@ -58,12 +59,13 @@ create table if not exists nalej.ztnetworkconnection
     organization_id text,
     zt_network_id text,
     app_instance_id text,
+    service_id text,
     zt_member text,
     zt_ip text,
     cluster_id text,
     side int,
-    primary key ((organization_id, zt_network_id), app_instance_id)
-)
+    primary key ((organization_id, zt_network_id), app_instance_id, service_id)
+);
 
 Environment variables
 IT_SCYLLA_HOST=127.0.0.1
