@@ -130,7 +130,18 @@ func (manager *Manager) UpdateConnectionInstance(updateConnectionRequest *grpc_a
 	}
 	return nil
 }
+/*
+func (manager *Manager) GetConnectionInstance(connectionId grpc_application_network_go.ConnectionInstanceId) (entities.ConnectionInstance, derrors.Error) {
+	err := manager.validOrganization(connectionId.OrganizationId)
+	if err != nil {
+		return err
+	}
 
+	return  manager.AppNetProvider.GetConnectionInstance(connectionId.OrganizationId, connectionId.SourceInstanceId, connectionId.TargetInstanceId,
+		connectionId.InboundName, connectionId.OutboundName)
+
+}
+*/
 // RemoveConnectionInstance Removes the given connection instance
 func (manager *Manager) RemoveConnectionInstance(removeConnectionRequest *grpc_application_network_go.RemoveConnectionRequest) derrors.Error {
 	err := manager.validOrganization(removeConnectionRequest.OrganizationId)
