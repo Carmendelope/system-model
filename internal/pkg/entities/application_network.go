@@ -106,6 +106,9 @@ func (c *ConnectionInstance) ApplyUpdate(updateConnectionRequest *grpc_applicati
 	if updateConnectionRequest.UpdateIpRange {
 		c.IpRange = updateConnectionRequest.IpRange
 	}
+	if updateConnectionRequest.UpdateZtNetworkId {
+		c.ZtNetworkId = updateConnectionRequest.ZtNetworkId
+	}
 }
 
 func ValidAddConnectionRequest(request *grpc_application_network_go.AddConnectionRequest) derrors.Error {
