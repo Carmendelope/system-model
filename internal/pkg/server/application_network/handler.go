@@ -6,8 +6,10 @@ package application_network
 
 import (
 	"context"
+	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-application-network-go"
 	"github.com/nalej/grpc-common-go"
+	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/rs/zerolog/log"
@@ -54,7 +56,7 @@ func (h *Handler) RemoveConnection(ctx context.Context, removeConnectionRequest 
 	}
 	return &grpc_common_go.Success{}, nil
 }
-/*
+
 func (h *Handler) GetConnection(ctx context.Context, connectionId *grpc_application_network_go.ConnectionInstanceId)(*grpc_application_network_go.ConnectionInstance, error){
 	vErr := entities.ValidateConnectionInstanceId(connectionId)
 	if vErr != nil {
@@ -66,7 +68,7 @@ func (h *Handler) GetConnection(ctx context.Context, connectionId *grpc_applicat
 	}
 	return conn.ToGRPC(), nil
 }
-*/
+
 func (h *Handler) ListConnections(_ context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_network_go.ConnectionInstanceList, error) {
 	log.Debug().Msg("ListConnections")
 	if err := entities.ValidOrganizationID(orgID); err != nil {

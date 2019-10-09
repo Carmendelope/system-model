@@ -9,6 +9,7 @@ import (
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-application-network-go"
 	"github.com/nalej/grpc-organization-go"
+	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/application"
 	"github.com/nalej/system-model/internal/pkg/provider/application_network"
@@ -130,18 +131,21 @@ func (manager *Manager) UpdateConnectionInstance(updateConnectionRequest *grpc_a
 	}
 	return nil
 }
-/*
-func (manager *Manager) GetConnectionInstance(connectionId grpc_application_network_go.ConnectionInstanceId) (entities.ConnectionInstance, derrors.Error) {
+
+func (manager *Manager) GetConnectionInstance(connectionId *grpc_application_network_go.ConnectionInstanceId) (*entities.ConnectionInstance, derrors.Error) {
 	err := manager.validOrganization(connectionId.OrganizationId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return  manager.AppNetProvider.GetConnectionInstance(connectionId.OrganizationId, connectionId.SourceInstanceId, connectionId.TargetInstanceId,
+	conn, err :=   manager.AppNetProvider.GetConnectionInstance(connectionId.OrganizationId, connectionId.SourceInstanceId, connectionId.TargetInstanceId,
 		connectionId.InboundName, connectionId.OutboundName)
-
+	if err != nil {
+		return nil, conversions.ToDerror(err)
+	}
+	return conn, nil
 }
-*/
+
 // RemoveConnectionInstance Removes the given connection instance
 func (manager *Manager) RemoveConnectionInstance(removeConnectionRequest *grpc_application_network_go.RemoveConnectionRequest) derrors.Error {
 	err := manager.validOrganization(removeConnectionRequest.OrganizationId)

@@ -116,12 +116,12 @@
   version = "v0.0.85"
 
 [[projects]]
-  digest = "1:33c92a58736b3809ab28a0058fa0d2b838ffdc2e23f865dd66258331e3d05a99"
+  digest = "1:02083d8ca05dd001d59b90373a70d4e64ed114bf841550f4c28190bfec36ef02"
   name = "github.com/nalej/grpc-application-network-go"
   packages = ["."]
   pruneopts = ""
-  revision = "614010a24b04c757abfe747627ad57d893013c25"
-  version = "v0.0.8"
+  revision = "d019548b5a42df9583e40d1e36940369b36e8aa5"
+  version = "v0.0.10"
 
 [[projects]]
   digest = "1:be9824efa8944bc7180a51b2e0c1b62d49902a3e5faa3a1ed57a15358e465096"
@@ -344,7 +344,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c835e80fbb8977537a4e3da19d3485a027413297bc7f3683ddc992e12fdb78d0"
+  digest = "1:3b22c4b2a448ff2c35e1740c7968afd9053f065d2252726a36ff7b96bf8b4cb1"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -359,15 +359,15 @@
     "trace",
   ]
   pruneopts = ""
-  revision = "d98b1b4438230571bd7fbc5aaa89843e92937bd3"
+  revision = "72f939374954d0a1b2a1e27dcda950e2724dd5c1"
 
 [[projects]]
   branch = "master"
-  digest = "1:516e8056c0e31d4df0a8b2cfc2e8ff26b71af577651e4046d6be743458bbe4f7"
+  digest = "1:a8266488eb6ecc85c48cc604c0c0ccd32d9de7933eef15f8f1ff308e337a5c21"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = ""
-  revision = "aed5e4c7ecf9f069775e08834fb724544628d38d"
+  revision = "543471e840be449c53d44b32c7adf1261ad67e37"
 
 [[projects]]
   digest = "1:740b51a55815493a8d0f2b1e0d0ae48fe48953bf7eaf3fcc4198823bf67768c0"
@@ -408,7 +408,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f341a82aa2eb2d74980e4df1195750977528628b8a352744cf91efacd96a2d02"
+  digest = "1:650883ae9adf5fc50676136789935844a105276ab75f4a88ef7bfa0f7a47681a"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
@@ -418,7 +418,7 @@
     "protobuf/field_mask",
   ]
   pruneopts = ""
-  revision = "c459b9ce5143dd819763d9329ff92a8e35e61bd9"
+  revision = "a023cd5227bd25fd1f5c5633743ff3eacc93d169"
 
 [[projects]]
   digest = "1:30d215704e78c21ffff90aa8e86ca1a438fec2837bad082116510fe5a862af5e"
@@ -500,7 +500,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:959d717ecbc113e82bf3b6e61a7354502d486018c51384ec5dc4a6f3c8a586e8"
+  digest = "1:5c02249c98d57a42106c5afe8371e93ba38f7af89e2db88d1743c0fb57e7ab01"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/util/errors",
@@ -509,7 +509,7 @@
     "pkg/util/validation/field",
   ]
   pruneopts = ""
-  revision = "e71eb83a557c22995dd387d44529581d9e25266f"
+  revision = "f9f2f3f8ab028a8c19e3ed82bbd82a093c78f9ab"
 
 [solve-meta]
   analyzer-name = "dep"
