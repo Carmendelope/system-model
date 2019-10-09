@@ -71,6 +71,31 @@ func RunTest(provider Provider) {
 			gomega.Expect(*connectionInstance).To(gomega.Equal(toAdd))
 		})
 
+		ginkgo.It("should be able to retrieve a previously inserted ConnectionInstance using the zt network id", func() {
+			toAdd := entities.ConnectionInstance{
+				OrganizationId:     entities.GenerateUUID(),
+				ConnectionId:       entities.GenerateUUID(),
+				SourceInstanceId:   entities.GenerateUUID(),
+				SourceInstanceName: entities.GenerateUUID(),
+				TargetInstanceId:   entities.GenerateUUID(),
+				TargetInstanceName: entities.GenerateUUID(),
+				InboundName:        entities.GenerateUUID(),
+				OutboundName:       entities.GenerateUUID(),
+				OutboundRequired:   false,
+				Status:             entities.ConnectionStatusWaiting,
+				IpRange:            entities.GenerateUUID(),
+				ZtNetworkId:        entities.GenerateUUID(),
+			}
+			err := provider.AddConnectionInstance(toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			connectionInstance, err := provider.GetConnectionByZtNetworkId(
+				toAdd.OrganizationId,
+				toAdd.ZtNetworkId,
+			)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(*connectionInstance).To(gomega.Equal(toAdd))
+		})
+
 		ginkgo.It("should be able to update a ConnectionInstance", func() {
 			connectionInstance := entities.ConnectionInstance{
 				OrganizationId:     entities.GenerateUUID(),
