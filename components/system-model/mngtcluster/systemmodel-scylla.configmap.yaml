@@ -99,6 +99,8 @@ data:
     create index IF NOT EXISTS accountName on nalej.Account(name);
     create index IF NOT EXISTS projectName on nalej.project(name);
     create index IF NOT EXISTS connectionInstanceTargetIndex ON nalej.Connection_Instances (target_instance_id);
+    create index ztNetworId on nalej.connection_instances (zt_network_id) ;
+
 
 
   node_alive.sh: |

@@ -19,8 +19,8 @@ type MockupApplicationNetworkProvider struct {
 	sync.Mutex
 	// connectionInstances indexed by composite PK organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName.
 	connectionInstances map[string]*entities.ConnectionInstance
-	// connectionInstances indexed by composite PK organizationId + sourceInstanceId + targetInstanceId + inboundName + outboundName.
-	connectionInstancesByNetwork map[string]*entities.ConnectionInstance
+	// connectionInstances indexed by zt_networkId
+	connectionInstancesByNetwork map[string][]entities.ConnectionInstance
 	// connectionInstanceLinks derived from a connectionInstance.
 	connectionInstanceLinks map[string][]entities.ConnectionInstanceLink
 	// ztNetworkConnections map of ZTNetworkConnection indexed by organizationId+ztnetworkId+appInstanceId+serviceId
@@ -31,7 +31,7 @@ type MockupApplicationNetworkProvider struct {
 func NewMockupApplicationNetworkProvider() *MockupApplicationNetworkProvider {
 	return &MockupApplicationNetworkProvider{
 		connectionInstances:          make(map[string]*entities.ConnectionInstance, 0),
-		connectionInstancesByNetwork: make(map[string]*entities.ConnectionInstance, 0),
+		connectionInstancesByNetwork: make(map[string][]entities.ConnectionInstance, 0),
 		connectionInstanceLinks:      make(map[string][]entities.ConnectionInstanceLink, 0),
 		ztNetworkConnections:         make(map[string]entities.ZTNetworkConnection, 0),
 	}
@@ -72,6 +72,14 @@ func (m *MockupApplicationNetworkProvider) AddConnectionInstance(toAdd entities.
 		m.connectionInstances[compositePK] = &toAdd
 		return nil
 	}
+	// connectionInstancesByNetwork
+	list, exists := m.connectionInstancesByNetwork[toAdd.ZtNetworkId]
+	if exists{
+		m.connectionInstancesByNetwork[toAdd.ZtNetworkId] = append(list, toAdd)
+	}else{
+		m.connectionInstancesByNetwork[toAdd.ZtNetworkId] = []entities.ConnectionInstance{toAdd}
+	}
+
 	return derrors.NewAlreadyExistsError(toAdd.ConnectionId)
 }
 
@@ -79,11 +87,36 @@ func (m *MockupApplicationNetworkProvider) UpdateConnectionInstance(toUpdate ent
 	m.Lock()
 	defer m.Unlock()
 	compositePK := getCompositePK(toUpdate.OrganizationId, toUpdate.SourceInstanceId, toUpdate.TargetInstanceId, toUpdate.InboundName, toUpdate.OutboundName)
-	if m.unsafeExistsConnectionInstance(compositePK) {
-		m.connectionInstances[compositePK] = &toUpdate
-		return nil
+	old, err := m.GetConnectionInstanceById(compositePK)
+	if err != nil {
+		return err
 	}
-	return derrors.NewNotFoundError(toUpdate.ConnectionId)
+	m.connectionInstances[compositePK] = &toUpdate
+
+	// connectionInstancesByNetwork
+	// delete the old entry
+	new_list := []entities.ConnectionInstance {toUpdate}
+	list, exists := m.connectionInstancesByNetwork[old.ZtNetworkId]
+	if  exists { // it should exist
+		for _, conn := range list {
+			if conn.OrganizationId != toUpdate.OrganizationId || conn.SourceInstanceId != toUpdate.SourceInstanceId ||
+				conn.TargetInstanceId != toUpdate.TargetInstanceId || conn.InboundName != toUpdate.InboundName ||
+				conn.OutboundName != toUpdate.OutboundName || conn.ConnectionId != toUpdate.ConnectionId {
+					new_list = append(new_list, conn)
+			}
+		}
+	}
+	m.connectionInstancesByNetwork[old.ZtNetworkId] = new_list
+
+	// add the new one
+	list, exists = m.connectionInstancesByNetwork[toUpdate.ZtNetworkId]
+	if exists{
+		m.connectionInstancesByNetwork[toUpdate.ZtNetworkId] = append(list, toUpdate)
+	}else{
+		m.connectionInstancesByNetwork[toUpdate.ZtNetworkId] = []entities.ConnectionInstance{toUpdate}
+	}
+
+	return nil
 }
 
 // ExistsConnectionInstance Checks the existence of the connection instance using organizationId, sourceInstanceId, targetInstanceId, inboundName, and outboundName.
@@ -100,8 +133,14 @@ func (m *MockupApplicationNetworkProvider) GetConnectionInstance(organizationId 
 	return m.GetConnectionInstanceById(compositePK)
 }
 
-func (m *MockupApplicationNetworkProvider) GetConnectionByZtNetworkId(organizationId string, ztNetworkId string) (*entities.ConnectionInstance, derrors.Error) {
-	return &entities.ConnectionInstance{}, nil
+func (m *MockupApplicationNetworkProvider) GetConnectionByZtNetworkId(organizationId string, ztNetworkId string) ([]entities.ConnectionInstance, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+	instance, exists := m.connectionInstancesByNetwork[ztNetworkId]
+	if exists {
+		return instance, nil
+	}
+	return nil, derrors.NewNotFoundError(ztNetworkId)
 }
 
 // GetConnectionInstanceById Retrieves a connection instance using connectionId.
@@ -322,7 +361,8 @@ func (m *MockupApplicationNetworkProvider)RemoveZTConnection(organizationId stri
 func (m *MockupApplicationNetworkProvider) Clear() derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	m.connectionInstances = make(map[string]entities.ConnectionInstance, 0)
+	m.connectionInstances = make(map[string]*entities.ConnectionInstance, 0)
+	m.connectionInstancesByNetwork = make(map[string][]entities.ConnectionInstance, 0)
 	m.connectionInstanceLinks = make(map[string][]entities.ConnectionInstanceLink, 0)
 	m.ztNetworkConnections = make(map[string]entities.ZTNetworkConnection,0)
 	return nil

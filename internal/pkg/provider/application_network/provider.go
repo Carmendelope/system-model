@@ -18,7 +18,7 @@ type Provider interface {
 	// GetConnectionInstance Retrieve the connection instance using organizationId, sourceInstanceId, targetInstanceId, inboundName, and outboundName.
 	GetConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) (*entities.ConnectionInstance, derrors.Error)
 	// GetConnectionByZtNetworkId Retrieve the connection instance using organizationId, and ztNetworkId
-	GetConnectionByZtNetworkId(organizationId string, ztNetworkId string) (*entities.ConnectionInstance, derrors.Error)
+	GetConnectionByZtNetworkId(organizationId string, ztNetworkId string) ([]entities.ConnectionInstance, derrors.Error)
 	// ListConnectionInstances Lists all the connection instances.
 	ListConnectionInstances(organizationId string) ([]entities.ConnectionInstance, derrors.Error)
 	// ListInboundConnections retrieve all the connections where instance is the target
