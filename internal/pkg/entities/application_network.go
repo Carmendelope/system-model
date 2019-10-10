@@ -171,6 +171,25 @@ func ValidRemoveConnectionRequest(request *grpc_application_network_go.RemoveCon
 	return nil
 }
 
+func ValidateConnectionInstanceId(request *grpc_application_network_go.ConnectionInstanceId) derrors.Error {
+	if request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError("expecting an OrganizationId")
+	}
+	if request.InboundName == "" {
+		return derrors.NewInvalidArgumentError("expecting an InboundName")
+	}
+	if request.SourceInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting an SourceInstanceId")
+	}
+	if request.OutboundName == "" {
+		return derrors.NewInvalidArgumentError("expecting an OutboundName")
+	}
+	if request.TargetInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting an TargetInstanceId")
+	}
+	return nil
+}
+
 // ConnectionInstanceLink model with the info of a connection between two fragments on each cluster
 type ConnectionInstanceLink struct {
 	// OrganizationId with the organization identifier
