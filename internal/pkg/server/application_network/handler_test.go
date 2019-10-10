@@ -163,6 +163,87 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			gomega.Expect(connectionInstance).To(gomega.BeNil())
 		})
 	})
+	
+	ginkgo.Context("when getting a connection", func() {
+		
+		ginkgo.It("should retrieve a previously added connection using the composite PK", func() {
+			organization := addOrganization(organizationProvider)
+			sourceInstance := addSourceInstance(organization.ID, false, applicationProvider)
+			targetInstance := addTargetInstance(organization.ID, applicationProvider)
+
+			addConnectionRequest := &grpc_application_network_go.AddConnectionRequest{
+				OrganizationId:   organization.ID,
+				SourceInstanceId: sourceInstance.AppInstanceId,
+				TargetInstanceId: targetInstance.AppInstanceId,
+				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
+				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+				IpRange:          entities.GenerateUUID(),
+				ZtNetworkId:      entities.GenerateUUID(),
+			}
+			connectionAdded, err := client.AddConnection(context.Background(), addConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connectionAdded).ToNot(gomega.BeNil())
+
+			connectionInstance, err := client.GetConnection(context.Background(), &grpc_application_network_go.ConnectionInstanceId{
+				OrganizationId:   addConnectionRequest.OrganizationId,
+				SourceInstanceId: addConnectionRequest.SourceInstanceId,
+				TargetInstanceId: addConnectionRequest.TargetInstanceId,
+				InboundName:      addConnectionRequest.InboundName,
+				OutboundName:     addConnectionRequest.OutboundName,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connectionInstance).ToNot(gomega.BeNil())
+			gomega.Expect(connectionInstance).To(gomega.Equal(connectionAdded))
+		})
+
+		ginkgo.It("should return a not found error when trying to get a non existent connection", func() {
+			connectionInstance, err := client.GetConnection(context.Background(), &grpc_application_network_go.ConnectionInstanceId{
+				OrganizationId:   "",
+				SourceInstanceId: "",
+				TargetInstanceId: "",
+				InboundName:      "",
+				OutboundName:     "",
+			})
+			gomega.Expect(err).ToNot(gomega.Succeed())
+			gomega.Expect(connectionInstance).To(gomega.BeNil())
+		})
+
+		ginkgo.It("should retrieve a previously added connection using the ZT network id", func() {
+			organization := addOrganization(organizationProvider)
+			sourceInstance := addSourceInstance(organization.ID, false, applicationProvider)
+			targetInstance := addTargetInstance(organization.ID, applicationProvider)
+
+			addConnectionRequest := &grpc_application_network_go.AddConnectionRequest{
+				OrganizationId:   organization.ID,
+				SourceInstanceId: sourceInstance.AppInstanceId,
+				TargetInstanceId: targetInstance.AppInstanceId,
+				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
+				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+				IpRange:          entities.GenerateUUID(),
+				ZtNetworkId:      entities.GenerateUUID(),
+			}
+			connectionAdded, err := client.AddConnection(context.Background(), addConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connectionAdded).ToNot(gomega.BeNil())
+
+			connectionInstance, err := client.GetConnectionByZtNetworkId(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
+				OrganizationId: addConnectionRequest.OrganizationId,
+				ZtNetworkId:    addConnectionRequest.ZtNetworkId,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connectionInstance).ToNot(gomega.BeNil())
+			gomega.Expect(connectionInstance).To(gomega.Equal(connectionAdded))
+		})
+
+		ginkgo.It("should return a not found error when trying to get a non existent connection", func() {
+			connectionInstance, err := client.GetConnectionByZtNetworkId(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
+				OrganizationId: "",
+				ZtNetworkId:    "",
+			})
+			gomega.Expect(err).ToNot(gomega.Succeed())
+			gomega.Expect(connectionInstance).To(gomega.BeNil())
+		})
+	})
 
 	ginkgo.Context("when updating a connection", func() {
 		ginkgo.It("should be able to update the status of the connection", func() {

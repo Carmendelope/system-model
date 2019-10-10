@@ -88,6 +88,19 @@ func (h *Handler) ListConnections(_ context.Context, orgID *grpc_organization_go
 	return result, nil
 }
 
+func (h *Handler) GetConnectionByZtNetworkId(ctx context.Context, request *grpc_application_network_go.ZTNetworkConnectionId) (*grpc_application_network_go.ConnectionInstance, error){
+	vErr := entities.ValidateZTNetworkConnectionId(request)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+
+	connectionInstance, err := h.Manager.GetConnectionByZtNetworkId(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return connectionInstance.ToGRPC(), nil
+}
+
 // ListInboundConnections retrieves a list with all the connections where the appInstanceId is the target
 func (h *Handler) ListInboundConnections(_ context.Context, appInstanceID *grpc_application_go.AppInstanceId) (*grpc_application_network_go.ConnectionInstanceList, error) {
 	err := entities.ValidAppInstanceId(appInstanceID)

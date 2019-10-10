@@ -213,6 +213,26 @@ func (manager *Manager) RemoveConnectionInstance(removeConnectionRequest *grpc_a
 	return nil
 }
 
+func (manager *Manager) GetConnectionByZtNetworkId( request *grpc_application_network_go.ZTNetworkConnectionId) (*entities.ConnectionInstance, derrors.Error){
+
+	if err := manager.validOrganization(request.OrganizationId); err != nil {
+		return nil, err
+	}
+
+	list, err := manager.AppNetProvider.GetConnectionByZtNetworkId(request.ZtNetworkId)
+	if err != nil {
+		return nil, err
+	}
+	for _, conn := range list {
+		if conn.OrganizationId == request.OrganizationId {
+			return &conn, nil
+		}
+	}
+	return nil, derrors.NewNotFoundError("ConnectionByZtNetworkId not found").WithParams(request.OrganizationId, request.ZtNetworkId)
+
+}
+
+
 // ListConnectionInstances Retrieves a list of all the connection instances linked to the given organization
 func (manager *Manager) ListConnectionInstances(organizationId *grpc_organization_go.OrganizationId) ([]entities.ConnectionInstance, derrors.Error) {
 	if err := manager.validOrganization(organizationId.OrganizationId); err != nil {

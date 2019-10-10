@@ -160,6 +160,27 @@ func (sap *ScyllaApplicationNetworkProvider) GetConnectionInstance(organizationI
 	}
 	return result.(*entities.ConnectionInstance), nil
 }
+func (sap *ScyllaApplicationNetworkProvider) GetConnectionByZtNetworkId(ztNetworkId string) ([]entities.ConnectionInstance, derrors.Error){
+	sap.Lock()
+	defer sap.Unlock()
+	if err := sap.CheckAndConnect(); err != nil {
+		return nil, err
+	}
+
+	filterColumn := "zt_network_id"
+	stmt, names := qb.Select(ConnectionInstanceTable).Columns(ConnectionInstanceColumns...).Where(qb.Eq(filterColumn)).ToCql()
+	q := gocqlx.Query(sap.Session.Query(stmt), names).BindMap(qb.M{
+		filterColumn: ztNetworkId,
+	})
+
+	connections := make([]entities.ConnectionInstance, 0)
+	if qerr := q.SelectRelease(&connections); qerr != nil {
+		return nil, derrors.AsError(qerr, "cannot list connection instances")
+	}
+
+	return connections, nil
+}
+
 
 func (sap *ScyllaApplicationNetworkProvider) ListConnectionInstances(organizationId string) ([]entities.ConnectionInstance, derrors.Error) {
 	sap.Lock()
