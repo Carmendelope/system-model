@@ -97,27 +97,27 @@ func (m *MockupApplicationNetworkProvider) UpdateConnectionInstance(toUpdate ent
 
 	// connectionInstancesByNetwork
 	// delete the old entry
-	new_list := []entities.ConnectionInstance {}
+	var newList []entities.ConnectionInstance
 	list, exists := m.connectionInstancesByNetwork[old.ZtNetworkId]
 	delete(m.connectionInstancesByNetwork, old.ZtNetworkId)
-	if  exists { // it should exist
+	if exists { // it should exist
 		for _, conn := range list {
 			if conn.OrganizationId != toUpdate.OrganizationId || conn.SourceInstanceId != toUpdate.SourceInstanceId ||
 				conn.TargetInstanceId != toUpdate.TargetInstanceId || conn.InboundName != toUpdate.InboundName ||
 				conn.OutboundName != toUpdate.OutboundName || conn.ConnectionId != toUpdate.ConnectionId {
-					new_list = append(new_list, conn)
+				newList = append(newList, conn)
 			}
 		}
 	}
-	if len(new_list)> 0 {
-		m.connectionInstancesByNetwork[old.ZtNetworkId] = new_list
+	if len(newList) > 0 {
+		m.connectionInstancesByNetwork[old.ZtNetworkId] = newList
 	}
 
 	// add the new one
 	list, exists = m.connectionInstancesByNetwork[toUpdate.ZtNetworkId]
-	if exists{
+	if exists {
 		m.connectionInstancesByNetwork[toUpdate.ZtNetworkId] = append(list, toUpdate)
-	}else{
+	} else {
 		m.connectionInstancesByNetwork[toUpdate.ZtNetworkId] = []entities.ConnectionInstance{toUpdate}
 	}
 
@@ -175,7 +175,9 @@ func (m *MockupApplicationNetworkProvider) ListConnectionInstances(organizationI
 func (m *MockupApplicationNetworkProvider) RemoveConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) derrors.Error {
 	compositePK := getCompositePK(organizationId, sourceInstanceId, targetInstanceId, inboundName, outboundName)
 	if m.unsafeExistsConnectionInstance(compositePK) {
+		instance := m.connectionInstances[compositePK]
 		delete(m.connectionInstances, compositePK)
+		delete(m.connectionInstancesByNetwork, instance.ZtNetworkId)
 		return nil
 	}
 	return derrors.NewNotFoundError("connectionInstance").WithParams(compositePK)
