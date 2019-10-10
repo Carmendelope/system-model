@@ -93,7 +93,7 @@ func RunTest(provider Provider) {
 			)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(connectionInstance).NotTo(gomega.BeEmpty())
-			//gomega.Expect(connectionInstance[0]).To(gomega.Equal(toAdd))
+			gomega.Expect(connectionInstance[0]).To(gomega.Equal(toAdd))
 		})
 
 		ginkgo.It("should be able to update a ConnectionInstance", func() {
