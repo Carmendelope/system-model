@@ -6,7 +6,6 @@ package application_network
 
 import (
 	"context"
-	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-application-network-go"
 	"github.com/nalej/grpc-common-go"
@@ -89,20 +88,18 @@ func (h *Handler) ListConnections(_ context.Context, orgID *grpc_organization_go
 	return result, nil
 }
 
-func (h *Handler) GetConnection(ctx context.Context, in *grpc_application_network_go.ConnectionInstanceId) (*grpc_application_network_go.ConnectionInstance, error){
-	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet"))
-}
-
 func (h *Handler) GetConnectionByZtNetworkId(ctx context.Context, request *grpc_application_network_go.ZTNetworkConnectionId) (*grpc_application_network_go.ConnectionInstance, error){
 	vErr := entities.ValidateZTNetworkConnectionId(request)
 	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
 	}
 
-	return nil, nil
+	connectionInstance, err := h.Manager.GetConnectionByZtNetworkId(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return connectionInstance.ToGRPC(), nil
 }
-
-
 
 // ListInboundConnections retrieves a list with all the connections where the appInstanceId is the target
 func (h *Handler) ListInboundConnections(_ context.Context, appInstanceID *grpc_application_go.AppInstanceId) (*grpc_application_network_go.ConnectionInstanceList, error) {
