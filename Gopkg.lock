@@ -108,20 +108,20 @@
   version = "v0.0.2"
 
 [[projects]]
-  digest = "1:079b7aaa59da8402311008e92178ac5b202d056e59e1aea682b66c8db1ed0fb9"
+  digest = "1:b6844eec3faae47051ba88f4c003264e94833a3cc74de0f7e6bd936ccf7ca19b"
   name = "github.com/nalej/grpc-application-go"
   packages = ["."]
   pruneopts = ""
-  revision = "e56034675512e6591fa2d0fe2035c729bd58dc99"
-  version = "v0.0.85"
+  revision = "27d9d79c7f2d3967057c0934355660d6615d1c45"
+  version = "v0.0.86"
 
 [[projects]]
-  digest = "1:d0f76ff1d164bcc0a3d50423a36f9f2b0ba04104a8424919018fc9ce28fa630a"
+  digest = "1:963a0072b4647bb23128ed053af6b2fbc18fc177a906fb56c973e2bbb4f85015"
   name = "github.com/nalej/grpc-application-network-go"
   packages = ["."]
   pruneopts = ""
-  revision = "9a90610ba60b7c15487ab3f688442ed4ca3a2818"
-  version = "v0.0.5"
+  revision = "694ff2695af471c0c0f97dcdfbea137dc8c26f75"
+  version = "v0.0.11"
 
 [[projects]]
   digest = "1:be9824efa8944bc7180a51b2e0c1b62d49902a3e5faa3a1ed57a15358e465096"
@@ -416,7 +416,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f341a82aa2eb2d74980e4df1195750977528628b8a352744cf91efacd96a2d02"
+  digest = "1:650883ae9adf5fc50676136789935844a105276ab75f4a88ef7bfa0f7a47681a"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
@@ -426,7 +426,7 @@
     "protobuf/field_mask",
   ]
   pruneopts = ""
-  revision = "c459b9ce5143dd819763d9329ff92a8e35e61bd9"
+  revision = "a023cd5227bd25fd1f5c5633743ff3eacc93d169"
 
 [[projects]]
   digest = "1:30d215704e78c21ffff90aa8e86ca1a438fec2837bad082116510fe5a862af5e"
@@ -508,7 +508,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a5ba2c1af970adfc1cbde9cfee69fb0fa54ba3155a632b32cb06a4be8baa30ea"
+  digest = "1:5c02249c98d57a42106c5afe8371e93ba38f7af89e2db88d1743c0fb57e7ab01"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/util/errors",
@@ -517,7 +517,7 @@
     "pkg/util/validation/field",
   ]
   pruneopts = ""
-  revision = "c31ffd88d5d20009137f982c880557dd7568b2da"
+  revision = "f9f2f3f8ab028a8c19e3ed82bbd82a093c78f9ab"
 
 [solve-meta]
   analyzer-name = "dep"

@@ -27,7 +27,8 @@ func RunTest(provider Provider) {
 				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
 				Status:             entities.ConnectionStatusWaiting,
-				IpRange:            "",
+				IpRange:            entities.GenerateUUID(),
+				ZtNetworkId:        entities.GenerateUUID(),
 			}
 			err := provider.AddConnectionInstance(toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -54,7 +55,8 @@ func RunTest(provider Provider) {
 				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
 				Status:             entities.ConnectionStatusWaiting,
-				IpRange:            "",
+				IpRange:            entities.GenerateUUID(),
+				ZtNetworkId:        entities.GenerateUUID(),
 			}
 			err := provider.AddConnectionInstance(toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -69,6 +71,31 @@ func RunTest(provider Provider) {
 			gomega.Expect(*connectionInstance).To(gomega.Equal(toAdd))
 		})
 
+		ginkgo.It("should be able to retrieve a previously inserted ConnectionInstance using the zt network id", func() {
+			toAdd := entities.ConnectionInstance{
+				OrganizationId:     entities.GenerateUUID(),
+				ConnectionId:       entities.GenerateUUID(),
+				SourceInstanceId:   entities.GenerateUUID(),
+				SourceInstanceName: entities.GenerateUUID(),
+				TargetInstanceId:   entities.GenerateUUID(),
+				TargetInstanceName: entities.GenerateUUID(),
+				InboundName:        entities.GenerateUUID(),
+				OutboundName:       entities.GenerateUUID(),
+				OutboundRequired:   false,
+				Status:             entities.ConnectionStatusWaiting,
+				IpRange:            entities.GenerateUUID(),
+				ZtNetworkId:        entities.GenerateUUID(),
+			}
+			err := provider.AddConnectionInstance(toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			connectionInstance, err := provider.GetConnectionByZtNetworkId(
+				toAdd.ZtNetworkId,
+			)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connectionInstance).NotTo(gomega.BeEmpty())
+			gomega.Expect(connectionInstance[0]).To(gomega.Equal(toAdd))
+		})
+
 		ginkgo.It("should be able to update a ConnectionInstance", func() {
 			connectionInstance := entities.ConnectionInstance{
 				OrganizationId:     entities.GenerateUUID(),
@@ -81,12 +108,14 @@ func RunTest(provider Provider) {
 				OutboundName:       entities.GenerateUUID(),
 				OutboundRequired:   false,
 				Status:             entities.ConnectionStatusWaiting,
-				IpRange:            "",
+				IpRange:            entities.GenerateUUID(),
+				ZtNetworkId:        entities.GenerateUUID(),
 			}
 			err := provider.AddConnectionInstance(connectionInstance)
 			gomega.Expect(err).To(gomega.Succeed())
 			connectionInstance.Status = entities.ConnectionStatusEstablished
 			connectionInstance.IpRange = "172.16.0.1-172.16.0.254"
+			connectionInstance.ZtNetworkId = entities.GenerateUUID()
 			err = provider.UpdateConnectionInstance(connectionInstance)
 			gomega.Expect(err).To(gomega.Succeed())
 			updatedInstance, err := provider.GetConnectionInstance(
@@ -97,8 +126,10 @@ func RunTest(provider Provider) {
 				connectionInstance.OutboundName,
 			)
 			gomega.Expect(err).To(gomega.Succeed())
-			gomega.Expect(updatedInstance.Status).To(gomega.Equal(connectionInstance.Status))
-			gomega.Expect(updatedInstance.IpRange).To(gomega.Equal(connectionInstance.IpRange))
+			gomega.Expect(*updatedInstance).To(gomega.Equal(connectionInstance))
+			//gomega.Expect(updatedInstance.Status).To(gomega.Equal(connectionInstance.Status))
+			//gomega.Expect(updatedInstance.IpRange).To(gomega.Equal(connectionInstance.IpRange))
+			//gomega.Expect(updatedInstance.ZtNetworkId).To(gomega.Equal(connectionInstance.ZtNetworkId))
 		})
 
 		ginkgo.It("should be able to retrieve a list of inserted ConnectionInstances", func() {
@@ -115,7 +146,8 @@ func RunTest(provider Provider) {
 					OutboundName:       entities.GenerateUUID(),
 					OutboundRequired:   false,
 					Status:             entities.ConnectionStatusWaiting,
-					IpRange:            "",
+					IpRange:            entities.GenerateUUID(),
+					ZtNetworkId:        entities.GenerateUUID(),
 				},
 				{
 					OrganizationId:     organizationId,
@@ -128,7 +160,8 @@ func RunTest(provider Provider) {
 					OutboundName:       entities.GenerateUUID(),
 					OutboundRequired:   false,
 					Status:             entities.ConnectionStatusWaiting,
-					IpRange:            "",
+					IpRange:            entities.GenerateUUID(),
+					ZtNetworkId:        entities.GenerateUUID(),
 				},
 			}
 			for _, instance := range toAdd {
@@ -154,7 +187,8 @@ func RunTest(provider Provider) {
 					OutboundName:       entities.GenerateUUID(),
 					OutboundRequired:   false,
 					Status:             entities.ConnectionStatusWaiting,
-					IpRange:            "",
+					IpRange:            entities.GenerateUUID(),
+					ZtNetworkId:        entities.GenerateUUID(),
 				},
 				{
 					OrganizationId:     organizationId,
@@ -167,7 +201,8 @@ func RunTest(provider Provider) {
 					OutboundName:       entities.GenerateUUID(),
 					OutboundRequired:   false,
 					Status:             entities.ConnectionStatusWaiting,
-					IpRange:            "",
+					IpRange:            entities.GenerateUUID(),
+					ZtNetworkId:        entities.GenerateUUID(),
 				},
 			}
 			for _, instance := range toAdd {
@@ -203,7 +238,8 @@ func RunTest(provider Provider) {
 					OutboundName:       entities.GenerateUUID(),
 					OutboundRequired:   false,
 					Status:             entities.ConnectionStatusWaiting,
-					IpRange:            "",
+					IpRange:            entities.GenerateUUID(),
+					ZtNetworkId:        entities.GenerateUUID(),
 				}
 				err := provider.AddConnectionInstance(toAdd)
 				gomega.Expect(err).To(gomega.Succeed())
@@ -238,7 +274,8 @@ func RunTest(provider Provider) {
 					OutboundName:       entities.GenerateUUID(),
 					OutboundRequired:   false,
 					Status:             entities.ConnectionStatusWaiting,
-					IpRange:            "",
+					IpRange:            entities.GenerateUUID(),
+					ZtNetworkId:        entities.GenerateUUID(),
 				}
 				err := provider.AddConnectionInstance(toAdd)
 				gomega.Expect(err).To(gomega.Succeed())
@@ -448,31 +485,31 @@ func RunTest(provider Provider) {
 		})
 	})
 
-	ginkgo.Context("ZTNetworkConnection", func(){
-		ginkgo.It("Should be able to add a ztnetworkConnection", func(){
+	ginkgo.Context("ZTNetworkConnection", func() {
+		ginkgo.It("Should be able to add a ztnetworkConnection", func() {
 			toAdd := &entities.ZTNetworkConnection{
-				OrganizationId:	entities.GenerateUUID(),
-				ZtNetworkId:	entities.GenerateUUID(),
+				OrganizationId: entities.GenerateUUID(),
+				ZtNetworkId:    entities.GenerateUUID(),
 				AppInstanceId:  entities.GenerateUUID(),
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId: 		entities.GenerateUUID(),
-				Side: 			entities.ConnectionSideOutbound,
-
+				ServiceId:      entities.GenerateUUID(),
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           entities.ConnectionSideOutbound,
 			}
 			err := provider.AddZTConnection(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 		})
-		ginkgo.It("Should be not able to add a ztnetworkConnection twice", func(){
+		ginkgo.It("Should be not able to add a ztnetworkConnection twice", func() {
 			toAdd := &entities.ZTNetworkConnection{
-				OrganizationId:	entities.GenerateUUID(),
-				ZtNetworkId:	entities.GenerateUUID(),
+				OrganizationId: entities.GenerateUUID(),
+				ZtNetworkId:    entities.GenerateUUID(),
 				AppInstanceId:  entities.GenerateUUID(),
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId: 		entities.GenerateUUID(),
-				Side: 			entities.ConnectionSideOutbound,
-
+				ServiceId:      entities.GenerateUUID(),
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           entities.ConnectionSideOutbound,
 			}
 			err := provider.AddZTConnection(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -482,62 +519,62 @@ func RunTest(provider Provider) {
 		})
 		ginkgo.It("should be able to determinate if a ztnetwork connection exists", func() {
 			toAdd := &entities.ZTNetworkConnection{
-				OrganizationId:	entities.GenerateUUID(),
-				ZtNetworkId:	entities.GenerateUUID(),
+				OrganizationId: entities.GenerateUUID(),
+				ZtNetworkId:    entities.GenerateUUID(),
 				AppInstanceId:  entities.GenerateUUID(),
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId: 		entities.GenerateUUID(),
-				Side: 			entities.ConnectionSideOutbound,
-
+				ServiceId:      entities.GenerateUUID(),
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           entities.ConnectionSideOutbound,
 			}
 			err := provider.AddZTConnection(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			exits, err := provider.ExistsZTConnection(toAdd.OrganizationId, toAdd.ZtNetworkId, toAdd.AppInstanceId)
+			exits, err := provider.ExistsZTConnection(toAdd.OrganizationId, toAdd.ZtNetworkId, toAdd.AppInstanceId, toAdd.ServiceId)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(exits).To(gomega.BeTrue())
 
 		})
 		ginkgo.It("should be able to determinate if a ztnetwork connection does not exist", func() {
-			exits, err := provider.ExistsZTConnection(entities.GenerateUUID(), entities.GenerateUUID(), entities.GenerateUUID())
+			exits, err := provider.ExistsZTConnection(entities.GenerateUUID(), entities.GenerateUUID(), entities.GenerateUUID(), entities.GenerateUUID())
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(exits).NotTo(gomega.BeTrue())
 
 		})
 		ginkgo.It("should be able to get  a ztnetwork connection", func() {
 			toAdd := &entities.ZTNetworkConnection{
-				OrganizationId:	entities.GenerateUUID(),
-				ZtNetworkId:	entities.GenerateUUID(),
+				OrganizationId: entities.GenerateUUID(),
+				ZtNetworkId:    entities.GenerateUUID(),
 				AppInstanceId:  entities.GenerateUUID(),
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId: 		entities.GenerateUUID(),
-				Side: 			entities.ConnectionSideOutbound,
-
+				ServiceId:      entities.GenerateUUID(),
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           entities.ConnectionSideOutbound,
 			}
 			err := provider.AddZTConnection(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			retrieve, err := provider.GetZTConnection(toAdd.OrganizationId, toAdd.ZtNetworkId, toAdd.AppInstanceId)
+			retrieve, err := provider.GetZTConnection(toAdd.OrganizationId, toAdd.ZtNetworkId, toAdd.AppInstanceId, toAdd.ServiceId)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieve).NotTo(gomega.BeNil())
 			gomega.Expect(retrieve).Should(gomega.Equal(toAdd))
 		})
 		ginkgo.It("should not be able to get a ztnetwork connection when it does not exist", func() {
-			_, err := provider.GetZTConnection(entities.GenerateUUID(), entities.GenerateUUID(), entities.GenerateUUID())
+			_, err := provider.GetZTConnection(entities.GenerateUUID(), entities.GenerateUUID(), entities.GenerateUUID(), entities.GenerateUUID())
 			gomega.Expect(err).NotTo(gomega.Succeed())
 		})
 		ginkgo.It("should be able to list the ztnetwork connections of a networkId", func() {
 			toAdd := &entities.ZTNetworkConnection{
-				OrganizationId:	entities.GenerateUUID(),
-				ZtNetworkId:	entities.GenerateUUID(),
+				OrganizationId: entities.GenerateUUID(),
+				ZtNetworkId:    entities.GenerateUUID(),
 				AppInstanceId:  entities.GenerateUUID(),
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId: 		entities.GenerateUUID(),
-				Side: 			entities.ConnectionSideOutbound,
-
+				ServiceId:      entities.GenerateUUID(),
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           entities.ConnectionSideOutbound,
 			}
 			err := provider.AddZTConnection(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -559,14 +596,14 @@ func RunTest(provider Provider) {
 		})
 		ginkgo.It("Should be able to update a ztNetwork connection", func() {
 			toAdd := &entities.ZTNetworkConnection{
-				OrganizationId:	entities.GenerateUUID(),
-				ZtNetworkId:	entities.GenerateUUID(),
+				OrganizationId: entities.GenerateUUID(),
+				ZtNetworkId:    entities.GenerateUUID(),
 				AppInstanceId:  entities.GenerateUUID(),
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId: 		entities.GenerateUUID(),
-				Side: 			entities.ConnectionSideOutbound,
-
+				ServiceId:      entities.GenerateUUID(),
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           entities.ConnectionSideOutbound,
 			}
 			err := provider.AddZTConnection(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -575,38 +612,38 @@ func RunTest(provider Provider) {
 			err = provider.UpdateZTConnection(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
-			retrieve, err := provider.GetZTConnection(toAdd.OrganizationId, toAdd.ZtNetworkId, toAdd.AppInstanceId)
+			retrieve, err := provider.GetZTConnection(toAdd.OrganizationId, toAdd.ZtNetworkId, toAdd.AppInstanceId, toAdd.ServiceId)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieve.ZtIp).Should(gomega.Equal(toAdd.ZtIp))
 
 		})
 		ginkgo.It("Should not be able to update a non existing ztNetwork connection", func() {
 			toAdd := &entities.ZTNetworkConnection{
-				OrganizationId:	entities.GenerateUUID(),
-				ZtNetworkId:	entities.GenerateUUID(),
+				OrganizationId: entities.GenerateUUID(),
+				ZtNetworkId:    entities.GenerateUUID(),
 				AppInstanceId:  entities.GenerateUUID(),
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId: 		entities.GenerateUUID(),
-				Side: 			entities.ConnectionSideOutbound,
-
+				ServiceId:      entities.GenerateUUID(),
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           entities.ConnectionSideOutbound,
 			}
 
 			err := provider.UpdateZTConnection(*toAdd)
 			gomega.Expect(err).NotTo(gomega.Succeed())
-			
+
 		})
 
 		ginkgo.It("should be able to remove a ztnetwork connections ", func() {
 			toAdd := &entities.ZTNetworkConnection{
-				OrganizationId:	entities.GenerateUUID(),
-				ZtNetworkId:	entities.GenerateUUID(),
+				OrganizationId: entities.GenerateUUID(),
+				ZtNetworkId:    entities.GenerateUUID(),
 				AppInstanceId:  entities.GenerateUUID(),
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId: 		entities.GenerateUUID(),
-				Side: 			entities.ConnectionSideOutbound,
-
+				ServiceId:      entities.GenerateUUID(),
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           entities.ConnectionSideOutbound,
 			}
 			err := provider.AddZTConnection(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -621,14 +658,14 @@ func RunTest(provider Provider) {
 		})
 		ginkgo.It("should be able to remove a ztnetwork connections ", func() {
 			toAdd := &entities.ZTNetworkConnection{
-				OrganizationId:	entities.GenerateUUID(),
-				ZtNetworkId:	entities.GenerateUUID(),
+				OrganizationId: entities.GenerateUUID(),
+				ZtNetworkId:    entities.GenerateUUID(),
 				AppInstanceId:  entities.GenerateUUID(),
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId: 		entities.GenerateUUID(),
-				Side: 			entities.ConnectionSideOutbound,
-
+				ServiceId:      entities.GenerateUUID(),
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           entities.ConnectionSideOutbound,
 			}
 			err := provider.AddZTConnection(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())

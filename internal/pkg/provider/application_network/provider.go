@@ -15,8 +15,10 @@ type Provider interface {
 	AddConnectionInstance(connectionInstance entities.ConnectionInstance) derrors.Error
 	// ExistsConnectionInstance Checks if the connection instance exists on the system.
 	ExistsConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) (bool, derrors.Error)
-	// GetConnectionInstance Retrieve the connection instance using organizationId, sourceInstanceId, and targetInstanceId.
+	// GetConnectionInstance Retrieve the connection instance using organizationId, sourceInstanceId, targetInstanceId, inboundName, and outboundName.
 	GetConnectionInstance(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) (*entities.ConnectionInstance, derrors.Error)
+	// GetConnectionByZtNetworkId Retrieve the connection instance using organizationId, and ztNetworkId
+	GetConnectionByZtNetworkId(ztNetworkId string) ([]entities.ConnectionInstance, derrors.Error)
 	// ListConnectionInstances Lists all the connection instances.
 	ListConnectionInstances(organizationId string) ([]entities.ConnectionInstance, derrors.Error)
 	// ListInboundConnections retrieve all the connections where instance is the target
@@ -40,8 +42,8 @@ type Provider interface {
 	RemoveConnectionInstanceLinks(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) derrors.Error
 
 	AddZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error
-	ExistsZTConnection(organizationId string, networkId string, appInstanceId string) (bool, derrors.Error)
-	GetZTConnection(organizationId string, networkId string, appInstanceId string)(*entities.ZTNetworkConnection, derrors.Error)
+	ExistsZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string) (bool, derrors.Error)
+	GetZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string)(*entities.ZTNetworkConnection, derrors.Error)
 	UpdateZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error
 	ListZTConnections(organizationId string, networkId string) ([]entities.ZTNetworkConnection, derrors.Error)
 	RemoveZTConnection(organizationId string, networkId string)derrors.Error

@@ -57,6 +57,18 @@ func (h *Handler) RemoveConnection(ctx context.Context, removeConnectionRequest 
 	return &grpc_common_go.Success{}, nil
 }
 
+func (h *Handler) GetConnection(ctx context.Context, connectionId *grpc_application_network_go.ConnectionInstanceId)(*grpc_application_network_go.ConnectionInstance, error){
+	vErr := entities.ValidateConnectionInstanceId(connectionId)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	conn, err := h.Manager.GetConnectionInstance(connectionId)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return conn.ToGRPC(), nil
+}
+
 func (h *Handler) ListConnections(_ context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_network_go.ConnectionInstanceList, error) {
 	log.Debug().Msg("ListConnections")
 	if err := entities.ValidOrganizationID(orgID); err != nil {
@@ -74,6 +86,19 @@ func (h *Handler) ListConnections(_ context.Context, orgID *grpc_organization_go
 		Connections: grpcArray,
 	}
 	return result, nil
+}
+
+func (h *Handler) GetConnectionByZtNetworkId(ctx context.Context, request *grpc_application_network_go.ZTNetworkConnectionId) (*grpc_application_network_go.ConnectionInstance, error){
+	vErr := entities.ValidateZTNetworkConnectionId(request)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+
+	connectionInstance, err := h.Manager.GetConnectionByZtNetworkId(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return connectionInstance.ToGRPC(), nil
 }
 
 // ListInboundConnections retrieves a list with all the connections where the appInstanceId is the target

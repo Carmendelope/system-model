@@ -59,6 +59,23 @@ func addTargetInstance(organizationId string, applicationProvider application.Pr
 	return sourceInstance
 }
 
+func addInstance(organizationId string, applicationProvider application.Provider) entities.AppInstance {
+	sourceInstance := entities.AppInstance{
+		OrganizationId: organizationId,
+		AppInstanceId:  entities.GenerateUUID(),
+		Groups: []entities.ServiceGroupInstance{
+			{
+				ServiceInstances: []entities.ServiceInstance{
+					{
+						ServiceId: entities.GenerateUUID()},
+				}},
+		},
+	}
+	err := applicationProvider.AddInstance(sourceInstance)
+	gomega.Expect(err).To(gomega.Succeed())
+	return sourceInstance
+}
+
 var _ = ginkgo.Describe("Application Network service", func() {
 	var (
 		server   *grpc.Server
@@ -112,6 +129,8 @@ var _ = ginkgo.Describe("Application Network service", func() {
 				TargetInstanceId: targetInstance.AppInstanceId,
 				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
 				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+				IpRange:          entities.GenerateUUID(),
+				ZtNetworkId:      entities.GenerateUUID(),
 			}
 			connectionInstance, err := client.AddConnection(context.Background(), addConnectionRequest)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -134,10 +153,93 @@ var _ = ginkgo.Describe("Application Network service", func() {
 				TargetInstanceId: targetInstance.AppInstanceId,
 				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
 				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+				IpRange:          entities.GenerateUUID(),
+				ZtNetworkId:      entities.GenerateUUID(),
 			}
 			_, err := client.AddConnection(context.Background(), addConnectionRequest)
 			gomega.Expect(err).To(gomega.Succeed())
 			connectionInstance, err := client.AddConnection(context.Background(), addConnectionRequest)
+			gomega.Expect(err).ToNot(gomega.Succeed())
+			gomega.Expect(connectionInstance).To(gomega.BeNil())
+		})
+	})
+	
+	ginkgo.Context("when getting a connection", func() {
+		
+		ginkgo.It("should retrieve a previously added connection using the composite PK", func() {
+			organization := addOrganization(organizationProvider)
+			sourceInstance := addSourceInstance(organization.ID, false, applicationProvider)
+			targetInstance := addTargetInstance(organization.ID, applicationProvider)
+
+			addConnectionRequest := &grpc_application_network_go.AddConnectionRequest{
+				OrganizationId:   organization.ID,
+				SourceInstanceId: sourceInstance.AppInstanceId,
+				TargetInstanceId: targetInstance.AppInstanceId,
+				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
+				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+				IpRange:          entities.GenerateUUID(),
+				ZtNetworkId:      entities.GenerateUUID(),
+			}
+			connectionAdded, err := client.AddConnection(context.Background(), addConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connectionAdded).ToNot(gomega.BeNil())
+
+			connectionInstance, err := client.GetConnection(context.Background(), &grpc_application_network_go.ConnectionInstanceId{
+				OrganizationId:   addConnectionRequest.OrganizationId,
+				SourceInstanceId: addConnectionRequest.SourceInstanceId,
+				TargetInstanceId: addConnectionRequest.TargetInstanceId,
+				InboundName:      addConnectionRequest.InboundName,
+				OutboundName:     addConnectionRequest.OutboundName,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connectionInstance).ToNot(gomega.BeNil())
+			gomega.Expect(connectionInstance).To(gomega.Equal(connectionAdded))
+		})
+
+		ginkgo.It("should return a not found error when trying to get a non existent connection", func() {
+			connectionInstance, err := client.GetConnection(context.Background(), &grpc_application_network_go.ConnectionInstanceId{
+				OrganizationId:   "",
+				SourceInstanceId: "",
+				TargetInstanceId: "",
+				InboundName:      "",
+				OutboundName:     "",
+			})
+			gomega.Expect(err).ToNot(gomega.Succeed())
+			gomega.Expect(connectionInstance).To(gomega.BeNil())
+		})
+
+		ginkgo.It("should retrieve a previously added connection using the ZT network id", func() {
+			organization := addOrganization(organizationProvider)
+			sourceInstance := addSourceInstance(organization.ID, false, applicationProvider)
+			targetInstance := addTargetInstance(organization.ID, applicationProvider)
+
+			addConnectionRequest := &grpc_application_network_go.AddConnectionRequest{
+				OrganizationId:   organization.ID,
+				SourceInstanceId: sourceInstance.AppInstanceId,
+				TargetInstanceId: targetInstance.AppInstanceId,
+				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
+				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+				IpRange:          entities.GenerateUUID(),
+				ZtNetworkId:      entities.GenerateUUID(),
+			}
+			connectionAdded, err := client.AddConnection(context.Background(), addConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connectionAdded).ToNot(gomega.BeNil())
+
+			connectionInstance, err := client.GetConnectionByZtNetworkId(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
+				OrganizationId: addConnectionRequest.OrganizationId,
+				ZtNetworkId:    addConnectionRequest.ZtNetworkId,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connectionInstance).ToNot(gomega.BeNil())
+			gomega.Expect(connectionInstance).To(gomega.Equal(connectionAdded))
+		})
+
+		ginkgo.It("should return a not found error when trying to get a non existent connection", func() {
+			connectionInstance, err := client.GetConnectionByZtNetworkId(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
+				OrganizationId: "",
+				ZtNetworkId:    "",
+			})
 			gomega.Expect(err).ToNot(gomega.Succeed())
 			gomega.Expect(connectionInstance).To(gomega.BeNil())
 		})
@@ -155,19 +257,23 @@ var _ = ginkgo.Describe("Application Network service", func() {
 				TargetInstanceId: targetInstance.AppInstanceId,
 				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
 				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+				IpRange:          entities.GenerateUUID(),
+				ZtNetworkId:      entities.GenerateUUID(),
 			}
 			_, err := client.AddConnection(context.Background(), addConnectionRequest)
 			gomega.Expect(err).To(gomega.Succeed())
 			updateConnectionRequest := &grpc_application_network_go.UpdateConnectionRequest{
-				OrganizationId:   addConnectionRequest.OrganizationId,
-				SourceInstanceId: addConnectionRequest.SourceInstanceId,
-				TargetInstanceId: addConnectionRequest.TargetInstanceId,
-				InboundName:      addConnectionRequest.InboundName,
-				OutboundName:     addConnectionRequest.OutboundName,
-				UpdateStatus:     true,
-				Status:           grpc_application_network_go.ConnectionStatus_ESTABLISHED,
-				UpdateIpRange:    false,
-				IpRange:          "",
+				OrganizationId:    addConnectionRequest.OrganizationId,
+				SourceInstanceId:  addConnectionRequest.SourceInstanceId,
+				TargetInstanceId:  addConnectionRequest.TargetInstanceId,
+				InboundName:       addConnectionRequest.InboundName,
+				OutboundName:      addConnectionRequest.OutboundName,
+				UpdateStatus:      true,
+				Status:            grpc_application_network_go.ConnectionStatus_ESTABLISHED,
+				UpdateIpRange:     false,
+				IpRange:           "",
+				UpdateZtNetworkId: false,
+				ZtNetworkId:       "",
 			}
 			success, err := client.UpdateConnection(context.Background(), updateConnectionRequest)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -176,7 +282,7 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(connections).ToNot(gomega.BeNil())
 			gomega.Expect(connections.Connections).To(gomega.HaveLen(1))
-			gomega.Expect(connections.Connections[0].Status).To(gomega.Equal(grpc_application_network_go.ConnectionStatus_ESTABLISHED))
+			gomega.Expect(connections.Connections[0].Status).To(gomega.Equal(updateConnectionRequest.Status))
 		})
 
 		ginkgo.It("should be able to update the range IP of the connection", func() {
@@ -190,20 +296,24 @@ var _ = ginkgo.Describe("Application Network service", func() {
 				TargetInstanceId: targetInstance.AppInstanceId,
 				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
 				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+				IpRange:          entities.GenerateUUID(),
+				ZtNetworkId:      entities.GenerateUUID(),
 			}
 			_, err := client.AddConnection(context.Background(), addConnectionRequest)
 			gomega.Expect(err).To(gomega.Succeed())
 			newRange := "172.16.0.1-172.16.0.255"
 			updateConnectionRequest := &grpc_application_network_go.UpdateConnectionRequest{
-				OrganizationId:   addConnectionRequest.OrganizationId,
-				SourceInstanceId: addConnectionRequest.SourceInstanceId,
-				TargetInstanceId: addConnectionRequest.TargetInstanceId,
-				InboundName:      addConnectionRequest.InboundName,
-				OutboundName:     addConnectionRequest.OutboundName,
-				UpdateStatus:     false,
-				Status:           0,
-				UpdateIpRange:    true,
-				IpRange:          newRange,
+				OrganizationId:    addConnectionRequest.OrganizationId,
+				SourceInstanceId:  addConnectionRequest.SourceInstanceId,
+				TargetInstanceId:  addConnectionRequest.TargetInstanceId,
+				InboundName:       addConnectionRequest.InboundName,
+				OutboundName:      addConnectionRequest.OutboundName,
+				UpdateStatus:      false,
+				Status:            0,
+				UpdateIpRange:     true,
+				IpRange:           newRange,
+				UpdateZtNetworkId: false,
+				ZtNetworkId:       "",
 			}
 			success, err := client.UpdateConnection(context.Background(), updateConnectionRequest)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -212,7 +322,46 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(connections).ToNot(gomega.BeNil())
 			gomega.Expect(connections.Connections).To(gomega.HaveLen(1))
-			gomega.Expect(connections.Connections[0].IpRange).To(gomega.Equal(newRange))
+			gomega.Expect(connections.Connections[0].IpRange).To(gomega.Equal(updateConnectionRequest.IpRange))
+		})
+
+		ginkgo.It("should be able to update the ZtNetwork ID of the connection", func() {
+			organization := addOrganization(organizationProvider)
+			sourceInstance := addSourceInstance(organization.ID, false, applicationProvider)
+			targetInstance := addTargetInstance(organization.ID, applicationProvider)
+
+			addConnectionRequest := &grpc_application_network_go.AddConnectionRequest{
+				OrganizationId:   organization.ID,
+				SourceInstanceId: sourceInstance.AppInstanceId,
+				TargetInstanceId: targetInstance.AppInstanceId,
+				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
+				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+				IpRange:          entities.GenerateUUID(),
+				ZtNetworkId:      entities.GenerateUUID(),
+			}
+			_, err := client.AddConnection(context.Background(), addConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			updateConnectionRequest := &grpc_application_network_go.UpdateConnectionRequest{
+				OrganizationId:    addConnectionRequest.OrganizationId,
+				SourceInstanceId:  addConnectionRequest.SourceInstanceId,
+				TargetInstanceId:  addConnectionRequest.TargetInstanceId,
+				InboundName:       addConnectionRequest.InboundName,
+				OutboundName:      addConnectionRequest.OutboundName,
+				UpdateStatus:      false,
+				Status:            0,
+				UpdateIpRange:     false,
+				IpRange:           "",
+				UpdateZtNetworkId: true,
+				ZtNetworkId:       entities.GenerateUUID(),
+			}
+			success, err := client.UpdateConnection(context.Background(), updateConnectionRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).ToNot(gomega.BeNil())
+			connections, err := client.ListConnections(context.Background(), &grpc_organization_go.OrganizationId{OrganizationId: organization.ID})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(connections).ToNot(gomega.BeNil())
+			gomega.Expect(connections.Connections).To(gomega.HaveLen(1))
+			gomega.Expect(connections.Connections[0].ZtNetworkId).To(gomega.Equal(updateConnectionRequest.ZtNetworkId))
 		})
 
 		ginkgo.It("should be able to update the range IP and the status of the connection", func() {
@@ -226,20 +375,24 @@ var _ = ginkgo.Describe("Application Network service", func() {
 				TargetInstanceId: targetInstance.AppInstanceId,
 				InboundName:      targetInstance.InboundNetInterfaces[0].Name,
 				OutboundName:     sourceInstance.OutboundNetInterfaces[0].Name,
+				IpRange:          entities.GenerateUUID(),
+				ZtNetworkId:      entities.GenerateUUID(),
 			}
 			_, err := client.AddConnection(context.Background(), addConnectionRequest)
 			gomega.Expect(err).To(gomega.Succeed())
 			newRange := "172.16.0.1-172.16.0.255"
 			updateConnectionRequest := &grpc_application_network_go.UpdateConnectionRequest{
-				OrganizationId:   addConnectionRequest.OrganizationId,
-				SourceInstanceId: addConnectionRequest.SourceInstanceId,
-				TargetInstanceId: addConnectionRequest.TargetInstanceId,
-				InboundName:      addConnectionRequest.InboundName,
-				OutboundName:     addConnectionRequest.OutboundName,
-				UpdateStatus:     true,
-				Status:           grpc_application_network_go.ConnectionStatus_ESTABLISHED,
-				UpdateIpRange:    true,
-				IpRange:          newRange,
+				OrganizationId:    addConnectionRequest.OrganizationId,
+				SourceInstanceId:  addConnectionRequest.SourceInstanceId,
+				TargetInstanceId:  addConnectionRequest.TargetInstanceId,
+				InboundName:       addConnectionRequest.InboundName,
+				OutboundName:      addConnectionRequest.OutboundName,
+				UpdateStatus:      true,
+				Status:            grpc_application_network_go.ConnectionStatus_ESTABLISHED,
+				UpdateIpRange:     true,
+				IpRange:           newRange,
+				UpdateZtNetworkId: true,
+				ZtNetworkId:       entities.GenerateUUID(),
 			}
 			success, err := client.UpdateConnection(context.Background(), updateConnectionRequest)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -248,8 +401,9 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(connections).ToNot(gomega.BeNil())
 			gomega.Expect(connections.Connections).To(gomega.HaveLen(1))
-			gomega.Expect(connections.Connections[0].Status).To(gomega.Equal(grpc_application_network_go.ConnectionStatus_ESTABLISHED))
-			gomega.Expect(connections.Connections[0].IpRange).To(gomega.Equal(newRange))
+			gomega.Expect(connections.Connections[0].Status).To(gomega.Equal(updateConnectionRequest.Status))
+			gomega.Expect(connections.Connections[0].IpRange).To(gomega.Equal(updateConnectionRequest.IpRange))
+			gomega.Expect(connections.Connections[0].ZtNetworkId).To(gomega.Equal(updateConnectionRequest.ZtNetworkId))
 		})
 	})
 
@@ -595,48 +749,50 @@ var _ = ginkgo.Describe("Application Network service", func() {
 	})
 
 	ginkgo.Context("when adding a ztConnection", func() {
-		ginkgo.It("should be able to add when organization and instance exists", func(){
+		ginkgo.It("should be able to add when organization and instance exists", func() {
 			organization := addOrganization(organizationProvider)
-			instance := addSourceInstance(organization.ID, false, applicationProvider)
+			instance := addInstance(organization.ID, applicationProvider)
 			toAdd := &grpc_application_network_go.ZTNetworkConnection{
-				OrganizationId:	organization.ID,
-				ZtNetworkId: 	entities.GenerateUUID(),
-				AppInstanceId: 	instance.AppInstanceId,
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId:  	entities.GenerateUUID(),
-				Side: 			grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
+				OrganizationId: organization.ID,
+				ZtNetworkId:    entities.GenerateUUID(),
+				AppInstanceId:  instance.AppInstanceId,
+				ServiceId:      instance.Groups[0].ServiceInstances[0].ServiceId,
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
 			}
 			added, err := client.AddZTNetworkConnection(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(added).NotTo(gomega.BeNil())
 		})
-		ginkgo.It("should not be able to add when organization does not exists", func(){
+		ginkgo.It("should not be able to add when organization does not exists", func() {
 			toAdd := &grpc_application_network_go.ZTNetworkConnection{
-				OrganizationId:	entities.GenerateUUID(),
-				ZtNetworkId: 	entities.GenerateUUID(),
-				AppInstanceId: 	entities.GenerateUUID(),
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId:  	entities.GenerateUUID(),
-				Side: 			grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
+				OrganizationId: entities.GenerateUUID(),
+				ZtNetworkId:    entities.GenerateUUID(),
+				AppInstanceId:  entities.GenerateUUID(),
+				ServiceId:      entities.GenerateUUID(),
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
 			}
 			_, err := client.AddZTNetworkConnection(context.Background(), toAdd)
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
-
 		})
-		ginkgo.It("should not be able to add a ztConnection twice", func(){
+		ginkgo.It("should not be able to add a ztConnection twice", func() {
 			organization := addOrganization(organizationProvider)
-			instance := addSourceInstance(organization.ID, false, applicationProvider)
+			instance := addInstance(organization.ID, applicationProvider)
 			toAdd := &grpc_application_network_go.ZTNetworkConnection{
-				OrganizationId:	organization.ID,
-				ZtNetworkId: 	entities.GenerateUUID(),
-				AppInstanceId: 	instance.AppInstanceId,
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId:  	entities.GenerateUUID(),
-				Side: 			grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
+				OrganizationId: organization.ID,
+				ZtNetworkId:    entities.GenerateUUID(),
+				AppInstanceId:  instance.AppInstanceId,
+				ServiceId:      instance.Groups[0].ServiceInstances[0].ServiceId,
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
 			}
 			_, err := client.AddZTNetworkConnection(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -646,78 +802,82 @@ var _ = ginkgo.Describe("Application Network service", func() {
 		})
 	})
 
-	ginkgo.Context("when listing ztConnections", func(){
-		ginkgo.It("Should be able to list all the ZT-Connecitions in a zt-Network", func(){
+	ginkgo.Context("when listing ztConnections", func() {
+		ginkgo.It("Should be able to list all the ZT-Connecitions in a zt-Network", func() {
 			num := 5
 			organization := addOrganization(organizationProvider)
 			toAdd := &grpc_application_network_go.ZTNetworkConnection{
-				OrganizationId:	organization.ID,
-				ZtNetworkId: 	entities.GenerateUUID(),
-				AppInstanceId: 	entities.GenerateUUID(),
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId:  	entities.GenerateUUID(),
-				Side: 			grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
+				OrganizationId: organization.ID,
+				ZtNetworkId:    entities.GenerateUUID(),
+				AppInstanceId:  entities.GenerateUUID(),
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
 			}
-			for i:=0; i<num; i++ {
-				instance := addSourceInstance(organization.ID, false, applicationProvider)
+			for i := 0; i < num; i++ {
+				instance := addInstance(organization.ID, applicationProvider)
 				toAdd.AppInstanceId = instance.AppInstanceId
+				toAdd.ServiceId = instance.Groups[0].ServiceInstances[0].ServiceId
+
 				_, err := client.AddZTNetworkConnection(context.Background(), toAdd)
 				gomega.Expect(err).To(gomega.Succeed())
 			}
 			list, err := client.ListZTNetworkConnection(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
-				OrganizationId:	toAdd.OrganizationId,
-				ZtNetworkId: 	toAdd.ZtNetworkId,
+				OrganizationId: toAdd.OrganizationId,
+				ZtNetworkId:    toAdd.ZtNetworkId,
 			})
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(list).NotTo(gomega.BeNil())
 			gomega.Expect(len(list.Connections)).Should(gomega.Equal(num))
 
 		})
-		ginkgo.It("Should be able to return an empty list if there is no connections", func(){
+		ginkgo.It("Should be able to return an empty list if there is no connections", func() {
 			organization := addOrganization(organizationProvider)
 			list, err := client.ListZTNetworkConnection(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
-				OrganizationId:	organization.ID,
-				ZtNetworkId: 	entities.GenerateUUID(),
+				OrganizationId: organization.ID,
+				ZtNetworkId:    entities.GenerateUUID(),
 			})
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(list).NotTo(gomega.BeNil())
 			gomega.Expect(len(list.Connections)).Should(gomega.Equal(0))
 
 		})
-		ginkgo.It("Should not be able to return a list if there the organization does not exist", func(){
+		ginkgo.It("Should not be able to return a list if there the organization does not exist", func() {
 			_, err := client.ListZTNetworkConnection(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
-				OrganizationId:	entities.GenerateUUID(),
-				ZtNetworkId: 	entities.GenerateUUID(),
+				OrganizationId: entities.GenerateUUID(),
+				ZtNetworkId:    entities.GenerateUUID(),
 			})
 			gomega.Expect(err).NotTo(gomega.Succeed())
 		})
 	})
-	ginkgo.Context("when updating ztConnections", func(){
+	ginkgo.Context("when updating ztConnections", func() {
 		ginkgo.It("should be able to update a ztconnection", func() {
 			organization := addOrganization(organizationProvider)
-			instance := addSourceInstance(organization.ID, false, applicationProvider)
+			instance := addInstance(organization.ID, applicationProvider)
 			toAdd := &grpc_application_network_go.ZTNetworkConnection{
-				OrganizationId:	organization.ID,
-				ZtNetworkId: 	entities.GenerateUUID(),
-				AppInstanceId: 	instance.AppInstanceId,
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId:  	entities.GenerateUUID(),
-				Side: 			grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
+				OrganizationId: organization.ID,
+				ZtNetworkId:    entities.GenerateUUID(),
+				AppInstanceId:  instance.AppInstanceId,
+				ServiceId:      instance.Groups[0].ServiceInstances[0].ServiceId,
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
 			}
 			added, err := client.AddZTNetworkConnection(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(added).NotTo(gomega.BeNil())
 
-			toUpdate:= grpc_application_network_go.UpdateZTNetworkConnectionRequest{
-				OrganizationId: toAdd.OrganizationId,
-				ZtNetworkId: 	toAdd.ZtNetworkId,
-				AppInstanceId: 	toAdd.AppInstanceId,
-				UpdateZtIp:     true,
-				ZtIp: 			"yyy.yyy.yyy.yyy",
-				UpdateClusterId:true,
-				ClusterId:     	"",
+			toUpdate := grpc_application_network_go.UpdateZTNetworkConnectionRequest{
+				OrganizationId:  toAdd.OrganizationId,
+				ZtNetworkId:     toAdd.ZtNetworkId,
+				AppInstanceId:   toAdd.AppInstanceId,
+				ServiceId:       toAdd.ServiceId,
+				UpdateZtIp:      true,
+				ZtIp:            "yyy.yyy.yyy.yyy",
+				UpdateClusterId: true,
+				ClusterId:       "",
 			}
 			success, err := client.UpdateZTNetworkConnection(context.Background(), &toUpdate)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -725,7 +885,7 @@ var _ = ginkgo.Describe("Application Network service", func() {
 
 			list, err := client.ListZTNetworkConnection(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
 				OrganizationId: toAdd.OrganizationId,
-				ZtNetworkId: 	toAdd.ZtNetworkId,
+				ZtNetworkId:    toAdd.ZtNetworkId,
 			})
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(list).NotTo(gomega.BeNil())
@@ -734,19 +894,19 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			gomega.Expect(list.Connections[0].ClusterId).Should(gomega.BeEmpty())
 			gomega.Expect(list.Connections[0].Side).Should(gomega.Equal(toAdd.Side))
 
-
 		})
 		ginkgo.It("should not be able to update a non existing ztconnection", func() {
 			organization := addOrganization(organizationProvider)
-			instance := addSourceInstance(organization.ID, false, applicationProvider)
-			toUpdate:= grpc_application_network_go.UpdateZTNetworkConnectionRequest{
-				OrganizationId: organization.ID,
-				ZtNetworkId: 	entities.GenerateUUID(),
-				AppInstanceId: 	instance.AppInstanceId,
-				UpdateZtIp:     true,
-				ZtIp: 			"yyy.yyy.yyy.yyy",
-				UpdateClusterId:true,
-				ClusterId:     	"",
+			instance := addInstance(organization.ID, applicationProvider)
+			toUpdate := grpc_application_network_go.UpdateZTNetworkConnectionRequest{
+				OrganizationId:  organization.ID,
+				ZtNetworkId:     entities.GenerateUUID(),
+				AppInstanceId:   instance.AppInstanceId,
+				ServiceId:       instance.Groups[0].ServiceInstances[0].ServiceId,
+				UpdateZtIp:      true,
+				ZtIp:            "yyy.yyy.yyy.yyy",
+				UpdateClusterId: true,
+				ClusterId:       "",
 			}
 			success, err := client.UpdateZTNetworkConnection(context.Background(), &toUpdate)
 			gomega.Expect(err).NotTo(gomega.Succeed())
@@ -755,39 +915,42 @@ var _ = ginkgo.Describe("Application Network service", func() {
 		})
 
 	})
-	ginkgo.Context("when removing ztConnections", func(){
+	ginkgo.Context("when removing ztConnections", func() {
 		ginkgo.It("should be able to remove a ztconnection", func() {
 			organization := addOrganization(organizationProvider)
-			instance := addSourceInstance(organization.ID, false, applicationProvider)
+			instance := addInstance(organization.ID, applicationProvider)
 			toAdd := &grpc_application_network_go.ZTNetworkConnection{
-				OrganizationId:	organization.ID,
-				ZtNetworkId: 	entities.GenerateUUID(),
-				AppInstanceId: 	instance.AppInstanceId,
-				ZtMember: 		entities.GenerateUUID(),
-				ZtIp: 			"xxx.xxx.xxx.xxx",
-				ClusterId:  	entities.GenerateUUID(),
-				Side: 			grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
+				OrganizationId: organization.ID,
+				ZtNetworkId:    entities.GenerateUUID(),
+				AppInstanceId:  instance.AppInstanceId,
+				ServiceId:      instance.Groups[0].ServiceInstances[0].ServiceId,
+				ZtMember:       entities.GenerateUUID(),
+				ZtIp:           "xxx.xxx.xxx.xxx",
+				ClusterId:      entities.GenerateUUID(),
+				Side:           grpc_application_network_go.ConnectionSide_SIDE_OUTBOUND,
 			}
 			added, err := client.AddZTNetworkConnection(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(added).NotTo(gomega.BeNil())
 
-			instance2 := addSourceInstance(organization.ID, false, applicationProvider)
+			instance2 := addInstance(organization.ID, applicationProvider)
 			toAdd.AppInstanceId = instance2.AppInstanceId
+			toAdd.ServiceId = instance2.Groups[0].ServiceInstances[0].ServiceId
+
 			added, err = client.AddZTNetworkConnection(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(added).NotTo(gomega.BeNil())
 
 			success, err := client.RemoveZTNetworkConnection(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
-				OrganizationId:	toAdd.OrganizationId,
-				ZtNetworkId: 	toAdd.ZtNetworkId,
+				OrganizationId: toAdd.OrganizationId,
+				ZtNetworkId:    toAdd.ZtNetworkId,
 			})
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(success).NotTo(gomega.BeNil())
 			// check there is no ztconnections
 			list, err := client.ListZTNetworkConnection(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
 				OrganizationId: toAdd.OrganizationId,
-				ZtNetworkId: 	toAdd.ZtNetworkId,
+				ZtNetworkId:    toAdd.ZtNetworkId,
 			})
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(list).NotTo(gomega.BeNil())
@@ -797,8 +960,8 @@ var _ = ginkgo.Describe("Application Network service", func() {
 		ginkgo.It("should not be able to remove a non existing ztconnection", func() {
 			organization := addOrganization(organizationProvider)
 			success, err := client.RemoveZTNetworkConnection(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
-				OrganizationId:	organization.ID,
-				ZtNetworkId: 	entities.GenerateUUID(),
+				OrganizationId: organization.ID,
+				ZtNetworkId:    entities.GenerateUUID(),
 			})
 			gomega.Expect(err).NotTo(gomega.Succeed())
 			gomega.Expect(success).To(gomega.BeNil())

@@ -76,9 +76,10 @@ create table IF NOT EXISTS nalej.AppZtNetworkMembers(organization_id text, app_i
 create table IF NOT EXISTS nalej.Asset (organization_id text, edge_controller_id text, asset_id text, agent_id text, show boolean, created int, labels map<text, text>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, eic_net_ip text, last_op_result FROZEN<agent_op_summary>, last_alive_timestamp int, location FROZEN<inventory_location>, PRIMARY KEY (asset_id));
 create table IF NOT EXISTS nalej.Controller (organization_id text, edge_controller_id text, show boolean, created int, name text, labels map<text, text>, last_alive_timestamp int, location FROZEN<inventory_location>, os FROZEN<operating_system_info>, hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, last_op_result FROZEN<ec_op_summary>, PRIMARY KEY(edge_controller_id));
 create table IF NOT EXISTS nalej.InstanceParameters(app_instance_id text, parameters list<FROZEN<instance_parameter>>, PRIMARY KEY (app_instance_id));
-create table IF NOT EXISTS nalej.Connection_Instances(organization_id text, connection_id text, source_instance_id text, source_instance_name text, target_instance_id text, target_instance_name text, inbound_name text, outbound_name text, outbound_required boolean, status int, range_ip text, PRIMARY KEY ((organization_id), source_instance_id, target_instance_id, inbound_name, outbound_name));
+create table IF NOT EXISTS nalej.Connection_Instances(organization_id text, connection_id text, source_instance_id text, source_instance_name text, target_instance_id text, target_instance_name text, inbound_name text, outbound_name text, outbound_required boolean, status int, ip_range text, zt_network_id text, PRIMARY KEY ((organization_id), source_instance_id, target_instance_id, inbound_name, outbound_name));
 create table IF NOT EXISTS nalej.Connection_Instance_Links(organization_id text, connection_id text, source_instance_id text, source_cluster_id text, target_instance_id text, target_cluster_id text, inbound_name text, outbound_name text, status int, PRIMARY KEY ((organization_id), source_instance_id, target_instance_id, inbound_name, outbound_name, source_cluster_id, target_cluster_id));
-create table if not exists nalej.ztnetworkconnection ( organization_id text, zt_network_id text, app_instance_id text, zt_member text, zt_ip text, cluster_id text, side int, primary key ((organization_id, zt_network_id), app_instance_id));
+
+create table IF NOT EXISTS nalej.ztnetworkconnection ( organization_id text, zt_network_id text, app_instance_id text, service_id text, zt_member text, zt_ip text, cluster_id text, side int, PRIMARY KEY ((organization_id, zt_network_id), app_instance_id, service_id));
 -----------
 -- INDEX --
 -----------
@@ -91,3 +92,4 @@ create index IF NOT EXISTS assetEdgeController ON nalej.Asset (edge_controller_i
 create index IF NOT EXISTS accountName on nalej.Account(name);
 create index IF NOT EXISTS projectName on nalej.project(name);
 create index IF NOT EXISTS connectionInstanceTargetIndex ON nalej.Connection_Instances (target_instance_id);
+create index IF NOT EXISTS ztNetworId on nalej.Connection_Instances (zt_network_id);

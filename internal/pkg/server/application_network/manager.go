@@ -9,6 +9,7 @@ import (
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-application-network-go"
 	"github.com/nalej/grpc-organization-go"
+	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/application"
 	"github.com/nalej/system-model/internal/pkg/provider/application_network"
@@ -131,6 +132,20 @@ func (manager *Manager) UpdateConnectionInstance(updateConnectionRequest *grpc_a
 	return nil
 }
 
+func (manager *Manager) GetConnectionInstance(connectionId *grpc_application_network_go.ConnectionInstanceId) (*entities.ConnectionInstance, derrors.Error) {
+	err := manager.validOrganization(connectionId.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err :=   manager.AppNetProvider.GetConnectionInstance(connectionId.OrganizationId, connectionId.SourceInstanceId, connectionId.TargetInstanceId,
+		connectionId.InboundName, connectionId.OutboundName)
+	if err != nil {
+		return nil, conversions.ToDerror(err)
+	}
+	return conn, nil
+}
+
 // RemoveConnectionInstance Removes the given connection instance
 func (manager *Manager) RemoveConnectionInstance(removeConnectionRequest *grpc_application_network_go.RemoveConnectionRequest) derrors.Error {
 	err := manager.validOrganization(removeConnectionRequest.OrganizationId)
@@ -197,6 +212,26 @@ func (manager *Manager) RemoveConnectionInstance(removeConnectionRequest *grpc_a
 	}
 	return nil
 }
+
+func (manager *Manager) GetConnectionByZtNetworkId( request *grpc_application_network_go.ZTNetworkConnectionId) (*entities.ConnectionInstance, derrors.Error){
+
+	if err := manager.validOrganization(request.OrganizationId); err != nil {
+		return nil, err
+	}
+
+	list, err := manager.AppNetProvider.GetConnectionByZtNetworkId(request.ZtNetworkId)
+	if err != nil {
+		return nil, err
+	}
+	for _, conn := range list {
+		if conn.OrganizationId == request.OrganizationId {
+			return &conn, nil
+		}
+	}
+	return nil, derrors.NewNotFoundError("ConnectionByZtNetworkId not found").WithParams(request.OrganizationId, request.ZtNetworkId)
+
+}
+
 
 // ListConnectionInstances Retrieves a list of all the connection instances linked to the given organization
 func (manager *Manager) ListConnectionInstances(organizationId *grpc_organization_go.OrganizationId) ([]entities.ConnectionInstance, derrors.Error) {
@@ -276,6 +311,22 @@ func (manager *Manager) ListOutboundConnections(appInstanceID *grpc_application_
 }
 
 
+// check if the instance has a service wich its identifier is serviceId
+func (manager *Manager) checkServiceId (inst *entities.AppInstance, serviceId string) derrors.Error {
+	found := false
+	for  i:=0; i<len(inst.Groups) && !found ; i++ { // , group := range inst.Groups {
+		for j:=0; j<len(inst.Groups[i].ServiceInstances) && ! found; j++ { //, service := range group.ServiceInstances {
+			if inst.Groups[i].ServiceInstances[j].ServiceId == serviceId { // .ServiceId == serviceId{
+				found = true
+			}
+		}
+	}
+	if !found {
+		return derrors.NewNotFoundError("no service found in the instance").WithParams(serviceId, inst.AppInstanceId)
+	}
+	return nil
+}
+
 func (manager *Manager) AddZTNetworkConnection(addRequest *grpc_application_network_go.ZTNetworkConnection) (*entities.ZTNetworkConnection, derrors.Error){
 
 	// check if the organization exists
@@ -284,8 +335,12 @@ func (manager *Manager) AddZTNetworkConnection(addRequest *grpc_application_netw
 		return nil, err
 	}
 
-	// check if the instance exists
-	err = manager.validInstance(addRequest.AppInstanceId)
+	inst, err := manager.ApplicationProvider.GetInstance(addRequest.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = manager.checkServiceId(inst, addRequest.ServiceId)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +379,7 @@ func (manager *Manager) UpdateZTNetworkConnection(updateRequest *grpc_applicatio
 		return err
 	}
 
-	conn, err := manager.AppNetProvider.GetZTConnection(updateRequest.OrganizationId, updateRequest.ZtNetworkId, updateRequest.AppInstanceId)
+	conn, err := manager.AppNetProvider.GetZTConnection(updateRequest.OrganizationId, updateRequest.ZtNetworkId, updateRequest.AppInstanceId, updateRequest.ServiceId)
 	if err != nil {
 		return err
 	}
