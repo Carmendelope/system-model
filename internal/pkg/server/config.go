@@ -31,7 +31,7 @@ type Config struct {
 }
 
 // Validate the current configuration.
-func (conf * Config) Validate() derrors.Error {
+func (conf *Config) Validate() derrors.Error {
 	if conf.Port <= 0 {
 		return derrors.NewInvalidArgumentError("port must be specified")
 	}
@@ -39,7 +39,7 @@ func (conf * Config) Validate() derrors.Error {
 		if conf.ScyllaDBAddress == "" {
 			return derrors.NewInvalidArgumentError("address must be specified to use dbScylla Providers")
 		}
-		if  conf.KeySpace == "" {
+		if conf.KeySpace == "" {
 			return derrors.NewInvalidArgumentError("keyspace must be specified to use dbScylla Providers")
 		}
 		if conf.ScyllaDBPort <= 0 {
@@ -64,5 +64,5 @@ func (conf *Config) Print() {
 		log.Info().Bool("UseDBScyllaProviders", conf.UseDBScyllaProviders).Msg("using dbScylla providers")
 		log.Info().Str("URL", conf.ScyllaDBAddress).Str("KeySpace", conf.KeySpace).Int("Port", conf.ScyllaDBPort).Msg("ScyllaDB")
 	}
-	log.Info().Str("PublicHostDomain",conf.PublicHostDomain).Msg("Public Host Domain")
+	log.Info().Str("PublicHostDomain", conf.PublicHostDomain).Msg("Public Host Domain")
 }

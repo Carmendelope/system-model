@@ -11,24 +11,24 @@ import (
 	"github.com/nalej/system-model/internal/pkg/provider/account"
 )
 
-type Manager struct{
+type Manager struct {
 	AccountProvider account.Provider
 }
 
-func NewManager(accProvider account.Provider) Manager{
+func NewManager(accProvider account.Provider) Manager {
 	return Manager{
-		AccountProvider:accProvider,
+		AccountProvider: accProvider,
 	}
 }
 
-func (m *Manager)AddAccount( request *grpc_account_go.AddAccountRequest) (*entities.Account, derrors.Error) {
+func (m *Manager) AddAccount(request *grpc_account_go.AddAccountRequest) (*entities.Account, derrors.Error) {
 
 	// Check if there is an account with the same name (no repeated names are allowed)
 	exists, err := m.AccountProvider.ExistsByName(request.Name)
 	if err != nil {
 		return nil, err
 	}
-	if exists{
+	if exists {
 		return nil, derrors.NewInvalidArgumentError("Account Name already exists").WithParams(request.Name)
 	}
 
@@ -42,7 +42,7 @@ func (m *Manager)AddAccount( request *grpc_account_go.AddAccountRequest) (*entit
 	return toAdd, nil
 }
 
-func (m *Manager)GetAccount(request *grpc_account_go.AccountId) (*entities.Account, derrors.Error){
+func (m *Manager) GetAccount(request *grpc_account_go.AccountId) (*entities.Account, derrors.Error) {
 
 	account, err := m.AccountProvider.Get(request.AccountId)
 	if err != nil {
@@ -52,13 +52,13 @@ func (m *Manager)GetAccount(request *grpc_account_go.AccountId) (*entities.Accou
 	return account, nil
 }
 
-func (m *Manager)ListAccounts() ([]entities.Account, derrors.Error){
+func (m *Manager) ListAccounts() ([]entities.Account, derrors.Error) {
 
-	return  m.AccountProvider.List()
+	return m.AccountProvider.List()
 
 }
 
-func (m *Manager)UpdateAccount(request *grpc_account_go.UpdateAccountRequest) derrors.Error{
+func (m *Manager) UpdateAccount(request *grpc_account_go.UpdateAccountRequest) derrors.Error {
 
 	oldAccount, err := m.AccountProvider.Get(request.AccountId)
 	if err != nil {
@@ -68,19 +68,19 @@ func (m *Manager)UpdateAccount(request *grpc_account_go.UpdateAccountRequest) de
 	if request.UpdateName {
 		exists, err := m.AccountProvider.ExistsByName(request.Name)
 		if err != nil {
-			return  err
+			return err
 		}
-		if exists{
-			return  derrors.NewInvalidArgumentError("Account Name already exists").WithParams(request.Name)
+		if exists {
+			return derrors.NewInvalidArgumentError("Account Name already exists").WithParams(request.Name)
 		}
 	}
 	oldAccount.ApplyUpdate(request)
 
-	return  m.AccountProvider.Update(*oldAccount)
+	return m.AccountProvider.Update(*oldAccount)
 
 }
 
-func (m *Manager)UpdateAccountBillingInfo(request *grpc_account_go.UpdateAccountBillingInfoRequest) derrors.Error{
+func (m *Manager) UpdateAccountBillingInfo(request *grpc_account_go.UpdateAccountBillingInfoRequest) derrors.Error {
 
 	oldAccount, err := m.AccountProvider.Get(request.AccountId)
 	if err != nil {
@@ -88,5 +88,5 @@ func (m *Manager)UpdateAccountBillingInfo(request *grpc_account_go.UpdateAccount
 	}
 	oldAccount.ApplyUpdateBillingInfo(request)
 
-	return  m.AccountProvider.Update(*oldAccount)
+	return m.AccountProvider.Update(*oldAccount)
 }

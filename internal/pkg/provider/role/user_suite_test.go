@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestUserProviderPackage(t *testing.T){
+func TestUserProviderPackage(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "RoleProviders package suite")
 }

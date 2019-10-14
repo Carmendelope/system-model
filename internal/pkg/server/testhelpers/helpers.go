@@ -15,7 +15,7 @@ import (
 	"math/rand"
 )
 
-func CreateOrganization(orgProvider orgProvider.Provider) * entities.Organization {
+func CreateOrganization(orgProvider orgProvider.Provider) *entities.Organization {
 	toAdd := entities.NewOrganization(fmt.Sprintf("org-%d-%d", ginkgo.GinkgoRandomSeed(), rand.Int()))
 	err := orgProvider.Add(*toAdd)
 	gomega.Expect(err).To(gomega.Succeed())
@@ -24,13 +24,13 @@ func CreateOrganization(orgProvider orgProvider.Provider) * entities.Organizatio
 
 func CreateDeviceGroup(devProvider devProvider.Provider, organizationID string, deviceGroupName string) *devices.DeviceGroup {
 	labels := make(map[string]string, 0)
-	toAdd := devices.NewDeviceGroup( organizationID, entities.GenerateUUID(), deviceGroupName,labels)
+	toAdd := devices.NewDeviceGroup(organizationID, entities.GenerateUUID(), deviceGroupName, labels)
 	err := devProvider.AddDeviceGroup(*toAdd)
 	gomega.Expect(err).To(gomega.Succeed())
 	return toAdd
 }
 
-func DeleteGroups(devProvider devProvider.Provider, organizationID string){
+func DeleteGroups(devProvider devProvider.Provider, organizationID string) {
 
 	groups, err := devProvider.ListDeviceGroups(organizationID)
 	gomega.Expect(err).To(gomega.Succeed())
@@ -39,7 +39,7 @@ func DeleteGroups(devProvider devProvider.Provider, organizationID string){
 		list, err := devProvider.ListDevices(organizationID, group.DeviceGroupId)
 		gomega.Expect(err).To(gomega.Succeed())
 
-		for _, device := range list{
+		for _, device := range list {
 			err = devProvider.RemoveDevice(organizationID, group.DeviceGroupId, device.DeviceId)
 			gomega.Expect(err).To(gomega.Succeed())
 		}
@@ -48,6 +48,4 @@ func DeleteGroups(devProvider devProvider.Provider, organizationID string){
 		gomega.Expect(err).To(gomega.Succeed())
 	}
 
-
 }
-

@@ -15,7 +15,7 @@ import (
 )
 
 // Handler structure for the role requests.
-type Handler struct{
+type Handler struct {
 	Manager Manager
 }
 
@@ -25,15 +25,15 @@ func NewHandler(manager Manager) *Handler {
 }
 
 // AddRole adds a new role to a given organization.
-func (h * Handler) AddRole(ctx context.Context, addRoleRequest *grpc_role_go.AddRoleRequest) (*grpc_role_go.Role, error) {
+func (h *Handler) AddRole(ctx context.Context, addRoleRequest *grpc_role_go.AddRoleRequest) (*grpc_role_go.Role, error) {
 	log.Debug().Str("organizationID", addRoleRequest.OrganizationId).
 		Str("name", addRoleRequest.Name).Msg("add role")
 	vErr := entities.ValidAddRoleRequest(addRoleRequest)
-	if vErr != nil{
+	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	added, err := h.Manager.AddRole(addRoleRequest)
-	if err != nil{
+	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("roleID", added.RoleId).Msg("role has been added")
@@ -41,7 +41,7 @@ func (h * Handler) AddRole(ctx context.Context, addRoleRequest *grpc_role_go.Add
 }
 
 // GetRole returns an existing role.
-func (h * Handler) GetRole(ctx context.Context, roleID *grpc_role_go.RoleId) (*grpc_role_go.Role, error) {
+func (h *Handler) GetRole(ctx context.Context, roleID *grpc_role_go.RoleId) (*grpc_role_go.Role, error) {
 	vErr := entities.ValidRoleID(roleID)
 	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
@@ -54,7 +54,7 @@ func (h * Handler) GetRole(ctx context.Context, roleID *grpc_role_go.RoleId) (*g
 }
 
 // ListRoles retrieves the list of roles of a given organization.
-func (h * Handler) ListRoles(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_role_go.RoleList, error) {
+func (h *Handler) ListRoles(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_role_go.RoleList, error) {
 	log.Debug().Str("organizationID", organizationID.OrganizationId).Msg("list roles")
 	vErr := entities.ValidOrganizationID(organizationID)
 	if vErr != nil {
@@ -69,24 +69,22 @@ func (h * Handler) ListRoles(ctx context.Context, organizationID *grpc_organizat
 		roleList = append(roleList, r.ToGRPC())
 	}
 	result := &grpc_role_go.RoleList{
-		Roles:                roleList,
+		Roles: roleList,
 	}
 	return result, nil
 }
 
 // RemoveRole removes a given role from an organization.
-func (h * Handler) RemoveRole(ctx context.Context, removeRoleRequest *grpc_role_go.RemoveRoleRequest) (*grpc_common_go.Success, error) {
+func (h *Handler) RemoveRole(ctx context.Context, removeRoleRequest *grpc_role_go.RemoveRoleRequest) (*grpc_common_go.Success, error) {
 	log.Debug().Str("organizationID", removeRoleRequest.OrganizationId).
 		Str("roleID", removeRoleRequest.RoleId).Msg("remove role")
 	vErr := entities.ValidRemoveRoleRequest(removeRoleRequest)
-	if vErr != nil{
+	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	err := h.Manager.RemoveRole(removeRoleRequest)
-	if err != nil{
+	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil
 }
-
-

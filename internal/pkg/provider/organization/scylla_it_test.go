@@ -25,20 +25,18 @@ create table nalej.Organization_Users (organization_id text, email text, PRIMARY
 create table nalej.Organization_Roles (organization_id text, role_id text, PRIMARY KEY (organization_id, role_id));
 */
 
-
-
 var _ = ginkgo.Describe("Scylla organization provider", func() {
 
-	if ! utils.RunIntegrationTests() {
+	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
 	}
 
-	var scyllaHost= os.Getenv("IT_SCYLLA_HOST")
+	var scyllaHost = os.Getenv("IT_SCYLLA_HOST")
 	if scyllaHost == "" {
 		ginkgo.Fail("missing environment variables")
 	}
-	var nalejKeySpace= os.Getenv("IT_NALEJ_KEYSPACE")
+	var nalejKeySpace = os.Getenv("IT_NALEJ_KEYSPACE")
 	if nalejKeySpace == "" {
 		ginkgo.Fail("missing environment variables")
 	}

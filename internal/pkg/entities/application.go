@@ -16,9 +16,9 @@ import (
 // DefaultEndPointInstance is used when the endpoint recived from GRPC has no endpoint
 var DefaultEndpointInstance = &grpc_application_go.EndpointInstance{
 	EndpointInstanceId: "",
-	Type: grpc_application_go.EndpointType_IS_ALIVE,
-	Fqdn: "",
-	Port: 0,
+	Type:               grpc_application_go.EndpointType_IS_ALIVE,
+	Fqdn:               "",
+	Port:               0,
 }
 
 // regular expresion for IP:port address
@@ -26,9 +26,9 @@ var IPAddressRegExp = string("(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])(.(25[0-5]|2
 
 // characters of service_group_instance_id and service_instance_id to create gloabl_fqdn
 const InstPrefixLength = 6
+
 // characters of organization_id to create gloabl_fqdn
 const OrgPrefixLength = 8
-
 
 // Enumerate with the type of instances we can deploy in the system.
 type InstanceType int32
@@ -39,13 +39,13 @@ const (
 )
 
 var InstanceTypeToGRPC = map[InstanceType]grpc_application_go.InstanceType{
-	ServiceInstanceType : grpc_application_go.InstanceType_SERVICE_INSTANCE,
-	ServiceGroupInstanceType : grpc_application_go.InstanceType_SERVICE_GROUP_INSTANCE,
+	ServiceInstanceType:      grpc_application_go.InstanceType_SERVICE_INSTANCE,
+	ServiceGroupInstanceType: grpc_application_go.InstanceType_SERVICE_GROUP_INSTANCE,
 }
 
-var InstanceTypeFromGRPC = map[grpc_application_go.InstanceType]InstanceType {
-	grpc_application_go.InstanceType_SERVICE_INSTANCE:ServiceInstanceType,
-	grpc_application_go.InstanceType_SERVICE_GROUP_INSTANCE:ServiceGroupInstanceType,
+var InstanceTypeFromGRPC = map[grpc_application_go.InstanceType]InstanceType{
+	grpc_application_go.InstanceType_SERVICE_INSTANCE:       ServiceInstanceType,
+	grpc_application_go.InstanceType_SERVICE_GROUP_INSTANCE: ServiceGroupInstanceType,
 }
 
 type PortAccess int
@@ -64,9 +64,8 @@ var PortAccessToGRPC = map[PortAccess]grpc_application_go.PortAccess{
 	AppServices:    grpc_application_go.PortAccess_APP_SERVICES,
 	Public:         grpc_application_go.PortAccess_PUBLIC,
 	DeviceGroup:    grpc_application_go.PortAccess_DEVICE_GROUP,
-	InboundAppnet:	grpc_application_go.PortAccess_INBOUND_APPNET,
-	OutboundAppnet:	grpc_application_go.PortAccess_OUTBOUND_APPNET,
-
+	InboundAppnet:  grpc_application_go.PortAccess_INBOUND_APPNET,
+	OutboundAppnet: grpc_application_go.PortAccess_OUTBOUND_APPNET,
 }
 
 var PortAccessFromGRPC = map[grpc_application_go.PortAccess]PortAccess{
@@ -124,7 +123,7 @@ type SecurityRule struct {
 	// InboundNetInterface defining the name of the inbound interface is affected by the rule
 	InboundNetInterface string `json:"inbound_net_interface,omitempty" cql:"inbound_net_interface"`
 	// OutboundNetInterface defining the name of the outbound interface is affected by the rule
-	OutboundNetInterface string   `json:"outbound_net_interface,omitempty" cql:"outbound_net_interface"`
+	OutboundNetInterface string `json:"outbound_net_interface,omitempty" cql:"outbound_net_interface"`
 }
 
 // NewSecurityRuleFromGRPC converts a grpc_application_go.SecurityRule into SecurityRule
@@ -134,22 +133,22 @@ func NewSecurityRuleFromGRPC(organizationID string, appDescriptorID string, rule
 		return nil, nil
 	}
 
-	ids := make ([]string, 0)
+	ids := make([]string, 0)
 
 	uuid := GenerateUUID()
 	access := PortAccessFromGRPC[rule.Access]
 	return &SecurityRule{
-		OrganizationId:  		organizationID,
-		AppDescriptorId: 		appDescriptorID,
-		RuleId:          		uuid,
-		Name:            		rule.Name,
-		TargetServiceGroupName:	rule.TargetServiceGroupName,
-		TargetServiceName: 		rule.TargetServiceName,
-		TargetPort: 			rule.TargetPort,
-		Access:          		access,
-		AuthServiceGroupName: 	rule.AuthServiceGroupName,
-		AuthServices:    		rule.AuthServices,
-		DeviceGroupNames:  		rule.DeviceGroupNames,
+		OrganizationId:         organizationID,
+		AppDescriptorId:        appDescriptorID,
+		RuleId:                 uuid,
+		Name:                   rule.Name,
+		TargetServiceGroupName: rule.TargetServiceGroupName,
+		TargetServiceName:      rule.TargetServiceName,
+		TargetPort:             rule.TargetPort,
+		Access:                 access,
+		AuthServiceGroupName:   rule.AuthServiceGroupName,
+		AuthServices:           rule.AuthServices,
+		DeviceGroupNames:       rule.DeviceGroupNames,
 		DeviceGroupIds:         ids,
 		InboundNetInterface:    rule.InboundNetInterface,
 		OutboundNetInterface:   rule.OutboundNetInterface,
@@ -163,17 +162,17 @@ func CopySecurityRuleFromGRPC(rule *grpc_application_go.SecurityRule) *SecurityR
 
 	access := PortAccessFromGRPC[rule.Access]
 	return &SecurityRule{
-		OrganizationId:  		rule.OrganizationId,
-		AppDescriptorId: 		rule.AppDescriptorId,
-		RuleId:          		rule.RuleId,
-		Name:            		rule.Name,
-		TargetServiceGroupName:	rule.TargetServiceGroupName,
-		TargetServiceName: 		rule.TargetServiceName,
-		TargetPort: 			rule.TargetPort,
-		Access:          		access,
-		AuthServiceGroupName: 	rule.AuthServiceGroupName,
-		AuthServices:    		rule.AuthServices,
-		DeviceGroupNames:  		rule.DeviceGroupNames,
+		OrganizationId:         rule.OrganizationId,
+		AppDescriptorId:        rule.AppDescriptorId,
+		RuleId:                 rule.RuleId,
+		Name:                   rule.Name,
+		TargetServiceGroupName: rule.TargetServiceGroupName,
+		TargetServiceName:      rule.TargetServiceName,
+		TargetPort:             rule.TargetPort,
+		Access:                 access,
+		AuthServiceGroupName:   rule.AuthServiceGroupName,
+		AuthServices:           rule.AuthServices,
+		DeviceGroupNames:       rule.DeviceGroupNames,
 		DeviceGroupIds:         rule.DeviceGroupIds,
 		InboundNetInterface:    rule.InboundNetInterface,
 		OutboundNetInterface:   rule.OutboundNetInterface,
@@ -189,17 +188,17 @@ func NewSecurityRuleFromInstantiatedGRPC(rule *grpc_application_go.SecurityRule)
 
 	access := PortAccessFromGRPC[rule.Access]
 	return &SecurityRule{
-		OrganizationId:  		rule.OrganizationId,
-		AppDescriptorId: 		rule.AppDescriptorId,
-		RuleId:          		rule.RuleId,
-		Name:            		rule.Name,
-		TargetServiceGroupName:	rule.TargetServiceGroupName,
-		TargetServiceName: 		rule.TargetServiceName,
-		TargetPort: 			rule.TargetPort,
-		Access:          		access,
-		AuthServiceGroupName: 	rule.AuthServiceGroupName,
-		AuthServices:    		rule.AuthServices,
-		DeviceGroupNames:  		rule.DeviceGroupNames,
+		OrganizationId:         rule.OrganizationId,
+		AppDescriptorId:        rule.AppDescriptorId,
+		RuleId:                 rule.RuleId,
+		Name:                   rule.Name,
+		TargetServiceGroupName: rule.TargetServiceGroupName,
+		TargetServiceName:      rule.TargetServiceName,
+		TargetPort:             rule.TargetPort,
+		Access:                 access,
+		AuthServiceGroupName:   rule.AuthServiceGroupName,
+		AuthServices:           rule.AuthServices,
+		DeviceGroupNames:       rule.DeviceGroupNames,
 		DeviceGroupIds:         rule.DeviceGroupIds,
 		InboundNetInterface:    rule.InboundNetInterface,
 		OutboundNetInterface:   rule.OutboundNetInterface,
@@ -209,18 +208,18 @@ func NewSecurityRuleFromInstantiatedGRPC(rule *grpc_application_go.SecurityRule)
 func (sr *SecurityRule) ToGRPC() *grpc_application_go.SecurityRule {
 	access, _ := PortAccessToGRPC[sr.Access]
 	return &grpc_application_go.SecurityRule{
-		OrganizationId:  		sr.OrganizationId,
-		AppDescriptorId: 		sr.AppDescriptorId,
-		RuleId:          		sr.RuleId,
-		Name:            		sr.Name,
-		TargetServiceGroupName:	sr.TargetServiceGroupName,
-		TargetServiceName: 		sr.TargetServiceName,
-		TargetPort: 			sr.TargetPort,
-		Access:       			access,
-		AuthServiceGroupName: 	sr.AuthServiceGroupName,
-		AuthServices: 			sr.AuthServices,
-		DeviceGroupNames:		sr.DeviceGroupNames,
-		DeviceGroupIds:  		sr.DeviceGroupIds,
+		OrganizationId:         sr.OrganizationId,
+		AppDescriptorId:        sr.AppDescriptorId,
+		RuleId:                 sr.RuleId,
+		Name:                   sr.Name,
+		TargetServiceGroupName: sr.TargetServiceGroupName,
+		TargetServiceName:      sr.TargetServiceName,
+		TargetPort:             sr.TargetPort,
+		Access:                 access,
+		AuthServiceGroupName:   sr.AuthServiceGroupName,
+		AuthServices:           sr.AuthServices,
+		DeviceGroupNames:       sr.DeviceGroupNames,
+		DeviceGroupIds:         sr.DeviceGroupIds,
 		InboundNetInterface:    sr.InboundNetInterface,
 		OutboundNetInterface:   sr.OutboundNetInterface,
 	}
@@ -231,12 +230,12 @@ type ServiceGroupDeploymentSpecs struct {
 	// How many times this service group must be replicated
 	Replicas int32 `json:"replicas,omitempty" cql:"replicas"`
 	// Indicate if this service group must be replicated in every cluster
-	MultiClusterReplica  bool     `json:"multi_cluster_replica,omitempty" cql:"multi_cluster_replica"`
+	MultiClusterReplica bool `json:"multi_cluster_replica,omitempty" cql:"multi_cluster_replica"`
 	// DeploymentSelectors defines a key-value map of deployment selectors
-	DeploymentSelectors  map[string]string `json:"deployment_selectors,omitempty" cql:"deployment_selectors"`
+	DeploymentSelectors map[string]string `json:"deployment_selectors,omitempty" cql:"deployment_selectors"`
 }
 
-func NewServiceGroupDeploymentSpecsFromGRPC(specs * grpc_application_go.ServiceGroupDeploymentSpecs) * ServiceGroupDeploymentSpecs{
+func NewServiceGroupDeploymentSpecsFromGRPC(specs *grpc_application_go.ServiceGroupDeploymentSpecs) *ServiceGroupDeploymentSpecs {
 	if specs == nil {
 		return nil
 	}
@@ -247,14 +246,14 @@ func NewServiceGroupDeploymentSpecsFromGRPC(specs * grpc_application_go.ServiceG
 	}
 }
 
-func (sp * ServiceGroupDeploymentSpecs) ToGRPC() *grpc_application_go.ServiceGroupDeploymentSpecs  {
+func (sp *ServiceGroupDeploymentSpecs) ToGRPC() *grpc_application_go.ServiceGroupDeploymentSpecs {
 	if sp == nil {
 		return nil
 	}
 	return &grpc_application_go.ServiceGroupDeploymentSpecs{
-		Replicas:          sp.Replicas,
-		MultiClusterReplica:  sp.MultiClusterReplica,
-		DeploymentSelectors:  sp.DeploymentSelectors,
+		Replicas:            sp.Replicas,
+		MultiClusterReplica: sp.MultiClusterReplica,
+		DeploymentSelectors: sp.DeploymentSelectors,
 	}
 }
 
@@ -278,50 +277,50 @@ type ServiceGroup struct {
 	Labels map[string]string `json:"labels,omitempty" cql:"labels"`
 }
 
-func NewServiceGroupFromGRPC(organizationID string, appDescriptorID string, group * grpc_application_go.ServiceGroup) * ServiceGroup {
+func NewServiceGroupFromGRPC(organizationID string, appDescriptorID string, group *grpc_application_go.ServiceGroup) *ServiceGroup {
 	if group == nil {
 		return nil
 	}
 	id := GenerateUUID()
 
-	services := make ([]Service, 0)
+	services := make([]Service, 0)
 	for _, service := range group.Services {
 		services = append(services, *NewServiceFromGRPC(organizationID, appDescriptorID, id, service))
 	}
 
 	policy, _ := CollocationPolicyFromGRPC[group.Policy]
 	return &ServiceGroup{
-		OrganizationId:		organizationID,
-		AppDescriptorId:	appDescriptorID,
-		ServiceGroupId: 	id,
-		Name : 				group.Name,
-		Services: 			services,
-		Policy: 			policy,
-		Specs: 				NewServiceGroupDeploymentSpecsFromGRPC(group.Specs),
-		Labels: 			group.Labels,
+		OrganizationId:  organizationID,
+		AppDescriptorId: appDescriptorID,
+		ServiceGroupId:  id,
+		Name:            group.Name,
+		Services:        services,
+		Policy:          policy,
+		Specs:           NewServiceGroupDeploymentSpecsFromGRPC(group.Specs),
+		Labels:          group.Labels,
 	}
 }
 
 // CopyServiceGroupFromGRPC converts a grpc_application_go.ServiceGroup into ServiceGroup
 // (unlike NewServiceGroupFromGRPC method,  CopyServiceGroupFromGRPC copy ALL the fields,
 //  does not generate identifiers)
-func CopyServiceGroupFromGRPC(group * grpc_application_go.ServiceGroup) *ServiceGroup  {
+func CopyServiceGroupFromGRPC(group *grpc_application_go.ServiceGroup) *ServiceGroup {
 
-	services := make ([]Service, 0)
+	services := make([]Service, 0)
 	for _, service := range group.Services {
 		services = append(services, *CopyServiceFromGRPC(service))
 	}
 
 	policy, _ := CollocationPolicyFromGRPC[group.Policy]
 	return &ServiceGroup{
-		OrganizationId:		group.OrganizationId,
-		AppDescriptorId:	group.AppDescriptorId,
-		ServiceGroupId: 	group.ServiceGroupId,
-		Name : 				group.Name,
-		Services: 			services,
-		Policy: 			policy,
-		Specs: 				NewServiceGroupDeploymentSpecsFromGRPC(group.Specs),
-		Labels: 			group.Labels,
+		OrganizationId:  group.OrganizationId,
+		AppDescriptorId: group.AppDescriptorId,
+		ServiceGroupId:  group.ServiceGroupId,
+		Name:            group.Name,
+		Services:        services,
+		Policy:          policy,
+		Specs:           NewServiceGroupDeploymentSpecsFromGRPC(group.Specs),
+		Labels:          group.Labels,
 	}
 
 }
@@ -330,19 +329,19 @@ func (sg *ServiceGroup) ToGRPC() *grpc_application_go.ServiceGroup {
 
 	services := make([]*grpc_application_go.Service, 0)
 	for _, service := range sg.Services {
-		services = append(services, service.ToGRPC() )
+		services = append(services, service.ToGRPC())
 	}
 
 	policy, _ := CollocationPolicyToGRPC[sg.Policy]
 	return &grpc_application_go.ServiceGroup{
-		OrganizationId:  	sg.OrganizationId,
-		AppDescriptorId:	sg.AppDescriptorId,
-		ServiceGroupId:  	sg.ServiceGroupId,
-		Name:            	sg.Name,
-		Services:        	services,
-		Policy:          	policy,
-		Specs:           	sg.Specs.ToGRPC(),
-		Labels: 		 	sg.Labels,
+		OrganizationId:  sg.OrganizationId,
+		AppDescriptorId: sg.AppDescriptorId,
+		ServiceGroupId:  sg.ServiceGroupId,
+		Name:            sg.Name,
+		Services:        services,
+		Policy:          policy,
+		Specs:           sg.Specs.ToGRPC(),
+		Labels:          sg.Labels,
 	}
 }
 
@@ -373,54 +372,55 @@ type InstanceMetadata struct {
 	// Relevant information for every monitored instance
 	Info map[string]string `json:"info,omitempty" cql:"info"`
 }
+
 func (md *InstanceMetadata) ToGRPC() *grpc_application_go.InstanceMetadata {
 	if md == nil {
 		return nil
 	}
-	status := make (map[string]grpc_application_go.ServiceStatus, 0)
-	for key, value := range md.Status{
+	status := make(map[string]grpc_application_go.ServiceStatus, 0)
+	for key, value := range md.Status {
 		status[key] = ServiceStatusToGRPC[value]
 	}
 
 	return &grpc_application_go.InstanceMetadata{
-		OrganizationId: md.OrganizationId,
-		AppDescriptorId: md.AppDescriptorId,
-		AppInstanceId: md.AppInstanceId,
-		ServiceGroupId: md.ServiceGroupId,
+		OrganizationId:      md.OrganizationId,
+		AppDescriptorId:     md.AppDescriptorId,
+		AppInstanceId:       md.AppInstanceId,
+		ServiceGroupId:      md.ServiceGroupId,
 		MonitoredInstanceId: md.MonitoredInstanceId,
-		Type: InstanceTypeToGRPC[md.Type],
-		InstancesId: md.InstancesId,
-		DesiredReplicas: md.DesiredReplicas,
-		AvailableReplicas: md.AvailableReplicas,
+		Type:                InstanceTypeToGRPC[md.Type],
+		InstancesId:         md.InstancesId,
+		DesiredReplicas:     md.DesiredReplicas,
+		AvailableReplicas:   md.AvailableReplicas,
 		UnavailableReplicas: md.UnavailableReplicas,
-		Status: status,
-		Info: md.Info,
+		Status:              status,
+		Info:                md.Info,
 	}
 }
 
-func NewMetadataFromGRPC (metadata * grpc_application_go.InstanceMetadata) * InstanceMetadata {
+func NewMetadataFromGRPC(metadata *grpc_application_go.InstanceMetadata) *InstanceMetadata {
 	if metadata == nil {
 		return nil
 	}
 
-	status := make (map[string]ServiceStatus, 0)
-	for key, value := range metadata.Status{
+	status := make(map[string]ServiceStatus, 0)
+	for key, value := range metadata.Status {
 		status[key] = ServiceStatusFromGRPC[value]
 	}
 
 	return &InstanceMetadata{
-		OrganizationId: metadata.OrganizationId,
-		AppDescriptorId: metadata.AppDescriptorId,
-		AppInstanceId: metadata.AppInstanceId,
-		ServiceGroupId: metadata.ServiceGroupId,
+		OrganizationId:      metadata.OrganizationId,
+		AppDescriptorId:     metadata.AppDescriptorId,
+		AppInstanceId:       metadata.AppInstanceId,
+		ServiceGroupId:      metadata.ServiceGroupId,
 		MonitoredInstanceId: metadata.MonitoredInstanceId,
-		Type: InstanceTypeFromGRPC[metadata.Type],
-		InstancesId: metadata.InstancesId,
-		DesiredReplicas: metadata.DesiredReplicas,
-		AvailableReplicas: metadata.AvailableReplicas,
+		Type:                InstanceTypeFromGRPC[metadata.Type],
+		InstancesId:         metadata.InstancesId,
+		DesiredReplicas:     metadata.DesiredReplicas,
+		AvailableReplicas:   metadata.AvailableReplicas,
 		UnavailableReplicas: metadata.UnavailableReplicas,
-		Status: status,
-		Info: metadata.Info,
+		Status:              status,
+		Info:                metadata.Info,
 	}
 }
 
@@ -445,38 +445,37 @@ type ServiceGroupInstance struct {
 	// The status for this service group instance will be the worst status of its services
 	Status ServiceStatus `json:"status,omitempty" cql:"status"`
 	// Metadata for this service group
-	Metadata * InstanceMetadata `json:"metadata,omitempty" cql:"metadata"`
+	Metadata *InstanceMetadata `json:"metadata,omitempty" cql:"metadata"`
 	// Particular deployment specs for this service
-	Specs * ServiceGroupDeploymentSpecs `json:"specs,omitempty" cql:"specs"`
+	Specs *ServiceGroupDeploymentSpecs `json:"specs,omitempty" cql:"specs"`
 	// Labels defined by the user.
 	Labels map[string]string `json:"labels,omitempty" cql:"labels"`
 	// GlobalFqdn
-	GlobalFqdn  []string `json:"global_fqdn,omitempty"`
-
+	GlobalFqdn []string `json:"global_fqdn,omitempty"`
 }
 
 func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInstance {
 
-	services := make ([]*grpc_application_go.ServiceInstance, 0)
+	services := make([]*grpc_application_go.ServiceInstance, 0)
 	for _, instance := range sgi.ServiceInstances {
-		services = append(services, instance.ToGRPC() )
+		services = append(services, instance.ToGRPC())
 	}
 
 	policy, _ := CollocationPolicyToGRPC[sgi.Policy]
 	return &grpc_application_go.ServiceGroupInstance{
-		OrganizationId:     sgi.OrganizationId,
-		AppDescriptorId:    sgi.AppDescriptorId,
-		AppInstanceId:      sgi.AppInstanceId,
-		ServiceGroupId:     sgi.ServiceGroupId,
+		OrganizationId:         sgi.OrganizationId,
+		AppDescriptorId:        sgi.AppDescriptorId,
+		AppInstanceId:          sgi.AppInstanceId,
+		ServiceGroupId:         sgi.ServiceGroupId,
 		ServiceGroupInstanceId: sgi.ServiceGroupInstanceId,
-		Name:               sgi.Name,
-		ServiceInstances:	services,
-		Policy:             policy,
-		Status:				ServiceStatusToGRPC[sgi.Status],
-		Metadata:			sgi.Metadata.ToGRPC(),
-		Specs: 				sgi.Specs.ToGRPC(),
-		Labels: 			sgi.Labels,
-		GlobalFqdn:         sgi.GlobalFqdn,
+		Name:                   sgi.Name,
+		ServiceInstances:       services,
+		Policy:                 policy,
+		Status:                 ServiceStatusToGRPC[sgi.Status],
+		Metadata:               sgi.Metadata.ToGRPC(),
+		Specs:                  sgi.Specs.ToGRPC(),
+		Labels:                 sgi.Labels,
+		GlobalFqdn:             sgi.GlobalFqdn,
 	}
 }
 
@@ -484,8 +483,8 @@ func (sgi *ServiceGroupInstance) ToGRPC() *grpc_application_go.ServiceGroupInsta
 func (sgi *ServiceGroupInstance) FillMetadata(totalReplicas int) {
 	// fill the list of ids for the monitored instances
 	instancesId := make([]string, len(sgi.ServiceInstances))
-	statuses := make(map[string]ServiceStatus,len(sgi.ServiceInstances))
-	info := make(map[string]string,len(sgi.ServiceInstances))
+	statuses := make(map[string]ServiceStatus, len(sgi.ServiceInstances))
+	info := make(map[string]string, len(sgi.ServiceInstances))
 	for i, s := range sgi.ServiceInstances {
 		instancesId[i] = s.ServiceInstanceId
 		statuses[s.ServiceInstanceId] = ServiceScheduled
@@ -493,18 +492,18 @@ func (sgi *ServiceGroupInstance) FillMetadata(totalReplicas int) {
 	}
 
 	metadata := &InstanceMetadata{
-		AppInstanceId: sgi.AppInstanceId,
-		ServiceGroupId: sgi.ServiceGroupId,
-		AppDescriptorId: sgi.AppDescriptorId,
-		OrganizationId: sgi.OrganizationId,
+		AppInstanceId:       sgi.AppInstanceId,
+		ServiceGroupId:      sgi.ServiceGroupId,
+		AppDescriptorId:     sgi.AppDescriptorId,
+		OrganizationId:      sgi.OrganizationId,
 		MonitoredInstanceId: sgi.ServiceGroupInstanceId,
-		Type: ServiceGroupInstanceType,
-		InstancesId: instancesId,
-		Status: statuses,
-		DesiredReplicas: int32(totalReplicas),
-		AvailableReplicas: 0,
+		Type:                ServiceGroupInstanceType,
+		InstancesId:         instancesId,
+		Status:              statuses,
+		DesiredReplicas:     int32(totalReplicas),
+		AvailableReplicas:   0,
 		UnavailableReplicas: 0,
-		Info: info,
+		Info:                info,
 	}
 	sgi.Metadata = metadata
 }
@@ -527,20 +526,20 @@ var ServiceTypeFromGRPC = map[grpc_application_go.ServiceType]ServiceType{
 
 // -- ImageCredentials -- //
 type ImageCredentials struct {
-	Username string `json:"username,omitempty" cql:"username"`
-	Password string `json:"password,omitempty" cql:"password"`
-	Email    string `json:"email,omitempty" cql:"email"`
-	DockerRepository  string   `json:"docker_repository,omitempty" cql:"docker_repository"`
+	Username         string `json:"username,omitempty" cql:"username"`
+	Password         string `json:"password,omitempty" cql:"password"`
+	Email            string `json:"email,omitempty" cql:"email"`
+	DockerRepository string `json:"docker_repository,omitempty" cql:"docker_repository"`
 }
 
-func NewImageCredentialsFromGRPC(credentials * grpc_application_go.ImageCredentials) *ImageCredentials {
+func NewImageCredentialsFromGRPC(credentials *grpc_application_go.ImageCredentials) *ImageCredentials {
 	if credentials == nil {
 		return nil
 	}
 	return &ImageCredentials{
-		Username: credentials.Username,
-		Password: credentials.Password,
-		Email:    credentials.Email,
+		Username:         credentials.Username,
+		Password:         credentials.Password,
+		Email:            credentials.Email,
 		DockerRepository: credentials.DockerRepository,
 	}
 }
@@ -550,9 +549,9 @@ func (ic *ImageCredentials) ToGRPC() *grpc_application_go.ImageCredentials {
 		return nil
 	}
 	return &grpc_application_go.ImageCredentials{
-		Username: ic.Username,
-		Password: ic.Password,
-		Email:    ic.Email,
+		Username:         ic.Username,
+		Password:         ic.Password,
+		Email:            ic.Email,
 		DockerRepository: ic.DockerRepository,
 	}
 }
@@ -564,7 +563,7 @@ type DeploySpecs struct {
 	Replicas int32 `json:"replicas,omitempty" cql:"replicas"`
 }
 
-func NewDeploySpecsFromGRPC(specs * grpc_application_go.DeploySpecs) * DeploySpecs {
+func NewDeploySpecsFromGRPC(specs *grpc_application_go.DeploySpecs) *DeploySpecs {
 	if specs == nil {
 		return nil
 	}
@@ -620,7 +619,7 @@ type Storage struct {
 	Type      StorageType `json:"type,omitempty" cql:"type"`
 }
 
-func NewStorageFromGRPC(storage * grpc_application_go.Storage) * Storage{
+func NewStorageFromGRPC(storage *grpc_application_go.Storage) *Storage {
 	if storage == nil {
 		return nil
 	}
@@ -656,7 +655,7 @@ var EndpointTypeToGRPC = map[EndpointType]grpc_application_go.EndpointType{
 	Rest:       grpc_application_go.EndpointType_REST,
 	Web:        grpc_application_go.EndpointType_WEB,
 	Prometheus: grpc_application_go.EndpointType_PROMETHEUS,
-	Ingestion:	grpc_application_go.EndpointType_INGESTION,
+	Ingestion:  grpc_application_go.EndpointType_INGESTION,
 }
 
 var EndpointTypeFromGRPC = map[grpc_application_go.EndpointType]EndpointType{
@@ -673,7 +672,7 @@ type Endpoint struct {
 	Path string       `json:"path,omitempty" cql:"path"`
 }
 
-func NewEndpointFromGRPC( endpoint * grpc_application_go.Endpoint) * Endpoint {
+func NewEndpointFromGRPC(endpoint *grpc_application_go.Endpoint) *Endpoint {
 	if endpoint == nil {
 		return nil
 	}
@@ -700,12 +699,12 @@ type Port struct {
 	Endpoints    []Endpoint `json:"endpoints,omitempty" cql:"endpoint"`
 }
 
-func NewPortFromGRPC(port *grpc_application_go.Port) * Port {
+func NewPortFromGRPC(port *grpc_application_go.Port) *Port {
 	if port == nil {
 		return nil
 	}
 	endpoints := make([]Endpoint, 0)
-	for _, e := range port.Endpoints{
+	for _, e := range port.Endpoints {
 		endpoints = append(endpoints, *NewEndpointFromGRPC(e))
 	}
 	return &Port{
@@ -739,14 +738,14 @@ type ConfigFile struct {
 	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
 	// ConfigFileId with the config file identifier.
 	ConfigFileId string `json:"config_file_id,omitempty" cql:"config_file_id"`
-	Name string `json:"name" cql:"name"`
+	Name         string `json:"name" cql:"name"`
 	// Content of the configuration file.
 	Content []byte `json:"content,omitempty" cql:"content"`
 	// MountPath of the configuration file in the service instance.
 	MountPath string `json:"mount_path,omitempty" cql:"mount_path"`
 }
 
-func NewConfigFileFromGRPC(organizationID string, appDescriptorID string, config * grpc_application_go.ConfigFile) * ConfigFile {
+func NewConfigFileFromGRPC(organizationID string, appDescriptorID string, config *grpc_application_go.ConfigFile) *ConfigFile {
 	if config == nil {
 		return nil
 	}
@@ -754,7 +753,7 @@ func NewConfigFileFromGRPC(organizationID string, appDescriptorID string, config
 		OrganizationId:  organizationID,
 		AppDescriptorId: appDescriptorID,
 		ConfigFileId:    GenerateUUID(),
-		Name: 			 config.Name,
+		Name:            config.Name,
 		Content:         config.Content,
 		MountPath:       config.MountPath,
 	}
@@ -765,12 +764,11 @@ func (cf *ConfigFile) ToGRPC() *grpc_application_go.ConfigFile {
 		OrganizationId:  cf.OrganizationId,
 		AppDescriptorId: cf.AppDescriptorId,
 		ConfigFileId:    cf.ConfigFileId,
-		Name:    		 cf.Name,
+		Name:            cf.Name,
 		Content:         cf.Content,
 		MountPath:       cf.MountPath,
 	}
 }
-
 
 // -- Service -- //
 type Service struct {
@@ -789,9 +787,9 @@ type Service struct {
 	// Image contains the URL/name of the image to be executed.
 	Image string `json:"image,omitempty" cql:"image"`
 	// ImageCredentials with the data required to access the repository the image is available at.
-	Credentials * ImageCredentials `json:"credentials,omitempty" cql:"credentials"`
+	Credentials *ImageCredentials `json:"credentials,omitempty" cql:"credentials"`
 	// DeploySpecs with the resource specs required by the service.
-	Specs * DeploySpecs `json:"specs,omitempty" cql:"specs"`
+	Specs *DeploySpecs `json:"specs,omitempty" cql:"specs"`
 	// Storage restrictions
 	Storage []Storage `json:"storage,omitempty" cql:"storage"`
 	// ExposedPorts contains the list of ports exposed by the current service.
@@ -806,11 +804,11 @@ type Service struct {
 	// DeployAfter contains the list of services that must be running before launching a service.
 	DeployAfter []string `json:"deploy_after,omitempty" cql:"deploy_after"`
 	// RunArguments contains the list of arguments
-	RunArguments [] string `json:"run_arguments" cql:"run_arguments"`
+	RunArguments []string `json:"run_arguments" cql:"run_arguments"`
 }
 
-func CopyServiceFromGRPC (service *grpc_application_go.Service) * Service {
-	if service == nil{
+func CopyServiceFromGRPC(service *grpc_application_go.Service) *Service {
+	if service == nil {
 		return nil
 	}
 
@@ -825,13 +823,13 @@ func CopyServiceFromGRPC (service *grpc_application_go.Service) * Service {
 
 	configs := make([]ConfigFile, 0)
 	for _, cf := range service.Configs {
-		config := &ConfigFile {
-			OrganizationId:	cf.OrganizationId,
-			AppDescriptorId:cf.AppDescriptorId,
-			ConfigFileId: 	cf.ConfigFileId,
-			Name:			cf.Name,
-			Content: 		cf.Content,
-			MountPath: 		cf.MountPath,
+		config := &ConfigFile{
+			OrganizationId:  cf.OrganizationId,
+			AppDescriptorId: cf.AppDescriptorId,
+			ConfigFileId:    cf.ConfigFileId,
+			Name:            cf.Name,
+			Content:         cf.Content,
+			MountPath:       cf.MountPath,
 		}
 		configs = append(configs, *config)
 	}
@@ -853,13 +851,13 @@ func CopyServiceFromGRPC (service *grpc_application_go.Service) * Service {
 		Configs:              configs,
 		Labels:               service.Labels,
 		DeployAfter:          service.DeployAfter,
-		RunArguments: 		  service.RunArguments,
+		RunArguments:         service.RunArguments,
 	}
 
 }
 
-func NewServiceFromGRPC(organizationID string, appDescriptorID string, serviceGroupId string, service *grpc_application_go.Service) * Service {
-	if service == nil{
+func NewServiceFromGRPC(organizationID string, appDescriptorID string, serviceGroupId string, service *grpc_application_go.Service) *Service {
+	if service == nil {
 		return nil
 	}
 
@@ -895,7 +893,7 @@ func NewServiceFromGRPC(organizationID string, appDescriptorID string, serviceGr
 		Configs:              configs,
 		Labels:               service.Labels,
 		DeployAfter:          service.DeployAfter,
-		RunArguments: 		  service.RunArguments,
+		RunArguments:         service.RunArguments,
 	}
 }
 
@@ -934,29 +932,29 @@ func (s *Service) ToGRPC() *grpc_application_go.Service {
 }
 
 // -- Service -> ServiceInstance -- //
-func (s * Service) ToServiceInstance(appInstanceID string, serviceGroupInstanceID string) * ServiceInstance {
+func (s *Service) ToServiceInstance(appInstanceID string, serviceGroupInstanceID string) *ServiceInstance {
 
 	return &ServiceInstance{
-		OrganizationId:       s.OrganizationId,
-		AppDescriptorId:      s.AppDescriptorId,
-		AppInstanceId:        appInstanceID,
-		ServiceGroupId:       s.ServiceGroupId,
+		OrganizationId:         s.OrganizationId,
+		AppDescriptorId:        s.AppDescriptorId,
+		AppInstanceId:          appInstanceID,
+		ServiceGroupId:         s.ServiceGroupId,
 		ServiceGroupInstanceId: serviceGroupInstanceID,
-		ServiceId:            s.ServiceId,
-		ServiceInstanceId:    uuid.New().String(),
-		Name:                 s.Name,
-		Type:                 s.Type,
-		Image:                s.Image,
-		Credentials:          s.Credentials,
-		Specs:                s.Specs,
-		Storage:              s.Storage,
-		ExposedPorts:         s.ExposedPorts,
-		EnvironmentVariables: s.EnvironmentVariables,
-		Configs:              s.Configs,
-		Labels:               s.Labels,
-		DeployAfter:          s.DeployAfter,
-		Status:               ServiceWaiting,
-		RunArguments:         s.RunArguments,
+		ServiceId:              s.ServiceId,
+		ServiceInstanceId:      uuid.New().String(),
+		Name:                   s.Name,
+		Type:                   s.Type,
+		Image:                  s.Image,
+		Credentials:            s.Credentials,
+		Specs:                  s.Specs,
+		Storage:                s.Storage,
+		ExposedPorts:           s.ExposedPorts,
+		EnvironmentVariables:   s.EnvironmentVariables,
+		Configs:                s.Configs,
+		Labels:                 s.Labels,
+		DeployAfter:            s.DeployAfter,
+		Status:                 ServiceWaiting,
+		RunArguments:           s.RunArguments,
 	}
 }
 
@@ -968,27 +966,27 @@ type EndpointInstance struct {
 	// Type of endpoint
 	Type EndpointType `json:"type,omitempty" cql:"type"`
 	// FQDN to be accessed by any client
-	Fqdn string   `json:"fqdn,omitempty" cql:"fqdn"`
+	Fqdn string `json:"fqdn,omitempty" cql:"fqdn"`
 	// Port port in the endpoint
-	Port                 int32    `json:"port,omitempty" cql:"port"`
+	Port int32 `json:"port,omitempty" cql:"port"`
 }
 
-func (ep * EndpointInstance) ToGRPC () *grpc_application_go.EndpointInstance {
+func (ep *EndpointInstance) ToGRPC() *grpc_application_go.EndpointInstance {
 	convertedType, _ := EndpointTypeToGRPC[ep.Type]
-	return & grpc_application_go.EndpointInstance{
+	return &grpc_application_go.EndpointInstance{
 		EndpointInstanceId: ep.EndpointInstanceId,
-		Type : 				convertedType,
-		Fqdn: 				ep.Fqdn,
+		Type:               convertedType,
+		Fqdn:               ep.Fqdn,
 		Port:               ep.Port,
 	}
 }
 
-func EndpointInstanceFromGRPC(endpoint *grpc_application_go.EndpointInstance) EndpointInstance{
+func EndpointInstanceFromGRPC(endpoint *grpc_application_go.EndpointInstance) EndpointInstance {
 	return EndpointInstance{
 		EndpointInstanceId: endpoint.EndpointInstanceId,
-		Fqdn: endpoint.Fqdn,
-		Type: EndpointTypeFromGRPC[endpoint.Type],
-		Port: endpoint.Port,
+		Fqdn:               endpoint.Fqdn,
+		Type:               EndpointTypeFromGRPC[endpoint.Type],
+		Port:               endpoint.Port,
 	}
 }
 
@@ -1003,20 +1001,21 @@ const (
 )
 
 var ServiceStatusToGRPC = map[ServiceStatus]grpc_application_go.ServiceStatus{
-	ServiceScheduled:    grpc_application_go.ServiceStatus_SERVICE_SCHEDULED,
-	ServiceWaiting: grpc_application_go.ServiceStatus_SERVICE_WAITING,
-	ServiceDeploying:       grpc_application_go.ServiceStatus_SERVICE_DEPLOYING,
-	ServiceRunning:        grpc_application_go.ServiceStatus_SERVICE_RUNNING,
-	ServiceError: grpc_application_go.ServiceStatus_SERVICE_ERROR,
+	ServiceScheduled: grpc_application_go.ServiceStatus_SERVICE_SCHEDULED,
+	ServiceWaiting:   grpc_application_go.ServiceStatus_SERVICE_WAITING,
+	ServiceDeploying: grpc_application_go.ServiceStatus_SERVICE_DEPLOYING,
+	ServiceRunning:   grpc_application_go.ServiceStatus_SERVICE_RUNNING,
+	ServiceError:     grpc_application_go.ServiceStatus_SERVICE_ERROR,
 }
 
 var ServiceStatusFromGRPC = map[grpc_application_go.ServiceStatus]ServiceStatus{
-	grpc_application_go.ServiceStatus_SERVICE_SCHEDULED : ServiceScheduled,
-	grpc_application_go.ServiceStatus_SERVICE_WAITING : ServiceWaiting,
-	grpc_application_go.ServiceStatus_SERVICE_DEPLOYING : ServiceDeploying,
-	grpc_application_go.ServiceStatus_SERVICE_RUNNING : ServiceRunning,
-	grpc_application_go.ServiceStatus_SERVICE_ERROR : ServiceError,
+	grpc_application_go.ServiceStatus_SERVICE_SCHEDULED: ServiceScheduled,
+	grpc_application_go.ServiceStatus_SERVICE_WAITING:   ServiceWaiting,
+	grpc_application_go.ServiceStatus_SERVICE_DEPLOYING: ServiceDeploying,
+	grpc_application_go.ServiceStatus_SERVICE_RUNNING:   ServiceRunning,
+	grpc_application_go.ServiceStatus_SERVICE_ERROR:     ServiceError,
 }
+
 // -- ServiceInstance -- //
 type ServiceInstance struct {
 	// OrganizationId with the organization identifier.
@@ -1040,9 +1039,9 @@ type ServiceInstance struct {
 	// Image contains the URL/name of the image to be executed.
 	Image string `json:"image,omitempty" cql:"image"`
 	// ImageCredentials with the data required to access the repository the image is available at.
-	Credentials * ImageCredentials `json:"credentials,omitempty" cql:"credentials"`
+	Credentials *ImageCredentials `json:"credentials,omitempty" cql:"credentials"`
 	// DeploySpecs with the resource specs required by the service.
-	Specs * DeploySpecs `json:"specs,omitempty" cql:"specs"`
+	Specs *DeploySpecs `json:"specs,omitempty" cql:"specs"`
 	// Storage restrictions
 	Storage []Storage `json:"storage,omitempty" cql:"storage"`
 	// ExposedPorts contains the list of ports exposed by the current service.
@@ -1061,16 +1060,16 @@ type ServiceInstance struct {
 	// Endpoints exposed to the users by the service.
 	Endpoints []EndpointInstance `json:"endpoints,omitempty" cql:"endpoints"`
 	// DeployedOnClusterId specifies which is the cluster where the service is running.
-	DeployedOnClusterId  string  `json:"deployed_on_cluster_id,omitempty" cql:"deployed_on_cluster_id"`
+	DeployedOnClusterId string `json:"deployed_on_cluster_id,omitempty" cql:"deployed_on_cluster_id"`
 	// RunArguments containts a list of arguments
-	RunArguments [] string `json:"run_arguments" cql:"run_arguments"`
+	RunArguments []string `json:"run_arguments" cql:"run_arguments"`
 	// Relevant information about this instance
-	Info string   `json:"info,omitempty" cql:"info"`
+	Info string `json:"info,omitempty" cql:"info"`
 }
 
 func NewServiceInstanceFromGRPC(serviceInstance *grpc_application_go.ServiceInstance) ServiceInstance {
 
-	endpoints := make([]EndpointInstance,len(serviceInstance.Endpoints))
+	endpoints := make([]EndpointInstance, len(serviceInstance.Endpoints))
 	for i, e := range serviceInstance.Endpoints {
 		endpoints[i] = EndpointInstance{Type: EndpointTypeFromGRPC[e.Type], EndpointInstanceId: e.EndpointInstanceId,
 			Fqdn: e.Fqdn, Port: e.Port}
@@ -1093,29 +1092,29 @@ func NewServiceInstanceFromGRPC(serviceInstance *grpc_application_go.ServiceInst
 	}
 
 	return ServiceInstance{
-		Name: serviceInstance.Name,
-		Labels: serviceInstance.Labels,
-		Status: ServiceStatusFromGRPC[serviceInstance.Status],
+		Name:                   serviceInstance.Name,
+		Labels:                 serviceInstance.Labels,
+		Status:                 ServiceStatusFromGRPC[serviceInstance.Status],
 		ServiceGroupInstanceId: serviceInstance.ServiceGroupInstanceId,
-		AppInstanceId: serviceInstance.AppInstanceId,
-		ServiceGroupId: serviceInstance.ServiceGroupId,
-		OrganizationId: serviceInstance.OrganizationId,
-		AppDescriptorId: serviceInstance.AppDescriptorId,
-		Info: serviceInstance.Info,
-		EnvironmentVariables: serviceInstance.EnvironmentVariables,
-		ServiceInstanceId: serviceInstance.ServiceInstanceId,
-		Type: ServiceTypeFromGRPC[serviceInstance.Type],
-		ServiceId: serviceInstance.ServiceId,
-		Image: serviceInstance.Image,
-		DeployedOnClusterId: serviceInstance.DeployedOnClusterId,
-		Specs: NewDeploySpecsFromGRPC(serviceInstance.Specs),
-		Endpoints: endpoints,
-		Credentials: NewImageCredentialsFromGRPC(serviceInstance.Credentials),
-		Storage: storage,
-		ExposedPorts: exposedPorts,
-		Configs: configs,
-		DeployAfter: serviceInstance.DeployAfter,
-		RunArguments: serviceInstance.RunArguments,
+		AppInstanceId:          serviceInstance.AppInstanceId,
+		ServiceGroupId:         serviceInstance.ServiceGroupId,
+		OrganizationId:         serviceInstance.OrganizationId,
+		AppDescriptorId:        serviceInstance.AppDescriptorId,
+		Info:                   serviceInstance.Info,
+		EnvironmentVariables:   serviceInstance.EnvironmentVariables,
+		ServiceInstanceId:      serviceInstance.ServiceInstanceId,
+		Type:                   ServiceTypeFromGRPC[serviceInstance.Type],
+		ServiceId:              serviceInstance.ServiceId,
+		Image:                  serviceInstance.Image,
+		DeployedOnClusterId:    serviceInstance.DeployedOnClusterId,
+		Specs:                  NewDeploySpecsFromGRPC(serviceInstance.Specs),
+		Endpoints:              endpoints,
+		Credentials:            NewImageCredentialsFromGRPC(serviceInstance.Credentials),
+		Storage:                storage,
+		ExposedPorts:           exposedPorts,
+		Configs:                configs,
+		DeployAfter:            serviceInstance.DeployAfter,
+		RunArguments:           serviceInstance.RunArguments,
 	}
 }
 
@@ -1134,34 +1133,34 @@ func (si *ServiceInstance) ToGRPC() *grpc_application_go.ServiceInstance {
 	for _, c := range si.Configs {
 		configs = append(configs, c.ToGRPC())
 	}
-	endpoints := make ([]*grpc_application_go.EndpointInstance, 0)
-	for _,ep := range si.Endpoints {
+	endpoints := make([]*grpc_application_go.EndpointInstance, 0)
+	for _, ep := range si.Endpoints {
 		endpoints = append(endpoints, ep.ToGRPC())
 	}
 	return &grpc_application_go.ServiceInstance{
-		OrganizationId:       	si.OrganizationId,
-		AppDescriptorId:      	si.AppDescriptorId,
-		AppInstanceId:        	si.AppInstanceId,
-		ServiceGroupId: 	  	si.ServiceGroupId,
-		ServiceGroupInstanceId:	si.ServiceGroupInstanceId,
-		ServiceId:           	si.ServiceId,
-		ServiceInstanceId: 		si.ServiceInstanceId,
-		Name:                 	si.Name,
-		Type:                 	serviceType,
-		Image:                	si.Image,
-		Credentials:          	si.Credentials.ToGRPC(),
-		Specs:                	si.Specs.ToGRPC(),
-		Storage:              	storage,
-		ExposedPorts:         	exposedPorts,
-		EnvironmentVariables: 	si.EnvironmentVariables,
-		Configs:              	configs,
-		Labels:               	si.Labels,
-		DeployAfter:          	si.DeployAfter,
-		Status:               	serviceStatus,
-		Endpoints:            	endpoints,
-		DeployedOnClusterId:  	si.DeployedOnClusterId,
-		RunArguments: 		  	si.RunArguments,
-		Info:            		si.Info,
+		OrganizationId:         si.OrganizationId,
+		AppDescriptorId:        si.AppDescriptorId,
+		AppInstanceId:          si.AppInstanceId,
+		ServiceGroupId:         si.ServiceGroupId,
+		ServiceGroupInstanceId: si.ServiceGroupInstanceId,
+		ServiceId:              si.ServiceId,
+		ServiceInstanceId:      si.ServiceInstanceId,
+		Name:                   si.Name,
+		Type:                   serviceType,
+		Image:                  si.Image,
+		Credentials:            si.Credentials.ToGRPC(),
+		Specs:                  si.Specs.ToGRPC(),
+		Storage:                storage,
+		ExposedPorts:           exposedPorts,
+		EnvironmentVariables:   si.EnvironmentVariables,
+		Configs:                configs,
+		Labels:                 si.Labels,
+		DeployAfter:            si.DeployAfter,
+		Status:                 serviceStatus,
+		Endpoints:              endpoints,
+		DeployedOnClusterId:    si.DeployedOnClusterId,
+		RunArguments:           si.RunArguments,
+		Info:                   si.Info,
 	}
 
 }
@@ -1174,13 +1173,14 @@ const (
 	Basic = iota + 1
 	Advanced
 )
-var ParamCategoryToGRPC = map[ParamCategory] grpc_application_go.ParamCategory{
-	Basic: grpc_application_go.ParamCategory_BASIC,
+
+var ParamCategoryToGRPC = map[ParamCategory]grpc_application_go.ParamCategory{
+	Basic:    grpc_application_go.ParamCategory_BASIC,
 	Advanced: grpc_application_go.ParamCategory_ADVANCED,
 }
 
-var ParamCategoryFromGRPC = map[grpc_application_go.ParamCategory]ParamCategory {
-	grpc_application_go.ParamCategory_BASIC: Basic,
+var ParamCategoryFromGRPC = map[grpc_application_go.ParamCategory]ParamCategory{
+	grpc_application_go.ParamCategory_BASIC:    Basic,
 	grpc_application_go.ParamCategory_ADVANCED: Advanced,
 }
 
@@ -1196,49 +1196,49 @@ const (
 )
 
 var ParamDataTypeToGRPC = map[ParamDataType]grpc_application_go.ParamDataType{
-	Boolean:    grpc_application_go.ParamDataType_BOOLEAN,
-	Integer: 	grpc_application_go.ParamDataType_INTEGER,
-	Float:      grpc_application_go.ParamDataType_FLOAT,
-	Enum:       grpc_application_go.ParamDataType_ENUM,
-	String: 	grpc_application_go.ParamDataType_STRING,
-	Password : 	grpc_application_go.ParamDataType_PASSWORD,
+	Boolean:  grpc_application_go.ParamDataType_BOOLEAN,
+	Integer:  grpc_application_go.ParamDataType_INTEGER,
+	Float:    grpc_application_go.ParamDataType_FLOAT,
+	Enum:     grpc_application_go.ParamDataType_ENUM,
+	String:   grpc_application_go.ParamDataType_STRING,
+	Password: grpc_application_go.ParamDataType_PASSWORD,
 }
 
 var ParamDataTypeFromGRPC = map[grpc_application_go.ParamDataType]ParamDataType{
-	grpc_application_go.ParamDataType_BOOLEAN: Boolean,
-	grpc_application_go.ParamDataType_INTEGER: Integer,
-	grpc_application_go.ParamDataType_FLOAT: Float,
-	grpc_application_go.ParamDataType_ENUM : Enum,
-	grpc_application_go.ParamDataType_STRING: String,
+	grpc_application_go.ParamDataType_BOOLEAN:  Boolean,
+	grpc_application_go.ParamDataType_INTEGER:  Integer,
+	grpc_application_go.ParamDataType_FLOAT:    Float,
+	grpc_application_go.ParamDataType_ENUM:     Enum,
+	grpc_application_go.ParamDataType_STRING:   String,
 	grpc_application_go.ParamDataType_PASSWORD: Password,
 }
 
-func (p * Parameter) ToGRPC () *grpc_application_go.AppParameter {
+func (p *Parameter) ToGRPC() *grpc_application_go.AppParameter {
 	if p == nil {
 		return nil
 	}
 	return &grpc_application_go.AppParameter{
-		Name: p.Name,
-		Description: p.Description,
-		Path: p.Path,
-		Type: ParamDataTypeToGRPC[p.Type],
+		Name:         p.Name,
+		Description:  p.Description,
+		Path:         p.Path,
+		Type:         ParamDataTypeToGRPC[p.Type],
 		DefaultValue: p.DefaultValue,
-		Category: ParamCategoryToGRPC[p.Category],
-		EnumValues: p.EnumValues,
-		Required: p.Required,
+		Category:     ParamCategoryToGRPC[p.Category],
+		EnumValues:   p.EnumValues,
+		Required:     p.Required,
 	}
 }
 
 func NewParamFromGRPC(parameter *grpc_application_go.AppParameter) *Parameter {
 	return &Parameter{
-		Name: parameter.Name,
-		Description: parameter.Description,
-		Path: parameter.Path,
-		Type: ParamDataTypeFromGRPC[parameter.Type],
+		Name:         parameter.Name,
+		Description:  parameter.Description,
+		Path:         parameter.Path,
+		Type:         ParamDataTypeFromGRPC[parameter.Type],
 		DefaultValue: parameter.DefaultValue,
-		Category: ParamCategoryFromGRPC[parameter.Category],
-		EnumValues: parameter.EnumValues,
-		Required: parameter.Required,
+		Category:     ParamCategoryFromGRPC[parameter.Category],
+		EnumValues:   parameter.EnumValues,
+		Required:     parameter.Required,
 	}
 }
 
@@ -1260,33 +1260,34 @@ type Parameter struct {
 	// enumValues indicates, in case of an enum type parameter, the values allowed
 	EnumValues []string `json:"enum_values,omitempty" cql:"enum_values"`
 	// required indicates if the param must be filled to deploy an application
-	Required bool     `json:"required,omitempty" cql:"required"`
+	Required bool `json:"required,omitempty" cql:"required"`
 }
 
 type InstanceParameter struct {
-	ParameterName        string   `json:"parameter_name,omitempty" cql:"parameter_name"`
-	Value                string   `json:"value,omitempty" cql:"value" `
+	ParameterName string `json:"parameter_name,omitempty" cql:"parameter_name"`
+	Value         string `json:"value,omitempty" cql:"value" `
 }
-func (p * InstanceParameter) ToGRPC () *grpc_application_go.InstanceParameter {
+
+func (p *InstanceParameter) ToGRPC() *grpc_application_go.InstanceParameter {
 	if p == nil {
 		return nil
 	}
 	return &grpc_application_go.InstanceParameter{
 		ParameterName: p.ParameterName,
-		Value: p.Value,
+		Value:         p.Value,
 	}
 }
 
 func NewInstanceParamFromGRPC(parameter *grpc_application_go.InstanceParameter) *InstanceParameter {
 	return &InstanceParameter{
 		ParameterName: parameter.ParameterName,
-		Value: parameter.Value,
+		Value:         parameter.Value,
 	}
 }
 
-type InboundNetworkInterface struct{
+type InboundNetworkInterface struct {
 	// Name of the inbound
-	Name  string   `json:"name,omitempty" cql:"name"`
+	Name string `json:"name,omitempty" cql:"name"`
 }
 
 func NewInboundNetworkInterfaceFromGRPC(inbound *grpc_application_go.InboundNetworkInterface) *InboundNetworkInterface {
@@ -1295,7 +1296,7 @@ func NewInboundNetworkInterfaceFromGRPC(inbound *grpc_application_go.InboundNetw
 	}
 }
 
-func (i * InboundNetworkInterface) ToGRPC () *grpc_application_go.InboundNetworkInterface {
+func (i *InboundNetworkInterface) ToGRPC() *grpc_application_go.InboundNetworkInterface {
 	if i == nil {
 		return nil
 	}
@@ -1307,25 +1308,25 @@ func (i * InboundNetworkInterface) ToGRPC () *grpc_application_go.InboundNetwork
 // OutboundNetworkInterface defines an outbound
 type OutboundNetworkInterface struct {
 	// Name of the outbound
-	Name 		string	`json:"name,omitempty" cql:"name"`
+	Name string `json:"name,omitempty" cql:"name"`
 	// Required is a flag to indicate if the outbound should be defined when deploying an instance
-	Required 	bool 	` json:"required,omitempty" cql:"required"`
+	Required bool ` json:"required,omitempty" cql:"required"`
 }
 
 func NewOutboundNetworkInterfaceFromGRPC(outbound *grpc_application_go.OutboundNetworkInterface) *OutboundNetworkInterface {
 	return &OutboundNetworkInterface{
-		Name: 		outbound.Name,
-		Required:	outbound.Required,
+		Name:     outbound.Name,
+		Required: outbound.Required,
 	}
 }
 
-func (o * OutboundNetworkInterface) ToGRPC () *grpc_application_go.OutboundNetworkInterface {
+func (o *OutboundNetworkInterface) ToGRPC() *grpc_application_go.OutboundNetworkInterface {
 	if o == nil {
 		return nil
 	}
 	return &grpc_application_go.OutboundNetworkInterface{
-		Name: 		o.Name,
-		Required: 	o.Required,
+		Name:     o.Name,
+		Required: o.Required,
 	}
 }
 
@@ -1362,21 +1363,21 @@ func NewAppDescriptor(organizationID string, appDescriptorID string, name string
 	rules []SecurityRule, groups []ServiceGroup, parameters []Parameter,
 	inbounds []InboundNetworkInterface, outbounds []OutboundNetworkInterface) *AppDescriptor {
 	return &AppDescriptor{
-		OrganizationId: 		organizationID,
-	 	AppDescriptorId: 		appDescriptorID,
-		Name: 					name,
-		ConfigurationOptions:	configOptions,
-		EnvironmentVariables:	envVars,
-		Labels:					labels,
-		Rules:					rules,
-		Groups:					groups,
-		Parameters:  			parameters,
-		InboundNetInterfaces: 	inbounds,
-		OutboundNetInterfaces: 	outbounds,
-		}
+		OrganizationId:        organizationID,
+		AppDescriptorId:       appDescriptorID,
+		Name:                  name,
+		ConfigurationOptions:  configOptions,
+		EnvironmentVariables:  envVars,
+		Labels:                labels,
+		Rules:                 rules,
+		Groups:                groups,
+		Parameters:            parameters,
+		InboundNetInterfaces:  inbounds,
+		OutboundNetInterfaces: outbounds,
+	}
 }
 
-func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorRequest) (*AppDescriptor, derrors.Error) {
+func NewAppDescriptorFromGRPC(addRequest *grpc_application_go.AddAppDescriptorRequest) (*AppDescriptor, derrors.Error) {
 
 	if addRequest == nil {
 		return nil, nil
@@ -1395,7 +1396,7 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 		}
 	}
 	groups := make([]ServiceGroup, 0)
-	for _, sg := range addRequest.Groups{
+	for _, sg := range addRequest.Groups {
 		groups = append(groups, *NewServiceGroupFromGRPC(addRequest.OrganizationId, uuid, sg))
 	}
 
@@ -1404,12 +1405,12 @@ func NewAppDescriptorFromGRPC(addRequest * grpc_application_go.AddAppDescriptorR
 		parameters = append(parameters, *NewParamFromGRPC(param))
 	}
 
-	inbounds := make ([]InboundNetworkInterface, 0)
+	inbounds := make([]InboundNetworkInterface, 0)
 	for _, inbound := range addRequest.InboundNetInterfaces {
 		inbounds = append(inbounds, *NewInboundNetworkInterfaceFromGRPC(inbound))
 	}
 
-	outbounds := make ([]OutboundNetworkInterface, 0)
+	outbounds := make([]OutboundNetworkInterface, 0)
 	for _, outbound := range addRequest.OutboundNetInterfaces {
 		outbounds = append(outbounds, *NewOutboundNetworkInterfaceFromGRPC(outbound))
 	}
@@ -1435,33 +1436,33 @@ func (d *AppDescriptor) ToGRPC() *grpc_application_go.AppDescriptor {
 		groups = append(groups, g.ToGRPC())
 	}
 
-	parameters := make ([]*grpc_application_go.AppParameter, 0)
-	for _, param := range d.Parameters{
+	parameters := make([]*grpc_application_go.AppParameter, 0)
+	for _, param := range d.Parameters {
 		parameters = append(parameters, param.ToGRPC())
 	}
 
-	inbounds := make ([]*grpc_application_go.InboundNetworkInterface, 0)
+	inbounds := make([]*grpc_application_go.InboundNetworkInterface, 0)
 	for _, inbound := range d.InboundNetInterfaces {
 		inbounds = append(inbounds, inbound.ToGRPC())
 	}
 
-	outbounds := make ([]*grpc_application_go.OutboundNetworkInterface, 0)
+	outbounds := make([]*grpc_application_go.OutboundNetworkInterface, 0)
 	for _, outbound := range d.OutboundNetInterfaces {
 		outbounds = append(outbounds, outbound.ToGRPC())
 	}
 
 	return &grpc_application_go.AppDescriptor{
-		OrganizationId:       d.OrganizationId,
-		AppDescriptorId:      d.AppDescriptorId,
-		Name:                 d.Name,
-		ConfigurationOptions: d.ConfigurationOptions,
-		EnvironmentVariables: d.EnvironmentVariables,
-		Labels:               d.Labels,
-		Rules:                rules,
-		Groups:               groups,
-		Parameters:           parameters,
-		InboundNetInterfaces: inbounds,
-		OutboundNetInterfaces:outbounds,
+		OrganizationId:        d.OrganizationId,
+		AppDescriptorId:       d.AppDescriptorId,
+		Name:                  d.Name,
+		ConfigurationOptions:  d.ConfigurationOptions,
+		EnvironmentVariables:  d.EnvironmentVariables,
+		Labels:                d.Labels,
+		Rules:                 rules,
+		Groups:                groups,
+		Parameters:            parameters,
+		InboundNetInterfaces:  inbounds,
+		OutboundNetInterfaces: outbounds,
 	}
 }
 
@@ -1494,39 +1495,39 @@ type ParametrizedDescriptor struct {
 
 // NewParametrizedDescriptorFromGRPC converts grpc_application_go.ParametrizedDescriptor to ParametrizedDescriptor
 // copying All the values (including the identifiers)
-func NewParametrizedDescriptorFromGRPC(descriptor * grpc_application_go.ParametrizedDescriptor) *ParametrizedDescriptor {
+func NewParametrizedDescriptorFromGRPC(descriptor *grpc_application_go.ParametrizedDescriptor) *ParametrizedDescriptor {
 
-	rules := make ([]SecurityRule, 0)
+	rules := make([]SecurityRule, 0)
 	for _, rule := range descriptor.Rules {
 		rules = append(rules, *CopySecurityRuleFromGRPC(rule))
 	}
 
-	groups := make ([]ServiceGroup, 0)
+	groups := make([]ServiceGroup, 0)
 	for _, group := range descriptor.Groups {
 		groups = append(groups, *CopyServiceGroupFromGRPC(group))
 	}
 
-	inbounds := make ([]InboundNetworkInterface, 0)
+	inbounds := make([]InboundNetworkInterface, 0)
 	for _, inbound := range descriptor.InboundNetInterfaces {
 		inbounds = append(inbounds, *NewInboundNetworkInterfaceFromGRPC(inbound))
 	}
 
-	outbounds := make ([]OutboundNetworkInterface, 0)
+	outbounds := make([]OutboundNetworkInterface, 0)
 	for _, outbound := range descriptor.OutboundNetInterfaces {
 		outbounds = append(outbounds, *NewOutboundNetworkInterfaceFromGRPC(outbound))
 	}
 
 	return &ParametrizedDescriptor{
-		OrganizationId:       descriptor.OrganizationId,
-		AppDescriptorId:      descriptor.AppDescriptorId,
-		AppInstanceId:        descriptor.AppInstanceId,
-		Name:                 descriptor.Name,
-		ConfigurationOptions: descriptor.ConfigurationOptions,
-		EnvironmentVariables: descriptor.EnvironmentVariables,
-		Labels:               descriptor.Labels,
-		Rules:                rules,
-		Groups:               groups,
-		InboundNetInterfaces: inbounds,
+		OrganizationId:        descriptor.OrganizationId,
+		AppDescriptorId:       descriptor.AppDescriptorId,
+		AppInstanceId:         descriptor.AppInstanceId,
+		Name:                  descriptor.Name,
+		ConfigurationOptions:  descriptor.ConfigurationOptions,
+		EnvironmentVariables:  descriptor.EnvironmentVariables,
+		Labels:                descriptor.Labels,
+		Rules:                 rules,
+		Groups:                groups,
+		InboundNetInterfaces:  inbounds,
 		OutboundNetInterfaces: outbounds,
 	}
 
@@ -1545,29 +1546,30 @@ func (d *ParametrizedDescriptor) ToGRPC() *grpc_application_go.ParametrizedDescr
 	for _, g := range d.Groups {
 		groups = append(groups, g.ToGRPC())
 	}
-	inbounds := make ([]*grpc_application_go.InboundNetworkInterface, 0)
+	inbounds := make([]*grpc_application_go.InboundNetworkInterface, 0)
 	for _, inbound := range d.InboundNetInterfaces {
 		inbounds = append(inbounds, inbound.ToGRPC())
 	}
-	outbounds := make ([]*grpc_application_go.OutboundNetworkInterface, 0)
+	outbounds := make([]*grpc_application_go.OutboundNetworkInterface, 0)
 	for _, outbound := range d.OutboundNetInterfaces {
 		outbounds = append(outbounds, outbound.ToGRPC())
 	}
 
 	return &grpc_application_go.ParametrizedDescriptor{
-		OrganizationId:       d.OrganizationId,
-		AppDescriptorId:      d.AppDescriptorId,
-		AppInstanceId:        d.AppInstanceId,
-		Name:                 d.Name,
-		ConfigurationOptions: d.ConfigurationOptions,
-		EnvironmentVariables: d.EnvironmentVariables,
-		Labels:               d.Labels,
-		Rules:                rules,
-		Groups:               groups,
-		InboundNetInterfaces: inbounds,
+		OrganizationId:        d.OrganizationId,
+		AppDescriptorId:       d.AppDescriptorId,
+		AppInstanceId:         d.AppInstanceId,
+		Name:                  d.Name,
+		ConfigurationOptions:  d.ConfigurationOptions,
+		EnvironmentVariables:  d.EnvironmentVariables,
+		Labels:                d.Labels,
+		Rules:                 rules,
+		Groups:                groups,
+		InboundNetInterfaces:  inbounds,
 		OutboundNetInterfaces: outbounds,
 	}
 }
+
 // -------------
 
 type AppEndpointProtocol int
@@ -1578,13 +1580,13 @@ const (
 )
 
 var AppEndpointProtocolToGRPC = map[AppEndpointProtocol]grpc_application_go.AppEndpointProtocol{
-	HTTP:    grpc_application_go.AppEndpointProtocol_HTTP,
-	HTTPS:   grpc_application_go.AppEndpointProtocol_HTTPS,
+	HTTP:  grpc_application_go.AppEndpointProtocol_HTTP,
+	HTTPS: grpc_application_go.AppEndpointProtocol_HTTPS,
 }
 
 var AppEndpointProtocolFromGRPC = map[grpc_application_go.AppEndpointProtocol]AppEndpointProtocol{
-	grpc_application_go.AppEndpointProtocol_HTTP:   HTTP,
-	grpc_application_go.AppEndpointProtocol_HTTPS:  HTTPS,
+	grpc_application_go.AppEndpointProtocol_HTTP:  HTTP,
+	grpc_application_go.AppEndpointProtocol_HTTPS: HTTPS,
 }
 
 type AppEndpoint struct {
@@ -1605,36 +1607,35 @@ type AppEndpoint struct {
 	// Type of endpoint
 	Type EndpointType `json:"type,omitempty" cql:"type"`
 	// FQDN to be accessed by any client
-	Fqdn string   `json:"fqdn,omitempty" cql:"fqdn"`
+	Fqdn string `json:"fqdn,omitempty" cql:"fqdn"`
 	// GlobalFqdn
 	GlobalFqdn string `json:"global_fqdn,omitempty" cql:"global_fqdn"`
 }
 
-func (ep * AppEndpoint) ToGRPC () *grpc_application_go.AppEndpoint {
+func (ep *AppEndpoint) ToGRPC() *grpc_application_go.AppEndpoint {
 	convertedType, _ := EndpointTypeToGRPC[ep.Type]
 	convertedProtocol, _ := AppEndpointProtocolToGRPC[ep.Protocol]
-	return & grpc_application_go.AppEndpoint{
-		OrganizationId: ep.OrganizationId,
-		AppInstanceId: ep.AppInstanceId,
+	return &grpc_application_go.AppEndpoint{
+		OrganizationId:         ep.OrganizationId,
+		AppInstanceId:          ep.AppInstanceId,
 		ServiceGroupInstanceId: ep.ServiceGroupInstanceId,
-		ServiceInstanceId: ep.ServiceInstanceId,
-		Protocol: convertedProtocol,
+		ServiceInstanceId:      ep.ServiceInstanceId,
+		Protocol:               convertedProtocol,
 		EndpointInstance: &grpc_application_go.EndpointInstance{
 			EndpointInstanceId: ep.EndpointInstanceId,
-			Type:convertedType,
-			Fqdn: ep.Fqdn,
-			Port: ep.Port,
+			Type:               convertedType,
+			Fqdn:               ep.Fqdn,
+			Port:               ep.Port,
 		},
 	}
 }
-
 
 // getNamePrefixes returns prefix to fill the globalFQDN
 // 1) "service-name"-"port"
 // 2) service_group_instanceID (6 characters)
 // 3) appInstance (6 characters)
 // 4) organizationID (8 characters)
-func getNamePrefixes(ep *grpc_application_go.AddAppEndpointRequest) (string, string, string, string){
+func getNamePrefixes(ep *grpc_application_go.AddAppEndpointRequest) (string, string, string, string) {
 	serviceName := ep.ServiceName
 
 	if ep.EndpointInstance != nil && ep.EndpointInstance.Port != 80 && ep.EndpointInstance.Port != 0 {
@@ -1679,32 +1680,32 @@ func createGlobalFqdn(endpoint *grpc_application_go.AddAppEndpointRequest) strin
 
 }
 
-func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AddAppEndpointRequest) (* AppEndpoint, derrors.Error){
+func NewAppEndpointFromGRPC(endpoint *grpc_application_go.AddAppEndpointRequest) (*AppEndpoint, derrors.Error) {
 
 	if endpoint.EndpointInstance == nil {
 		endpoint.EndpointInstance = DefaultEndpointInstance
 	}
 
 	return &AppEndpoint{
-		OrganizationId: endpoint.OrganizationId,
-		AppInstanceId: endpoint.AppInstanceId,
-		ServiceGroupInstanceId:endpoint.ServiceGroupInstanceId,
-		ServiceInstanceId: endpoint.ServiceInstanceId,
-		Protocol: AppEndpointProtocolFromGRPC[endpoint.Protocol],
-		Port: endpoint.EndpointInstance.Port,
-		EndpointInstanceId:endpoint.EndpointInstance.EndpointInstanceId,
-		Type:  EndpointTypeFromGRPC[endpoint.EndpointInstance.Type],
-		Fqdn: endpoint.EndpointInstance.Fqdn,
-		GlobalFqdn:createGlobalFqdn(endpoint),
+		OrganizationId:         endpoint.OrganizationId,
+		AppInstanceId:          endpoint.AppInstanceId,
+		ServiceGroupInstanceId: endpoint.ServiceGroupInstanceId,
+		ServiceInstanceId:      endpoint.ServiceInstanceId,
+		Protocol:               AppEndpointProtocolFromGRPC[endpoint.Protocol],
+		Port:                   endpoint.EndpointInstance.Port,
+		EndpointInstanceId:     endpoint.EndpointInstance.EndpointInstanceId,
+		Type:                   EndpointTypeFromGRPC[endpoint.EndpointInstance.Type],
+		Fqdn:                   endpoint.EndpointInstance.Fqdn,
+		GlobalFqdn:             createGlobalFqdn(endpoint),
 	}, nil
 }
 
 // -------------
 
-func (d * AppDescriptor) ApplyUpdate(request grpc_application_go.UpdateAppDescriptorRequest){
+func (d *AppDescriptor) ApplyUpdate(request grpc_application_go.UpdateAppDescriptorRequest) {
 	if request.AddLabels {
 		if d.Labels == nil {
-			d.Labels = make(map[string]string,0)
+			d.Labels = make(map[string]string, 0)
 		}
 		for k, v := range request.Labels {
 			d.Labels[k] = v
@@ -1717,7 +1718,7 @@ func (d * AppDescriptor) ApplyUpdate(request grpc_application_go.UpdateAppDescri
 	}
 }
 
-func ValidGroup(group * grpc_application_go.ServiceGroup) derrors.Error {
+func ValidGroup(group *grpc_application_go.ServiceGroup) derrors.Error {
 	if group.Name == "" {
 		return derrors.NewInvalidArgumentError("expecting name")
 	}
@@ -1727,15 +1728,14 @@ func ValidGroup(group * grpc_application_go.ServiceGroup) derrors.Error {
 	return nil
 }
 
-
-func ValidAddService(service * grpc_application_go.Service) derrors.Error {
+func ValidAddService(service *grpc_application_go.Service) derrors.Error {
 	if service.OrganizationId == "" || service.ServiceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, service_id")
 	}
 	return nil
 }
 
-func ValidAddAppDescriptorRequest(toAdd * grpc_application_go.AddAppDescriptorRequest) derrors.Error {
+func ValidAddAppDescriptorRequest(toAdd *grpc_application_go.AddAppDescriptorRequest) derrors.Error {
 	if toAdd.OrganizationId == "" || toAdd.Name == "" || toAdd.RequestId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, name, and request_id")
 	}
@@ -1745,8 +1745,8 @@ func ValidAddAppDescriptorRequest(toAdd * grpc_application_go.AddAppDescriptorRe
 	}
 
 	for _, g := range toAdd.Groups {
-		err := ValidGroup (g)
-		if err != nil{
+		err := ValidGroup(g)
+		if err != nil {
 			return err
 		}
 	}
@@ -1754,21 +1754,20 @@ func ValidAddAppDescriptorRequest(toAdd * grpc_application_go.AddAppDescriptorRe
 	return nil
 }
 
-func ValidUpdateAppDescriptorRequest(request * grpc_application_go.UpdateAppDescriptorRequest) derrors.Error{
+func ValidUpdateAppDescriptorRequest(request *grpc_application_go.UpdateAppDescriptorRequest) derrors.Error {
 	if request.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
 	}
-	if request.AppDescriptorId == ""{
+	if request.AppDescriptorId == "" {
 		return derrors.NewInvalidArgumentError(emptyAppDescriptorId)
 	}
 	return nil
 }
 
-
 type ApplicationStatus int
 
 const (
-	Queued ApplicationStatus = iota +1
+	Queued ApplicationStatus = iota + 1
 	Planning
 	Scheduled
 	Deploying
@@ -1780,27 +1779,27 @@ const (
 )
 
 var AppStatusToGRPC = map[ApplicationStatus]grpc_application_go.ApplicationStatus{
-	Queued: grpc_application_go.ApplicationStatus_QUEUED,
-	Planning: grpc_application_go.ApplicationStatus_PLANNING,
-	Scheduled: grpc_application_go.ApplicationStatus_SCHEDULED,
-	Deploying: grpc_application_go.ApplicationStatus_DEPLOYING,
-	Running: grpc_application_go.ApplicationStatus_RUNNING,
-	Incomplete: grpc_application_go.ApplicationStatus_INCOMPLETE,
-	PlanningError: grpc_application_go.ApplicationStatus_PLANNING_ERROR,
+	Queued:          grpc_application_go.ApplicationStatus_QUEUED,
+	Planning:        grpc_application_go.ApplicationStatus_PLANNING,
+	Scheduled:       grpc_application_go.ApplicationStatus_SCHEDULED,
+	Deploying:       grpc_application_go.ApplicationStatus_DEPLOYING,
+	Running:         grpc_application_go.ApplicationStatus_RUNNING,
+	Incomplete:      grpc_application_go.ApplicationStatus_INCOMPLETE,
+	PlanningError:   grpc_application_go.ApplicationStatus_PLANNING_ERROR,
 	DeploymentError: grpc_application_go.ApplicationStatus_DEPLOYMENT_ERROR,
-	Error: grpc_application_go.ApplicationStatus_ERROR,
+	Error:           grpc_application_go.ApplicationStatus_ERROR,
 }
 
 var AppStatusFromGRPC = map[grpc_application_go.ApplicationStatus]ApplicationStatus{
-	grpc_application_go.ApplicationStatus_QUEUED:Queued,
-	grpc_application_go.ApplicationStatus_PLANNING:Planning,
-	grpc_application_go.ApplicationStatus_SCHEDULED:Scheduled,
-	grpc_application_go.ApplicationStatus_DEPLOYING:Deploying,
-	grpc_application_go.ApplicationStatus_RUNNING:Running,
-	grpc_application_go.ApplicationStatus_INCOMPLETE:Incomplete,
-	grpc_application_go.ApplicationStatus_PLANNING_ERROR:PlanningError,
-	grpc_application_go.ApplicationStatus_DEPLOYMENT_ERROR:DeploymentError,
-	grpc_application_go.ApplicationStatus_ERROR:Error,
+	grpc_application_go.ApplicationStatus_QUEUED:           Queued,
+	grpc_application_go.ApplicationStatus_PLANNING:         Planning,
+	grpc_application_go.ApplicationStatus_SCHEDULED:        Scheduled,
+	grpc_application_go.ApplicationStatus_DEPLOYING:        Deploying,
+	grpc_application_go.ApplicationStatus_RUNNING:          Running,
+	grpc_application_go.ApplicationStatus_INCOMPLETE:       Incomplete,
+	grpc_application_go.ApplicationStatus_PLANNING_ERROR:   PlanningError,
+	grpc_application_go.ApplicationStatus_DEPLOYMENT_ERROR: DeploymentError,
+	grpc_application_go.ApplicationStatus_ERROR:            Error,
 }
 
 // -- AppInstance -- //
@@ -1825,7 +1824,7 @@ type AppInstance struct {
 	// Groups with the Service collocation strategies.
 	Groups []ServiceGroupInstance `json:"groups,omitempty" cql:"groups"`
 	// Status of the deployed instance.
-	Status  ApplicationStatus `json:"status,omitempty" cql:"status"`
+	Status ApplicationStatus `json:"status,omitempty" cql:"status"`
 	// Metadata descriptor for the instances triggered by this app
 	Metadata []InstanceMetadata `json:"metadata,omitempty" cql:"metadata"`
 	// Textual information for this application instance
@@ -1834,34 +1833,34 @@ type AppInstance struct {
 	InboundNetInterfaces []InboundNetworkInterface `json:"inbound_net_interfaces,omitempty" cql:"inbound_net_interfaces"`
 	// OutboundNetInterfaces with a list of outbounds
 	OutboundNetInterfaces []OutboundNetworkInterface `json:"outbound_net_interfaces,omitempty" cql:"outbound_net_interfaces"`
-
 }
-func (sg * ServiceGroup) ToServiceGroupInstance(appInstanceID string) *ServiceGroupInstance {
+
+func (sg *ServiceGroup) ToServiceGroupInstance(appInstanceID string) *ServiceGroupInstance {
 	serviceGroupInstanceID := uuid.New().String()
-	services := make ([]ServiceInstance, 0)
+	services := make([]ServiceInstance, 0)
 	for _, s := range sg.Services {
 		services = append(services, *s.ToServiceInstance(appInstanceID, serviceGroupInstanceID))
 	}
 	return &ServiceGroupInstance{
-		OrganizationId: 		sg.OrganizationId,
-		AppDescriptorId: 		sg.AppDescriptorId,
-		AppInstanceId: 			appInstanceID,
-		ServiceGroupId: 		sg.ServiceGroupId,
+		OrganizationId:         sg.OrganizationId,
+		AppDescriptorId:        sg.AppDescriptorId,
+		AppInstanceId:          appInstanceID,
+		ServiceGroupId:         sg.ServiceGroupId,
 		ServiceGroupInstanceId: serviceGroupInstanceID,
-		Name: 					sg.Name,
-		ServiceInstances:		services,
-		Policy: 				sg.Policy,
-		Status: 				ServiceScheduled,
-		Specs: 					sg.Specs,
-		Labels: 				sg.Labels,
+		Name:                   sg.Name,
+		ServiceInstances:       services,
+		Policy:                 sg.Policy,
+		Status:                 ServiceScheduled,
+		Specs:                  sg.Specs,
+		Labels:                 sg.Labels,
 	}
 }
 
-func (sg * ServiceGroup) ToEmptyServiceGroupInstance(appInstanceID string) *ServiceGroupInstance {
+func (sg *ServiceGroup) ToEmptyServiceGroupInstance(appInstanceID string) *ServiceGroupInstance {
 
 	serviceGroupInstanceID := uuid.New().String()
 
-	instances := make([]ServiceInstance,len(sg.Services))
+	instances := make([]ServiceInstance, len(sg.Services))
 	// New service instances for this service group
 	for i, g := range sg.Services {
 		instance := g.ToServiceInstance(appInstanceID, serviceGroupInstanceID)
@@ -1869,48 +1868,46 @@ func (sg * ServiceGroup) ToEmptyServiceGroupInstance(appInstanceID string) *Serv
 	}
 
 	return &ServiceGroupInstance{
-		OrganizationId: 		sg.OrganizationId,
-		AppDescriptorId: 		sg.AppDescriptorId,
-		AppInstanceId: 			appInstanceID,
-		ServiceGroupId: 		sg.ServiceGroupId,
+		OrganizationId:         sg.OrganizationId,
+		AppDescriptorId:        sg.AppDescriptorId,
+		AppInstanceId:          appInstanceID,
+		ServiceGroupId:         sg.ServiceGroupId,
 		ServiceGroupInstanceId: serviceGroupInstanceID,
-		Name: 					sg.Name,
-		ServiceInstances:		instances,
-		Policy: 				sg.Policy,
-		Status: 				ServiceScheduled,
-		Specs: 					sg.Specs,
-		Labels: 				sg.Labels,
+		Name:                   sg.Name,
+		ServiceInstances:       instances,
+		Policy:                 sg.Policy,
+		Status:                 ServiceScheduled,
+		Specs:                  sg.Specs,
+		Labels:                 sg.Labels,
 	}
 }
 
 // This function returns a local object from an incoming grpc service group instance
 func NewServiceGroupInstanceFromGRPC(group *grpc_application_go.ServiceGroupInstance) *ServiceGroupInstance {
 
-	serviceInstances := make([]ServiceInstance,0)
+	serviceInstances := make([]ServiceInstance, 0)
 	for _, serv := range group.ServiceInstances {
 		serviceInstances = append(serviceInstances, NewServiceInstanceFromGRPC(serv))
 	}
 
 	return &ServiceGroupInstance{
-		AppDescriptorId: group.AppDescriptorId,
-		OrganizationId: group.OrganizationId,
-		AppInstanceId: group.AppInstanceId,
-		Name: group.Name,
-		Metadata: NewMetadataFromGRPC(group.Metadata),
-		Labels: group.Labels,
-		Status: ServiceStatusFromGRPC[group.Status],
-		ServiceGroupId: group.ServiceGroupId,
+		AppDescriptorId:        group.AppDescriptorId,
+		OrganizationId:         group.OrganizationId,
+		AppInstanceId:          group.AppInstanceId,
+		Name:                   group.Name,
+		Metadata:               NewMetadataFromGRPC(group.Metadata),
+		Labels:                 group.Labels,
+		Status:                 ServiceStatusFromGRPC[group.Status],
+		ServiceGroupId:         group.ServiceGroupId,
 		ServiceGroupInstanceId: group.ServiceGroupInstanceId,
-		Policy: CollocationPolicyFromGRPC[group.Policy],
-		ServiceInstances: serviceInstances,
-		GlobalFqdn: group.GlobalFqdn,
-		Specs: NewServiceGroupDeploymentSpecsFromGRPC(group.Specs),
+		Policy:                 CollocationPolicyFromGRPC[group.Policy],
+		ServiceInstances:       serviceInstances,
+		GlobalFqdn:             group.GlobalFqdn,
+		Specs:                  NewServiceGroupDeploymentSpecsFromGRPC(group.Specs),
 	}
 }
 
-
-func NewAppInstanceFromAddInstanceRequestGRPC(addRequest * grpc_application_go.AddAppInstanceRequest, descriptor * AppDescriptor) * AppInstance {
-
+func NewAppInstanceFromAddInstanceRequestGRPC(addRequest *grpc_application_go.AddAppInstanceRequest, descriptor *AppDescriptor) *AppInstance {
 
 	uuid := GenerateUUID()
 
@@ -1925,23 +1922,23 @@ func NewAppInstanceFromAddInstanceRequestGRPC(addRequest * grpc_application_go.A
 		Rules:                descriptor.Rules,
 		// ServiceGroupInstances are added using the addservicegroupinstances function
 		//Groups:               groups,
-		Status: Queued,
-		Info:                 "",
-		InboundNetInterfaces: descriptor.InboundNetInterfaces,
+		Status:                Queued,
+		Info:                  "",
+		InboundNetInterfaces:  descriptor.InboundNetInterfaces,
 		OutboundNetInterfaces: descriptor.OutboundNetInterfaces,
 	}
 }
 
-func NewAppInstanceFromGRPC(appInstance * grpc_application_go.AppInstance) * AppInstance {
+func NewAppInstanceFromGRPC(appInstance *grpc_application_go.AppInstance) *AppInstance {
 	groups := make([]ServiceGroupInstance, 0)
 	for _, g := range appInstance.Groups {
 		groups = append(groups, *NewServiceGroupInstanceFromGRPC(g))
 	}
-	metadata := make([]InstanceMetadata,0)
+	metadata := make([]InstanceMetadata, 0)
 	for _, m := range appInstance.Metadata {
 		metadata = append(metadata, *NewMetadataFromGRPC(m))
 	}
-	rules := make([]SecurityRule,0)
+	rules := make([]SecurityRule, 0)
 	for _, r := range appInstance.Rules {
 		newR, err := NewSecurityRuleFromInstantiatedGRPC(r)
 		if err != nil {
@@ -1949,29 +1946,29 @@ func NewAppInstanceFromGRPC(appInstance * grpc_application_go.AppInstance) * App
 		}
 		rules = append(rules, *newR)
 	}
-	inbounds := make ([]InboundNetworkInterface, 0)
+	inbounds := make([]InboundNetworkInterface, 0)
 	for _, inbound := range appInstance.InboundNetInterfaces {
 		inbounds = append(inbounds, *NewInboundNetworkInterfaceFromGRPC(inbound))
 	}
-	outbounds := make ([]OutboundNetworkInterface, 0)
+	outbounds := make([]OutboundNetworkInterface, 0)
 	for _, outbound := range appInstance.OutboundNetInterfaces {
 		outbounds = append(outbounds, *NewOutboundNetworkInterfaceFromGRPC(outbound))
 	}
 
 	return &AppInstance{
-		OrganizationId: appInstance.OrganizationId,
-		AppInstanceId: appInstance.AppInstanceId,
-		Groups: groups,
-		Info: appInstance.Info,
-		Status: AppStatusFromGRPC[appInstance.Status],
-		Metadata: metadata,
-		Name: appInstance.Name,
-		Labels: appInstance.Labels,
-		AppDescriptorId: appInstance.AppDescriptorId,
-		EnvironmentVariables: appInstance.EnvironmentVariables,
-		Rules: rules,
-		ConfigurationOptions: appInstance.ConfigurationOptions,
-		InboundNetInterfaces: inbounds,
+		OrganizationId:        appInstance.OrganizationId,
+		AppInstanceId:         appInstance.AppInstanceId,
+		Groups:                groups,
+		Info:                  appInstance.Info,
+		Status:                AppStatusFromGRPC[appInstance.Status],
+		Metadata:              metadata,
+		Name:                  appInstance.Name,
+		Labels:                appInstance.Labels,
+		AppDescriptorId:       appInstance.AppDescriptorId,
+		EnvironmentVariables:  appInstance.EnvironmentVariables,
+		Rules:                 rules,
+		ConfigurationOptions:  appInstance.ConfigurationOptions,
+		InboundNetInterfaces:  inbounds,
 		OutboundNetInterfaces: outbounds,
 	}
 }
@@ -1985,15 +1982,15 @@ func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
 	for _, g := range i.Groups {
 		groups = append(groups, g.ToGRPC())
 	}
-	metadata := make ([]*grpc_application_go.InstanceMetadata, 0)
+	metadata := make([]*grpc_application_go.InstanceMetadata, 0)
 	for _, md := range i.Metadata {
 		metadata = append(metadata, md.ToGRPC())
 	}
-	inbounds := make ([]*grpc_application_go.InboundNetworkInterface, 0)
+	inbounds := make([]*grpc_application_go.InboundNetworkInterface, 0)
 	for _, inbound := range i.InboundNetInterfaces {
 		inbounds = append(inbounds, inbound.ToGRPC())
 	}
-	outbounds := make ([]*grpc_application_go.OutboundNetworkInterface, 0)
+	outbounds := make([]*grpc_application_go.OutboundNetworkInterface, 0)
 	for _, outbound := range i.OutboundNetInterfaces {
 		outbounds = append(outbounds, outbound.ToGRPC())
 	}
@@ -2001,23 +1998,22 @@ func (i *AppInstance) ToGRPC() *grpc_application_go.AppInstance {
 	status, _ := AppStatusToGRPC[i.Status]
 
 	return &grpc_application_go.AppInstance{
-		OrganizationId:       i.OrganizationId,
-		AppDescriptorId:      i.AppDescriptorId,
-		AppInstanceId:        i.AppInstanceId,
-		Name:                 i.Name,
-		ConfigurationOptions: i.ConfigurationOptions,
-		EnvironmentVariables: i.EnvironmentVariables,
-		Labels:               i.Labels,
-		Rules:                rules,
-		Groups:               groups,
-		Status:               status,
-		Metadata:             metadata,
-		Info:                 i.Info,
-		InboundNetInterfaces: inbounds,
+		OrganizationId:        i.OrganizationId,
+		AppDescriptorId:       i.AppDescriptorId,
+		AppInstanceId:         i.AppInstanceId,
+		Name:                  i.Name,
+		ConfigurationOptions:  i.ConfigurationOptions,
+		EnvironmentVariables:  i.EnvironmentVariables,
+		Labels:                i.Labels,
+		Rules:                 rules,
+		Groups:                groups,
+		Status:                status,
+		Metadata:              metadata,
+		Info:                  i.Info,
+		InboundNetInterfaces:  inbounds,
 		OutboundNetInterfaces: outbounds,
 	}
 }
-
 
 // ----------------------------------------------
 // ServiceProxy
@@ -2045,33 +2041,31 @@ type ServiceProxy struct {
 
 func NewServiceProxyFromGRPC(proxy *grpc_application_go.ServiceProxy) *ServiceProxy {
 	return &ServiceProxy{
-		OrganizationId: proxy.OrganizationId,
-		AppInstanceId: proxy.AppInstanceId,
-		ServiceId: proxy.ServiceId,
-		ServiceGroupId: proxy.ServiceGroupId,
-		ServiceInstanceId: proxy.ServiceInstanceId,
+		OrganizationId:         proxy.OrganizationId,
+		AppInstanceId:          proxy.AppInstanceId,
+		ServiceId:              proxy.ServiceId,
+		ServiceGroupId:         proxy.ServiceGroupId,
+		ServiceInstanceId:      proxy.ServiceInstanceId,
 		ServiceGroupInstanceId: proxy.ServiceGroupInstanceId,
-		ClusterId: proxy.ClusterId,
-		FQDN: proxy.Fqdn,
-		IP: proxy.Ip,
+		ClusterId:              proxy.ClusterId,
+		FQDN:                   proxy.Fqdn,
+		IP:                     proxy.Ip,
 	}
 }
 
 func (s *ServiceProxy) ToGRPC() *grpc_application_go.ServiceProxy {
 	return &grpc_application_go.ServiceProxy{
-		OrganizationId: s.OrganizationId,
-		AppInstanceId: s.AppInstanceId,
-		ServiceId: s.ServiceId,
-		ServiceGroupId: s.ServiceGroupId,
-		ServiceInstanceId: s.ServiceInstanceId,
+		OrganizationId:         s.OrganizationId,
+		AppInstanceId:          s.AppInstanceId,
+		ServiceId:              s.ServiceId,
+		ServiceGroupId:         s.ServiceGroupId,
+		ServiceInstanceId:      s.ServiceInstanceId,
 		ServiceGroupInstanceId: s.ServiceGroupInstanceId,
-		ClusterId: s.ClusterId,
-		Fqdn: s.FQDN,
-		Ip: s.IP,
+		ClusterId:              s.ClusterId,
+		Fqdn:                   s.FQDN,
+		Ip:                     s.IP,
 	}
 }
-
-
 
 // ----------------------------------------------
 // AppZtNetwork
@@ -2089,12 +2083,12 @@ type AppZtNetwork struct {
 	AvailableProxies map[string]map[string][]ServiceProxy `json:"available_proxies,omitempty" cql:"available_proxies"`
 }
 
-func NewAppZtNetworkFromGRPC(req *grpc_application_go.AppZtNetwork ) *AppZtNetwork {
-	proxies := make(map[string]map[string][]ServiceProxy,0)
+func NewAppZtNetworkFromGRPC(req *grpc_application_go.AppZtNetwork) *AppZtNetwork {
+	proxies := make(map[string]map[string][]ServiceProxy, 0)
 	for fqdn, entry := range req.AvailableProxies {
-		proxiesPerCluster := make(map[string][]ServiceProxy,0)
+		proxiesPerCluster := make(map[string][]ServiceProxy, 0)
 		for clusterId, serviceProxies := range entry.ProxiesPerCluster {
-			list := make([]ServiceProxy,len(serviceProxies.List))
+			list := make([]ServiceProxy, len(serviceProxies.List))
 			for i, l := range serviceProxies.List {
 				list[i] = *NewServiceProxyFromGRPC(l)
 			}
@@ -2103,33 +2097,33 @@ func NewAppZtNetworkFromGRPC(req *grpc_application_go.AppZtNetwork ) *AppZtNetwo
 		proxies[fqdn] = proxiesPerCluster
 	}
 	return &AppZtNetwork{
-		OrganizationId: req.OrganizationId,
-		AppInstanceId: req.AppInstanceId,
-		ZtNetworkId: req.NetworkId,
-		VSAList: req.VsaList,
+		OrganizationId:   req.OrganizationId,
+		AppInstanceId:    req.AppInstanceId,
+		ZtNetworkId:      req.NetworkId,
+		VSAList:          req.VsaList,
 		AvailableProxies: proxies,
 	}
 }
 
-func(a *AppZtNetwork) ToGRPC() *grpc_application_go.AppZtNetwork {
-	proxies := make(map[string]*grpc_application_go.ServiceProxyClusterMap,0)
+func (a *AppZtNetwork) ToGRPC() *grpc_application_go.AppZtNetwork {
+	proxies := make(map[string]*grpc_application_go.ServiceProxyClusterMap, 0)
 	for fqdn, entry := range a.AvailableProxies {
 		clusterMap := make(map[string]*grpc_application_go.ServiceProxyList)
 		for clusterId, serviceProxies := range entry {
-			list := make([]*grpc_application_go.ServiceProxy,len(serviceProxies))
+			list := make([]*grpc_application_go.ServiceProxy, len(serviceProxies))
 			for i, s := range serviceProxies {
 				list[i] = s.ToGRPC()
 			}
 			clusterMap[clusterId] = &grpc_application_go.ServiceProxyList{List: list}
 		}
-		proxies[fqdn] = &grpc_application_go.ServiceProxyClusterMap{ProxiesPerCluster:clusterMap}
+		proxies[fqdn] = &grpc_application_go.ServiceProxyClusterMap{ProxiesPerCluster: clusterMap}
 	}
 
 	return &grpc_application_go.AppZtNetwork{
-		NetworkId: a.ZtNetworkId,
-		AppInstanceId: a.AppInstanceId,
-		OrganizationId: a.OrganizationId,
-		VsaList: a.VSAList,
+		NetworkId:        a.ZtNetworkId,
+		AppInstanceId:    a.AppInstanceId,
+		OrganizationId:   a.OrganizationId,
+		VsaList:          a.VSAList,
 		AvailableProxies: proxies,
 	}
 }
@@ -2148,7 +2142,6 @@ type AppNetworkMember struct {
 	CreatedAt int64 `json:"created_at,omitempty" cql:"created_at"`
 }
 
-
 // AppZtNetworkMembers
 
 type AppZtNetworkMembers struct {
@@ -2166,24 +2159,24 @@ type AppZtNetworkMembers struct {
 	Members map[string]AppNetworkMember `json:"members,omitempty" cql:"members"`
 }
 
-func NewAppZtNetworkMemberFromGRPC(req *grpc_application_go.AddAuthorizedZtNetworkMemberRequest ) *AppZtNetworkMembers {
+func NewAppZtNetworkMemberFromGRPC(req *grpc_application_go.AddAuthorizedZtNetworkMemberRequest) *AppZtNetworkMembers {
 	return &AppZtNetworkMembers{
-		OrganizationId: req.OrganizationId,
-		AppInstanceId: req.AppInstanceId,
-		ZtNetworkId: req.NetworkId,
-		ServiceGroupInstanceId: req.ServiceGroupInstanceId,
+		OrganizationId:               req.OrganizationId,
+		AppInstanceId:                req.AppInstanceId,
+		ZtNetworkId:                  req.NetworkId,
+		ServiceGroupInstanceId:       req.ServiceGroupInstanceId,
 		ServiceApplicationInstanceId: req.ServiceApplicationInstanceId,
-		Members: map[string]AppNetworkMember{req.MemberId: {MemberId: req.MemberId, Ip: req.NetworkId, IsProxy: req.IsProxy, CreatedAt: 0}},
+		Members:                      map[string]AppNetworkMember{req.MemberId: {MemberId: req.MemberId, Ip: req.NetworkId, IsProxy: req.IsProxy, CreatedAt: 0}},
 	}
 }
 
 func (m *AppZtNetworkMembers) ToGRPC() *grpc_application_go.ZtNetworkMember {
 	return &grpc_application_go.ZtNetworkMember{
-		OrganizationId: m.OrganizationId,
-		AppInstanceId: m.AppInstanceId,
-		ServiceGroupInstanceId: m.ServiceGroupInstanceId,
+		OrganizationId:               m.OrganizationId,
+		AppInstanceId:                m.AppInstanceId,
+		ServiceGroupInstanceId:       m.ServiceGroupInstanceId,
 		ServiceApplicationInstanceId: m.ServiceApplicationInstanceId,
-		NetworkId: m.ZtNetworkId,
+		NetworkId:                    m.ZtNetworkId,
 		// CreatedAt:
 		// IsProxy:
 		// MemberId:
@@ -2192,18 +2185,18 @@ func (m *AppZtNetworkMembers) ToGRPC() *grpc_application_go.ZtNetworkMember {
 
 // convert the zt network members to a list of network member
 func (m *AppZtNetworkMembers) ToArrayGRPC() *grpc_application_go.ZtNetworkMembers {
-	result := grpc_application_go.ZtNetworkMembers{Members: make([]*grpc_application_go.ZtNetworkMember,len(m.Members))}
-	i:=0
+	result := grpc_application_go.ZtNetworkMembers{Members: make([]*grpc_application_go.ZtNetworkMember, len(m.Members))}
+	i := 0
 	for _, entry := range m.Members {
 		aux := &grpc_application_go.ZtNetworkMember{
-			OrganizationId: m.OrganizationId,
-			AppInstanceId: m.AppInstanceId,
-			ServiceGroupInstanceId: m.ServiceGroupInstanceId,
+			OrganizationId:               m.OrganizationId,
+			AppInstanceId:                m.AppInstanceId,
+			ServiceGroupInstanceId:       m.ServiceGroupInstanceId,
 			ServiceApplicationInstanceId: m.ServiceApplicationInstanceId,
-			CreatedAt: entry.CreatedAt,
-			MemberId: entry.MemberId,
-			IsProxy: entry.IsProxy,
-			NetworkId: m.ZtNetworkId,
+			CreatedAt:                    entry.CreatedAt,
+			MemberId:                     entry.MemberId,
+			IsProxy:                      entry.IsProxy,
+			NetworkId:                    m.ZtNetworkId,
 		}
 		result.Members[i] = aux
 		i++
@@ -2211,11 +2204,9 @@ func (m *AppZtNetworkMembers) ToArrayGRPC() *grpc_application_go.ZtNetworkMember
 	return &result
 }
 
-
-
 // Validation functions
 
-func ValidAddZtNetworkProxy(req * grpc_application_go.ServiceProxy) derrors.Error {
+func ValidAddZtNetworkProxy(req *grpc_application_go.ServiceProxy) derrors.Error {
 	if req.OrganizationId == "" || req.ClusterId == "" || req.Fqdn == "" || req.AppInstanceId == "" ||
 		req.ServiceId == "" || req.ServiceGroupId == "" || req.ServiceInstanceId == "" ||
 		req.ServiceGroupInstanceId == "" || req.Ip == "" {
@@ -2225,7 +2216,7 @@ func ValidAddZtNetworkProxy(req * grpc_application_go.ServiceProxy) derrors.Erro
 	return nil
 }
 
-func ValidRemoveZtNetworkProxy(req * grpc_application_go.RemoveAppZtNetworkProxy) derrors.Error {
+func ValidRemoveZtNetworkProxy(req *grpc_application_go.RemoveAppZtNetworkProxy) derrors.Error {
 	if req.OrganizationId == "" || req.ClusterId == "" || req.Fqdn == "" || req.AppInstanceId == "" ||
 		req.ServiceInstanceId == "" || req.ServiceGroupInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, cluster_id, fqdn, app_instance_id," +
@@ -2234,7 +2225,7 @@ func ValidRemoveZtNetworkProxy(req * grpc_application_go.RemoveAppZtNetworkProxy
 	return nil
 }
 
-func ValidGetAuthorizedZtNetworkMemberRequest(req * grpc_application_go.GetAuthorizedZtNetworkMemberRequest) derrors.Error {
+func ValidGetAuthorizedZtNetworkMemberRequest(req *grpc_application_go.GetAuthorizedZtNetworkMemberRequest) derrors.Error {
 	if req.OrganizationId == "" || req.AppInstanceId == "" || req.ServiceGroupInstanceId == "" ||
 		req.ServiceApplicationInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, service_group_instance_id, " +
@@ -2243,7 +2234,7 @@ func ValidGetAuthorizedZtNetworkMemberRequest(req * grpc_application_go.GetAutho
 	return nil
 }
 
-func ValidAddAuthorizedNetworkMemberRequest(req * grpc_application_go.AddAuthorizedZtNetworkMemberRequest) derrors.Error {
+func ValidAddAuthorizedNetworkMemberRequest(req *grpc_application_go.AddAuthorizedZtNetworkMemberRequest) derrors.Error {
 	if req.OrganizationId == "" || req.AppInstanceId == "" || req.ServiceGroupInstanceId == "" ||
 		req.ServiceApplicationInstanceId == "" || req.MemberId == "" || req.NetworkId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, service_group_instance_id, " +
@@ -2252,7 +2243,7 @@ func ValidAddAuthorizedNetworkMemberRequest(req * grpc_application_go.AddAuthori
 	return nil
 }
 
-func ValidRemoveAuthorizedZtNetworkMemberRequest(req * grpc_application_go.RemoveAuthorizedZtNetworkMemberRequest) derrors.Error {
+func ValidRemoveAuthorizedZtNetworkMemberRequest(req *grpc_application_go.RemoveAuthorizedZtNetworkMemberRequest) derrors.Error {
 	if req.OrganizationId == "" || req.AppInstanceId == "" || req.ServiceGroupInstanceId == "" ||
 		req.ServiceApplicationInstanceId == "" || req.ZtNetworkId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, service_group_instance_id, " +
@@ -2261,23 +2252,21 @@ func ValidRemoveAuthorizedZtNetworkMemberRequest(req * grpc_application_go.Remov
 	return nil
 }
 
-
-func ValidAppDescriptorId (descriptorID * grpc_application_go.AppDescriptorId) derrors.Error{
-	if descriptorID.OrganizationId == "" || descriptorID.AppDescriptorId == ""{
+func ValidAppDescriptorId(descriptorID *grpc_application_go.AppDescriptorId) derrors.Error {
+	if descriptorID.OrganizationId == "" || descriptorID.AppDescriptorId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id and descriptor_id")
 	}
 	return nil
 }
 
-
-func ValidAppInstanceId (instanceID * grpc_application_go.AppInstanceId) derrors.Error{
-	if instanceID.OrganizationId == "" || instanceID.AppInstanceId == ""{
+func ValidAppInstanceId(instanceID *grpc_application_go.AppInstanceId) derrors.Error {
+	if instanceID.OrganizationId == "" || instanceID.AppInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id and app_instance_id")
 	}
 	return nil
 }
 
-func ValidAddAppInstanceRequest(toAdd * grpc_application_go.AddAppInstanceRequest) derrors.Error {
+func ValidAddAppInstanceRequest(toAdd *grpc_application_go.AddAppInstanceRequest) derrors.Error {
 	if toAdd.OrganizationId == "" || toAdd.Name == "" || toAdd.AppDescriptorId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, name, and descriptor_id")
 	}
@@ -2285,24 +2274,24 @@ func ValidAddAppInstanceRequest(toAdd * grpc_application_go.AddAppInstanceReques
 }
 
 func ValidUpdateAppStatusRequest(updateRequest *grpc_application_go.UpdateAppStatusRequest) derrors.Error {
-    if updateRequest.OrganizationId == "" || updateRequest.AppInstanceId == "" {
+	if updateRequest.OrganizationId == "" || updateRequest.AppInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id and app_instance_id")
 	}
 	return nil
 }
 
-func ValidUpdateServiceStatusRequest (updateRequest *grpc_application_go.UpdateServiceStatusRequest) derrors.Error {
-	if updateRequest.OrganizationId == "" || updateRequest.AppInstanceId == ""  ||
+func ValidUpdateServiceStatusRequest(updateRequest *grpc_application_go.UpdateServiceStatusRequest) derrors.Error {
+	if updateRequest.OrganizationId == "" || updateRequest.AppInstanceId == "" ||
 		updateRequest.ServiceGroupInstanceId == "" || updateRequest.ServiceInstanceId == "" {
-			return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, app_service_instance_id " +
-				"and service_instance_id")
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, app_service_instance_id " +
+			"and service_instance_id")
 	}
 	return nil
 }
 
-func ValidAddServiceGroupInstanceRequest (request *grpc_application_go.AddServiceGroupInstancesRequest) derrors.Error {
+func ValidAddServiceGroupInstanceRequest(request *grpc_application_go.AddServiceGroupInstancesRequest) derrors.Error {
 	if request.OrganizationId == "" || request.AppDescriptorId == "" ||
-		request.AppInstanceId == "" || request.ServiceGroupId == ""  || request.NumInstances <= 0 {
+		request.AppInstanceId == "" || request.ServiceGroupId == "" || request.NumInstances <= 0 {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_descriptor_id, app_instance_id, " +
 			"service_group_id, metadata, numInstances greater than zero")
 	}
@@ -2321,7 +2310,7 @@ func ValidAddServiceInstanceRequest(request *grpc_application_go.AddServiceInsta
 }
 
 // ValidateDescriptor checks validity of object names, ports meeting Kubernetes specs.
-func  ValidateDescriptor(descriptor AppDescriptor) derrors.Error {
+func ValidateDescriptor(descriptor AppDescriptor) derrors.Error {
 	// for each group
 	for _, group := range descriptor.Groups {
 		for _, service := range group.Services {
@@ -2377,12 +2366,12 @@ func ValidUpdateInstanceMetadata(request *grpc_application_go.InstanceMetadata) 
 func ValidAddAppEndpointRequest(request *grpc_application_go.AddAppEndpointRequest) derrors.Error {
 	if request.AppInstanceId == "" || request.OrganizationId == "" || request.ServiceGroupInstanceId == "" ||
 		request.ServiceInstanceId == "" || request.EndpointInstance.Fqdn == "" || request.ServiceName == "" {
-			return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +
-				"service_group_instance_id, service_instance_id, service_name, fqdn")
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, " +
+			"service_group_instance_id, service_instance_id, service_name, fqdn")
 	}
 
 	if request.EndpointInstance == nil || request.EndpointInstance.Fqdn == "" {
-		return  derrors.NewInvalidArgumentError("expecting fqdn")
+		return derrors.NewInvalidArgumentError("expecting fqdn")
 	}
 	fqdnSplit := strings.Split(request.EndpointInstance.Fqdn, ".")
 	if len(fqdnSplit) < 4 {
@@ -2395,7 +2384,7 @@ func ValidAddAppEndpointRequest(request *grpc_application_go.AddAppEndpointReque
 	return nil
 }
 
-func ValidGetAppEndPointRequest(request *grpc_application_go.GetAppEndPointRequest) derrors.Error{
+func ValidGetAppEndPointRequest(request *grpc_application_go.GetAppEndPointRequest) derrors.Error {
 	if request.Fqdn == "" {
 		return derrors.NewInvalidArgumentError("expecting fqdn")
 	}
@@ -2406,31 +2395,30 @@ func ValidGetAppEndPointRequest(request *grpc_application_go.GetAppEndPointReque
 	return nil
 }
 
-func ValidRemoveEndpointRequest(request * grpc_application_go.RemoveAppEndpointRequest)  derrors.Error{
-	if request.AppInstanceId == "" || request.OrganizationId == ""  {
+func ValidRemoveEndpointRequest(request *grpc_application_go.RemoveAppEndpointRequest) derrors.Error {
+	if request.AppInstanceId == "" || request.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id")
 	}
 	return nil
 }
 
-func ValidAddAppZtNetworkRequest(request * grpc_application_go.AddAppZtNetworkRequest) derrors.Error {
+func ValidAddAppZtNetworkRequest(request *grpc_application_go.AddAppZtNetworkRequest) derrors.Error {
 	if request.OrganizationId == "" || request.AppInstanceId == "" || request.NetworkId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, network_id")
 	}
 	return nil
 }
 
-func ValidRemoveAppZtNetworkRequest(request * grpc_application_go.RemoveAppZtNetworkRequest) derrors.Error {
+func ValidRemoveAppZtNetworkRequest(request *grpc_application_go.RemoveAppZtNetworkRequest) derrors.Error {
 	if request.OrganizationId == "" || request.AppInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id")
 	}
 	return nil
 }
 
-func ValidGetAppZtNetworkRequest(request * grpc_application_go.GetAppZtNetworkRequest) derrors.Error {
-	if request.OrganizationId == "" || request.AppInstanceId == ""  {
+func ValidGetAppZtNetworkRequest(request *grpc_application_go.GetAppZtNetworkRequest) derrors.Error {
+	if request.OrganizationId == "" || request.AppInstanceId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id")
 	}
 	return nil
 }
-

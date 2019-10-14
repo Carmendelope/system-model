@@ -6,8 +6,7 @@ package project
 
 import "github.com/onsi/ginkgo"
 
-var _ = ginkgo.Describe("Mockup Project provider", func(){
+var _ = ginkgo.Describe("Mockup Project provider", func() {
 	provider := NewMockupProjectProvider()
 	RunTest(provider)
 })
-

@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestAccountProviderPackage(t *testing.T){
+func TestAccountProviderPackage(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "Account Providers package suite")
 }

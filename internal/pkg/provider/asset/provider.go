@@ -22,7 +22,7 @@ type Provider interface {
 	// ListControllerAssets retrieves the assets associated with a given edge controller
 	ListControllerAssets(edgeControllerID string) ([]entities.Asset, derrors.Error)
 	// Get an asset.
-	Get(assetID string) (* entities.Asset, derrors.Error)
+	Get(assetID string) (*entities.Asset, derrors.Error)
 	// Remove an asset
 	Remove(assetID string) derrors.Error
 	// Clear all assets

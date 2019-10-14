@@ -18,7 +18,7 @@ type Provider interface {
 	// Exists checks if a node exists on the system.
 	Exists(nodeID string) (bool, derrors.Error)
 	// Get a node.
-	Get(nodeID string) (* entities.Node, derrors.Error)
+	Get(nodeID string) (*entities.Node, derrors.Error)
 	// Remove a node
 	Remove(nodeID string) derrors.Error
 	// Clear nodes

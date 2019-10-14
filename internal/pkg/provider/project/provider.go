@@ -28,4 +28,3 @@ type Provider interface {
 	// Clear all projects
 	Clear() derrors.Error
 }
-

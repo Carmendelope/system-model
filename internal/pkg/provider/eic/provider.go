@@ -18,7 +18,7 @@ type Provider interface {
 	// Exists checks if an EIC exists on the system.
 	Exists(edgeControllerID string) (bool, derrors.Error)
 	// Get an EIC.
-	Get(edgeControllerID string) (* entities.EdgeController, derrors.Error)
+	Get(edgeControllerID string) (*entities.EdgeController, derrors.Error)
 	// List the EIC in a given organization
 	List(organizationID string) ([]entities.EdgeController, derrors.Error)
 	// Remove an EIC

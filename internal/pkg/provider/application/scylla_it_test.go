@@ -35,11 +35,11 @@ create table IF NOT EXISTS nalej.ApplicationInstances (organization_id text, app
 create table IF NOT EXISTS nalej.ApplicationDescriptors (organization_id text, app_descriptor_id text, name text, description text, configuration_options map<text, text>, environment_variables map<text, text>, labels map <text, text>, rules list<FROZEN<security_rule>>, groups list<FROZEN<service_group>>, services list <FROZEN<service>>, PRIMARY KEY (app_descriptor_id));
 */
 
-var _ = ginkgo.Describe("Scylla application provider", func(){
+var _ = ginkgo.Describe("Scylla application provider", func() {
 
-	var numApps = rand.Intn(50) +1
+	var numApps = rand.Intn(50) + 1
 
-	if ! utils.RunIntegrationTests() {
+	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
 	}
@@ -70,7 +70,7 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 
 	RunTest(sp)
 
-	ginkgo.It("Should be able to add Applications", func(){
+	ginkgo.It("Should be able to add Applications", func() {
 
 		id := uuid.New().String()
 
@@ -85,7 +85,7 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 
 	})
 
-	ginkgo.It("Should be able to add Descriptors", func(){
+	ginkgo.It("Should be able to add Descriptors", func() {
 
 		for i := 0; i < numApps; i++ {
 
@@ -97,4 +97,3 @@ var _ = ginkgo.Describe("Scylla application provider", func(){
 
 	})
 })
-

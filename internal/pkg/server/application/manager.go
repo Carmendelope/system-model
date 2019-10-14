@@ -20,9 +20,9 @@ import (
 
 // Manager structure with the required providers for application operations.
 type Manager struct {
-	OrgProvider organization.Provider
-	AppProvider application.Provider
-	DevProvider device.Provider
+	OrgProvider      organization.Provider
+	AppProvider      application.Provider
+	DevProvider      device.Provider
 	PublicHostDomain string
 }
 
@@ -31,13 +31,12 @@ func NewManager(orgProvider organization.Provider, appProvider application.Provi
 	return Manager{orgProvider, appProvider, devProvider, publicHostDomain}
 }
 
-
-func (m * Manager) extractGroupIds (organizationID string, rules []*grpc_application_go.SecurityRule) (map[string]string, derrors.Error){
+func (m *Manager) extractGroupIds(organizationID string, rules []*grpc_application_go.SecurityRule) (map[string]string, derrors.Error) {
 	// -----------------
 	// check if the descriptor has device_names in the rules
 	// we need to convert deviceGroupNames into deviceGroupIds
 	names := make(map[string]bool, 0) // uses a map to avoid insert a device group twice
-	for _, rules := range rules{
+	for _, rules := range rules {
 		if len(rules.DeviceGroupNames) > 0 {
 			for _, name := range rules.DeviceGroupNames {
 				names[name] = true
@@ -46,25 +45,25 @@ func (m * Manager) extractGroupIds (organizationID string, rules []*grpc_applica
 	}
 	// map to array
 	keys := make([]string, len(names))
-	i:=0
-	for key, _  := range names{
+	i := 0
+	for key, _ := range names {
 		keys[i] = key
 		i += 1
 	}
 
-	deviceGroupIds := make (map[string]string, 0) // map of deviceGroupIds indexed by deviceGroupNames
+	deviceGroupIds := make(map[string]string, 0) // map of deviceGroupIds indexed by deviceGroupNames
 	if len(keys) > 0 {
 		deviceGroups, err := m.DevProvider.GetDeviceGroupsByName(organizationID, keys)
 		if err != nil {
 			return nil, err
 		}
 
-		for _,  deviceGroup := range deviceGroups {
+		for _, deviceGroup := range deviceGroups {
 			deviceGroupIds[deviceGroup.Name] = deviceGroup.DeviceGroupId
 		}
 
 		// check the devices number returned (it should be the the same as deviceNames)
-		if len(deviceGroupIds) != len(keys){
+		if len(deviceGroupIds) != len(keys) {
 			return nil, derrors.NewNotFoundError("device group names").WithParams(keys)
 		}
 
@@ -75,12 +74,12 @@ func (m * Manager) extractGroupIds (organizationID string, rules []*grpc_applica
 }
 
 // AddAppDescriptor adds a new application descriptor to a given organization.
-func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescriptorRequest) (* entities.AppDescriptor, derrors.Error) {
+func (m *Manager) AddAppDescriptor(addRequest *grpc_application_go.AddAppDescriptorRequest) (*entities.AppDescriptor, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(addRequest.OrganizationId)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
 	}
 
@@ -101,16 +100,16 @@ func (m * Manager) AddAppDescriptor(addRequest * grpc_application_go.AddAppDescr
 	}
 	err = m.OrgProvider.AddDescriptor(descriptor.OrganizationId, descriptor.AppDescriptorId)
 	if err != nil {
-	    return nil, err
+		return nil, err
 	}
 
 	return descriptor, nil
 }
 
 // ListDescriptors obtains a list of descriptors associated with an organization.
-func (m * Manager) ListDescriptors(orgID * grpc_organization_go.OrganizationId) ([] entities.AppDescriptor, derrors.Error) {
+func (m *Manager) ListDescriptors(orgID *grpc_organization_go.OrganizationId) ([]entities.AppDescriptor, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(orgID.OrganizationId)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
@@ -121,11 +120,11 @@ func (m * Manager) ListDescriptors(orgID * grpc_organization_go.OrganizationId) 
 	if err != nil {
 		return nil, err
 	}
-	result := make([] entities.AppDescriptor, 0)
+	result := make([]entities.AppDescriptor, 0)
 	for _, dID := range descriptors {
 		toAdd, err := m.AppProvider.GetDescriptor(dID)
 		if err != nil {
-		    return nil, err
+			return nil, err
 		}
 		result = append(result, *toAdd)
 	}
@@ -133,19 +132,19 @@ func (m * Manager) ListDescriptors(orgID * grpc_organization_go.OrganizationId) 
 }
 
 // GetDescriptor retrieves a single application 0,descriptor.
-func (m * Manager) GetDescriptor(appDescID * grpc_application_go.AppDescriptorId) (* entities.AppDescriptor, derrors.Error){
+func (m *Manager) GetDescriptor(appDescID *grpc_application_go.AppDescriptorId) (*entities.AppDescriptor, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(appDescID.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if ! exists {
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(appDescID.OrganizationId)
 	}
 	exists, err = m.OrgProvider.DescriptorExists(appDescID.OrganizationId, appDescID.AppDescriptorId)
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("appDescriptorID").WithParams(appDescID.OrganizationId, appDescID.AppDescriptorId)
 	}
 	return m.AppProvider.GetDescriptor(appDescID.AppDescriptorId)
@@ -157,35 +156,35 @@ func (m *Manager) UpdateAppDescriptor(request *grpc_application_go.UpdateAppDesc
 	if err != nil {
 		return nil, err
 	}
-	if ! exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
 	}
 	old, err := m.AppProvider.GetDescriptor(request.AppDescriptorId)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	old.ApplyUpdate(*request)
 	err = m.AppProvider.UpdateDescriptor(*old)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	return old, nil
 }
 
 // RemoveAppDescriptor removes an application descriptor.
-func (m * Manager) RemoveAppDescriptor(appDescID *grpc_application_go.AppDescriptorId) derrors.Error {
+func (m *Manager) RemoveAppDescriptor(appDescID *grpc_application_go.AppDescriptorId) derrors.Error {
 	exists, err := m.OrgProvider.Exists(appDescID.OrganizationId)
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError("organizationID").WithParams(appDescID.OrganizationId)
 	}
 	exists, err = m.OrgProvider.DescriptorExists(appDescID.OrganizationId, appDescID.AppDescriptorId)
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError("appDescriptorId").WithParams(appDescID.AppDescriptorId)
 	}
 	err = m.OrgProvider.DeleteDescriptor(appDescID.OrganizationId, appDescID.AppDescriptorId)
@@ -203,46 +202,45 @@ func (m * Manager) RemoveAppDescriptor(appDescID *grpc_application_go.AppDescrip
 	return err
 }
 
-
-func (m * Manager) GetDescriptorAppParameters(request *grpc_application_go.AppDescriptorId) ( []entities.Parameter, derrors.Error) {
+func (m *Manager) GetDescriptorAppParameters(request *grpc_application_go.AppDescriptorId) ([]entities.Parameter, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(request.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if ! exists {
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
 	}
 	exists, err = m.OrgProvider.DescriptorExists(request.OrganizationId, request.AppDescriptorId)
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("appDescriptorID").WithParams(request.OrganizationId, request.AppDescriptorId)
 	}
 	return m.AppProvider.GetDescriptorParameters(request.AppDescriptorId)
 }
 
 // AddAppInstance adds a new application instance to a given organization.
-func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanceRequest) (* entities.AppInstance, derrors.Error) {
+func (m *Manager) AddAppInstance(addRequest *grpc_application_go.AddAppInstanceRequest) (*entities.AppInstance, derrors.Error) {
 
 	exists, err := m.OrgProvider.Exists(addRequest.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if ! exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRequest.OrganizationId)
 	}
 	exists, err = m.AppProvider.DescriptorExists(addRequest.AppDescriptorId)
 	if err != nil {
 		return nil, err
 	}
-	if ! exists {
+	if !exists {
 		return nil, derrors.NewNotFoundError("descriptorID").WithParams(addRequest.OrganizationId, addRequest.AppDescriptorId)
 	}
 
 	descriptor, err := m.AppProvider.GetDescriptor(addRequest.AppDescriptorId)
 	if err != nil {
-	    return nil, err
+		return nil, err
 	}
 
 	instance := entities.NewAppInstanceFromAddInstanceRequestGRPC(addRequest, descriptor)
@@ -257,7 +255,7 @@ func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanc
 
 	// add parameters
 	if addRequest.Parameters != nil {
-		parameters := make ([]entities.InstanceParameter, 0)
+		parameters := make([]entities.InstanceParameter, 0)
 		for _, param := range addRequest.Parameters.Parameters {
 			parameters = append(parameters, *entities.NewInstanceParamFromGRPC(param))
 		}
@@ -277,12 +275,12 @@ func (m * Manager) AddAppInstance(addRequest * grpc_application_go.AddAppInstanc
 }
 
 // ListInstances retrieves the list of instances associated with an organization.
-func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([] entities.AppInstance, derrors.Error) {
+func (m *Manager) ListInstances(orgID *grpc_organization_go.OrganizationId) ([]entities.AppInstance, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(orgID.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(orgID.OrganizationId)
 	}
 	instances, err := m.OrgProvider.ListInstances(orgID.OrganizationId)
@@ -290,14 +288,14 @@ func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([
 		return nil, err
 	}
 
-	result := make([] entities.AppInstance, 0)
+	result := make([]entities.AppInstance, 0)
 	for _, instID := range instances {
 		toAdd, err := m.AppProvider.GetInstance(instID)
 		if err != nil {
 			// NP-1593.
 			// It can happen, that while an  instance is being undeploying, a list of the instances is requested (and the join fails)
 			log.Warn().Str("instance", instID).Msg("not found!!")
-		}else {
+		} else {
 			// Fill Global FQdn
 			err = m.fillGlobalFqdn(toAdd)
 			if err != nil {
@@ -310,9 +308,9 @@ func (m * Manager) ListInstances(orgID * grpc_organization_go.OrganizationId) ([
 	return result, nil
 }
 
-func (m * Manager) fillGlobalFqdn(instance *entities.AppInstance) derrors.Error {
+func (m *Manager) fillGlobalFqdn(instance *entities.AppInstance) derrors.Error {
 	// Load ServiceGroup GlobalFqn
-	for i:= 0; i< len(instance.Groups) ; i++ {
+	for i := 0; i < len(instance.Groups); i++ {
 		globalFQDN, err := m.AppProvider.GetAppEndpointList(instance.Groups[i].OrganizationId, instance.Groups[i].AppInstanceId, instance.Groups[i].ServiceGroupInstanceId)
 		if err != nil {
 			return err
@@ -325,7 +323,7 @@ func (m * Manager) fillGlobalFqdn(instance *entities.AppInstance) derrors.Error 
 				fqdns[fqdn.GlobalFqdn] = true
 			}
 			// map to list
-			instance.Groups[i].GlobalFqdn = make ([]string, 0)
+			instance.Groups[i].GlobalFqdn = make([]string, 0)
 			for key, _ := range fqdns {
 				instance.Groups[i].GlobalFqdn = append(instance.Groups[i].GlobalFqdn, fmt.Sprintf("%s.ep.%s", key, m.PublicHostDomain))
 			}
@@ -336,12 +334,12 @@ func (m * Manager) fillGlobalFqdn(instance *entities.AppInstance) derrors.Error 
 }
 
 // GetInstance retrieves a single instance.
-func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (* entities.AppInstance, derrors.Error){
+func (m *Manager) GetInstance(appInstID *grpc_application_go.AppInstanceId) (*entities.AppInstance, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(appInstID.OrganizationId)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	if ! exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(appInstID.OrganizationId)
 	}
 
@@ -349,7 +347,7 @@ func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (*
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("appInstanceID").WithParams(appInstID.OrganizationId, appInstID.AppInstanceId)
 	}
 	instance, err := m.AppProvider.GetInstance(appInstID.AppInstanceId)
@@ -366,12 +364,12 @@ func (m * Manager) GetInstance(appInstID * grpc_application_go.AppInstanceId) (*
 }
 
 // UpdateInstance updates the information of a given instance.
-func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppStatusRequest) error {
+func (m *Manager) UpdateInstance(updateRequest *grpc_application_go.UpdateAppStatusRequest) error {
 	exists, err := m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId)
 	if err != nil {
 		return err
 	}
-	if !exists{
+	if !exists {
 		return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppInstanceId)
 	}
 
@@ -385,7 +383,6 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 		toUpdate.Info = updateRequest.Info
 	}
 
-
 	err = m.AppProvider.UpdateInstance(*toUpdate)
 	if err != nil {
 		return derrors.NewInternalError("impossible to update instance").CausedBy(err)
@@ -396,48 +393,48 @@ func (m * Manager) UpdateInstance(updateRequest * grpc_application_go.UpdateAppS
 
 // UpdateService updates an application service.
 // TODO: wait for the conductor to be implemented
-func (m * Manager) UpdateService(updateRequest * grpc_application_go.UpdateServiceStatusRequest) error {
+func (m *Manager) UpdateService(updateRequest *grpc_application_go.UpdateServiceStatusRequest) error {
 
 	exists, err := m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId)
 
 	if err != nil {
 		return err
 	}
-    if !exists{
-        return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppInstanceId)
-    }
-    toUpdate, err := m.AppProvider.GetInstance(updateRequest.AppInstanceId)
-    if err != nil {
-        return derrors.NewInternalError("impossible to get parent instance", err)
-    }
+	if !exists {
+		return derrors.NewNotFoundError("appInstanceID").WithParams(updateRequest.OrganizationId, updateRequest.AppInstanceId)
+	}
+	toUpdate, err := m.AppProvider.GetInstance(updateRequest.AppInstanceId)
+	if err != nil {
+		return derrors.NewInternalError("impossible to get parent instance", err)
+	}
 
-    aux := toUpdate
+	aux := toUpdate
 
-    // find the service instance
-    for indexGroup, g := range toUpdate.Groups {
-    	// find the group
-        if g.ServiceGroupInstanceId == updateRequest.ServiceGroupInstanceId {
-        	// find the service
+	// find the service instance
+	for indexGroup, g := range toUpdate.Groups {
+		// find the group
+		if g.ServiceGroupInstanceId == updateRequest.ServiceGroupInstanceId {
+			// find the service
 			changed := false
-        	for indexService, serviceInstance := range g.ServiceInstances {
-        		if serviceInstance.ServiceInstanceId == updateRequest.ServiceInstanceId {
-        			// found and updated
-        			// build the endpoint instances
-        			endpoints := make([]entities.EndpointInstance,len(updateRequest.Endpoints))
-        			for i, ep := range updateRequest.Endpoints {
-        				endpoints[i] = entities.EndpointInstanceFromGRPC(ep)
+			for indexService, serviceInstance := range g.ServiceInstances {
+				if serviceInstance.ServiceInstanceId == updateRequest.ServiceInstanceId {
+					// found and updated
+					// build the endpoint instances
+					endpoints := make([]entities.EndpointInstance, len(updateRequest.Endpoints))
+					for i, ep := range updateRequest.Endpoints {
+						endpoints[i] = entities.EndpointInstanceFromGRPC(ep)
 					}
-        			aux.Groups[indexGroup].ServiceInstances[indexService].Status = entities.ServiceStatusFromGRPC[updateRequest.Status]
+					aux.Groups[indexGroup].ServiceInstances[indexService].Status = entities.ServiceStatusFromGRPC[updateRequest.Status]
 					aux.Groups[indexGroup].ServiceInstances[indexService].Endpoints = endpoints
 					aux.Groups[indexGroup].ServiceInstances[indexService].DeployedOnClusterId = updateRequest.DeployedOnClusterId
 					changed = true
 				}
 			}
-        	if !changed {
+			if !changed {
 				return derrors.NewInternalError("update service failed. Not all the entries were found.")
 			}
 		}
-    }
+	}
 
 	err = m.AppProvider.UpdateInstance(*aux)
 	if err != nil {
@@ -459,19 +456,19 @@ func (m *Manager) UpdateAppInstance(appInstance *grpc_application_go.AppInstance
 }
 
 // RemoveAppInstance removes an application instance
-func (m * Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceId) derrors.Error {
+func (m *Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceId) derrors.Error {
 	exists, err := m.OrgProvider.Exists(appInstID.OrganizationId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
-	if ! exists{
+	if !exists {
 		return derrors.NewNotFoundError("organizationID").WithParams(appInstID.OrganizationId)
 	}
 	exists, err = m.OrgProvider.InstanceExists(appInstID.OrganizationId, appInstID.AppInstanceId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
-	if ! exists{
+	if !exists {
 		return derrors.NewNotFoundError("AppInstanceId").WithParams(appInstID.AppInstanceId)
 	}
 	err = m.OrgProvider.DeleteInstance(appInstID.OrganizationId, appInstID.AppInstanceId)
@@ -487,7 +484,7 @@ func (m * Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceI
 				Str("appInstID.OrganizationId", appInstID.OrganizationId).
 				Str("appInstID.AppInstanceId", appInstID.AppInstanceId).Msg("error in Rollback")
 		}
-	}else{ // delete parameters (if exist)
+	} else { // delete parameters (if exist)
 		instErr := m.AppProvider.DeleteInstanceParameters(appInstID.AppInstanceId)
 		if instErr != nil {
 			log.Error().Str("instanceID", appInstID.AppInstanceId).Str("trace", instErr.DebugReport()).Msg("Error removing parameters")
@@ -496,19 +493,19 @@ func (m * Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceI
 	return err
 }
 
-func (m * Manager) GetInstanceParameters (request *grpc_application_go.AppInstanceId) ([]entities.InstanceParameter, derrors.Error) {
+func (m *Manager) GetInstanceParameters(request *grpc_application_go.AppInstanceId) ([]entities.InstanceParameter, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(request.OrganizationId)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	if ! exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
 	}
 	exists, err = m.OrgProvider.InstanceExists(request.OrganizationId, request.AppInstanceId)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	if ! exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("AppInstanceId").WithParams(request.AppInstanceId)
 	}
 	parameters, err := m.AppProvider.GetInstanceParameters(request.AppInstanceId)
@@ -518,14 +515,14 @@ func (m * Manager) GetInstanceParameters (request *grpc_application_go.AppInstan
 	return parameters, nil
 }
 
-func (m * Manager) AddServiceGroupInstances(request *grpc_application_go.AddServiceGroupInstancesRequest) ([]entities.ServiceGroupInstance, derrors.Error){
+func (m *Manager) AddServiceGroupInstances(request *grpc_application_go.AddServiceGroupInstancesRequest) ([]entities.ServiceGroupInstance, derrors.Error) {
 
 	// check if the app instance exists (for this organization)
 	exists, err := m.OrgProvider.InstanceExists(request.OrganizationId, request.AppInstanceId)
 	if err != nil {
 		return nil, err
 	}
-	if ! exists {
+	if !exists {
 		return nil, derrors.NewNotFoundError("appInstanceId").WithParams(request.OrganizationId, request.AppInstanceId)
 	}
 
@@ -534,7 +531,7 @@ func (m * Manager) AddServiceGroupInstances(request *grpc_application_go.AddServ
 	if err != nil {
 		return nil, err
 	}
-	if ! exists {
+	if !exists {
 		return nil, derrors.NewNotFoundError("appDescriptorId").WithParams(request.OrganizationId, request.AppDescriptorId)
 	}
 
@@ -557,7 +554,7 @@ func (m * Manager) AddServiceGroupInstances(request *grpc_application_go.AddServ
 	}
 
 	// Generate as many service group instances as required
-	result := make([]entities.ServiceGroupInstance,request.NumInstances)
+	result := make([]entities.ServiceGroupInstance, request.NumInstances)
 	for numReplica := int32(0); numReplica < request.NumInstances; numReplica++ {
 		// create the group
 		sgi := serviceGroup.ToServiceGroupInstance(request.AppInstanceId)
@@ -571,8 +568,6 @@ func (m * Manager) AddServiceGroupInstances(request *grpc_application_go.AddServ
 	if err != nil {
 		return nil, err
 	}
-
-
 
 	// set the new values for these service group instances
 	retrieved.Groups = append(retrieved.Groups, result...)
@@ -604,7 +599,6 @@ func (m *Manager) RemoveServiceGroupInstances(removeRequest *grpc_application_go
 	return nil
 }
 
-
 func (m *Manager) GetServiceGroupInstanceMetadata(request *grpc_application_go.GetServiceGroupInstanceMetadataRequest) (*entities.InstanceMetadata, derrors.Error) {
 	// Get the corresponding instance
 	appInst, err := m.AppProvider.GetInstance(request.AppInstanceId)
@@ -622,7 +616,6 @@ func (m *Manager) GetServiceGroupInstanceMetadata(request *grpc_application_go.G
 	// Not found
 	return nil, derrors.NewNotFoundError(fmt.Sprintf("service group instance %s not found", request.ServiceGroupInstanceId))
 }
-
 
 func (m *Manager) UpdateServiceGroupInstanceMetadata(request *grpc_application_go.InstanceMetadata) derrors.Error {
 	// Get the corresponding instance
@@ -655,14 +648,13 @@ func (m *Manager) UpdateServiceGroupInstanceMetadata(request *grpc_application_g
 	return nil
 }
 
-
-func (m * Manager) AddServiceInstance(request *grpc_application_go.AddServiceInstanceRequest) (*entities.ServiceInstance, derrors.Error) {
+func (m *Manager) AddServiceInstance(request *grpc_application_go.AddServiceInstanceRequest) (*entities.ServiceInstance, derrors.Error) {
 	// Check if the app descriptor exists (for this organization)
 	exists, err := m.OrgProvider.DescriptorExists(request.OrganizationId, request.AppDescriptorId)
 	if err != nil {
 		return nil, err
 	}
-	if ! exists {
+	if !exists {
 		return nil, derrors.NewNotFoundError("appDescriptorId").WithParams(request.OrganizationId, request.AppDescriptorId)
 	}
 
@@ -707,15 +699,15 @@ func (m * Manager) AddServiceInstance(request *grpc_application_go.AddServiceIns
 
 	// look for the service_group_instance and add the new service into service group
 	found := false // boolean to control if the service group has been found
-	for i:= 0; i < len(retrieved.Groups); i++ {
+	for i := 0; i < len(retrieved.Groups); i++ {
 		if retrieved.Groups[i].ServiceGroupId == request.ServiceGroupId &&
-			retrieved.Groups[i].ServiceGroupInstanceId == request.ServiceGroupInstanceId{
+			retrieved.Groups[i].ServiceGroupInstanceId == request.ServiceGroupInstanceId {
 			retrieved.Groups[i].ServiceInstances = append(retrieved.Groups[i].ServiceInstances, *serviceInstance)
 			found = true
 			break
 		}
 	}
-	if ! found {
+	if !found {
 		return nil, derrors.NewNotFoundError("ServiceGroupInstanceId").WithParams(request.ServiceGroupInstanceId)
 	}
 
@@ -729,7 +721,7 @@ func (m * Manager) AddServiceInstance(request *grpc_application_go.AddServiceIns
 }
 
 // AddAppEndPoint adds a new App Endpoint to a given service instance
-func (m * Manager) AddAppEndpoint(appEndpoint *grpc_application_go.AddAppEndpointRequest) derrors.Error {
+func (m *Manager) AddAppEndpoint(appEndpoint *grpc_application_go.AddAppEndpointRequest) derrors.Error {
 
 	endpoint, err := entities.NewAppEndpointFromGRPC(appEndpoint)
 	if err != nil {
@@ -743,11 +735,12 @@ func (m * Manager) AddAppEndpoint(appEndpoint *grpc_application_go.AddAppEndpoin
 
 	return nil
 }
+
 // GetAppEndPoint retrieves an appEndpoint
-func (m * Manager) GetAppEndpoint(request *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AppEndpointList, derrors.Error){
+func (m *Manager) GetAppEndpoint(request *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AppEndpointList, derrors.Error) {
 
 	split := strings.Split(request.Fqdn, ".")
-	globalFqdn:=fmt.Sprintf("%s.%s.%s.%s", split[0], split[1], split[2], split[3])
+	globalFqdn := fmt.Sprintf("%s.%s.%s.%s", split[0], split[1], split[2], split[3])
 
 	list, err := m.AppProvider.GetAppEndpointByFQDN(globalFqdn)
 	if err != nil {
@@ -760,7 +753,7 @@ func (m * Manager) GetAppEndpoint(request *grpc_application_go.GetAppEndPointReq
 	if len(list) > 0 {
 		organizationID := list[0].OrganizationId
 		for _, endpoint := range list {
-			if endpoint.OrganizationId != organizationID{
+			if endpoint.OrganizationId != organizationID {
 				return nil, derrors.NewInternalError("Unable to return app end points, several organizations have the same endpoint")
 			}
 			endpointList = append(endpointList, endpoint.ToGRPC())
@@ -768,54 +761,54 @@ func (m * Manager) GetAppEndpoint(request *grpc_application_go.GetAppEndPointReq
 	}
 
 	return &grpc_application_go.AppEndpointList{
-		AppEndpoints:endpointList,
+		AppEndpoints: endpointList,
 	}, nil
 }
 
-func (m * Manager) RemoveAppEndpoints(removeRequest *grpc_application_go.RemoveAppEndpointRequest) derrors.Error{
-	return  m.AppProvider.DeleteAppEndpoints(removeRequest.OrganizationId, removeRequest.AppInstanceId)
+func (m *Manager) RemoveAppEndpoints(removeRequest *grpc_application_go.RemoveAppEndpointRequest) derrors.Error {
+	return m.AppProvider.DeleteAppEndpoints(removeRequest.OrganizationId, removeRequest.AppInstanceId)
 }
 
-func (m * Manager) AddZtNetwork(request *grpc_application_go.AddAppZtNetworkRequest) derrors.Error{
+func (m *Manager) AddZtNetwork(request *grpc_application_go.AddAppZtNetworkRequest) derrors.Error {
 	return m.AppProvider.AddAppZtNetwork(entities.AppZtNetwork{OrganizationId: request.OrganizationId,
 		AppInstanceId: request.AppInstanceId, ZtNetworkId: request.NetworkId, VSAList: request.VsaList})
 }
 
-func (m * Manager) RemoveZtNetwork(request *grpc_application_go.RemoveAppZtNetworkRequest) derrors.Error{
+func (m *Manager) RemoveZtNetwork(request *grpc_application_go.RemoveAppZtNetworkRequest) derrors.Error {
 	return m.AppProvider.RemoveAppZtNetwork(request.OrganizationId, request.AppInstanceId)
 }
 
-func (m * Manager) AddZtNetworkProxy(request *entities.ServiceProxy) derrors.Error {
+func (m *Manager) AddZtNetworkProxy(request *entities.ServiceProxy) derrors.Error {
 	return m.AppProvider.AddZtNetworkProxy(*request)
 }
 
-func (m * Manager) RemoveZtNetworkProxy(organizationId string, appInstanceId string, fqdn string, clusterId string,
+func (m *Manager) RemoveZtNetworkProxy(organizationId string, appInstanceId string, fqdn string, clusterId string,
 	serviceGroupInstanceId string, serviceInstanceId string) derrors.Error {
 	return m.AppProvider.RemoveZtNetworkProxy(organizationId, appInstanceId, fqdn, clusterId, serviceGroupInstanceId, serviceInstanceId)
 }
 
-func (m * Manager) GetAppZtNetwork(request *grpc_application_go.GetAppZtNetworkRequest) (*entities.AppZtNetwork, derrors.Error) {
+func (m *Manager) GetAppZtNetwork(request *grpc_application_go.GetAppZtNetworkRequest) (*entities.AppZtNetwork, derrors.Error) {
 	return m.AppProvider.GetAppZtNetwork(request.OrganizationId, request.AppInstanceId)
 }
 
-func (m * Manager) AddAppZtNetworkMember(request *grpc_application_go.AddAuthorizedZtNetworkMemberRequest) (*entities.AppZtNetworkMembers, derrors.Error) {
+func (m *Manager) AddAppZtNetworkMember(request *grpc_application_go.AddAuthorizedZtNetworkMemberRequest) (*entities.AppZtNetworkMembers, derrors.Error) {
 	return m.AppProvider.AddAppZtNetworkMember(*entities.NewAppZtNetworkMemberFromGRPC(request))
 }
 
-func (m * Manager) RemoveAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string, ztNetworkId string) derrors.Error {
-	return m.AppProvider.RemoveAppZtNetworkMember(organizationId,appInstanceId, serviceGroupInstanceId, serviceApplicationInstanceId, ztNetworkId)
+func (m *Manager) RemoveAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string, ztNetworkId string) derrors.Error {
+	return m.AppProvider.RemoveAppZtNetworkMember(organizationId, appInstanceId, serviceGroupInstanceId, serviceApplicationInstanceId, ztNetworkId)
 }
 
-func (m * Manager) GetAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string) (*entities.AppZtNetworkMembers, derrors.Error) {
-	return m.AppProvider.GetAppZtNetworkMember(organizationId,appInstanceId, serviceGroupInstanceId, serviceApplicationInstanceId)
+func (m *Manager) GetAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string) (*entities.AppZtNetworkMembers, derrors.Error) {
+	return m.AppProvider.GetAppZtNetworkMember(organizationId, appInstanceId, serviceGroupInstanceId, serviceApplicationInstanceId)
 }
 
-func (m * Manager) fillDeviceGroupIds (desc *entities.ParametrizedDescriptor) derrors.Error {
+func (m *Manager) fillDeviceGroupIds(desc *entities.ParametrizedDescriptor) derrors.Error {
 	// -----------------
 	// check if the descriptor has device_names in the rules
 	// we need to convert deviceGroupNames into deviceGroupIds
 	names := make(map[string]bool, 0) // uses a map to avoid insert a device group twice
-	for _, rules := range desc.Rules{
+	for _, rules := range desc.Rules {
 		if len(rules.DeviceGroupNames) > 0 {
 			for _, name := range rules.DeviceGroupNames {
 				names[name] = true
@@ -824,38 +817,38 @@ func (m * Manager) fillDeviceGroupIds (desc *entities.ParametrizedDescriptor) de
 	}
 	// map to array
 	keys := make([]string, len(names))
-	i:=0
-	for key := range names{
+	i := 0
+	for key := range names {
 		keys[i] = key
 		i += 1
 	}
 
-	deviceGroupIds := make (map[string]string, 0) // map of deviceGroupIds indexed by deviceGroupNames
+	deviceGroupIds := make(map[string]string, 0) // map of deviceGroupIds indexed by deviceGroupNames
 	if len(keys) > 0 {
 		deviceGroups, err := m.DevProvider.GetDeviceGroupsByName(desc.OrganizationId, keys)
 		if err != nil {
-			return  err
+			return err
 		}
 
-		for _,  deviceGroup := range deviceGroups {
+		for _, deviceGroup := range deviceGroups {
 			deviceGroupIds[deviceGroup.Name] = deviceGroup.DeviceGroupId
 		}
 
 		// check the devices number returned (it should be the the same as deviceNames)
-		if len(deviceGroupIds) != len(keys){
-			return  derrors.NewNotFoundError("device group names").WithParams(keys)
+		if len(deviceGroupIds) != len(keys) {
+			return derrors.NewNotFoundError("device group names").WithParams(keys)
 		}
 
 	}
 
 	// once we have all the ids of the devices groups, we add them to the descriptor
-	for i:=0; i< len(desc.Rules); i++ {
-		ids := make ([]string, 0)
+	for i := 0; i < len(desc.Rules); i++ {
+		ids := make([]string, 0)
 
-		for j:=0; j< len(desc.Rules[i].DeviceGroupNames); j++{
+		for j := 0; j < len(desc.Rules[i].DeviceGroupNames); j++ {
 
 			id, exists := deviceGroupIds[desc.Rules[i].DeviceGroupNames[j]]
-			if ! exists {
+			if !exists {
 				log.Error().Str("deviceName", desc.Rules[i].DeviceGroupNames[j]).Msg("Device id not found")
 				return derrors.NewNotFoundError("device group id").WithParams(desc.Rules[i].DeviceGroupNames[j])
 			}
@@ -869,23 +862,21 @@ func (m * Manager) fillDeviceGroupIds (desc *entities.ParametrizedDescriptor) de
 
 }
 
-func (m * Manager) getDeviceGroupIds(organizationID string, deviceNames []string) (map[string]string, derrors.Error){
+func (m *Manager) getDeviceGroupIds(organizationID string, deviceNames []string) (map[string]string, derrors.Error) {
 
-
-
-	deviceGroupIds := make (map[string]string, 0) // map of deviceGroupIds indexed by deviceGroupNames
+	deviceGroupIds := make(map[string]string, 0) // map of deviceGroupIds indexed by deviceGroupNames
 	if len(deviceNames) > 0 {
 		deviceGroups, err := m.DevProvider.GetDeviceGroupsByName(organizationID, deviceNames)
 		if err != nil {
 			return nil, err
 		}
 
-		for _,  deviceGroup := range deviceGroups {
+		for _, deviceGroup := range deviceGroups {
 			deviceGroupIds[deviceGroup.Name] = deviceGroup.DeviceGroupId
 		}
 
 		// check the devices number returned (it should be the the same as deviceNames)
-		if len(deviceGroupIds) != len(deviceNames){
+		if len(deviceGroupIds) != len(deviceNames) {
 			return nil, derrors.NewNotFoundError("device group names").WithParams(deviceNames)
 		}
 
@@ -895,14 +886,14 @@ func (m * Manager) getDeviceGroupIds(organizationID string, deviceNames []string
 }
 
 // AddParametrizedDescriptor adds a parametrized descriptor to a given descriptor
-func (m * Manager) AddParametrizedDescriptor(descriptor *grpc_application_go.ParametrizedDescriptor)  (*entities.ParametrizedDescriptor, derrors.Error){
+func (m *Manager) AddParametrizedDescriptor(descriptor *grpc_application_go.ParametrizedDescriptor) (*entities.ParametrizedDescriptor, derrors.Error) {
 
 	// check if the organization exists
 	exists, err := m.OrgProvider.Exists(descriptor.OrganizationId)
 	if err != nil {
-		return nil,  err
+		return nil, err
 	}
-	if ! exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(descriptor.OrganizationId)
 	}
 	// check if the descriptor exists
@@ -910,7 +901,7 @@ func (m * Manager) AddParametrizedDescriptor(descriptor *grpc_application_go.Par
 	if err != nil {
 		return nil, err
 	}
-	if ! exists {
+	if !exists {
 		return nil, derrors.NewNotFoundError("descriptorID").WithParams(descriptor.OrganizationId, descriptor.AppDescriptorId)
 	}
 
@@ -919,42 +910,43 @@ func (m * Manager) AddParametrizedDescriptor(descriptor *grpc_application_go.Par
 	if err != nil {
 		return nil, err
 	}
-	if ! exists {
+	if !exists {
 		return nil, derrors.NewNotFoundError("instanceID").WithParams(descriptor.OrganizationId, descriptor.AppInstanceId)
 	}
 
 	// Convert to ParametrizedDescriptor
-	newDesc:= entities.NewParametrizedDescriptorFromGRPC(descriptor)
+	newDesc := entities.NewParametrizedDescriptorFromGRPC(descriptor)
 
 	// fill deviceGroupIds
 	err = m.fillDeviceGroupIds(newDesc)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	err = m.AppProvider.AddParametrizedDescriptor(*newDesc)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
 	return newDesc, nil
 }
+
 // GetParametrizedDescriptor retrieves the parametrized descriptor associated with an instance
-func (m * Manager) GetParametrizedDescriptor(request *grpc_application_go.AppInstanceId) (*entities.ParametrizedDescriptor, derrors.Error) {
+func (m *Manager) GetParametrizedDescriptor(request *grpc_application_go.AppInstanceId) (*entities.ParametrizedDescriptor, derrors.Error) {
 	// check if the organization exists
 	exists, err := m.OrgProvider.Exists(request.OrganizationId)
 	if err != nil {
-		return  nil, err
+		return nil, err
 	}
-	if ! exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
 	}
 
 	// check if the instance exists
 	exists, err = m.AppProvider.InstanceExists(request.AppInstanceId)
 	if err != nil {
-		return  nil, err
+		return nil, err
 	}
-	if ! exists {
+	if !exists {
 		return nil, derrors.NewNotFoundError("instanceID").WithParams(request.OrganizationId, request.AppInstanceId)
 	}
 
@@ -965,15 +957,16 @@ func (m * Manager) GetParametrizedDescriptor(request *grpc_application_go.AppIns
 
 	return descriptor, nil
 }
+
 // RemoveParametrizedDescriptor removes the parametrized descriptor associated with an instance
-func (m * Manager) RemoveParametrizedDescriptor(request *grpc_application_go.AppInstanceId) derrors.Error{
+func (m *Manager) RemoveParametrizedDescriptor(request *grpc_application_go.AppInstanceId) derrors.Error {
 	// check if the organization exists
 	exists, err := m.OrgProvider.Exists(request.OrganizationId)
 	if err != nil {
-		return   err
+		return err
 	}
-	if ! exists{
-		return  derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
+	if !exists {
+		return derrors.NewNotFoundError("organizationID").WithParams(request.OrganizationId)
 	}
 
 	err = m.AppProvider.DeleteParametrizedDescriptor(request.AppInstanceId)

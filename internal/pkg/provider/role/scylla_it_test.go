@@ -31,13 +31,11 @@ import (
 	"os"
 )
 
-
-
 var _ = ginkgo.Describe("Scylla user provider", func() {
 
 	var numRoles = 20
 
-	if ! utils.RunIntegrationTests() {
+	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
 	}
@@ -51,7 +49,7 @@ var _ = ginkgo.Describe("Scylla user provider", func() {
 		ginkgo.Fail("missing environment variables")
 	}
 
-	scyllaPort, _  := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
+	scyllaPort, _ := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
 
 	if scyllaPort <= 0 {
 		ginkgo.Fail("missing environment variables")
@@ -72,11 +70,11 @@ var _ = ginkgo.Describe("Scylla user provider", func() {
 		for i := 0; i < numRoles; i++ {
 			roleID := fmt.Sprintf("Role_%d", i)
 			role := &entities.Role{OrganizationId: "org",
-				Name:    "name-" + roleID,
-				Created: int64(i),
-				RoleId:  roleID,
-				Internal:true,
-				Description: "desc-" + roleID,}
+				Name:        "name-" + roleID,
+				Created:     int64(i),
+				RoleId:      roleID,
+				Internal:    true,
+				Description: "desc-" + roleID}
 			err := sp.Add(*role)
 			gomega.Expect(err).To(gomega.Succeed())
 		}

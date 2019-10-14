@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestAssetProviderPackage(t *testing.T){
+func TestAssetProviderPackage(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "Asset Providers package suite")
 }

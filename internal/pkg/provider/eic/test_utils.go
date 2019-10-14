@@ -11,10 +11,10 @@ import (
 	"time"
 )
 
-func CreateTestCPU() []*entities.CPUInfo{
+func CreateTestCPU() []*entities.CPUInfo {
 	cpus := make([]*entities.CPUInfo, 0)
-	size := rand.Intn(10) +1
-	for i:=0; i<size; i++{
+	size := rand.Intn(10) + 1
+	for i := 0; i < size; i++ {
 		cpus = append(cpus, &entities.CPUInfo{
 			Manufacturer: fmt.Sprintf("manufacturer_%d", i),
 			Model:        fmt.Sprintf("model_%d", i),
@@ -25,10 +25,10 @@ func CreateTestCPU() []*entities.CPUInfo{
 	return cpus
 }
 
-func CreateTestNetInterfaces() []*entities.NetworkingHardwareInfo{
+func CreateTestNetInterfaces() []*entities.NetworkingHardwareInfo {
 	netCards := make([]*entities.NetworkingHardwareInfo, 0)
-	size := rand.Intn(10) +1
-	for i:=0; i<size; i++{
+	size := rand.Intn(10) + 1
+	for i := 0; i < size; i++ {
 		netCards = append(netCards, &entities.NetworkingHardwareInfo{
 			Type:         fmt.Sprintf("type_%d", i),
 			LinkCapacity: 100,
@@ -37,11 +37,11 @@ func CreateTestNetInterfaces() []*entities.NetworkingHardwareInfo{
 	return netCards
 }
 
-func CreateTestEdgeController() *entities.EdgeController{
-	id:= rand.Intn(200)
-	labels := make (map[string]string, 0)
-	size := rand.Intn(10) +1
-	for i:=0; i<size; i++{
+func CreateTestEdgeController() *entities.EdgeController {
+	id := rand.Intn(200)
+	labels := make(map[string]string, 0)
+	size := rand.Intn(10) + 1
+	for i := 0; i < size; i++ {
 		labels[fmt.Sprintf("label-%d", i)] = fmt.Sprintf("value-%d", i)
 	}
 
@@ -60,10 +60,10 @@ func CreateTestEdgeController() *entities.EdgeController{
 	}
 
 	operationSummary := entities.ECOpSummary{
-		OperationId : entities.GenerateUUID(),
-		Timestamp: time.Now().Unix(),
-		Status: entities.OpStatusInProgress,
-		Info: "operation summary info",
+		OperationId: entities.GenerateUUID(),
+		Timestamp:   time.Now().Unix(),
+		Status:      entities.OpStatusInProgress,
+		Info:        "operation summary info",
 	}
 
 	return &entities.EdgeController{
@@ -73,13 +73,13 @@ func CreateTestEdgeController() *entities.EdgeController{
 		Created:          time.Now().Unix(),
 		Name:             fmt.Sprintf("name_%d", id),
 		Labels:           labels,
-		Location:         &entities.InventoryLocation{
+		Location: &entities.InventoryLocation{
 			Geolocation: "geolocation",
-			Geohash: "geohash",
+			Geohash:     "geohash",
 		},
-		Os:             os,
-		Hardware:       hardware,
-		Storage:        []*entities.StorageHardwareInfo{&storage},
+		Os:           os,
+		Hardware:     hardware,
+		Storage:      []*entities.StorageHardwareInfo{&storage},
 		LastOpResult: &operationSummary,
 	}
 }

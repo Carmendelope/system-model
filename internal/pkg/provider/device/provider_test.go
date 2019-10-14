@@ -7,13 +7,13 @@ import (
 	"github.com/onsi/gomega"
 )
 
-func RunTest (provider Provider) {
+func RunTest(provider Provider) {
 
 	ginkgo.AfterEach(func() {
 		provider.Clear()
 	})
 
-	ginkgo.Context("device group tests", func(){
+	ginkgo.Context("device group tests", func() {
 		ginkgo.It("Should be able to add device group", func() {
 
 			toAdd := NewDeviceTestHepler().CreateDeviceGroup()
@@ -33,7 +33,7 @@ func RunTest (provider Provider) {
 
 		})
 
-		ginkgo.It("Should be able to delete a device group", func(){
+		ginkgo.It("Should be able to delete a device group", func() {
 			toAdd := NewDeviceTestHepler().CreateDeviceGroup()
 			err := provider.AddDeviceGroup(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -42,7 +42,7 @@ func RunTest (provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 
 		})
-		ginkgo.It("Should not be able to delete a device group", func(){
+		ginkgo.It("Should not be able to delete a device group", func() {
 			toAdd := NewDeviceTestHepler().CreateDeviceGroup()
 
 			err := provider.RemoveDeviceGroup(toAdd.OrganizationId, toAdd.DeviceGroupId)
@@ -50,7 +50,7 @@ func RunTest (provider Provider) {
 
 		})
 
-		ginkgo.It("Should be able to find a device group", func(){
+		ginkgo.It("Should be able to find a device group", func() {
 			toAdd := NewDeviceTestHepler().CreateDeviceGroup()
 			err := provider.AddDeviceGroup(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -60,7 +60,7 @@ func RunTest (provider Provider) {
 			gomega.Expect(exists).To(gomega.BeTrue())
 
 		})
-		ginkgo.It("Should not be able to find a device group", func(){
+		ginkgo.It("Should not be able to find a device group", func() {
 			toAdd := NewDeviceTestHepler().CreateDeviceGroup()
 
 			exists, err := provider.ExistsDeviceGroup(toAdd.OrganizationId, toAdd.DeviceGroupId)
@@ -68,7 +68,7 @@ func RunTest (provider Provider) {
 			gomega.Expect(exists).NotTo(gomega.BeTrue())
 
 		})
-		ginkgo.It("Should be able to find a device group by name", func(){
+		ginkgo.It("Should be able to find a device group by name", func() {
 			toAdd := NewDeviceTestHepler().CreateDeviceGroup()
 			err := provider.AddDeviceGroup(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -78,7 +78,7 @@ func RunTest (provider Provider) {
 			gomega.Expect(exists).To(gomega.BeTrue())
 
 		})
-		ginkgo.It("Should not be able to find a device group by name", func(){
+		ginkgo.It("Should not be able to find a device group by name", func() {
 			toAdd := NewDeviceTestHepler().CreateDeviceGroup()
 
 			exists, err := provider.ExistsDeviceGroup(toAdd.OrganizationId, toAdd.Name)
@@ -86,7 +86,7 @@ func RunTest (provider Provider) {
 			gomega.Expect(exists).NotTo(gomega.BeTrue())
 
 		})
-		ginkgo.It("Should be able to list a device groups", func(){
+		ginkgo.It("Should be able to list a device groups", func() {
 			helper := NewDeviceTestHepler()
 
 			toAdd := helper.CreateDeviceGroup()
@@ -106,7 +106,7 @@ func RunTest (provider Provider) {
 			gomega.Expect(len(list)).To(gomega.Equal(3))
 
 		})
-		ginkgo.It("Should not be able to list a device groups", func(){
+		ginkgo.It("Should not be able to list a device groups", func() {
 			helper := NewDeviceTestHepler()
 
 			toAdd := helper.CreateDeviceGroup()
@@ -139,11 +139,11 @@ func RunTest (provider Provider) {
 
 		})
 		ginkgo.It("should be able to get devices groups by name", func() {
-			names := make ([]string, 0)
+			names := make([]string, 0)
 			helper := NewDeviceTestHepler()
 			organizationID := uuid.New().String()
 
-			for i:= 0; i<5; i++ {
+			for i := 0; i < 5; i++ {
 				toAdd := helper.CreateOrganizationDeviceGroup(organizationID)
 				err := provider.AddDeviceGroup(*toAdd)
 				gomega.Expect(err).To(gomega.Succeed())
@@ -157,7 +157,7 @@ func RunTest (provider Provider) {
 
 		})
 		ginkgo.It("should be able to get an empty devices groups by name", func() {
-			names := make ([]string, 0)
+			names := make([]string, 0)
 			organizationID := uuid.New().String()
 
 			deviceGroups, err := provider.GetDeviceGroupsByName(organizationID, names)
@@ -166,10 +166,9 @@ func RunTest (provider Provider) {
 
 		})
 
-
 	})
-	ginkgo.Context("Device tests", func(){
-		ginkgo.It("Should be able to add a device", func(){
+	ginkgo.Context("Device tests", func() {
+		ginkgo.It("Should be able to add a device", func() {
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			err := provider.AddDevice(*toAdd)
@@ -185,7 +184,7 @@ func RunTest (provider Provider) {
 			err = provider.AddDevice(*toAdd)
 			gomega.Expect(err).NotTo(gomega.Succeed())
 		})
-		ginkgo.It("Should be able to find a device", func(){
+		ginkgo.It("Should be able to find a device", func() {
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			err := provider.AddDevice(*toAdd)
@@ -195,7 +194,7 @@ func RunTest (provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(exists).To(gomega.BeTrue())
 		})
-		ginkgo.It("Should not be able to find a device", func(){
+		ginkgo.It("Should not be able to find a device", func() {
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			exists, err := provider.ExistsDevice(toAdd.OrganizationId, toAdd.DeviceGroupId, toAdd.DeviceId)
@@ -203,7 +202,7 @@ func RunTest (provider Provider) {
 			gomega.Expect(exists).NotTo(gomega.BeTrue())
 
 		})
-		ginkgo.It("Should be able to get device info", func(){
+		ginkgo.It("Should be able to get device info", func() {
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			err := provider.AddDevice(*toAdd)
@@ -213,13 +212,13 @@ func RunTest (provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(dev.RegisterSince).To(gomega.Equal(toAdd.RegisterSince))
 		})
-		ginkgo.It("Should not be able to get device info", func(){
+		ginkgo.It("Should not be able to get device info", func() {
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			_, err := provider.GetDevice(toAdd.OrganizationId, toAdd.DeviceGroupId, toAdd.DeviceId)
 			gomega.Expect(err).NotTo(gomega.Succeed())
 		})
-		ginkgo.It("Should be able to get the devices of a group", func(){
+		ginkgo.It("Should be able to get the devices of a group", func() {
 			helper := NewDeviceTestHepler()
 
 			toAdd := helper.CreateDevice()
@@ -239,7 +238,7 @@ func RunTest (provider Provider) {
 			gomega.Expect(list).To(gomega.HaveLen(3))
 
 		})
-		ginkgo.It("Should be able to get empty list of devices of a group ", func(){
+		ginkgo.It("Should be able to get empty list of devices of a group ", func() {
 			helper := NewDeviceTestHepler()
 
 			toAdd := helper.CreateDevice()
@@ -250,7 +249,7 @@ func RunTest (provider Provider) {
 		})
 		ginkgo.It("Should be able to remove a device", func() {
 
-			toAdd :=  NewDeviceTestHepler().CreateDevice()
+			toAdd := NewDeviceTestHepler().CreateDevice()
 			err := provider.AddDevice(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
@@ -260,13 +259,13 @@ func RunTest (provider Provider) {
 		})
 		ginkgo.It("Should not be able to remove a device", func() {
 
-			toAdd :=  NewDeviceTestHepler().CreateDevice()
+			toAdd := NewDeviceTestHepler().CreateDevice()
 			err := provider.RemoveDevice(toAdd.OrganizationId, toAdd.DeviceGroupId, toAdd.DeviceId)
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
 		})
 
-		ginkgo.It("Should be able to update a device removing all labels", func(){
+		ginkgo.It("Should be able to update a device removing all labels", func() {
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			err := provider.AddDevice(*toAdd)
@@ -283,10 +282,9 @@ func RunTest (provider Provider) {
 			gomega.Expect(retrieve).NotTo(gomega.BeNil())
 			gomega.Expect(retrieve.Labels).To(gomega.BeNil())
 
-
 		})
 
-		ginkgo.It("Should be able to update a device adding labels", func(){
+		ginkgo.It("Should be able to update a device adding labels", func() {
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			err := provider.AddDevice(*toAdd)
@@ -303,10 +301,9 @@ func RunTest (provider Provider) {
 			gomega.Expect(retrieve).NotTo(gomega.BeNil())
 			gomega.Expect(len(retrieve.Labels)).Should(gomega.Equal(3))
 
-
 		})
 
-		ginkgo.It("Should be able to update a device adding location", func(){
+		ginkgo.It("Should be able to update a device adding location", func() {
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			err := provider.AddDevice(*toAdd)
@@ -329,7 +326,7 @@ func RunTest (provider Provider) {
 			gomega.Expect(retrieve.Location.Geohash).Should(gomega.Equal(toAdd.Location.Geohash))
 		})
 
-		ginkgo.It("Should not be able to update a non existing device", func(){
+		ginkgo.It("Should not be able to update a non existing device", func() {
 			toAdd := NewDeviceTestHepler().CreateDevice()
 
 			err := provider.UpdateDevice(*toAdd)
@@ -338,4 +335,3 @@ func RunTest (provider Provider) {
 
 	})
 }
-

@@ -14,33 +14,33 @@ import (
 
 // table and field names
 const (
-	deviceGroupTable	= "DeviceGroups"
-	deviceTable 		= "Devices"
+	deviceGroupTable = "DeviceGroups"
+	deviceTable      = "Devices"
 
 	organizationIdField = "organization_id"
-	deviceGroupIdField 	= "device_group_id"
-	deviceIdField 		= "device_id"
-	labelsField  		= "labels"
-	registerSinceField	= "register_since"
-	osField 			= "os"
-	hardwareField 		= "hardware"
-	storageField 		= "storage"
-	locationField = "location"
+	deviceGroupIdField  = "device_group_id"
+	deviceIdField       = "device_id"
+	labelsField         = "labels"
+	registerSinceField  = "register_since"
+	osField             = "os"
+	hardwareField       = "hardware"
+	storageField        = "storage"
+	locationField       = "location"
 
 	rowNotFound = "not found"
 )
 
 //     hardware FROZEN<hardware_info>, storage list<FROZEN<storage_hardware_info>>, PRIMARY KEY ( (organization_id, device_group_id), device_id));
 type ScyllaDeviceProvider struct {
-	Address string
-	Port int
+	Address  string
+	Port     int
 	Keyspace string
-	Session *gocql.Session
+	Session  *gocql.Session
 	sync.Mutex
 }
 
-func NewScyllaDeviceProvider (address string, port int, keyspace string) * ScyllaDeviceProvider {
-	provider := ScyllaDeviceProvider{Address: address, Port:  port, Keyspace: keyspace, Session: nil}
+func NewScyllaDeviceProvider(address string, port int, keyspace string) *ScyllaDeviceProvider {
+	provider := ScyllaDeviceProvider{Address: address, Port: port, Keyspace: keyspace, Session: nil}
 	provider.connect()
 	return &provider
 
@@ -64,8 +64,9 @@ func (sp *ScyllaDeviceProvider) connect() derrors.Error {
 
 	return nil
 }
+
 // disconnect from the database
-func (sp *ScyllaDeviceProvider) Disconnect () {
+func (sp *ScyllaDeviceProvider) Disconnect() {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -75,13 +76,13 @@ func (sp *ScyllaDeviceProvider) Disconnect () {
 		sp.Session = nil
 	}
 }
-func (sp *ScyllaDeviceProvider) checkAndConnect () derrors.Error{
+func (sp *ScyllaDeviceProvider) checkAndConnect() derrors.Error {
 
-	if sp.Session == nil{
+	if sp.Session == nil {
 		log.Info().Msg("session no created, trying to reconnect...")
 		// try to reconnect
 		err := sp.connect()
-		if err != nil  {
+		if err != nil {
 			return err
 		}
 	}
@@ -90,12 +91,11 @@ func (sp *ScyllaDeviceProvider) checkAndConnect () derrors.Error{
 
 // -------------------------------------------------------------------------------------------------------------------
 
-
-func (sp * ScyllaDeviceProvider) unsafeExistsGroup (organizationID string, deviceGroupID string) (bool, derrors.Error) {
+func (sp *ScyllaDeviceProvider) unsafeExistsGroup(organizationID string, deviceGroupID string) (bool, derrors.Error) {
 
 	var returnedId string
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -104,21 +104,22 @@ func (sp * ScyllaDeviceProvider) unsafeExistsGroup (organizationID string, devic
 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		organizationIdField: organizationID,
-		deviceGroupIdField:deviceGroupID})
+		deviceGroupIdField:  deviceGroupID})
 
 	err := q.GetRelease(&returnedId)
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return false, nil
-		}else{
+		} else {
 			return false, derrors.AsError(err, "cannot determinate if device group exists")
 		}
 	}
 
 	return true, nil
 }
+
 // AddDeviceGroup adds a new device group
-func (sp *ScyllaDeviceProvider) AddDeviceGroup (deviceGroup devices.DeviceGroup) derrors.Error {
+func (sp *ScyllaDeviceProvider) AddDeviceGroup(deviceGroup devices.DeviceGroup) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -149,13 +150,14 @@ func (sp *ScyllaDeviceProvider) AddDeviceGroup (deviceGroup devices.DeviceGroup)
 	return nil
 
 }
+
 // ExistsDeviceGroup checks if a group exists on the system.
 func (sp *ScyllaDeviceProvider) ExistsDeviceGroup(organizationID string, deviceGroupID string) (bool, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -166,13 +168,13 @@ func (sp *ScyllaDeviceProvider) ExistsDeviceGroup(organizationID string, deviceG
 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		organizationIdField: organizationID,
-		deviceGroupIdField:deviceGroupID})
+		deviceGroupIdField:  deviceGroupID})
 
 	err := q.GetRelease(&returnedId)
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return false, nil
-		}else{
+		} else {
 			return false, derrors.AsError(err, "cannot determinate if device group exists")
 		}
 	}
@@ -181,12 +183,12 @@ func (sp *ScyllaDeviceProvider) ExistsDeviceGroup(organizationID string, deviceG
 
 }
 
-func (sp * ScyllaDeviceProvider)ExistsDeviceGroupByName(organizationID string, name string) (bool, derrors.Error){
+func (sp *ScyllaDeviceProvider) ExistsDeviceGroupByName(organizationID string, name string) (bool, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -197,13 +199,13 @@ func (sp * ScyllaDeviceProvider)ExistsDeviceGroupByName(organizationID string, n
 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		organizationIdField: organizationID,
-		"name":name})
+		"name":              name})
 
 	err := q.GetRelease(&returnedId)
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return false, nil
-		}else{
+		} else {
 			return false, derrors.AsError(err, "cannot determinate if device group exists by name")
 		}
 	}
@@ -217,7 +219,7 @@ func (sp *ScyllaDeviceProvider) GetDeviceGroup(organizationID string, deviceGrou
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -227,7 +229,7 @@ func (sp *ScyllaDeviceProvider) GetDeviceGroup(organizationID string, deviceGrou
 		Where(qb.Eq(deviceGroupIdField)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		organizationIdField: organizationID,
-		deviceGroupIdField:deviceGroupID})
+		deviceGroupIdField:  deviceGroupID})
 
 	err := q.GetRelease(&deviceGroup)
 	if err != nil {
@@ -241,13 +243,14 @@ func (sp *ScyllaDeviceProvider) GetDeviceGroup(organizationID string, deviceGrou
 	return &deviceGroup, nil
 
 }
+
 // ListDeviceGroups returns a list of device groups in a organization.
 func (sp *ScyllaDeviceProvider) ListDeviceGroups(organizationID string) ([]devices.DeviceGroup, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -268,12 +271,12 @@ func (sp *ScyllaDeviceProvider) ListDeviceGroups(organizationID string) ([]devic
 
 }
 
-func (sp * ScyllaDeviceProvider) GetDeviceGroupsByName(organizationID string, groupNames []string) ([]devices.DeviceGroup, derrors.Error){
+func (sp *ScyllaDeviceProvider) GetDeviceGroupsByName(organizationID string, groupNames []string) ([]devices.DeviceGroup, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -288,8 +291,8 @@ func (sp * ScyllaDeviceProvider) GetDeviceGroupsByName(organizationID string, gr
 		return nil, derrors.AsError(cqlErr, "cannot list device groups of an organization")
 	}
 	result := make([]devices.DeviceGroup, 0)
-	for _, group := range groups{
-		if group.OrganizationId == organizationID{
+	for _, group := range groups {
+		if group.OrganizationId == organizationID {
 			result = append(result, group)
 		}
 	}
@@ -302,7 +305,7 @@ func (sp *ScyllaDeviceProvider) RemoveDeviceGroup(organizationID string, deviceG
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
@@ -328,11 +331,11 @@ func (sp *ScyllaDeviceProvider) RemoveDeviceGroup(organizationID string, deviceG
 
 // -------------------------------------------------------------------------------------------------------------------
 
-func (sp * ScyllaDeviceProvider) unsafeExistsDevice (organizationID string, deviceGroupID string, deviceID string) (bool, derrors.Error) {
+func (sp *ScyllaDeviceProvider) unsafeExistsDevice(organizationID string, deviceGroupID string, deviceID string) (bool, derrors.Error) {
 
 	var returnedId string
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -343,22 +346,23 @@ func (sp * ScyllaDeviceProvider) unsafeExistsDevice (organizationID string, devi
 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		organizationIdField: organizationID,
-		deviceGroupIdField:deviceGroupID,
-		deviceIdField:deviceID})
+		deviceGroupIdField:  deviceGroupID,
+		deviceIdField:       deviceID})
 
 	err := q.GetRelease(&returnedId)
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return false, nil
-		}else{
+		} else {
 			return false, derrors.AsError(err, "cannot determinate if device exists")
 		}
 	}
 
 	return true, nil
 }
+
 // AddDevice adds a new device group
-func (sp *ScyllaDeviceProvider) AddDevice (device devices.Device) derrors.Error {
+func (sp *ScyllaDeviceProvider) AddDevice(device devices.Device) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -389,6 +393,7 @@ func (sp *ScyllaDeviceProvider) AddDevice (device devices.Device) derrors.Error 
 	return nil
 
 }
+
 // ExistsDevice checks if a device exists on the system.
 func (sp *ScyllaDeviceProvider) ExistsDevice(organizationID string, deviceGroupID string, deviceID string) (bool, derrors.Error) {
 
@@ -397,7 +402,7 @@ func (sp *ScyllaDeviceProvider) ExistsDevice(organizationID string, deviceGroupI
 
 	var returnedId string
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return false, err
 	}
 
@@ -408,27 +413,28 @@ func (sp *ScyllaDeviceProvider) ExistsDevice(organizationID string, deviceGroupI
 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		organizationIdField: organizationID,
-		deviceGroupIdField:deviceGroupID,
-		deviceIdField:deviceID})
+		deviceGroupIdField:  deviceGroupID,
+		deviceIdField:       deviceID})
 
 	err := q.GetRelease(&returnedId)
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return false, nil
-		}else{
+		} else {
 			return false, derrors.AsError(err, "cannot determinate if device exists")
 		}
 	}
 
 	return true, nil
 }
+
 // GetDevice returns a device .
 func (sp *ScyllaDeviceProvider) GetDevice(organizationID string, deviceGroupID string, deviceID string) (*devices.Device, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -438,8 +444,8 @@ func (sp *ScyllaDeviceProvider) GetDevice(organizationID string, deviceGroupID s
 		Where(qb.Eq(deviceGroupIdField)).Where(qb.Eq(deviceIdField)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		organizationIdField: organizationID,
-		deviceGroupIdField:deviceGroupID,
-		deviceIdField:deviceID,
+		deviceGroupIdField:  deviceGroupID,
+		deviceIdField:       deviceID,
 	})
 
 	err := q.GetRelease(&device)
@@ -453,13 +459,14 @@ func (sp *ScyllaDeviceProvider) GetDevice(organizationID string, deviceGroupID s
 
 	return &device, nil
 }
+
 // ListDevice returns a list of device in a group.
 func (sp *ScyllaDeviceProvider) ListDevices(organizationID string, deviceGroupID string) ([]devices.Device, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -469,7 +476,7 @@ func (sp *ScyllaDeviceProvider) ListDevices(organizationID string, deviceGroupID
 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		organizationIdField: organizationID,
-		deviceGroupIdField: deviceGroupID,
+		deviceGroupIdField:  deviceGroupID,
 	})
 
 	devices := make([]devices.Device, 0)
@@ -482,13 +489,14 @@ func (sp *ScyllaDeviceProvider) ListDevices(organizationID string, deviceGroupID
 
 	return devices, nil
 }
+
 // Remove a device
 func (sp *ScyllaDeviceProvider) RemoveDevice(organizationID string, deviceGroupID string, deviceID string) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
@@ -514,11 +522,11 @@ func (sp *ScyllaDeviceProvider) RemoveDevice(organizationID string, deviceGroupI
 	return nil
 }
 
-func (sp * ScyllaDeviceProvider) UpdateDevice(device devices.Device) derrors.Error{
+func (sp *ScyllaDeviceProvider) UpdateDevice(device devices.Device) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil{
+	if err := sp.checkAndConnect(); err != nil {
 		return err
 	}
 
@@ -543,7 +551,7 @@ func (sp * ScyllaDeviceProvider) UpdateDevice(device devices.Device) derrors.Err
 
 	if cqlErr != nil {
 		log.Error().Err(cqlErr).Msg("Cannot update device")
-		return derrors.AsError(err,"cannot update device")
+		return derrors.AsError(err, "cannot update device")
 	}
 
 	return nil
@@ -552,7 +560,7 @@ func (sp * ScyllaDeviceProvider) UpdateDevice(device devices.Device) derrors.Err
 
 // -------------------------------------------------------------------------------------------------------------------
 
-func (sp *ScyllaDeviceProvider)  Clear() derrors.Error{
+func (sp *ScyllaDeviceProvider) Clear() derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()

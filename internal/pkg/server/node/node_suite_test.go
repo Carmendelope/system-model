@@ -14,4 +14,3 @@ func TestNodePackage(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "Node package suite")
 }
-

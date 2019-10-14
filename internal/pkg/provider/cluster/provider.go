@@ -18,7 +18,7 @@ type Provider interface {
 	// Exists checks if a cluster exists on the system.
 	Exists(clusterID string) (bool, derrors.Error)
 	// Get a cluster.
-	Get(clusterID string) (* entities.Cluster, derrors.Error)
+	Get(clusterID string) (*entities.Cluster, derrors.Error)
 	// Remove a cluster
 	Remove(clusterID string) derrors.Error
 

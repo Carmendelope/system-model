@@ -15,7 +15,7 @@ type Provider interface {
 	AddDescriptor(descriptor entities.AppDescriptor) derrors.Error
 
 	// GetDescriptors retrieves an application descriptor.
-	GetDescriptor(appDescriptorID string) (* entities.AppDescriptor, derrors.Error)
+	GetDescriptor(appDescriptorID string) (*entities.AppDescriptor, derrors.Error)
 
 	// DescriptorExists checks if a given descriptor exists on the system.
 	DescriptorExists(appDescriptorID string) (bool, derrors.Error)
@@ -36,7 +36,7 @@ type Provider interface {
 	InstanceExists(appInstanceID string) (bool, derrors.Error)
 
 	// GetInstance retrieves an application instance.
-	GetInstance(appInstanceID string) (* entities.AppInstance, derrors.Error)
+	GetInstance(appInstanceID string) (*entities.AppInstance, derrors.Error)
 
 	// DeleteInstance removes a given instance from the system.
 	DeleteInstance(appInstanceID string) derrors.Error
@@ -45,13 +45,13 @@ type Provider interface {
 	UpdateInstance(instance entities.AppInstance) derrors.Error
 
 	// AddInstanceParameters adds deploy parameters of an instance in the system
-	AddInstanceParameters (appInstanceID string, parameters []entities.InstanceParameter) derrors.Error
+	AddInstanceParameters(appInstanceID string, parameters []entities.InstanceParameter) derrors.Error
 
 	// GetInstanceParameters retrieves the params of an instance
-	GetInstanceParameters (appInstanceID string) ([]entities.InstanceParameter, derrors.Error)
+	GetInstanceParameters(appInstanceID string) ([]entities.InstanceParameter, derrors.Error)
 
 	// DeleteInstanceParameters removes the params of an instance
-	DeleteInstanceParameters (appInstanceID string) derrors.Error
+	DeleteInstanceParameters(appInstanceID string) derrors.Error
 
 	// AddParametrizedDescriptor adds a new parametrized descriptor to the system.
 	AddParametrizedDescriptor(descriptor entities.ParametrizedDescriptor) derrors.Error
@@ -60,16 +60,16 @@ type Provider interface {
 	GetParametrizedDescriptor(appInstanceID string) (*entities.ParametrizedDescriptor, derrors.Error)
 
 	// ParametrizedDescriptorExists checks if a parametrized descriptor exists on the system.
-	ParametrizedDescriptorExists (appInstanceID string) (*bool, derrors.Error)
+	ParametrizedDescriptorExists(appInstanceID string) (*bool, derrors.Error)
 
 	// DeleteParametrizedDescriptor removes a parametrized Descriptor from the system
-	DeleteParametrizedDescriptor (appInstanceID string) derrors.Error
+	DeleteParametrizedDescriptor(appInstanceID string) derrors.Error
 
 	// Clear descriptors and instances
 	Clear() derrors.Error
 
 	// AddAppEndPoint adds a new entry point to the system
-	AddAppEndpoint (appEntryPoint entities.AppEndpoint) derrors.Error
+	AddAppEndpoint(appEntryPoint entities.AppEndpoint) derrors.Error
 
 	// GetAppEndPointByFQDN ()
 	GetAppEndpointByFQDN(fqdn string) ([]*entities.AppEndpoint, derrors.Error)
@@ -77,7 +77,7 @@ type Provider interface {
 	// DeleteAppEndpoints removes all the endpoint of an instance
 	DeleteAppEndpoints(organizationID string, appInstanceID string) derrors.Error
 
-	GetAppEndpointList(organizationID string , appInstanceId string, serviceGroupInstanceID string) ([]*entities.AppEndpoint, derrors.Error)
+	GetAppEndpointList(organizationID string, appInstanceId string, serviceGroupInstanceID string) ([]*entities.AppEndpoint, derrors.Error)
 
 	// AddAppZtNetwork adds a new zerotier network to an existing application instance
 	AddAppZtNetwork(network entities.AppZtNetwork) derrors.Error
@@ -102,5 +102,4 @@ type Provider interface {
 
 	// GetAppZtNetworkMember get the member of a zt network
 	GetAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string) (*entities.AppZtNetworkMembers, derrors.Error)
-
 }

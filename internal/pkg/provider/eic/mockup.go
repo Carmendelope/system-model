@@ -17,13 +17,13 @@ type MockupEICProvider struct {
 	controllers map[string]entities.EdgeController
 }
 
-func NewMockupEICProvider() * MockupEICProvider{
+func NewMockupEICProvider() *MockupEICProvider {
 	return &MockupEICProvider{
 		controllers: make(map[string]entities.EdgeController, 0),
 	}
 }
 
-func (m*MockupEICProvider) unsafeExists(edgeControllerID string) bool{
+func (m *MockupEICProvider) unsafeExists(edgeControllerID string) bool {
 	_, exists := m.controllers[edgeControllerID]
 	return exists
 }
@@ -31,7 +31,7 @@ func (m*MockupEICProvider) unsafeExists(edgeControllerID string) bool{
 func (m *MockupEICProvider) Add(eic entities.EdgeController) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(eic.EdgeControllerId){
+	if !m.unsafeExists(eic.EdgeControllerId) {
 		m.controllers[eic.EdgeControllerId] = eic
 		return nil
 	}
@@ -41,7 +41,7 @@ func (m *MockupEICProvider) Add(eic entities.EdgeController) derrors.Error {
 func (m *MockupEICProvider) Update(eic entities.EdgeController) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(eic.EdgeControllerId){
+	if !m.unsafeExists(eic.EdgeControllerId) {
 		return derrors.NewNotFoundError(eic.EdgeControllerId)
 	}
 	m.controllers[eic.EdgeControllerId] = eic
@@ -65,12 +65,12 @@ func (m *MockupEICProvider) Get(edgeControllerID string) (*entities.EdgeControll
 }
 
 // List the EIC in a given organization
-func (m *MockupEICProvider) List(organizationID string) ([]entities.EdgeController, derrors.Error){
+func (m *MockupEICProvider) List(organizationID string) ([]entities.EdgeController, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	result := make([]entities.EdgeController, 0)
-	for _, eic := range m.controllers{
-		if eic.OrganizationId == organizationID{
+	for _, eic := range m.controllers {
+		if eic.OrganizationId == organizationID {
 			result = append(result, eic)
 		}
 	}
@@ -80,7 +80,7 @@ func (m *MockupEICProvider) List(organizationID string) ([]entities.EdgeControll
 func (m *MockupEICProvider) Remove(edgeControllerID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(edgeControllerID){
+	if !m.unsafeExists(edgeControllerID) {
 		return derrors.NewNotFoundError(edgeControllerID)
 	}
 	delete(m.controllers, edgeControllerID)
@@ -93,5 +93,3 @@ func (m *MockupEICProvider) Clear() derrors.Error {
 	m.Unlock()
 	return nil
 }
-
-

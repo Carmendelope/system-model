@@ -20,12 +20,12 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 )
 
-func createAddUserRequest(organizationID string, email string) * grpc_user_go.AddUserRequest{
+func createAddUserRequest(organizationID string, email string) *grpc_user_go.AddUserRequest {
 	return &grpc_user_go.AddUserRequest{
-		OrganizationId:       organizationID,
-		Email:                email,
-		Password:             "testPassword",
-		Name:                 "test user",
+		OrganizationId: organizationID,
+		Email:          email,
+		Password:       "testPassword",
+		Name:           "test user",
 	}
 }
 
@@ -43,7 +43,7 @@ var _ = ginkgo.Describe("User service", func() {
 	var userProvider uProvider.Provider
 
 	// Target organization.
-	var targetOrganization * entities.Organization
+	var targetOrganization *entities.Organization
 
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
@@ -68,8 +68,8 @@ var _ = ginkgo.Describe("User service", func() {
 		listener.Close()
 	})
 
-	ginkgo.BeforeEach(func(){
-		ginkgo.By("cleaning the mockups", func(){
+	ginkgo.BeforeEach(func() {
+		ginkgo.By("cleaning the mockups", func() {
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			userProvider.(*uProvider.MockupUserProvider).Clear()
 			// Initial data
@@ -77,22 +77,22 @@ var _ = ginkgo.Describe("User service", func() {
 		})
 	})
 
-	ginkgo.It("should be able to add a new user", func(){
-	    toAdd := createAddUserRequest(targetOrganization.ID, "email@email.com")
-	    added, err := client.AddUser(context.Background(), toAdd)
-	    gomega.Expect(err).To(gomega.Succeed())
-	    gomega.Expect(added).ShouldNot(gomega.BeNil())
-	    gomega.Expect(added.Email).Should(gomega.Equal(toAdd.Email))
+	ginkgo.It("should be able to add a new user", func() {
+		toAdd := createAddUserRequest(targetOrganization.ID, "email@email.com")
+		added, err := client.AddUser(context.Background(), toAdd)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(added).ShouldNot(gomega.BeNil())
+		gomega.Expect(added.Email).Should(gomega.Equal(toAdd.Email))
 	})
 
-	ginkgo.It("should be able to retrieve an existing user", func(){
+	ginkgo.It("should be able to retrieve an existing user", func() {
 		toAdd := createAddUserRequest(targetOrganization.ID, "email@email.com")
 		added, err := client.AddUser(context.Background(), toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
 
 		userID := &grpc_user_go.UserId{
-			OrganizationId:       targetOrganization.ID,
-			Email:                added.Email,
+			OrganizationId: targetOrganization.ID,
+			Email:          added.Email,
 		}
 		retrieved, err := client.GetUser(context.Background(), userID)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -101,7 +101,7 @@ var _ = ginkgo.Describe("User service", func() {
 		gomega.Expect(retrieved.Name).Should(gomega.Equal(added.Name))
 	})
 
-	ginkgo.It("should be able to retrieve the list of users", func(){
+	ginkgo.It("should be able to retrieve the list of users", func() {
 		numUsers := 10
 		for i := 0; i < numUsers; i++ {
 			email := fmt.Sprintf("email%d@email.com", i)
@@ -110,7 +110,7 @@ var _ = ginkgo.Describe("User service", func() {
 			gomega.Expect(err).To(gomega.Succeed())
 		}
 		organizationID := &grpc_organization_go.OrganizationId{
-			OrganizationId:       targetOrganization.ID,
+			OrganizationId: targetOrganization.ID,
 		}
 		users, err := client.GetUsers(context.Background(), organizationID)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -118,14 +118,14 @@ var _ = ginkgo.Describe("User service", func() {
 		gomega.Expect(len(users.Users)).Should(gomega.Equal(numUsers))
 	})
 
-	ginkgo.It("should be able to remove an existing user", func(){
+	ginkgo.It("should be able to remove an existing user", func() {
 		toAdd := createAddUserRequest(targetOrganization.ID, "email@email.com")
 		added, err := client.AddUser(context.Background(), toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
 
 		removeRequest := &grpc_user_go.RemoveUserRequest{
-			OrganizationId:       added.OrganizationId,
-			Email:                added.Email,
+			OrganizationId: added.OrganizationId,
+			Email:          added.Email,
 		}
 
 		success, err := client.RemoveUser(context.Background(), removeRequest)
@@ -133,22 +133,22 @@ var _ = ginkgo.Describe("User service", func() {
 		gomega.Expect(success).ToNot(gomega.BeNil())
 	})
 
-	ginkgo.It("should be able to retrieve an existing user", func(){
+	ginkgo.It("should be able to retrieve an existing user", func() {
 		toAdd := createAddUserRequest(targetOrganization.ID, "email@email.com")
 		added, err := client.AddUser(context.Background(), toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
 
 		updateReq := &grpc_user_go.UpdateUserRequest{
-			OrganizationId:       targetOrganization.ID,
-			Email:                added.Email,
-			Name: "newNameUpdate",
+			OrganizationId: targetOrganization.ID,
+			Email:          added.Email,
+			Name:           "newNameUpdate",
 		}
-		_,err = client.Update(context.Background(), updateReq)
+		_, err = client.Update(context.Background(), updateReq)
 		gomega.Expect(err).To(gomega.Succeed())
 
 		userID := &grpc_user_go.UserId{
-			OrganizationId:       targetOrganization.ID,
-			Email:                added.Email,
+			OrganizationId: targetOrganization.ID,
+			Email:          added.Email,
 		}
 		retrieved, err := client.GetUser(context.Background(), userID)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -158,5 +158,3 @@ var _ = ginkgo.Describe("User service", func() {
 	})
 
 })
-
-

@@ -20,13 +20,13 @@ import (
 	"time"
 )
 
-func createAddEdgeControllerRequest(organizationID string) *grpc_inventory_go.AddEdgeControllerRequest{
+func createAddEdgeControllerRequest(organizationID string) *grpc_inventory_go.AddEdgeControllerRequest {
 	testController := eic.CreateTestEdgeController()
 
 	return &grpc_inventory_go.AddEdgeControllerRequest{
-		OrganizationId:       organizationID,
-		Name:                 testController.Name,
-		Labels:               testController.Labels,
+		OrganizationId: organizationID,
+		Name:           testController.Name,
+		Labels:         testController.Labels,
 	}
 
 }
@@ -68,8 +68,8 @@ var _ = ginkgo.Describe("Asset service", func() {
 		listener.Close()
 	})
 
-	ginkgo.BeforeEach(func(){
-		ginkgo.By("cleaning the mockups", func(){
+	ginkgo.BeforeEach(func() {
+		ginkgo.By("cleaning the mockups", func() {
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			controllerProvider.Clear()
 			// Initial data
@@ -77,7 +77,7 @@ var _ = ginkgo.Describe("Asset service", func() {
 		})
 	})
 
-	ginkgo.It("should be able to add a new controller", func(){
+	ginkgo.It("should be able to add a new controller", func() {
 		toAdd := createAddEdgeControllerRequest(targetOrganization.ID)
 		added, err := client.Add(context.Background(), toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -85,9 +85,9 @@ var _ = ginkgo.Describe("Asset service", func() {
 		gomega.Expect(added.EdgeControllerId).ShouldNot(gomega.BeEmpty())
 	})
 
-	ginkgo.It("should be able to list controllers", func(){
+	ginkgo.It("should be able to list controllers", func() {
 		numControllers := 10
-		for index := 0; index < numControllers; index++{
+		for index := 0; index < numControllers; index++ {
 			toAdd := createAddEdgeControllerRequest(targetOrganization.ID)
 			added, err := client.Add(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -95,41 +95,41 @@ var _ = ginkgo.Describe("Asset service", func() {
 			gomega.Expect(added.EdgeControllerId).ShouldNot(gomega.BeEmpty())
 		}
 		orgID := &grpc_organization_go.OrganizationId{
-			OrganizationId:       targetOrganization.ID,
+			OrganizationId: targetOrganization.ID,
 		}
 		allControllers, err := client.List(context.Background(), orgID)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(len(allControllers.Controllers)).Should(gomega.Equal(numControllers))
 	})
 
-	ginkgo.It("should be able to remove controllers", func(){
+	ginkgo.It("should be able to remove controllers", func() {
 		toAdd := createAddEdgeControllerRequest(targetOrganization.ID)
 		added, err := client.Add(context.Background(), toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(added).ShouldNot(gomega.BeNil())
 		edgeControllerID := &grpc_inventory_go.EdgeControllerId{
-			OrganizationId:       added.OrganizationId,
-			EdgeControllerId:              added.EdgeControllerId,
+			OrganizationId:   added.OrganizationId,
+			EdgeControllerId: added.EdgeControllerId,
 		}
 		success, err := client.Remove(context.Background(), edgeControllerID)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(success).ShouldNot(gomega.BeNil())
 	})
 
-	ginkgo.Context("update operations", func(){
-		ginkgo.It("should be able to add new labels", func(){
+	ginkgo.Context("update operations", func() {
+		ginkgo.It("should be able to add new labels", func() {
 			toAdd := createAddEdgeControllerRequest(targetOrganization.ID)
 			added, err := client.Add(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			newLabels := make(map[string]string, 0)
-			newLabels["k1"]="v1"
+			newLabels["k1"] = "v1"
 			updateRequest := &grpc_inventory_go.UpdateEdgeControllerRequest{
-				OrganizationId:       added.OrganizationId,
-				EdgeControllerId:              added.EdgeControllerId,
-				AddLabels:            true,
-				RemoveLabels:         false,
-				Labels:               newLabels,
+				OrganizationId:   added.OrganizationId,
+				EdgeControllerId: added.EdgeControllerId,
+				AddLabels:        true,
+				RemoveLabels:     false,
+				Labels:           newLabels,
 			}
 
 			updated, err := client.Update(context.Background(), updateRequest)
@@ -138,24 +138,23 @@ var _ = ginkgo.Describe("Asset service", func() {
 			gomega.Expect(exits).To(gomega.BeTrue())
 			gomega.Expect(value).Should(gomega.Equal("v1"))
 		})
-		ginkgo.It("should be able to update last operations", func(){
+		ginkgo.It("should be able to update last operations", func() {
 			toAdd := createAddEdgeControllerRequest(targetOrganization.ID)
 			added, err := client.Add(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
-
 			updateRequest := &grpc_inventory_go.UpdateEdgeControllerRequest{
-				OrganizationId:       added.OrganizationId,
-				EdgeControllerId:     added.EdgeControllerId,
-				AddLabels:            false,
-				RemoveLabels:         false,
-				UpdateLastOpSummary:  true,
+				OrganizationId:      added.OrganizationId,
+				EdgeControllerId:    added.EdgeControllerId,
+				AddLabels:           false,
+				RemoveLabels:        false,
+				UpdateLastOpSummary: true,
 				LastOpSummary: &grpc_inventory_go.ECOpSummary{
-					OperationId : entities.GenerateUUID(),
-					Timestamp: time.Now().Unix(),
-					Status: grpc_inventory_go.OpStatus_INPROGRESS,
-					Info: "operation summary info",
-					},
+					OperationId: entities.GenerateUUID(),
+					Timestamp:   time.Now().Unix(),
+					Status:      grpc_inventory_go.OpStatus_INPROGRESS,
+					Info:        "operation summary info",
+				},
 			}
 
 			updated, err := client.Update(context.Background(), updateRequest)

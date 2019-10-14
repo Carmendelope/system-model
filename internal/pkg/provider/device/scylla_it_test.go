@@ -31,7 +31,7 @@ IT_SCYLLA_PORT=9042
 
 var _ = ginkgo.Describe("Scylla device provider", func() {
 
-	if ! utils.RunIntegrationTests() {
+	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
 	}

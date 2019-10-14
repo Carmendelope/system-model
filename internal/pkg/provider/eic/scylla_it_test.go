@@ -24,9 +24,9 @@ create table IF NOT EXISTS nalej.Controller (organization_id text, edge_controll
 create index IF NOT EXISTS controllerOrg ON nalej.Controller (organization_id);
 */
 
-var _ = ginkgo.Describe("Scylla asset provider", func(){
+var _ = ginkgo.Describe("Scylla asset provider", func() {
 
-	if ! utils.RunIntegrationTests() {
+	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
 	}

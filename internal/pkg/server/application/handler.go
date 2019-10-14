@@ -20,7 +20,7 @@ type Handler struct {
 }
 
 // NewHandler creates a new Handler with a linked manager.
-func NewHandler(manager Manager) *Handler{
+func NewHandler(manager Manager) *Handler {
 	return &Handler{manager}
 }
 
@@ -41,7 +41,7 @@ func (h *Handler) AddAppDescriptor(ctx context.Context, addRequest *grpc_applica
 // ListAppDescriptors retrieves a list of application descriptors.
 func (h *Handler) ListAppDescriptors(ctx context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppDescriptorList, error) {
 	descriptors, err := h.Manager.ListDescriptors(orgID)
-	if err != nil{
+	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 
@@ -50,7 +50,7 @@ func (h *Handler) ListAppDescriptors(ctx context.Context, orgID *grpc_organizati
 		toReturn = append(toReturn, d.ToGRPC())
 	}
 	result := &grpc_application_go.AppDescriptorList{
-		Descriptors:          toReturn,
+		Descriptors: toReturn,
 	}
 	return result, nil
 }
@@ -59,13 +59,13 @@ func (h *Handler) ListAppDescriptors(ctx context.Context, orgID *grpc_organizati
 func (h *Handler) GetAppDescriptor(ctx context.Context, appDescID *grpc_application_go.AppDescriptorId) (*grpc_application_go.AppDescriptor, error) {
 	descriptor, err := h.Manager.GetDescriptor(appDescID)
 	if err != nil {
-	    return nil, conversions.ToGRPCError(err)
+		return nil, conversions.ToGRPCError(err)
 	}
 	return descriptor.ToGRPC(), nil
 }
 
 // UpdateAppDescriptor allows the user to update the information of a registered descriptor.
-func (h *Handler) UpdateAppDescriptor(ctx context.Context, request *grpc_application_go.UpdateAppDescriptorRequest) (*grpc_application_go.AppDescriptor, error){
+func (h *Handler) UpdateAppDescriptor(ctx context.Context, request *grpc_application_go.UpdateAppDescriptorRequest) (*grpc_application_go.AppDescriptor, error) {
 	err := entities.ValidUpdateAppDescriptorRequest(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -78,16 +78,16 @@ func (h *Handler) UpdateAppDescriptor(ctx context.Context, request *grpc_applica
 }
 
 // RemoveAppDescriptor removes an application descriptor.
-func (h *Handler) RemoveAppDescriptor(ctx context.Context, appDescID *grpc_application_go.AppDescriptorId) (*grpc_common_go.Success, error){
+func (h *Handler) RemoveAppDescriptor(ctx context.Context, appDescID *grpc_application_go.AppDescriptorId) (*grpc_common_go.Success, error) {
 	err := h.Manager.RemoveAppDescriptor(appDescID)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
-	return &grpc_common_go.Success{},nil
+	return &grpc_common_go.Success{}, nil
 }
 
 // GetDescriptorAppParameters retrieves a list of application parameters of a descriptor
-func (h *Handler) GetDescriptorAppParameters(ctx context.Context, request *grpc_application_go.AppDescriptorId) (*grpc_application_go.AppParameterList, error){
+func (h *Handler) GetDescriptorAppParameters(ctx context.Context, request *grpc_application_go.AppDescriptorId) (*grpc_application_go.AppParameterList, error) {
 
 	err := entities.ValidAppDescriptorId(request)
 	if err != nil {
@@ -107,6 +107,7 @@ func (h *Handler) GetDescriptorAppParameters(ctx context.Context, request *grpc_
 		Parameters: toReturn,
 	}, nil
 }
+
 // GetInstanceParameters retrieves a list of application parameters of an instance
 func (h *Handler) GetInstanceParameters(ctx context.Context, request *grpc_application_go.AppInstanceId) (*grpc_application_go.InstanceParameterList, error) {
 	err := entities.ValidAppInstanceId(request)
@@ -126,7 +127,6 @@ func (h *Handler) GetInstanceParameters(ctx context.Context, request *grpc_appli
 	return &grpc_application_go.InstanceParameterList{
 		Parameters: toReturn,
 	}, nil
-
 
 	return nil, nil
 }
@@ -151,13 +151,13 @@ func (h *Handler) UpdateAppInstance(ctx context.Context, appInstance *grpc_appli
 	if err != nil {
 		return nil, err
 	}
-	return &grpc_common_go.Success{},nil
+	return &grpc_common_go.Success{}, nil
 }
 
 // ListAppInstances retrieves a list of application instances.
 func (h *Handler) ListAppInstances(ctx context.Context, orgID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppInstanceList, error) {
 	instances, err := h.Manager.ListInstances(orgID)
-	if err != nil{
+	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 
@@ -166,7 +166,7 @@ func (h *Handler) ListAppInstances(ctx context.Context, orgID *grpc_organization
 		toReturn = append(toReturn, inst.ToGRPC())
 	}
 	result := &grpc_application_go.AppInstanceList{
-		Instances:          toReturn,
+		Instances: toReturn,
 	}
 
 	return result, nil
@@ -192,7 +192,7 @@ func (h *Handler) UpdateAppStatus(ctx context.Context, updateAppStatus *grpc_app
 	if derr != nil {
 		return nil, derr
 	}
-	return &grpc_common_go.Success{},nil
+	return &grpc_common_go.Success{}, nil
 }
 
 // UpdateServiceStatus updates the status of an application instance service.
@@ -201,27 +201,25 @@ func (h *Handler) UpdateServiceStatus(ctx context.Context, updateServiceStatus *
 	if err != nil {
 		log.Warn().Interface("updateServiceStatus", updateServiceStatus).Msg("error in validation updating ServiceStatus")
 		return nil, conversions.ToGRPCError(err)
-    }
-    derr := h.Manager.UpdateService(updateServiceStatus)
-    if derr != nil {
-        return nil, derr
-    }
-    return &grpc_common_go.Success{},nil
+	}
+	derr := h.Manager.UpdateService(updateServiceStatus)
+	if derr != nil {
+		return nil, derr
+	}
+	return &grpc_common_go.Success{}, nil
 }
 
-
 // RemoveAppInstance removes an application instance
-func (h *Handler) RemoveAppInstance(ctx context.Context, appInstID *grpc_application_go.AppInstanceId) (*grpc_common_go.Success, error){
+func (h *Handler) RemoveAppInstance(ctx context.Context, appInstID *grpc_application_go.AppInstanceId) (*grpc_common_go.Success, error) {
 	err := h.Manager.RemoveAppInstance(appInstID)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
-	return &grpc_common_go.Success{},nil
+	return &grpc_common_go.Success{}, nil
 }
 
-
 // AddServiceGroupInstance to an already existing application instance
-func (h *Handler) AddServiceGroupInstances(ctx context.Context, addRequest *grpc_application_go.AddServiceGroupInstancesRequest) (*grpc_application_go.ServiceGroupInstancesList, error){
+func (h *Handler) AddServiceGroupInstances(ctx context.Context, addRequest *grpc_application_go.AddServiceGroupInstancesRequest) (*grpc_application_go.ServiceGroupInstancesList, error) {
 	err := entities.ValidAddServiceGroupInstanceRequest(addRequest)
 	if err != nil {
 		log.Warn().Interface("addRequest", addRequest).Msg("error in validation adding serviceGroupInstances")
@@ -245,20 +243,18 @@ func (h *Handler) AddServiceGroupInstances(ctx context.Context, addRequest *grpc
 	return &toReturn, nil
 }
 
-
 func (h *Handler) RemoveServiceGroupInstances(ctx context.Context, removeRequest *grpc_application_go.RemoveServiceGroupInstancesRequest) (*grpc_common_go.Success, error) {
 	err := entities.ValidateRemoveServiceGroupInstancesRequest(removeRequest)
 	if err != nil {
-		return nil,conversions.ToGRPCError(err)
+		return nil, conversions.ToGRPCError(err)
 	}
 
 	err = h.Manager.RemoveServiceGroupInstances(removeRequest)
 	if err != nil {
-		return nil,conversions.ToGRPCError(err)
+		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil
 }
-
 
 // AddServiceInstance to an already existing service group instance
 func (h *Handler) AddServiceInstance(ctx context.Context, addRequest *grpc_application_go.AddServiceInstanceRequest) (*grpc_application_go.ServiceInstance, error) {
@@ -275,7 +271,6 @@ func (h *Handler) AddServiceInstance(ctx context.Context, addRequest *grpc_appli
 	return serviceInstance.ToGRPC(), nil
 }
 
-
 // GetServiceGroupInstanceMetadata returns the metadata entry of an existing ServiceGroupInstance
 func (h *Handler) GetServiceGroupInstanceMetadata(ctx context.Context, getRequest *grpc_application_go.GetServiceGroupInstanceMetadataRequest) (*grpc_application_go.InstanceMetadata, error) {
 	err := entities.ValidGetServiceGroupInstanceMetadataRequest(getRequest)
@@ -290,7 +285,6 @@ func (h *Handler) GetServiceGroupInstanceMetadata(ctx context.Context, getReques
 
 	return metadata.ToGRPC(), nil
 }
-
 
 // UpdateServiceGroupInstanceMetadata updates the value of an existing metadata instance
 func (h *Handler) UpdateServiceGroupInstanceMetadata(ctx context.Context, updateMetadataRequest *grpc_application_go.InstanceMetadata) (*grpc_common_go.Success, error) {
@@ -310,7 +304,7 @@ func (h *Handler) UpdateServiceGroupInstanceMetadata(ctx context.Context, update
 }
 
 // AddAppEndPoint adds a new App Endpoint to a given service instance
-func (h *Handler) AddAppEndpoint(ctx context.Context, request *grpc_application_go.AddAppEndpointRequest) (*grpc_common_go.Success, error){
+func (h *Handler) AddAppEndpoint(ctx context.Context, request *grpc_application_go.AddAppEndpointRequest) (*grpc_common_go.Success, error) {
 	err := entities.ValidAddAppEndpointRequest(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -321,8 +315,9 @@ func (h *Handler) AddAppEndpoint(ctx context.Context, request *grpc_application_
 	}
 	return &grpc_common_go.Success{}, nil
 }
+
 // GetAppEndPoint retrieves an appEndpoint
-func (h *Handler) GetAppEndpoints(ctx context.Context, request *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AppEndpointList, error){
+func (h *Handler) GetAppEndpoints(ctx context.Context, request *grpc_application_go.GetAppEndPointRequest) (*grpc_application_go.AppEndpointList, error) {
 	err := entities.ValidGetAppEndPointRequest(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -334,7 +329,7 @@ func (h *Handler) GetAppEndpoints(ctx context.Context, request *grpc_application
 	return endpoint, nil
 }
 
-func (h *Handler) RemoveAppEndpoints(ctx context.Context, request *grpc_application_go.RemoveAppEndpointRequest) (*grpc_common_go.Success, error){
+func (h *Handler) RemoveAppEndpoints(ctx context.Context, request *grpc_application_go.RemoveAppEndpointRequest) (*grpc_common_go.Success, error) {
 	err := entities.ValidRemoveEndpointRequest(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -393,8 +388,9 @@ func (h *Handler) AddParametrizedDescriptor(ctx context.Context, request *grpc_a
 		return nil, conversions.ToGRPCError(err)
 	}
 
-	return param.ToGRPC() ,nil
+	return param.ToGRPC(), nil
 }
+
 // GetParametrizedDescriptor retrieves the parametrized descriptor associated with an instance
 func (h *Handler) GetParametrizedDescriptor(ctx context.Context, instanceID *grpc_application_go.AppInstanceId) (*grpc_application_go.ParametrizedDescriptor, error) {
 
@@ -410,6 +406,7 @@ func (h *Handler) GetParametrizedDescriptor(ctx context.Context, instanceID *grp
 
 	return descriptor.ToGRPC(), nil
 }
+
 // RemoveParametrizedDescriptor removes the parametrized descriptor associated with an instance
 func (h *Handler) RemoveParametrizedDescriptor(ctx context.Context, instanceID *grpc_application_go.AppInstanceId) (*grpc_common_go.Success, error) {
 	err := entities.ValidAppInstanceId(instanceID)
@@ -446,11 +443,11 @@ func (h *Handler) RemoveAuthorizedZtNetworkMember(ctx context.Context, req *grpc
 		return nil, err
 	}
 	err = h.Manager.RemoveAppZtNetworkMember(req.OrganizationId, req.AppInstanceId, req.ServiceGroupInstanceId, req.ServiceApplicationInstanceId, req.ZtNetworkId)
-	if err!= nil {
+	if err != nil {
 		return nil, err
 	}
 
-	return  &grpc_common_go.Success{}, nil
+	return &grpc_common_go.Success{}, nil
 }
 
 // Get the Zt authorized members
@@ -474,7 +471,7 @@ func (h *Handler) AddZtNetworkProxy(ctx context.Context, req *grpc_application_g
 	}
 	err = h.Manager.AddZtNetworkProxy(&entities.ServiceProxy{
 		OrganizationId: req.OrganizationId, AppInstanceId: req.AppInstanceId,
-		ServiceGroupInstanceId: req.ServiceGroupInstanceId, ClusterId:req.ClusterId,
+		ServiceGroupInstanceId: req.ServiceGroupInstanceId, ClusterId: req.ClusterId,
 		FQDN: req.Fqdn, IP: req.Ip, ServiceInstanceId: req.ServiceInstanceId, ServiceGroupId: req.ServiceGroupId,
 		ServiceId: req.ServiceId,
 	})

@@ -57,19 +57,18 @@ func (m *Manager) UpdateUser(request *grpc_user_go.UpdateUserRequest) derrors.Er
 		return derrors.NewNotFoundError("not found organizationID").WithParams(request.OrganizationId)
 	}
 
-	usr,err := m.UserProvider.Get(request.Email)
+	usr, err := m.UserProvider.Get(request.Email)
 	if err != nil {
 		return err
 	}
 
 	if request.Name != "" {
-		usr.Name=request.Name
+		usr.Name = request.Name
 	}
 
 	if request.PhotoUrl != "" {
 		usr.PhotoUrl = request.PhotoUrl
 	}
-
 
 	err = m.UserProvider.Update(*usr)
 	if err != nil {
@@ -84,7 +83,7 @@ func (m *Manager) GetUser(userID *grpc_user_go.UserId) (*entities.User, derrors.
 	if err != nil {
 		return nil, err
 	}
-	if ! exists {
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(userID.OrganizationId)
 	}
 
@@ -111,7 +110,7 @@ func (m *Manager) GetUsers(organizationID *grpc_organization_go.OrganizationId) 
 	if err != nil {
 		return nil, err
 	}
-	result := make([] entities.User, 0)
+	result := make([]entities.User, 0)
 	for _, email := range users {
 		toAdd, err := m.UserProvider.Get(email)
 		if err != nil {

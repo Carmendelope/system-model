@@ -22,42 +22,42 @@ type MockupProjectProvider struct {
 	projectNames map[string]bool
 }
 
-func NewMockupProjectProvider() * MockupProjectProvider{
+func NewMockupProjectProvider() *MockupProjectProvider {
 	return &MockupProjectProvider{
-		projects: make(map[string]entities.Project, 0),
-		account_projects: make (map[string][]string, 0),
-		projectNames: make(map[string]bool, 0),
+		projects:         make(map[string]entities.Project, 0),
+		account_projects: make(map[string][]string, 0),
+		projectNames:     make(map[string]bool, 0),
 	}
 }
 
-func (m *MockupProjectProvider)getPK(accountID string, projectID string) string {
+func (m *MockupProjectProvider) getPK(accountID string, projectID string) string {
 	return fmt.Sprintf("%s%s", accountID, projectID)
 }
-func (m *MockupProjectProvider)getNameKey(accountID string, name string) string {
+func (m *MockupProjectProvider) getNameKey(accountID string, name string) string {
 	return fmt.Sprintf("%s%s", accountID, name)
 }
 
-func (m *MockupProjectProvider) unsafeExists(key string) bool{
+func (m *MockupProjectProvider) unsafeExists(key string) bool {
 	_, exists := m.projects[key]
 	return exists
 }
 
 // Add a new project to the system.
-func (m * MockupProjectProvider) Add(project entities.Project) derrors.Error{
+func (m *MockupProjectProvider) Add(project entities.Project) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
 	key := m.getPK(project.OwnerAccountId, project.ProjectId)
 
-	if !m.unsafeExists(key){
+	if !m.unsafeExists(key) {
 		m.projects[key] = project
 		m.projectNames[m.getNameKey(project.OwnerAccountId, project.Name)] = true
 
 		// add into account_projects
 		account, exists := m.account_projects[project.OwnerAccountId]
-		if !exists{
+		if !exists {
 			m.account_projects[project.OwnerAccountId] = []string{project.ProjectId}
-		}else{
+		} else {
 			m.account_projects[project.OwnerAccountId] = append(account, project.ProjectId)
 		}
 		return nil
@@ -66,18 +66,18 @@ func (m * MockupProjectProvider) Add(project entities.Project) derrors.Error{
 }
 
 // Update the information of a project.
-func (m * MockupProjectProvider) Update(project entities.Project) derrors.Error{
+func (m *MockupProjectProvider) Update(project entities.Project) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
 	key := m.getPK(project.OwnerAccountId, project.ProjectId)
 
-	if !m.unsafeExists(key){
+	if !m.unsafeExists(key) {
 		return derrors.NewNotFoundError("project").WithParams(project.OwnerAccountId, project.ProjectId)
 	}
 
 	// delete the all entry
-	delete (m.projectNames, m.getNameKey(m.projects[key].OwnerAccountId,m.projects[key].Name))
+	delete(m.projectNames, m.getNameKey(m.projects[key].OwnerAccountId, m.projects[key].Name))
 	// add the new one
 	m.projectNames[m.getNameKey(project.OwnerAccountId, project.Name)] = true
 	m.projects[key] = project
@@ -85,7 +85,7 @@ func (m * MockupProjectProvider) Update(project entities.Project) derrors.Error{
 }
 
 // Exists checks if a project exists on the system.
-func (m * MockupProjectProvider) Exists(accountID string, projectID string) (bool, derrors.Error){
+func (m *MockupProjectProvider) Exists(accountID string, projectID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	key := m.getPK(accountID, projectID)
@@ -94,7 +94,7 @@ func (m * MockupProjectProvider) Exists(accountID string, projectID string) (boo
 }
 
 // check if there is a project in the account with the received name
-func (m * MockupProjectProvider) ExistsByName(accountID string, name string) (bool, derrors.Error) {
+func (m *MockupProjectProvider) ExistsByName(accountID string, name string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	key := m.getNameKey(accountID, name)
@@ -105,7 +105,7 @@ func (m * MockupProjectProvider) ExistsByName(accountID string, name string) (bo
 }
 
 // Get a project.
-func (m * MockupProjectProvider) Get(accountID string, projectID string) (*entities.Project, derrors.Error){
+func (m *MockupProjectProvider) Get(accountID string, projectID string) (*entities.Project, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -119,25 +119,25 @@ func (m * MockupProjectProvider) Get(accountID string, projectID string) (*entit
 }
 
 // Remove a project
-func (m * MockupProjectProvider) Remove(accountID string, projectID string) derrors.Error{
+func (m *MockupProjectProvider) Remove(accountID string, projectID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
 	key := m.getPK(accountID, projectID)
 
-	if !m.unsafeExists(key){
+	if !m.unsafeExists(key) {
 		return derrors.NewNotFoundError("project").WithParams(accountID, projectID)
 	}
-	delete (m.projectNames, m.getNameKey(m.projects[key].OwnerAccountId, m.projects[key].Name))
+	delete(m.projectNames, m.getNameKey(m.projects[key].OwnerAccountId, m.projects[key].Name))
 
 	delete(m.projects, key)
 
 	// delete the project from m.account_projects map
 	account, exists := m.account_projects[accountID]
-	if exists{
-		newAccounts := make ([]string, 0)
-		for _, projectId := range account{
-			if projectId != projectID{
+	if exists {
+		newAccounts := make([]string, 0)
+		for _, projectId := range account {
+			if projectId != projectID {
 				newAccounts = append(newAccounts, projectId)
 			}
 		}
@@ -147,9 +147,9 @@ func (m * MockupProjectProvider) Remove(accountID string, projectID string) derr
 	return nil
 }
 
-func (m * MockupProjectProvider) ListAccountProjects(accountID string) ([]entities.Project, derrors.Error) {
+func (m *MockupProjectProvider) ListAccountProjects(accountID string) ([]entities.Project, derrors.Error) {
 
-	res := make ([]entities.Project, 0)
+	res := make([]entities.Project, 0)
 	accounts, exists := m.account_projects[accountID]
 	if exists {
 		for _, projectID := range accounts {
@@ -164,11 +164,11 @@ func (m * MockupProjectProvider) ListAccountProjects(accountID string) ([]entiti
 }
 
 // Clear all projects
-func (m * MockupProjectProvider) Clear() derrors.Error{
+func (m *MockupProjectProvider) Clear() derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 	m.projects = make(map[string]entities.Project, 0)
-	m.account_projects = make (map[string][]string, 0)
+	m.account_projects = make(map[string][]string, 0)
 	m.projectNames = make(map[string]bool, 0)
 	return nil
 }

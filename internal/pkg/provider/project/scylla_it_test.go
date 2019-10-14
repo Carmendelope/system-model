@@ -31,9 +31,9 @@ import (
 	"strconv"
 )
 
-var _ = ginkgo.Describe("Scylla project provider", func(){
+var _ = ginkgo.Describe("Scylla project provider", func() {
 
-	if ! utils.RunIntegrationTests() {
+	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
 	}

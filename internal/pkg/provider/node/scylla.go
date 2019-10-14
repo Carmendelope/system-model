@@ -1,6 +1,5 @@
 package node
 
-
 import (
 	"github.com/gocql/gocql"
 	"github.com/nalej/derrors"
@@ -17,15 +16,15 @@ const nodeTablePK = "node_id"
 const rowNotFound = "not found"
 
 type ScyllaNodeProvider struct {
-	Address string
-	Port int
+	Address  string
+	Port     int
 	Keyspace string
-	Session *gocql.Session
+	Session  *gocql.Session
 	sync.Mutex
 }
 
-func NewScyllaNodeProvider (address string, port int, keyspace string) * ScyllaNodeProvider {
-	provider := ScyllaNodeProvider{Address: address, Port:  port, Keyspace: keyspace, Session: nil}
+func NewScyllaNodeProvider(address string, port int, keyspace string) *ScyllaNodeProvider {
+	provider := ScyllaNodeProvider{Address: address, Port: port, Keyspace: keyspace, Session: nil}
 	provider.connect()
 	return &provider
 
@@ -51,7 +50,7 @@ func (sp *ScyllaNodeProvider) connect() derrors.Error {
 }
 
 // disconnect from the database
-func (sp *ScyllaNodeProvider) Disconnect () {
+func (sp *ScyllaNodeProvider) Disconnect() {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -73,13 +72,13 @@ func (sp *ScyllaNodeProvider) unsafeExists(nodeID string) (bool, derrors.Error) 
 
 	stmt, names := qb.Select(nodeTable).Columns(nodeTablePK).Where(qb.Eq(nodeTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		nodeTablePK: nodeID })
+		nodeTablePK: nodeID})
 
 	err := q.GetRelease(&returnedId)
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return false, nil
-		}else{
+		} else {
 			return false, derrors.AsError(err, "cannot determinate if node exists")
 		}
 	}
@@ -88,21 +87,21 @@ func (sp *ScyllaNodeProvider) unsafeExists(nodeID string) (bool, derrors.Error) 
 }
 
 // check that the session is created
-func (sp *ScyllaNodeProvider) checkConnection () derrors.Error {
-	if sp.Session == nil{
+func (sp *ScyllaNodeProvider) checkConnection() derrors.Error {
+	if sp.Session == nil {
 		return derrors.NewGenericError("Session not created")
 	}
 	return nil
 }
 
-func (sp *ScyllaNodeProvider) checkAndConnect () derrors.Error{
+func (sp *ScyllaNodeProvider) checkAndConnect() derrors.Error {
 
 	err := sp.checkConnection()
 	if err != nil {
 		log.Info().Msg("session no created, trying to reconnect...")
 		// try to reconnect
 		err = sp.connect()
-		if err != nil  {
+		if err != nil {
 			return err
 		}
 	}
@@ -112,7 +111,7 @@ func (sp *ScyllaNodeProvider) checkAndConnect () derrors.Error{
 // --------------------------------------------------------------------------------------------------------------------
 
 // Add a new node to the system.
-func (sp *ScyllaNodeProvider) Add (node entities.Node) derrors.Error {
+func (sp *ScyllaNodeProvider) Add(node entities.Node) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -128,13 +127,13 @@ func (sp *ScyllaNodeProvider) Add (node entities.Node) derrors.Error {
 	if err != nil {
 		return err
 	}
-	if  exists {
+	if exists {
 		return derrors.NewAlreadyExistsError(node.NodeId)
 	}
 
 	// insert a user
 
-	stmt, names := qb.Insert(nodeTable).Columns("organization_id","cluster_id","node_id","ip","labels","status","state").ToCql()
+	stmt, names := qb.Insert(nodeTable).Columns("organization_id", "cluster_id", "node_id", "ip", "labels", "status", "state").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(node)
 	cqlErr := q.ExecRelease()
 
@@ -162,12 +161,12 @@ func (sp *ScyllaNodeProvider) Update(node entities.Node) derrors.Error {
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError(node.NodeId)
 	}
 
 	// update a user
-	stmt, names := qb.Update(nodeTable).Set("organization_id","cluster_id","ip","labels","status","state").Where(qb.Eq(nodeTablePK)).ToCql()
+	stmt, names := qb.Update(nodeTable).Set("organization_id", "cluster_id", "ip", "labels", "status", "state").Where(qb.Eq(nodeTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(node)
 	cqlErr := q.ExecRelease()
 
@@ -193,13 +192,13 @@ func (sp *ScyllaNodeProvider) Exists(nodeID string) (bool, derrors.Error) {
 
 	stmt, names := qb.Select(nodeTable).Columns(nodeTablePK).Where(qb.Eq(nodeTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		nodeTablePK: nodeID })
+		nodeTablePK: nodeID})
 
 	err := q.GetRelease(&returnedId)
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return false, nil
-		}else{
+		} else {
 			return false, derrors.AsError(err, "cannot determinate if node exists")
 		}
 	}
@@ -208,7 +207,7 @@ func (sp *ScyllaNodeProvider) Exists(nodeID string) (bool, derrors.Error) {
 }
 
 // Get a node.
-func (sp *ScyllaNodeProvider) Get(nodeID string) (* entities.Node, derrors.Error) {
+func (sp *ScyllaNodeProvider) Get(nodeID string) (*entities.Node, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -228,7 +227,7 @@ func (sp *ScyllaNodeProvider) Get(nodeID string) (* entities.Node, derrors.Error
 	if err != nil {
 		if err.Error() == rowNotFound {
 			return nil, derrors.NewNotFoundError(nodeID)
-		}else{
+		} else {
 			return nil, derrors.AsError(err, "cannot get node")
 		}
 	}
@@ -253,7 +252,7 @@ func (sp *ScyllaNodeProvider) Remove(nodeID string) derrors.Error {
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError("node").WithParams(nodeID)
 	}
 

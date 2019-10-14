@@ -18,7 +18,7 @@ type Provider interface {
 	// Exists checks if a role exists on the system.
 	Exists(roleID string) (bool, derrors.Error)
 	// Get a role.
-	Get(roleID string) (* entities.Role, derrors.Error)
+	Get(roleID string) (*entities.Role, derrors.Error)
 	// Remove a role
 	Remove(roleID string) derrors.Error
 	//clear roles

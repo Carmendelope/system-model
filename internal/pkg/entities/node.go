@@ -22,14 +22,14 @@ const (
 
 var NodeStateToGRPC = map[NodeState]grpc_infrastructure_go.NodeState{
 	Unregistered: grpc_infrastructure_go.NodeState_UNREGISTERED,
-	Unassigned: grpc_infrastructure_go.NodeState_UNASSIGNED,
-	Assigned: grpc_infrastructure_go.NodeState_ASSIGNED,
+	Unassigned:   grpc_infrastructure_go.NodeState_UNASSIGNED,
+	Assigned:     grpc_infrastructure_go.NodeState_ASSIGNED,
 }
 
 var NodeStateFromGRPC = map[grpc_infrastructure_go.NodeState]NodeState{
 	grpc_infrastructure_go.NodeState_UNREGISTERED: Unregistered,
-	grpc_infrastructure_go.NodeState_UNASSIGNED: Unassigned,
-	grpc_infrastructure_go.NodeState_ASSIGNED: Assigned,
+	grpc_infrastructure_go.NodeState_UNASSIGNED:   Unassigned,
+	grpc_infrastructure_go.NodeState_ASSIGNED:     Assigned,
 }
 
 // Node entity representing a single node of the architecture that executes application instances.
@@ -47,10 +47,10 @@ type Node struct {
 	// Status of the node based on monitoring information.
 	Status InfraStatus `json:"status,omitempty"`
 	// State of assignation of the node.
-	State                NodeState `json:"state,omitempty"`
+	State NodeState `json:"state,omitempty"`
 }
 
-func NewNodeFromGRPC(addNodeRequest *grpc_infrastructure_go.AddNodeRequest) * Node {
+func NewNodeFromGRPC(addNodeRequest *grpc_infrastructure_go.AddNodeRequest) *Node {
 	uuid := GenerateUUID()
 
 	return &Node{
@@ -64,21 +64,21 @@ func NewNodeFromGRPC(addNodeRequest *grpc_infrastructure_go.AddNodeRequest) * No
 	}
 }
 
-func (n * Node) ToGRPC() * grpc_infrastructure_go.Node {
+func (n *Node) ToGRPC() *grpc_infrastructure_go.Node {
 	status := InfraStatusToGRPC[n.Status]
 	state := NodeStateToGRPC[n.State]
 	return &grpc_infrastructure_go.Node{
-		OrganizationId:       n.OrganizationId,
-		ClusterId:            n.ClusterId,
-		NodeId:               n.NodeId,
-		Ip:                   n.Ip,
-		Labels:               n.Labels,
-		Status:               status,
-		State:                state,
+		OrganizationId: n.OrganizationId,
+		ClusterId:      n.ClusterId,
+		NodeId:         n.NodeId,
+		Ip:             n.Ip,
+		Labels:         n.Labels,
+		Status:         status,
+		State:          state,
 	}
 }
 
-func (n * Node) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateNodeRequest){
+func (n *Node) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateNodeRequest) {
 	if updateRequest.AddLabels {
 		for k, v := range updateRequest.Labels {
 			n.Labels[k] = v
@@ -89,7 +89,7 @@ func (n * Node) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateNodeReque
 			delete(n.Labels, k)
 		}
 	}
-	if updateRequest.UpdateStatus{
+	if updateRequest.UpdateStatus {
 		n.Status = InfraStatusFromGRPC[updateRequest.Status]
 	}
 	if updateRequest.UpdateState {
@@ -122,7 +122,6 @@ func ValidUpdateNodeRequest(updateNodeRequest *grpc_infrastructure_go.UpdateNode
 	}
 	return nil
 }
-
 
 func ValidAttachNodeRequest(attachNodeRequest *grpc_infrastructure_go.AttachNodeRequest) derrors.Error {
 	if attachNodeRequest.RequestId == "" {

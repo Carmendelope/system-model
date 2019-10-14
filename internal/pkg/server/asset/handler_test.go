@@ -20,26 +20,26 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 )
 
-func createAddAssetRequest(organizationID string) *grpc_inventory_go.AddAssetRequest{
+func createAddAssetRequest(organizationID string) *grpc_inventory_go.AddAssetRequest {
 	testAsset := asset.CreateTestAsset()
 
-	storage := make ([]*grpc_inventory_go.StorageHardwareInfo, 0)
+	storage := make([]*grpc_inventory_go.StorageHardwareInfo, 0)
 	for _, sto := range testAsset.Storage {
-		storage = append (storage, sto.ToGRPC())
+		storage = append(storage, sto.ToGRPC())
 	}
 
 	return &grpc_inventory_go.AddAssetRequest{
-		OrganizationId:       organizationID,
-		EdgeControllerId:     testAsset.EdgeControllerId,
-		AgentId:              testAsset.AgentId,
-		Labels:               testAsset.Labels,
-		Os:                   testAsset.Os.ToGRPC(),
-		Hardware:             testAsset.Hardware.ToGRPC(),
-		Storage:              storage,
+		OrganizationId:   organizationID,
+		EdgeControllerId: testAsset.EdgeControllerId,
+		AgentId:          testAsset.AgentId,
+		Labels:           testAsset.Labels,
+		Os:               testAsset.Os.ToGRPC(),
+		Hardware:         testAsset.Hardware.ToGRPC(),
+		Storage:          storage,
 	}
 }
 
-var _ = ginkgo.Describe("Asset service", func(){
+var _ = ginkgo.Describe("Asset service", func() {
 	// gRPC server
 	var server *grpc.Server
 	// grpc test listener
@@ -48,7 +48,7 @@ var _ = ginkgo.Describe("Asset service", func(){
 	var client grpc_inventory_go.AssetsClient
 
 	// Target organization.
-	var targetOrganization * entities.Organization
+	var targetOrganization *entities.Organization
 
 	// Providers
 	var organizationProvider orgProvider.Provider
@@ -76,8 +76,8 @@ var _ = ginkgo.Describe("Asset service", func(){
 		listener.Close()
 	})
 
-	ginkgo.BeforeEach(func(){
-		ginkgo.By("cleaning the mockups", func(){
+	ginkgo.BeforeEach(func() {
+		ginkgo.By("cleaning the mockups", func() {
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			aProvider.Clear()
 			// Initial data
@@ -85,67 +85,67 @@ var _ = ginkgo.Describe("Asset service", func(){
 		})
 	})
 
-	ginkgo.It("should be able to add a new asset", func(){
-	    toAdd := createAddAssetRequest(targetOrganization.ID)
-	    added, err := client.Add(context.Background(), toAdd)
+	ginkgo.It("should be able to add a new asset", func() {
+		toAdd := createAddAssetRequest(targetOrganization.ID)
+		added, err := client.Add(context.Background(), toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(added).ShouldNot(gomega.BeNil())
 		gomega.Expect(added.AssetId).ShouldNot(gomega.BeEmpty())
 
-	    assetID := &grpc_inventory_go.AssetId{
-			OrganizationId:       added.OrganizationId,
-			AssetId:              added.AssetId,
+		assetID := &grpc_inventory_go.AssetId{
+			OrganizationId: added.OrganizationId,
+			AssetId:        added.AssetId,
 		}
-	    retrieved, err := client.Get(context.Background(), assetID)
-	    gomega.Expect(err).To(gomega.Succeed())
-	    gomega.Expect(retrieved.EdgeControllerId).Should(gomega.Equal(toAdd.EdgeControllerId))
+		retrieved, err := client.Get(context.Background(), assetID)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(retrieved.EdgeControllerId).Should(gomega.Equal(toAdd.EdgeControllerId))
 	})
 
-	ginkgo.It("should be able to list assets", func(){
-	    numAssets := 10
-	    for index := 0; index < numAssets; index++{
+	ginkgo.It("should be able to list assets", func() {
+		numAssets := 10
+		for index := 0; index < numAssets; index++ {
 			toAdd := createAddAssetRequest(targetOrganization.ID)
 			added, err := client.Add(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(added).ShouldNot(gomega.BeNil())
 			gomega.Expect(added.AssetId).ShouldNot(gomega.BeEmpty())
 		}
-	    orgID := &grpc_organization_go.OrganizationId{
-			OrganizationId:       targetOrganization.ID,
+		orgID := &grpc_organization_go.OrganizationId{
+			OrganizationId: targetOrganization.ID,
 		}
-	    allAssets, err := client.List(context.Background(), orgID)
-	    gomega.Expect(err).To(gomega.Succeed())
-	    gomega.Expect(len(allAssets.Assets)).Should(gomega.Equal(numAssets))
+		allAssets, err := client.List(context.Background(), orgID)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(len(allAssets.Assets)).Should(gomega.Equal(numAssets))
 	})
 
-	ginkgo.It("should be able to remove assets", func(){
+	ginkgo.It("should be able to remove assets", func() {
 		toAdd := createAddAssetRequest(targetOrganization.ID)
 		added, err := client.Add(context.Background(), toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(added).ShouldNot(gomega.BeNil())
 		assetID := &grpc_inventory_go.AssetId{
-			OrganizationId:       added.OrganizationId,
-			AssetId:              added.AssetId,
+			OrganizationId: added.OrganizationId,
+			AssetId:        added.AssetId,
 		}
 		success, err := client.Remove(context.Background(), assetID)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(success).ShouldNot(gomega.BeNil())
 	})
 
-	ginkgo.Context("update operations", func(){
-		ginkgo.It("should be able to add new labels", func(){
+	ginkgo.Context("update operations", func() {
+		ginkgo.It("should be able to add new labels", func() {
 			toAdd := createAddAssetRequest(targetOrganization.ID)
 			added, err := client.Add(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 
 			newLabels := make(map[string]string, 0)
-			newLabels["k1"]="v1"
+			newLabels["k1"] = "v1"
 			updateRequest := &grpc_inventory_go.UpdateAssetRequest{
-				OrganizationId:       added.OrganizationId,
-				AssetId:              added.AssetId,
-				AddLabels:            true,
-				RemoveLabels:         false,
-				Labels:               newLabels,
+				OrganizationId: added.OrganizationId,
+				AssetId:        added.AssetId,
+				AddLabels:      true,
+				RemoveLabels:   false,
+				Labels:         newLabels,
 			}
 
 			updated, err := client.Update(context.Background(), updateRequest)
@@ -155,6 +155,5 @@ var _ = ginkgo.Describe("Asset service", func(){
 			gomega.Expect(value).Should(gomega.Equal("v1"))
 		})
 	})
-
 
 })

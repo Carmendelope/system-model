@@ -18,9 +18,9 @@ var debugLevel bool
 var consoleLogging bool
 
 var rootCmd = &cobra.Command{
-	Use:   "system-model-cli",
-	Short: "System Model CLI",
-	Long:  `System Model CLI`,
+	Use:     "system-model-cli",
+	Short:   "System Model CLI",
+	Long:    `System Model CLI`,
 	Version: "unknown-version",
 	Run: func(cmd *cobra.Command, args []string) {
 		SetupLogging()

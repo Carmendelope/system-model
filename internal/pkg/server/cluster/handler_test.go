@@ -26,11 +26,11 @@ func createAddClusterRequest(organizationID string) *grpc_infrastructure_go.AddC
 	labels["k1"] = "v1"
 	labels["k2"] = "v2"
 	return &grpc_infrastructure_go.AddClusterRequest{
-		RequestId:            uuid.NewV4().String(),
-		OrganizationId:       organizationID,
-		Name:                 "name",
-		Hostname: "hostname",
-		Labels:               labels,
+		RequestId:      uuid.NewV4().String(),
+		OrganizationId: organizationID,
+		Name:           "name",
+		Hostname:       "hostname",
+		Labels:         labels,
 	}
 }
 
@@ -43,7 +43,7 @@ var _ = ginkgo.Describe("Cluster service", func() {
 	var client grpc_infrastructure_go.ClustersClient
 
 	// Target organization.
-	var targetOrganization * entities.Organization
+	var targetOrganization *entities.Organization
 
 	// Providers
 	var organizationProvider orgProvider.Provider
@@ -71,8 +71,8 @@ var _ = ginkgo.Describe("Cluster service", func() {
 		listener.Close()
 	})
 
-	ginkgo.BeforeEach(func(){
-		ginkgo.By("cleaning the mockups", func(){
+	ginkgo.BeforeEach(func() {
+		ginkgo.By("cleaning the mockups", func() {
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			clusterProvider.(*clusProvider.MockupClusterProvider).Clear()
 			// Initial data
@@ -81,21 +81,21 @@ var _ = ginkgo.Describe("Cluster service", func() {
 	})
 
 	ginkgo.Context("With clusters", func() {
-		ginkgo.It("should be able to add a cluster", func(){
+		ginkgo.It("should be able to add a cluster", func() {
 			toAdd := createAddClusterRequest(targetOrganization.ID)
 			added, err := client.AddCluster(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(added).ShouldNot(gomega.BeNil())
 			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 		})
-		ginkgo.It("should fail if the request is not valid", func(){
+		ginkgo.It("should fail if the request is not valid", func() {
 			toAdd := createAddClusterRequest(targetOrganization.ID)
 			toAdd.OrganizationId = ""
 			added, err := client.AddCluster(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.HaveOccurred())
 			gomega.Expect(added).Should(gomega.BeNil())
 		})
-		ginkgo.It("should be able to get an existing cluster", func(){
+		ginkgo.It("should be able to get an existing cluster", func() {
 			toAdd := createAddClusterRequest(targetOrganization.ID)
 			added, err := client.AddCluster(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -103,15 +103,15 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 
 			clusterID := &grpc_infrastructure_go.ClusterId{
-				OrganizationId:       added.OrganizationId,
-				ClusterId:            added.ClusterId,
+				OrganizationId: added.OrganizationId,
+				ClusterId:      added.ClusterId,
 			}
 			retrieved, err := client.GetCluster(context.Background(), clusterID)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
 			gomega.Expect(retrieved).Should(gomega.Equal(added))
 		})
-		ginkgo.It("should be able to update a cluster", func(){
+		ginkgo.It("should be able to update a cluster", func() {
 			toAdd := createAddClusterRequest(targetOrganization.ID)
 			added, err := client.AddCluster(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -119,14 +119,14 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 
 			updateClusterReq := &grpc_infrastructure_go.UpdateClusterRequest{
-				OrganizationId:       targetOrganization.ID,
-				ClusterId:            added.ClusterId,
-				UpdateName:           true,
-				Name:                 "newName",
-				UpdateHostname:       true,
-				Hostname:             "newHostname",
-				UpdateStatus:         true,
-				Status:               grpc_infrastructure_go.InfraStatus_RUNNING,
+				OrganizationId: targetOrganization.ID,
+				ClusterId:      added.ClusterId,
+				UpdateName:     true,
+				Name:           "newName",
+				UpdateHostname: true,
+				Hostname:       "newHostname",
+				UpdateStatus:   true,
+				Status:         grpc_infrastructure_go.InfraStatus_RUNNING,
 			}
 			updated, err := client.UpdateCluster(context.Background(), updateClusterReq)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -134,7 +134,7 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(updated.Hostname).Should(gomega.Equal(updateClusterReq.Hostname))
 			gomega.Expect(updated.Status).Should(gomega.Equal(updateClusterReq.Status))
 		})
-		ginkgo.It("should be able to add labels to a cluster", func(){
+		ginkgo.It("should be able to add labels to a cluster", func() {
 			toAdd := createAddClusterRequest(targetOrganization.ID)
 			added, err := client.AddCluster(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -142,12 +142,12 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 
 			newLabels := make(map[string]string, 0)
-			newLabels["nk"]="nv"
+			newLabels["nk"] = "nv"
 			updateClusterReq := &grpc_infrastructure_go.UpdateClusterRequest{
-				OrganizationId:       targetOrganization.ID,
-				ClusterId:            added.ClusterId,
-				AddLabels:         true,
-				Labels:               newLabels,
+				OrganizationId: targetOrganization.ID,
+				ClusterId:      added.ClusterId,
+				AddLabels:      true,
+				Labels:         newLabels,
 			}
 			updated, err := client.UpdateCluster(context.Background(), updateClusterReq)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -155,7 +155,7 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			expectedLabels["nk"] = "nv"
 			gomega.Expect(updated.Labels).Should(gomega.Equal(expectedLabels))
 		})
-		ginkgo.It("should be able to remove labels from a cluster", func(){
+		ginkgo.It("should be able to remove labels from a cluster", func() {
 			toAdd := createAddClusterRequest(targetOrganization.ID)
 			added, err := client.AddCluster(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -163,12 +163,12 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 
 			newLabels := make(map[string]string, 0)
-			newLabels["k1"]="v1"
+			newLabels["k1"] = "v1"
 			updateClusterReq := &grpc_infrastructure_go.UpdateClusterRequest{
-				OrganizationId:       targetOrganization.ID,
-				ClusterId:            added.ClusterId,
-				RemoveLabels:         true,
-				Labels:               newLabels,
+				OrganizationId: targetOrganization.ID,
+				ClusterId:      added.ClusterId,
+				RemoveLabels:   true,
+				Labels:         newLabels,
 			}
 			updated, err := client.UpdateCluster(context.Background(), updateClusterReq)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -176,7 +176,7 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			delete(expectedLabels, "k1")
 			gomega.Expect(updated.Labels).Should(gomega.Equal(expectedLabels))
 		})
-		ginkgo.It("should be able to list clusters", func(){
+		ginkgo.It("should be able to list clusters", func() {
 			toAdd := createAddClusterRequest(targetOrganization.ID)
 			added, err := client.AddCluster(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -191,7 +191,7 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
 			gomega.Expect(len(retrieved.Clusters)).Should(gomega.Equal(1))
 		})
-		ginkgo.It("should not be able to list clusters on a none existing organization", func(){
+		ginkgo.It("should not be able to list clusters on a none existing organization", func() {
 			organizationID := &grpc_organization_go.OrganizationId{
 				OrganizationId: "does not exists",
 			}
@@ -199,7 +199,7 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(err).To(gomega.HaveOccurred())
 			gomega.Expect(retrieved).Should(gomega.BeNil())
 		})
-		ginkgo.It("should return an empty list on an organization without clusters", func(){
+		ginkgo.It("should return an empty list on an organization without clusters", func() {
 			organizationID := &grpc_organization_go.OrganizationId{
 				OrganizationId: targetOrganization.ID,
 			}
@@ -208,7 +208,7 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
 			gomega.Expect(len(retrieved.Clusters)).Should(gomega.Equal(0))
 		})
-		ginkgo.It("should be able to remove an existing cluster", func(){
+		ginkgo.It("should be able to remove an existing cluster", func() {
 			toAdd := createAddClusterRequest(targetOrganization.ID)
 			added, err := client.AddCluster(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -216,9 +216,9 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 			// Remove cluster
 			removeRequest := &grpc_infrastructure_go.RemoveClusterRequest{
-				RequestId:            "removeId",
-				OrganizationId:       targetOrganization.ID,
-				ClusterId:            added.ClusterId,
+				RequestId:      "removeId",
+				OrganizationId: targetOrganization.ID,
+				ClusterId:      added.ClusterId,
 			}
 			removed, err := client.RemoveCluster(context.Background(), removeRequest)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -232,12 +232,12 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
 			gomega.Expect(len(retrieved.Clusters)).Should(gomega.Equal(0))
 		})
-		ginkgo.It("should not be able to remove a none existing cluster", func(){
+		ginkgo.It("should not be able to remove a none existing cluster", func() {
 			// Remove cluster
 			removeRequest := &grpc_infrastructure_go.RemoveClusterRequest{
-				RequestId:            "removeId",
-				OrganizationId:       targetOrganization.ID,
-				ClusterId:            "does not exists",
+				RequestId:      "removeId",
+				OrganizationId: targetOrganization.ID,
+				ClusterId:      "does not exists",
 			}
 			removed, err := client.RemoveCluster(context.Background(), removeRequest)
 			gomega.Expect(err).To(gomega.HaveOccurred())
@@ -252,7 +252,7 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 
 			clusterID := &grpc_infrastructure_go.ClusterId{
-				ClusterId: added.ClusterId,
+				ClusterId:      added.ClusterId,
 				OrganizationId: targetOrganization.ID,
 			}
 			ok, err := client.CordonCluster(context.Background(), clusterID)
@@ -273,7 +273,7 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 
 			clusterID := &grpc_infrastructure_go.ClusterId{
-				ClusterId: added.ClusterId,
+				ClusterId:      added.ClusterId,
 				OrganizationId: targetOrganization.ID,
 			}
 			ok, err := client.CordonCluster(context.Background(), clusterID)
@@ -301,4 +301,3 @@ var _ = ginkgo.Describe("Cluster service", func() {
 	})
 
 })
-

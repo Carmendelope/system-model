@@ -18,23 +18,22 @@ type MockupClusterProvider struct {
 	nodes map[string][]string
 }
 
-func NewMockupClusterProvider() * MockupClusterProvider {
+func NewMockupClusterProvider() *MockupClusterProvider {
 	return &MockupClusterProvider{
 		clusters: make(map[string]entities.Cluster, 0),
-		nodes: make(map[string][]string, 0),
+		nodes:    make(map[string][]string, 0),
 	}
 }
 
-func (m * MockupClusterProvider) unsafeExists(clusterID string) bool {
+func (m *MockupClusterProvider) unsafeExists(clusterID string) bool {
 	_, exists := m.clusters[clusterID]
 	return exists
 }
 
-
 func (m *MockupClusterProvider) unsafeExistsNode(clusterID string, nodeID string) bool {
 	nodeList, ok := m.nodes[clusterID]
 	if ok {
-		for _, nID := range  nodeList {
+		for _, nID := range nodeList {
 			if nID == nodeID {
 				return true
 			}
@@ -45,10 +44,10 @@ func (m *MockupClusterProvider) unsafeExistsNode(clusterID string, nodeID string
 }
 
 // Add a new cluster to the system.
-func (m * MockupClusterProvider) Add(cluster entities.Cluster) derrors.Error {
+func (m *MockupClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(cluster.ClusterId){
+	if !m.unsafeExists(cluster.ClusterId) {
 		m.clusters[cluster.ClusterId] = cluster
 		return nil
 	}
@@ -56,10 +55,10 @@ func (m * MockupClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 }
 
 // Update an existing cluster in the system
-func (m * MockupClusterProvider) Update(cluster entities.Cluster) derrors.Error{
+func (m *MockupClusterProvider) Update(cluster entities.Cluster) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(cluster.ClusterId){
+	if !m.unsafeExists(cluster.ClusterId) {
 		return derrors.NewNotFoundError(cluster.ClusterId)
 	}
 	m.clusters[cluster.ClusterId] = cluster
@@ -67,14 +66,14 @@ func (m * MockupClusterProvider) Update(cluster entities.Cluster) derrors.Error{
 }
 
 // Exists checks if a cluster exists on the system.
-func (m * MockupClusterProvider) Exists(clusterID string) (bool, derrors.Error) {
+func (m *MockupClusterProvider) Exists(clusterID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExists(clusterID), nil
 }
 
 // Get a cluster.
-func (m * MockupClusterProvider) Get(clusterID string) (*entities.Cluster, derrors.Error) {
+func (m *MockupClusterProvider) Get(clusterID string) (*entities.Cluster, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	cluster, exists := m.clusters[clusterID]
@@ -85,10 +84,10 @@ func (m * MockupClusterProvider) Get(clusterID string) (*entities.Cluster, derro
 }
 
 // Remove a cluster
-func (m * MockupClusterProvider) Remove(clusterID string) derrors.Error {
+func (m *MockupClusterProvider) Remove(clusterID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(clusterID){
+	if !m.unsafeExists(clusterID) {
 		return derrors.NewNotFoundError(clusterID)
 	}
 	delete(m.clusters, clusterID)
@@ -139,7 +138,7 @@ func (m *MockupClusterProvider) DeleteNode(clusterID string, nodeID string) derr
 	defer m.Unlock()
 	if m.unsafeExistsNode(clusterID, nodeID) {
 		previous := m.nodes[clusterID]
-		newList := make([] string, 0, len(previous)-1)
+		newList := make([]string, 0, len(previous)-1)
 		for _, id := range previous {
 			if id != nodeID {
 				newList = append(newList, id)
@@ -152,10 +151,10 @@ func (m *MockupClusterProvider) DeleteNode(clusterID string, nodeID string) derr
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupClusterProvider) Clear() derrors.Error {
+func (m *MockupClusterProvider) Clear() derrors.Error {
 	m.Lock()
 	m.clusters = make(map[string]entities.Cluster, 0)
-	m.nodes = make(map[string] []string, 0)
+	m.nodes = make(map[string][]string, 0)
 	m.Unlock()
 	return nil
 }

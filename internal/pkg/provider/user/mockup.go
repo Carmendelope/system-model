@@ -16,22 +16,22 @@ type MockupUserProvider struct {
 	users map[string]entities.User
 }
 
-func NewMockupUserProvider() * MockupUserProvider {
+func NewMockupUserProvider() *MockupUserProvider {
 	return &MockupUserProvider{
 		users: make(map[string]entities.User, 0),
 	}
 }
 
-func (m * MockupUserProvider) unsafeExists(email string) bool {
+func (m *MockupUserProvider) unsafeExists(email string) bool {
 	_, exists := m.users[email]
 	return exists
 }
 
 // Add a new user to the system.
-func (m * MockupUserProvider) Add(user entities.User) derrors.Error{
+func (m *MockupUserProvider) Add(user entities.User) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(user.Email){
+	if !m.unsafeExists(user.Email) {
 		m.users[user.Email] = user
 		return nil
 	}
@@ -39,10 +39,10 @@ func (m * MockupUserProvider) Add(user entities.User) derrors.Error{
 }
 
 // Update an existing user in the system
-func (m * MockupUserProvider) Update(user entities.User) derrors.Error{
+func (m *MockupUserProvider) Update(user entities.User) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(user.Email){
+	if !m.unsafeExists(user.Email) {
 		return derrors.NewNotFoundError(user.Email)
 	}
 	m.users[user.Email] = user
@@ -50,14 +50,14 @@ func (m * MockupUserProvider) Update(user entities.User) derrors.Error{
 }
 
 // Exists checks if a user exists on the system.
-func (m * MockupUserProvider) Exists(email string) (bool, derrors.Error){
+func (m *MockupUserProvider) Exists(email string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExists(email), nil
 }
 
 // Get a user.
-func (m * MockupUserProvider) Get(email string) (* entities.User, derrors.Error){
+func (m *MockupUserProvider) Get(email string) (*entities.User, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	user, exists := m.users[email]
@@ -68,10 +68,10 @@ func (m * MockupUserProvider) Get(email string) (* entities.User, derrors.Error)
 }
 
 // Remove a user.
-func (m * MockupUserProvider) Remove(email string) derrors.Error{
+func (m *MockupUserProvider) Remove(email string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(email){
+	if !m.unsafeExists(email) {
 		return derrors.NewNotFoundError(email)
 	}
 	delete(m.users, email)
@@ -79,7 +79,7 @@ func (m * MockupUserProvider) Remove(email string) derrors.Error{
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupUserProvider) Clear() derrors.Error{
+func (m *MockupUserProvider) Clear() derrors.Error {
 	m.Lock()
 	m.users = make(map[string]entities.User, 0)
 	m.Unlock()
