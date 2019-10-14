@@ -16,11 +16,14 @@ import (
 
 // AssetTable with the name of the table that stores asset information.
 const AssetTable = "Asset"
+
 // AssetTablePK with the name of the primary key for the asset table.
 const AssetTablePK = "asset_id"
+
 // AllAssetColumns contains the name of all the columns in the asset table.
 var allAssetColumns = []string{"organization_id", "edge_controller_id", "asset_id", "agent_id", "show",
 	"created", "labels", "os", "hardware", "storage", "eic_net_ip", "last_alive_timestamp", "last_op_result", "location"}
+
 // AllAssetColumnsNoPK contains the name of all the columns in the asset table except the PK.
 var allAssetColumnsNoPK = []string{"organization_id", "edge_controller_id", "agent_id", "show",
 	"created", "labels", "os", "hardware", "storage", "eic_net_ip", "last_alive_timestamp", "last_op_result", "location"}
@@ -30,11 +33,11 @@ type ScyllaAssetProvider struct {
 	sync.Mutex
 }
 
-func NewScyllaAssetProvider(address string, port int, keyspace string) * ScyllaAssetProvider{
+func NewScyllaAssetProvider(address string, port int, keyspace string) *ScyllaAssetProvider {
 	provider := ScyllaAssetProvider{
-		ScyllaDB : scylladb.ScyllaDB{
-			Address: address,
-			Port : port,
+		ScyllaDB: scylladb.ScyllaDB{
+			Address:  address,
+			Port:     port,
 			Keyspace: keyspace,
 		},
 	}
@@ -74,7 +77,7 @@ func (sp *ScyllaAssetProvider) Get(assetID string) (*entities.Asset, derrors.Err
 	defer sp.Unlock()
 	var result interface{} = &entities.Asset{}
 	err := sp.UnsafeGet(AssetTable, AssetTablePK, assetID, allAssetColumns, &result)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	return result.(*entities.Asset), nil
@@ -89,11 +92,11 @@ func (sp *ScyllaAssetProvider) List(organizationID string) ([]entities.Asset, de
 	}
 
 	stmt, names := qb.Select(AssetTable).Columns(allAssetColumns...).Where(qb.Eq("organization_id")).ToCql()
-	q:= gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"organization_id": organizationID,
 	})
 
-	assets := make ([]entities.Asset, 0)
+	assets := make([]entities.Asset, 0)
 	cqlErr := q.SelectRelease(&assets)
 
 	if cqlErr != nil {
@@ -112,11 +115,11 @@ func (sp *ScyllaAssetProvider) ListControllerAssets(edgeControllerID string) ([]
 		return nil, err
 	}
 	stmt, names := qb.Select(AssetTable).Columns(allAssetColumns...).Where(qb.Eq("edge_controller_id")).ToCql()
-	q:= gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"edge_controller_id": edgeControllerID,
 	})
 
-	assets := make ([]entities.Asset, 0)
+	assets := make([]entities.Asset, 0)
 	cqlErr := q.SelectRelease(&assets)
 
 	if cqlErr != nil {
@@ -125,7 +128,6 @@ func (sp *ScyllaAssetProvider) ListControllerAssets(edgeControllerID string) ([]
 
 	return assets, nil
 }
-
 
 func (sp *ScyllaAssetProvider) Remove(assetID string) derrors.Error {
 	sp.Lock()

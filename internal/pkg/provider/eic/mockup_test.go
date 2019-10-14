@@ -6,7 +6,7 @@ package eic
 
 import "github.com/onsi/ginkgo"
 
-var _ = ginkgo.Describe("Mockup EIC provider", func(){
+var _ = ginkgo.Describe("Mockup EIC provider", func() {
 	provider := NewMockupEICProvider()
 	RunTest(provider)
 })

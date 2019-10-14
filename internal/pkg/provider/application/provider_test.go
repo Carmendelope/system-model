@@ -39,14 +39,14 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(descriptor).NotTo(gomega.BeNil())
 		})
-		ginkgo.It ("Should not be able to get the descriptor", func (){
+		ginkgo.It("Should not be able to get the descriptor", func() {
 			app, err := provider.GetDescriptor(uuid.New().String())
 			gomega.Expect(err).NotTo(gomega.Succeed())
 			gomega.Expect(app).To(gomega.BeNil())
 		})
 
 		// DescriptorExists
-		ginkgo.It("Should be able to find the descriptor", func(){
+		ginkgo.It("Should be able to find the descriptor", func() {
 
 			descriptor := CreateTestApplicationDescriptor(uuid.New().String())
 
@@ -59,20 +59,20 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(exists).To(gomega.BeTrue())
 		})
-		ginkgo.It("Should not be able to find the descriptor", func(){
+		ginkgo.It("Should not be able to find the descriptor", func() {
 			exists, err := provider.DescriptorExists(uuid.New().String())
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(exists).NotTo(gomega.BeTrue())
 		})
 
-		ginkgo.It("should be able to update a descriptor", func(){
+		ginkgo.It("should be able to update a descriptor", func() {
 			descriptor := CreateTestApplicationDescriptor(uuid.New().String())
 			// add the application
 			err := provider.AddDescriptor(*descriptor)
 			gomega.Expect(err).To(gomega.Succeed())
 			// update
 			descriptor.Name = "newName"
-			descriptor.InboundNetInterfaces = []entities.InboundNetworkInterface{{Name:"inbound1mod"},{Name: "inbound2mod"}}
+			descriptor.InboundNetInterfaces = []entities.InboundNetworkInterface{{Name: "inbound1mod"}, {Name: "inbound2mod"}}
 			err = provider.UpdateDescriptor(*descriptor)
 			gomega.Expect(err).To(gomega.Succeed())
 			// check the update
@@ -139,7 +139,7 @@ func RunTest(provider Provider) {
 		})
 
 		// ExistsInstance
-		ginkgo.It("Should be able to find the appInstance", func(){
+		ginkgo.It("Should be able to find the appInstance", func() {
 
 			app := CreateTestApplication(uuid.New().String(), uuid.New().String())
 
@@ -152,7 +152,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(exists).To(gomega.BeTrue())
 		})
-		ginkgo.It("Should not be able to find the appInstance", func(){
+		ginkgo.It("Should not be able to find the appInstance", func() {
 			exists, err := provider.InstanceExists("application instance")
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(exists).NotTo(gomega.BeTrue())
@@ -172,7 +172,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(app).NotTo(gomega.BeNil())
 		})
-		ginkgo.It ("Should not be able to get the appInstance", func (){
+		ginkgo.It("Should not be able to get the appInstance", func() {
 			app, err := provider.GetInstance("application instance")
 			gomega.Expect(err).NotTo(gomega.Succeed())
 			gomega.Expect(app).To(gomega.BeNil())
@@ -266,8 +266,8 @@ func RunTest(provider Provider) {
 	ginkgo.Context("Instance Parameters", func() {
 		ginkgo.It("Should be able to add instance parameters", func() {
 
-			parameters := []entities.InstanceParameter {
-				{"param1", "value1",},
+			parameters := []entities.InstanceParameter{
+				{"param1", "value1"},
 				{"param2", "value2"},
 			}
 			err := provider.AddInstanceParameters(uuid.New().String(), parameters)
@@ -276,8 +276,8 @@ func RunTest(provider Provider) {
 		})
 		ginkgo.It("Should not be able to add instance parameters twice", func() {
 			instanceID := uuid.New().String()
-			parameters := []entities.InstanceParameter {
-				{"param1", "value1",},
+			parameters := []entities.InstanceParameter{
+				{"param1", "value1"},
 				{"param2", "value2"},
 			}
 			err := provider.AddInstanceParameters(instanceID, parameters)
@@ -288,8 +288,8 @@ func RunTest(provider Provider) {
 		})
 		ginkgo.It("Should be able to retrieve the params of an instance", func() {
 			instanceID := uuid.New().String()
-			parameters := []entities.InstanceParameter {
-				{"param1", "value1",},
+			parameters := []entities.InstanceParameter{
+				{"param1", "value1"},
 				{"param2", "value2"},
 			}
 			err := provider.AddInstanceParameters(instanceID, parameters)
@@ -310,8 +310,8 @@ func RunTest(provider Provider) {
 		})
 		ginkgo.It("should be able to remove the params of an instance", func() {
 			instanceID := uuid.New().String()
-			parameters := []entities.InstanceParameter {
-				{"param1", "value1",},
+			parameters := []entities.InstanceParameter{
+				{"param1", "value1"},
 				{"param2", "value2"},
 			}
 			err := provider.AddInstanceParameters(instanceID, parameters)

@@ -24,9 +24,9 @@ create the tables using data from the creation script
 
 */
 
-var _ = ginkgo.Describe("Scylla asset provider", func(){
+var _ = ginkgo.Describe("Scylla asset provider", func() {
 
-	if ! utils.RunIntegrationTests() {
+	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
 	}

@@ -14,14 +14,13 @@ import (
 // Handler structure for the application requests.
 type Handler struct {
 	Manager Manager
-
-}// NewHandler creates a new Handler with a linked manager.
-func NewHandler(manager Manager) *Handler{
+} // NewHandler creates a new Handler with a linked manager.
+func NewHandler(manager Manager) *Handler {
 	return &Handler{manager}
 }
 
 // AddDeviceGroup adds a new device group to the system.
-func (h *Handler) AddDeviceGroup(ctx context.Context, addRequest *grpc_device_go.AddDeviceGroupRequest) (*grpc_device_go.DeviceGroup, error){
+func (h *Handler) AddDeviceGroup(ctx context.Context, addRequest *grpc_device_go.AddDeviceGroupRequest) (*grpc_device_go.DeviceGroup, error) {
 
 	err := devices.ValidAddDeviceGroupRequest(addRequest)
 	if err != nil {
@@ -34,8 +33,9 @@ func (h *Handler) AddDeviceGroup(ctx context.Context, addRequest *grpc_device_go
 	}
 	return added.ToGRPC(), nil
 }
+
 // ListDeviceGroups obtains a list of device groups in an organization.
-func (h *Handler) ListDeviceGroups(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_device_go.DeviceGroupList, error){
+func (h *Handler) ListDeviceGroups(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_device_go.DeviceGroupList, error) {
 
 	err := entities.ValidOrganizationID(organizationID)
 	if err != nil {
@@ -54,8 +54,9 @@ func (h *Handler) ListDeviceGroups(ctx context.Context, organizationID *grpc_org
 	}
 	return result, nil
 }
+
 // GetDeviceGroup retrieves a given device group in an organization.
-func (h *Handler) GetDeviceGroup(ctx context.Context, DeviceGroupID *grpc_device_go.DeviceGroupId) (*grpc_device_go.DeviceGroup, error){
+func (h *Handler) GetDeviceGroup(ctx context.Context, DeviceGroupID *grpc_device_go.DeviceGroupId) (*grpc_device_go.DeviceGroup, error) {
 	err := devices.ValidDeviceGroupId(DeviceGroupID)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -66,8 +67,9 @@ func (h *Handler) GetDeviceGroup(ctx context.Context, DeviceGroupID *grpc_device
 	}
 	return group.ToGRPC(), nil
 }
+
 // RemoveDeviceGroup removes a device group
-func (h *Handler) RemoveDeviceGroup(ctx context.Context, removeRequest *grpc_device_go.RemoveDeviceGroupRequest) (*grpc_common_go.Success, error){
+func (h *Handler) RemoveDeviceGroup(ctx context.Context, removeRequest *grpc_device_go.RemoveDeviceGroupRequest) (*grpc_common_go.Success, error) {
 
 	err := devices.ValidRemoveDeviceGroupRequest(removeRequest)
 	if err != nil {
@@ -79,8 +81,9 @@ func (h *Handler) RemoveDeviceGroup(ctx context.Context, removeRequest *grpc_dev
 	}
 	return &grpc_common_go.Success{}, nil
 }
+
 // GetDeviceGroupsByNames obtains a list the device groups .
-func (h *Handler) GetDeviceGroupsByNames(ctx context.Context, request *grpc_device_go.GetDeviceGroupsRequest)  (*grpc_device_go.DeviceGroupList, error) {
+func (h *Handler) GetDeviceGroupsByNames(ctx context.Context, request *grpc_device_go.GetDeviceGroupsRequest) (*grpc_device_go.DeviceGroupList, error) {
 	err := devices.ValidGetDeviceGroupsRequest(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -99,10 +102,11 @@ func (h *Handler) GetDeviceGroupsByNames(ctx context.Context, request *grpc_devi
 	return result, nil
 
 }
+
 // ------------------------------------------------------------------------------------------------------------------
 
 // AddDevice adds a new group to the system
-func (h *Handler) AddDevice(ctx context.Context, addRequest *grpc_device_go.AddDeviceRequest) (*grpc_device_go.Device, error){
+func (h *Handler) AddDevice(ctx context.Context, addRequest *grpc_device_go.AddDeviceRequest) (*grpc_device_go.Device, error) {
 	err := devices.ValidAddDeviceRequest(addRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -114,8 +118,9 @@ func (h *Handler) AddDevice(ctx context.Context, addRequest *grpc_device_go.AddD
 	}
 	return added.ToGRPC(), nil
 }
+
 // ListDevice obtains a list of devices in a device_group
-func (h *Handler) ListDevices(ctx context.Context, deviceGroupRequest *grpc_device_go.DeviceGroupId) (*grpc_device_go.DeviceList, error){
+func (h *Handler) ListDevices(ctx context.Context, deviceGroupRequest *grpc_device_go.DeviceGroupId) (*grpc_device_go.DeviceList, error) {
 
 	err := devices.ValidDeviceGroupId(deviceGroupRequest)
 	if err != nil {
@@ -134,8 +139,9 @@ func (h *Handler) ListDevices(ctx context.Context, deviceGroupRequest *grpc_devi
 	}
 	return result, nil
 }
+
 // GetDevice retrieves a given device in an organization.
-func (h *Handler) GetDevice(ctx context.Context, deviceRequest *grpc_device_go.DeviceId) (*grpc_device_go.Device, error){
+func (h *Handler) GetDevice(ctx context.Context, deviceRequest *grpc_device_go.DeviceId) (*grpc_device_go.Device, error) {
 	err := devices.ValidDeviceID(deviceRequest)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
@@ -146,6 +152,7 @@ func (h *Handler) GetDevice(ctx context.Context, deviceRequest *grpc_device_go.D
 	}
 	return device.ToGRPC(), nil
 }
+
 // RemoveDevice removes a given device
 func (h *Handler) RemoveDevice(ctx context.Context, removeRequest *grpc_device_go.RemoveDeviceRequest) (*grpc_common_go.Success, error) {
 
@@ -159,8 +166,9 @@ func (h *Handler) RemoveDevice(ctx context.Context, removeRequest *grpc_device_g
 	}
 	return &grpc_common_go.Success{}, nil
 }
+
 // UpdateDevice updates the device info (labels)
-func (h *Handler) UpdateDevice(ctx context.Context, request *grpc_device_go.UpdateDeviceRequest) (*grpc_device_go.Device, error){
+func (h *Handler) UpdateDevice(ctx context.Context, request *grpc_device_go.UpdateDeviceRequest) (*grpc_device_go.Device, error) {
 	err := devices.ValidUpdateDeviceRequest(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)

@@ -18,10 +18,9 @@ type Provider interface {
 	// Exists checks if a user exists on the system.
 	Exists(email string) (bool, derrors.Error)
 	// Get a user.
-	Get(email string) (* entities.User, derrors.Error)
+	Get(email string) (*entities.User, derrors.Error)
 	// Remove a user.
 	Remove(email string) derrors.Error
 	// Clear
 	Clear() derrors.Error
-
 }

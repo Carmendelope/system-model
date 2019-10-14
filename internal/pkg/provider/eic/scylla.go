@@ -15,11 +15,14 @@ import (
 
 // ControllerTable with the name of the table that stores controller information.
 const ControllerTable = "Controller"
+
 // ControllerTablePK with the name of the primary key for the controller table.
 const ControllerTablePK = "edge_controller_id"
+
 // AllControllerColumns contains the name of all the columns in the controller table.
 var allControllerColumns = []string{"organization_id", "edge_controller_id", "show",
 	"created", "name", "labels", "last_alive_timestamp", "location", "os", "hardware", "storage", "last_op_result"}
+
 // AllControllerColumnsNoPK contains the name of all the columns in the controller table except the PK.
 var allControllerColumnsNoPK = []string{"organization_id", "show",
 	"created", "name", "labels", "last_alive_timestamp", "location", "os", "hardware", "storage", "last_op_result"}
@@ -29,11 +32,11 @@ type ScyllaControllerProvider struct {
 	sync.Mutex
 }
 
-func NewScyllaControllerProvider(address string, port int, keyspace string) * ScyllaControllerProvider{
+func NewScyllaControllerProvider(address string, port int, keyspace string) *ScyllaControllerProvider {
 	provider := ScyllaControllerProvider{
-		ScyllaDB : scylladb.ScyllaDB{
-			Address: address,
-			Port : port,
+		ScyllaDB: scylladb.ScyllaDB{
+			Address:  address,
+			Port:     port,
 			Keyspace: keyspace,
 		},
 	}
@@ -71,7 +74,7 @@ func (sp *ScyllaControllerProvider) Get(edgeControllerID string) (*entities.Edge
 	defer sp.Unlock()
 	var result interface{} = &entities.EdgeController{}
 	err := sp.UnsafeGet(ControllerTable, ControllerTablePK, edgeControllerID, allControllerColumns, &result)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	return result.(*entities.EdgeController), nil
@@ -87,11 +90,11 @@ func (sp *ScyllaControllerProvider) List(organizationID string) ([]entities.Edge
 	}
 
 	stmt, names := qb.Select(ControllerTable).Columns(allControllerColumns...).Where(qb.Eq("organization_id")).ToCql()
-	q:= gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"organization_id": organizationID,
 	})
 
-	controllers := make ([]entities.EdgeController, 0)
+	controllers := make([]entities.EdgeController, 0)
 	cqlErr := q.SelectRelease(&controllers)
 
 	if cqlErr != nil {

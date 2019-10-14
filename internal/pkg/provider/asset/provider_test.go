@@ -16,8 +16,8 @@ func RunTest(provider Provider) {
 		provider.Clear()
 	})
 
-	ginkgo.Context("adding assets", func(){
-		ginkgo.It("should be able to add full asset", func(){
+	ginkgo.Context("adding assets", func() {
+		ginkgo.It("should be able to add full asset", func() {
 			toAdd := CreateTestAsset()
 			err := provider.Add(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -25,7 +25,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(exists).To(gomega.BeTrue())
 		})
-		ginkgo.It("should be able to add a basic asset", func(){
+		ginkgo.It("should be able to add a basic asset", func() {
 			toAdd := CreateTestAsset()
 			toAdd.Storage = nil
 			toAdd.Hardware = nil
@@ -38,7 +38,7 @@ func RunTest(provider Provider) {
 		})
 	})
 
-	ginkgo.It("should be able to update an asset", func(){
+	ginkgo.It("should be able to update an asset", func() {
 		toAdd := CreateTestAsset()
 		err := provider.Add(*toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -47,7 +47,7 @@ func RunTest(provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 	})
 
-	ginkgo.It("should be able to retrieve an asset", func(){
+	ginkgo.It("should be able to retrieve an asset", func() {
 		toAdd := CreateTestAsset()
 		err := provider.Add(*toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -59,17 +59,17 @@ func RunTest(provider Provider) {
 		gomega.Expect(retrieved).To(gomega.Equal(toAdd))
 	})
 
-	ginkgo.It("should be able to list the assets in an organization", func(){
-	    numAssets := 10
+	ginkgo.It("should be able to list the assets in an organization", func() {
+		numAssets := 10
 		organizationID := entities.GenerateUUID()
-		for index := 0; index < numAssets; index ++{
+		for index := 0; index < numAssets; index++ {
 			toAdd := CreateTestAsset()
 			toAdd.OrganizationId = organizationID
 			err := provider.Add(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 		}
 		// Add elements to other organizations
-		for index := 0; index < numAssets; index ++{
+		for index := 0; index < numAssets; index++ {
 			toAdd := CreateTestAsset()
 			err := provider.Add(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -79,14 +79,14 @@ func RunTest(provider Provider) {
 		gomega.Expect(len(retrieved)).To(gomega.Equal(numAssets))
 	})
 
-	ginkgo.It("should be able to list the assets in an organization associated with an edge controller", func(){
+	ginkgo.It("should be able to list the assets in an organization associated with an edge controller", func() {
 		numAssets := 10
 		organizationID := entities.GenerateUUID()
 		edgeControllerID := entities.GenerateUUID()
-		for index := 0; index < numAssets; index ++{
+		for index := 0; index < numAssets; index++ {
 			toAdd := CreateTestAsset()
 			toAdd.OrganizationId = organizationID
-			if index % 2 == 0{
+			if index%2 == 0 {
 				toAdd.EdgeControllerId = edgeControllerID
 			}
 			err := provider.Add(*toAdd)
@@ -95,10 +95,10 @@ func RunTest(provider Provider) {
 
 		retrieved, err := provider.ListControllerAssets(edgeControllerID)
 		gomega.Expect(err).To(gomega.Succeed())
-		gomega.Expect(len(retrieved)).To(gomega.Equal(numAssets/2))
+		gomega.Expect(len(retrieved)).To(gomega.Equal(numAssets / 2))
 	})
 
-	ginkgo.It("should be able to delete an asset", func(){
+	ginkgo.It("should be able to delete an asset", func() {
 		toAdd := CreateTestAsset()
 		err := provider.Add(*toAdd)
 		gomega.Expect(err).To(gomega.Succeed())

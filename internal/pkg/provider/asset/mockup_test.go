@@ -6,7 +6,7 @@ package asset
 
 import "github.com/onsi/ginkgo"
 
-var _ = ginkgo.Describe("Mockup Asset provider", func(){
+var _ = ginkgo.Describe("Mockup Asset provider", func() {
 	provider := NewMockupAssetProvider()
 	RunTest(provider)
 })

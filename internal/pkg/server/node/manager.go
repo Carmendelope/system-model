@@ -17,9 +17,9 @@ import (
 
 // Manager structure with the required providers for node operations.
 type Manager struct {
-	OrgProvider organization.Provider
+	OrgProvider     organization.Provider
 	ClusterProvider cluster.Provider
-	NodeProvider node.Provider
+	NodeProvider    node.Provider
 }
 
 // NewManager creates a Manager using a set of providers.
@@ -31,12 +31,12 @@ func NewManager(
 }
 
 // AddNode adds a new node to the system.
-func (m * Manager) AddNode(addNodeRequest *grpc_infrastructure_go.AddNodeRequest) (*entities.Node, derrors.Error) {
+func (m *Manager) AddNode(addNodeRequest *grpc_infrastructure_go.AddNodeRequest) (*entities.Node, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(addNodeRequest.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addNodeRequest.OrganizationId)
 	}
 	toAdd := entities.NewNodeFromGRPC(addNodeRequest)
@@ -51,54 +51,54 @@ func (m * Manager) AddNode(addNodeRequest *grpc_infrastructure_go.AddNodeRequest
 	return toAdd, nil
 }
 
-func (m * Manager) UpdateNode(updateNodeRequest * grpc_infrastructure_go.UpdateNodeRequest) (*entities.Node, derrors.Error){
+func (m *Manager) UpdateNode(updateNodeRequest *grpc_infrastructure_go.UpdateNodeRequest) (*entities.Node, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(updateNodeRequest.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(updateNodeRequest.OrganizationId)
 	}
 	exists, err = m.OrgProvider.NodeExists(updateNodeRequest.OrganizationId, updateNodeRequest.NodeId)
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("nodeID").WithParams(updateNodeRequest.NodeId)
 	}
 	old, err := m.NodeProvider.Get(updateNodeRequest.NodeId)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	old.ApplyUpdate(*updateNodeRequest)
 	err = m.NodeProvider.Update(*old)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	return old, nil
 }
 
 // AttachNode links a node with a given cluster.
-func (m * Manager) AttachNode(attachNodeRequest *grpc_infrastructure_go.AttachNodeRequest) derrors.Error {
+func (m *Manager) AttachNode(attachNodeRequest *grpc_infrastructure_go.AttachNodeRequest) derrors.Error {
 	exists, err := m.OrgProvider.Exists(attachNodeRequest.OrganizationId)
 	if err != nil {
 		return err
 	}
-	if !exists{
+	if !exists {
 		return derrors.NewNotFoundError("organizationID").WithParams(attachNodeRequest.OrganizationId)
 	}
 	exists, err = m.OrgProvider.ClusterExists(attachNodeRequest.OrganizationId, attachNodeRequest.ClusterId)
 	if err != nil {
 		return err
 	}
-	if !exists{
+	if !exists {
 		return derrors.NewNotFoundError("clusterID").WithParams(attachNodeRequest.ClusterId)
 	}
 	exists, err = m.OrgProvider.NodeExists(attachNodeRequest.OrganizationId, attachNodeRequest.NodeId)
 	if err != nil {
 		return err
 	}
-	if !exists{
+	if !exists {
 		return derrors.NewNotFoundError("nodeID").WithParams(attachNodeRequest.NodeId)
 	}
 	retrieved, err := m.NodeProvider.Get(attachNodeRequest.NodeId)
@@ -118,19 +118,19 @@ func (m * Manager) AttachNode(attachNodeRequest *grpc_infrastructure_go.AttachNo
 }
 
 // ListNodes obtains a list of nodes in a cluster.
-func (m * Manager) ListNodes(clusterID *grpc_infrastructure_go.ClusterId) ([] entities.Node, derrors.Error) {
+func (m *Manager) ListNodes(clusterID *grpc_infrastructure_go.ClusterId) ([]entities.Node, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(clusterID.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(clusterID.OrganizationId)
 	}
 	nodes, err := m.ClusterProvider.ListNodes(clusterID.ClusterId)
 	if err != nil {
 		return nil, err
 	}
-	result := make([] entities.Node, 0)
+	result := make([]entities.Node, 0)
 	for _, nID := range nodes {
 		toAdd, err := m.NodeProvider.Get(nID)
 		if err != nil {
@@ -142,12 +142,12 @@ func (m * Manager) ListNodes(clusterID *grpc_infrastructure_go.ClusterId) ([] en
 }
 
 // RemoveNodes removes a set of nodes from the system.
-func (m * Manager) RemoveNodes(removeNodesRequest *grpc_infrastructure_go.RemoveNodesRequest) derrors.Error {
+func (m *Manager) RemoveNodes(removeNodesRequest *grpc_infrastructure_go.RemoveNodesRequest) derrors.Error {
 	exists, err := m.OrgProvider.Exists(removeNodesRequest.OrganizationId)
 	if err != nil {
 		return err
 	}
-	if ! exists{
+	if !exists {
 		return derrors.NewNotFoundError("organizationID").WithParams(removeNodesRequest.OrganizationId)
 	}
 

@@ -17,12 +17,12 @@ type Manager struct {
 }
 
 // NewManager creates a Manager using a set of providers.
-func NewManager(provider organization.Provider) Manager{
+func NewManager(provider organization.Provider) Manager {
 	return Manager{provider}
 }
 
 // AddOrganization adds a new organization to the system.
-func (m *Manager) AddOrganization(toAdd grpc_organization_go.AddOrganizationRequest) (* entities.Organization, derrors.Error) {
+func (m *Manager) AddOrganization(toAdd grpc_organization_go.AddOrganizationRequest) (*entities.Organization, derrors.Error) {
 	newOrg := entities.NewOrganization(toAdd.Name)
 
 	exists, err := m.Provider.ExistsByName(newOrg.Name)
@@ -41,11 +41,11 @@ func (m *Manager) AddOrganization(toAdd grpc_organization_go.AddOrganizationRequ
 }
 
 // GetOrganization retrieves the profile information of a given organization.
-func (m *Manager) GetOrganization(orgID grpc_organization_go.OrganizationId) (* entities.Organization, derrors.Error) {
+func (m *Manager) GetOrganization(orgID grpc_organization_go.OrganizationId) (*entities.Organization, derrors.Error) {
 	return m.Provider.Get(orgID.OrganizationId)
 }
 
 // ListOrganization retrieves the profile information of a given organization.
-func (m *Manager) ListOrganization() ([] entities.Organization, derrors.Error) {
+func (m *Manager) ListOrganization() ([]entities.Organization, derrors.Error) {
 	return m.Provider.List()
 }

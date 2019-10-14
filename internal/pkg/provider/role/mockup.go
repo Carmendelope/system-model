@@ -16,22 +16,22 @@ type MockupRoleProvider struct {
 	roles map[string]entities.Role
 }
 
-func NewMockupRoleProvider() * MockupRoleProvider {
+func NewMockupRoleProvider() *MockupRoleProvider {
 	return &MockupRoleProvider{
 		roles: make(map[string]entities.Role, 0),
 	}
 }
 
-func (m * MockupRoleProvider) unsafeExists(roleID string) bool {
+func (m *MockupRoleProvider) unsafeExists(roleID string) bool {
 	_, exists := m.roles[roleID]
 	return exists
 }
 
 // Add a new role to the system.
-func(m * MockupRoleProvider) Add(role entities.Role) derrors.Error{
+func (m *MockupRoleProvider) Add(role entities.Role) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(role.RoleId){
+	if !m.unsafeExists(role.RoleId) {
 		m.roles[role.RoleId] = role
 		return nil
 	}
@@ -39,10 +39,10 @@ func(m * MockupRoleProvider) Add(role entities.Role) derrors.Error{
 }
 
 // Update an existing role in the system
-func(m * MockupRoleProvider) Update(role entities.Role) derrors.Error{
+func (m *MockupRoleProvider) Update(role entities.Role) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(role.RoleId){
+	if !m.unsafeExists(role.RoleId) {
 		return derrors.NewNotFoundError(role.RoleId)
 	}
 	m.roles[role.RoleId] = role
@@ -50,14 +50,14 @@ func(m * MockupRoleProvider) Update(role entities.Role) derrors.Error{
 }
 
 // Exists checks if a role exists on the system.
-func(m * MockupRoleProvider) Exists(roleID string) (bool, derrors.Error){
+func (m *MockupRoleProvider) Exists(roleID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExists(roleID), nil
 }
 
 // Get a role.
-func(m * MockupRoleProvider) Get(roleID string) (* entities.Role, derrors.Error){
+func (m *MockupRoleProvider) Get(roleID string) (*entities.Role, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	role, exists := m.roles[roleID]
@@ -68,10 +68,10 @@ func(m * MockupRoleProvider) Get(roleID string) (* entities.Role, derrors.Error)
 }
 
 // Remove a role
-func(m * MockupRoleProvider) Remove(roleID string) derrors.Error{
+func (m *MockupRoleProvider) Remove(roleID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	if !m.unsafeExists(roleID){
+	if !m.unsafeExists(roleID) {
 		return derrors.NewNotFoundError(roleID)
 	}
 	delete(m.roles, roleID)
@@ -79,7 +79,7 @@ func(m * MockupRoleProvider) Remove(roleID string) derrors.Error{
 }
 
 // Clear cleans the contents of the mockup.
-func (m * MockupRoleProvider) Clear() derrors.Error {
+func (m *MockupRoleProvider) Clear() derrors.Error {
 	m.Lock()
 	m.roles = make(map[string]entities.Role, 0)
 	m.Unlock()

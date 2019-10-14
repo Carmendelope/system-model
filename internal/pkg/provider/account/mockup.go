@@ -14,28 +14,28 @@ type MockupAccountProvider struct {
 	// Mutex for managing mockup access.
 	sync.Mutex
 	// accounts with a map of assets indexed by accountID.
-	accounts map[string]entities.Account
+	accounts     map[string]entities.Account
 	accountNames map[string]bool
 }
 
-func NewMockupAccountProvider() * MockupAccountProvider{
+func NewMockupAccountProvider() *MockupAccountProvider {
 	return &MockupAccountProvider{
-		accounts: make(map[string]entities.Account, 0),
+		accounts:     make(map[string]entities.Account, 0),
 		accountNames: make(map[string]bool, 0),
 	}
 }
 
-func (m *MockupAccountProvider) unsafeExists(accountID string) bool{
+func (m *MockupAccountProvider) unsafeExists(accountID string) bool {
 	_, exists := m.accounts[accountID]
 	return exists
 }
 
 // Add a new account to the system.
-func (m *MockupAccountProvider) Add(account entities.Account) derrors.Error{
+func (m *MockupAccountProvider) Add(account entities.Account) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
-	if !m.unsafeExists(account.AccountId){
+	if !m.unsafeExists(account.AccountId) {
 		m.accounts[account.AccountId] = account
 		m.accountNames[account.Name] = true
 		return nil
@@ -44,28 +44,28 @@ func (m *MockupAccountProvider) Add(account entities.Account) derrors.Error{
 }
 
 // Update the information of an account.
-func (m *MockupAccountProvider) Update(account entities.Account) derrors.Error{
+func (m *MockupAccountProvider) Update(account entities.Account) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
-	if !m.unsafeExists(account.AccountId){
+	if !m.unsafeExists(account.AccountId) {
 		return derrors.NewNotFoundError(account.AccountId)
 	}
-	delete (m.accountNames, m.accounts[account.AccountId].Name)
+	delete(m.accountNames, m.accounts[account.AccountId].Name)
 	m.accounts[account.AccountId] = account
 	m.accountNames[account.Name] = true
 	return nil
 }
 
 // Exists checks if an account exists on the system.
-func (m *MockupAccountProvider) Exists(accountID string) (bool, derrors.Error){
+func (m *MockupAccountProvider) Exists(accountID string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
 	return m.unsafeExists(accountID), nil
 }
 
-func (m *MockupAccountProvider) ExistsByName(accountName string) (bool, derrors.Error){
+func (m *MockupAccountProvider) ExistsByName(accountName string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -75,7 +75,7 @@ func (m *MockupAccountProvider) ExistsByName(accountName string) (bool, derrors.
 }
 
 // Get an account.
-func (m *MockupAccountProvider) Get(accountID string) (*entities.Account, derrors.Error){
+func (m *MockupAccountProvider) Get(accountID string) (*entities.Account, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -86,24 +86,23 @@ func (m *MockupAccountProvider) Get(accountID string) (*entities.Account, derror
 	return nil, derrors.NewNotFoundError(accountID)
 }
 
-func (m *MockupAccountProvider) List() ([]entities.Account, derrors.Error){
+func (m *MockupAccountProvider) List() ([]entities.Account, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
-	list := make ([]entities.Account, 0)
+	list := make([]entities.Account, 0)
 	for _, account := range m.accounts {
 		list = append(list, account)
 	}
 	return list, nil
 }
 
-
 // Remove an account
-func (m *MockupAccountProvider) Remove(accountID string) derrors.Error{
+func (m *MockupAccountProvider) Remove(accountID string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
-	if !m.unsafeExists(accountID){
+	if !m.unsafeExists(accountID) {
 		return derrors.NewNotFoundError(accountID)
 	}
 	delete(m.accountNames, m.accounts[accountID].Name)
@@ -112,7 +111,7 @@ func (m *MockupAccountProvider) Remove(accountID string) derrors.Error{
 }
 
 // Clear all accounts
-func (m *MockupAccountProvider) Clear() derrors.Error{
+func (m *MockupAccountProvider) Clear() derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 	m.accounts = make(map[string]entities.Account, 0)

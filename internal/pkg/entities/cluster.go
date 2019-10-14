@@ -84,19 +84,19 @@ const (
 )
 
 var ClusterStatusToGRPC = map[ClusterStatus]grpc_connectivity_manager_go.ClusterStatus{
-	ClusterStatusUnknown: grpc_connectivity_manager_go.ClusterStatus_UNKNOWN,
-	ClusterStatusOffline: grpc_connectivity_manager_go.ClusterStatus_OFFLINE,
-	ClusterStatusOnline: grpc_connectivity_manager_go.ClusterStatus_ONLINE,
-	ClusterStatusOfflineCordon:grpc_connectivity_manager_go.ClusterStatus_OFFLINE_CORDON,
-	ClusterStatusOnlineCordon: grpc_connectivity_manager_go.ClusterStatus_ONLINE_CORDON,
+	ClusterStatusUnknown:       grpc_connectivity_manager_go.ClusterStatus_UNKNOWN,
+	ClusterStatusOffline:       grpc_connectivity_manager_go.ClusterStatus_OFFLINE,
+	ClusterStatusOnline:        grpc_connectivity_manager_go.ClusterStatus_ONLINE,
+	ClusterStatusOfflineCordon: grpc_connectivity_manager_go.ClusterStatus_OFFLINE_CORDON,
+	ClusterStatusOnlineCordon:  grpc_connectivity_manager_go.ClusterStatus_ONLINE_CORDON,
 }
 
 var ClusterStatusFromGRPC = map[grpc_connectivity_manager_go.ClusterStatus]ClusterStatus{
-	grpc_connectivity_manager_go.ClusterStatus_UNKNOWN: ClusterStatusUnknown,
-	grpc_connectivity_manager_go.ClusterStatus_OFFLINE:    ClusterStatusOffline,
-	grpc_connectivity_manager_go.ClusterStatus_ONLINE:      ClusterStatusOnline,
+	grpc_connectivity_manager_go.ClusterStatus_UNKNOWN:        ClusterStatusUnknown,
+	grpc_connectivity_manager_go.ClusterStatus_OFFLINE:        ClusterStatusOffline,
+	grpc_connectivity_manager_go.ClusterStatus_ONLINE:         ClusterStatusOnline,
 	grpc_connectivity_manager_go.ClusterStatus_OFFLINE_CORDON: ClusterStatusOfflineCordon,
-	grpc_connectivity_manager_go.ClusterStatus_ONLINE_CORDON: ClusterStatusOnlineCordon,
+	grpc_connectivity_manager_go.ClusterStatus_ONLINE_CORDON:  ClusterStatusOnlineCordon,
 }
 
 // Cluster entity representing a collection of nodes that supports applicaiton orchestration. This
@@ -121,13 +121,13 @@ type Cluster struct {
 	// Labels for the cluster.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Cordon flags to signal conductor not to schedule apps in the cluster.
+	// Deprecated: will be removed TODO
 	Cordon bool `json:"cordon,omitempty"`
 	// Cluster watch information
 	ClusterWatch ClusterWatchInfo `json:"cluster_watch,omitempty"`
 	// Last alive timestamp
 	LastAliveTimestamp int64 `json:"last_alive_timestamp,omitempty"`
 }
-
 
 // The cluster watcher contains information to ensure the connectivity between clusters. This data
 // is required by Cilium and other connectivity platforms.
@@ -152,33 +152,33 @@ type ClusterWatchInfo struct {
 
 func NewClusterWatchInfo(name string, organizationId, clusterId string, ip string, ciliumId string,
 	ciliumEtcdCaCrt string, ciliumEtcdCrt string, ciliumEtcdKey string) *ClusterWatchInfo {
-		return &ClusterWatchInfo{
-			Name:            name,
-			OrganizationId:  organizationId,
-			ClusterId:       clusterId,
-			Ip:              ip,
-			CiliumId:        ciliumId,
-			CiliumEtcdCaCrt: ciliumEtcdCaCrt,
-			CiliumEtcdKey:   ciliumEtcdKey,
-			CiliumEtcdCrt:   ciliumEtcdCrt,
-		}
+	return &ClusterWatchInfo{
+		Name:            name,
+		OrganizationId:  organizationId,
+		ClusterId:       clusterId,
+		Ip:              ip,
+		CiliumId:        ciliumId,
+		CiliumEtcdCaCrt: ciliumEtcdCaCrt,
+		CiliumEtcdKey:   ciliumEtcdKey,
+		CiliumEtcdCrt:   ciliumEtcdCrt,
+	}
 }
 
-func(c *ClusterWatchInfo) ToGRPC() *grpc_cluster_watcher_go.ClusterWatchInfo {
+func (c *ClusterWatchInfo) ToGRPC() *grpc_cluster_watcher_go.ClusterWatchInfo {
 	return &grpc_cluster_watcher_go.ClusterWatchInfo{
-		Name: c.Name,
-		ClusterId: c.ClusterId,
-		Ip: c.Ip,
-		CiliumEtcdCrt: c.CiliumEtcdCrt,
-		CiliumEtcdKey: c.CiliumEtcdKey,
+		Name:            c.Name,
+		ClusterId:       c.ClusterId,
+		Ip:              c.Ip,
+		CiliumEtcdCrt:   c.CiliumEtcdCrt,
+		CiliumEtcdKey:   c.CiliumEtcdKey,
 		CiliumEtcdCaCrt: c.CiliumEtcdCaCrt,
-		CiliumId: c.CiliumId,
+		CiliumId:        c.CiliumId,
 	}
 }
 
 func ClusterWatchInfoFromGRPC(clusterWatch *grpc_cluster_watcher_go.ClusterWatchInfo) *ClusterWatchInfo {
 	return NewClusterWatchInfo(clusterWatch.Name, clusterWatch.OrganizationId, clusterWatch.ClusterId,
-		clusterWatch.Ip,clusterWatch.CiliumId, clusterWatch.CiliumEtcdCaCrt, clusterWatch.CiliumEtcdCrt,
+		clusterWatch.Ip, clusterWatch.CiliumId, clusterWatch.CiliumEtcdCaCrt, clusterWatch.CiliumEtcdCrt,
 		clusterWatch.CiliumEtcdKey)
 }
 

@@ -18,13 +18,13 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 )
 
-func CreateAddAccountRequest () *grpc_account_go.AddAccountRequest {
+func CreateAddAccountRequest() *grpc_account_go.AddAccountRequest {
 	return &grpc_account_go.AddAccountRequest{
 
-		Name: fmt.Sprintf("Account-%s", entities.GenerateUUID()),
-		FullName: "Account Full Name",
-		CompanyName: "Company",
-		Address: "Address 10",
+		Name:           fmt.Sprintf("Account-%s", entities.GenerateUUID()),
+		FullName:       "Account Full Name",
+		CompanyName:    "Company",
+		Address:        "Address 10",
 		AdditionalInfo: "Additional info of account",
 	}
 }
@@ -65,7 +65,7 @@ var _ = ginkgo.Describe("Account service", func() {
 	ginkgo.Context("Adding account", func() {
 		ginkgo.It("should be able to add a new account", func() {
 			toAdd := CreateAddAccountRequest()
-			account , err := client.AddAccount(context.Background(),toAdd)
+			account, err := client.AddAccount(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(account).NotTo(gomega.BeNil())
 			gomega.Expect(account.AccountId).NotTo(gomega.BeEmpty())
@@ -73,17 +73,17 @@ var _ = ginkgo.Describe("Account service", func() {
 		ginkgo.It("should not be able to add an account without name", func() {
 			toAdd := CreateAddAccountRequest()
 			toAdd.Name = ""
-			_ , err := client.AddAccount(context.Background(),toAdd)
+			_, err := client.AddAccount(context.Background(), toAdd)
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
 		})
 		ginkgo.It("should not be able to add two accounts with the same name", func() {
 			toAdd := CreateAddAccountRequest()
-			account , err := client.AddAccount(context.Background(),toAdd)
+			account, err := client.AddAccount(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(account).NotTo(gomega.BeNil())
 
-			_ , err = client.AddAccount(context.Background(),toAdd)
+			_, err = client.AddAccount(context.Background(), toAdd)
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
 		})
@@ -92,12 +92,12 @@ var _ = ginkgo.Describe("Account service", func() {
 	ginkgo.Context("Getting account", func() {
 		ginkgo.It("should be able to get an account", func() {
 			toAdd := CreateAddAccountRequest()
-			account , err := client.AddAccount(context.Background(),toAdd)
+			account, err := client.AddAccount(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(account).NotTo(gomega.BeNil())
 
 			retrieved, err := client.GetAccount(context.Background(), &grpc_account_go.AccountId{
-				AccountId:account.AccountId,
+				AccountId: account.AccountId,
 			})
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieved).NotTo(gomega.BeNil())
@@ -106,10 +106,9 @@ var _ = ginkgo.Describe("Account service", func() {
 		})
 		ginkgo.It("should not be able to get a non existing account", func() {
 			_, err := client.GetAccount(context.Background(), &grpc_account_go.AccountId{
-				AccountId:entities.GenerateUUID(),
+				AccountId: entities.GenerateUUID(),
 			})
 			gomega.Expect(err).NotTo(gomega.Succeed())
-
 
 		})
 	})
@@ -117,13 +116,12 @@ var _ = ginkgo.Describe("Account service", func() {
 	ginkgo.Context("Getting account", func() {
 		ginkgo.It("should be able to get an account", func() {
 			numAccounts := 10
-			for i:= 0; i< numAccounts; i++ {
+			for i := 0; i < numAccounts; i++ {
 				toAdd := CreateAddAccountRequest()
-				account , err := client.AddAccount(context.Background(),toAdd)
+				account, err := client.AddAccount(context.Background(), toAdd)
 				gomega.Expect(err).To(gomega.Succeed())
 				gomega.Expect(account).NotTo(gomega.BeNil())
 			}
-
 
 			list, err := client.ListAccounts(context.Background(), &grpc_common_go.Empty{})
 			gomega.Expect(err).To(gomega.Succeed())
@@ -134,17 +132,17 @@ var _ = ginkgo.Describe("Account service", func() {
 	})
 	//UpdateAccount(ctx context.Context, in *UpdateAccountRequest, opts ...grpc.CallOption) (*grpc_common_go.Success, error)
 	ginkgo.Context("Updating account", func() {
-		ginkgo.It("Should be able to update an account", func(){
+		ginkgo.It("Should be able to update an account", func() {
 
 			toAdd := CreateAddAccountRequest()
-			account , err := client.AddAccount(context.Background(),toAdd)
+			account, err := client.AddAccount(context.Background(), toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(account).NotTo(gomega.BeNil())
 
 			success, err := client.UpdateAccount(context.Background(), &grpc_account_go.UpdateAccountRequest{
-				AccountId: account.AccountId,
+				AccountId:  account.AccountId,
 				UpdateName: true,
-				Name: "updated name",
+				Name:       "updated name",
 			})
 			gomega.Expect(success).ShouldNot(gomega.BeNil())
 			gomega.Expect(err).To(gomega.Succeed())
@@ -157,62 +155,62 @@ var _ = ginkgo.Describe("Account service", func() {
 			gomega.Expect(retrieved.Name).Should(gomega.Equal("updated name"))
 
 		})
-		ginkgo.It("Should not be able to update the name of an account if the name already exists", func(){
+		ginkgo.It("Should not be able to update the name of an account if the name already exists", func() {
 
 			toAdd1 := CreateAddAccountRequest()
-			account1 , err := client.AddAccount(context.Background(),toAdd1)
+			account1, err := client.AddAccount(context.Background(), toAdd1)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(account1).NotTo(gomega.BeNil())
 
 			toAdd2 := CreateAddAccountRequest()
-			account2 , err := client.AddAccount(context.Background(),toAdd2)
+			account2, err := client.AddAccount(context.Background(), toAdd2)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(account2).NotTo(gomega.BeNil())
 
 			success, err := client.UpdateAccount(context.Background(), &grpc_account_go.UpdateAccountRequest{
-				AccountId: account1.AccountId,
+				AccountId:  account1.AccountId,
 				UpdateName: true,
-				Name: account2.Name,
+				Name:       account2.Name,
 			})
 			gomega.Expect(success).Should(gomega.BeNil())
 			gomega.Expect(err).NotTo(gomega.Succeed())
 
 		})
 	})
-	 //UpdateAccountBillingInfo(ctx context.Context, in *UpdateAccountBillingInfoRequest, opts ...grpc.CallOption) (*grpc_common_go.Success, error)
-	 ginkgo.Context("updating billing info of an account", func(){
-		 ginkgo.It("Should be able to update the billing information of account", func(){
+	//UpdateAccountBillingInfo(ctx context.Context, in *UpdateAccountBillingInfoRequest, opts ...grpc.CallOption) (*grpc_common_go.Success, error)
+	ginkgo.Context("updating billing info of an account", func() {
+		ginkgo.It("Should be able to update the billing information of account", func() {
 
-			 toAdd := CreateAddAccountRequest()
-			 account , err := client.AddAccount(context.Background(),toAdd)
-			 gomega.Expect(err).To(gomega.Succeed())
-			 gomega.Expect(account).NotTo(gomega.BeNil())
+			toAdd := CreateAddAccountRequest()
+			account, err := client.AddAccount(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(account).NotTo(gomega.BeNil())
 
-			 success, err := client.UpdateAccountBillingInfo(context.Background(), &grpc_account_go.UpdateAccountBillingInfoRequest{
-				 AccountId: account.AccountId,
-				 UpdateFullName: true,
-				 FullName: "full name updated",
-			 })
-			 gomega.Expect(success).ShouldNot(gomega.BeNil())
-			 gomega.Expect(err).To(gomega.Succeed())
+			success, err := client.UpdateAccountBillingInfo(context.Background(), &grpc_account_go.UpdateAccountBillingInfoRequest{
+				AccountId:      account.AccountId,
+				UpdateFullName: true,
+				FullName:       "full name updated",
+			})
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
+			gomega.Expect(err).To(gomega.Succeed())
 
-			 // check the account to check the udpate works
-			 retrieved, err := client.GetAccount(context.Background(), &grpc_account_go.AccountId{
-				 AccountId: account.AccountId,
-			 })
-			 gomega.Expect(err).To(gomega.Succeed())
-			 gomega.Expect(retrieved.BillingInfo.FullName).Should(gomega.Equal("full name updated"))
-		 })
-		 ginkgo.It("Should not be able to update the billing information of a non existing account", func(){
+			// check the account to check the udpate works
+			retrieved, err := client.GetAccount(context.Background(), &grpc_account_go.AccountId{
+				AccountId: account.AccountId,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(retrieved.BillingInfo.FullName).Should(gomega.Equal("full name updated"))
+		})
+		ginkgo.It("Should not be able to update the billing information of a non existing account", func() {
 
-			 success, err := client.UpdateAccountBillingInfo(context.Background(), &grpc_account_go.UpdateAccountBillingInfoRequest{
-				 AccountId: entities.GenerateUUID(),
-				 UpdateFullName: true,
-				 FullName: "full name updated",
-			 })
-			 gomega.Expect(success).Should(gomega.BeNil())
-			 gomega.Expect(err).NotTo(gomega.Succeed())
+			success, err := client.UpdateAccountBillingInfo(context.Background(), &grpc_account_go.UpdateAccountBillingInfoRequest{
+				AccountId:      entities.GenerateUUID(),
+				UpdateFullName: true,
+				FullName:       "full name updated",
+			})
+			gomega.Expect(success).Should(gomega.BeNil())
+			gomega.Expect(err).NotTo(gomega.Succeed())
 
-		 })
-	 })
+		})
+	})
 })

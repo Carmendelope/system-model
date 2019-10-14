@@ -160,7 +160,7 @@ func (sap *ScyllaApplicationNetworkProvider) GetConnectionInstance(organizationI
 	}
 	return result.(*entities.ConnectionInstance), nil
 }
-func (sap *ScyllaApplicationNetworkProvider) GetConnectionByZtNetworkId(ztNetworkId string) ([]entities.ConnectionInstance, derrors.Error){
+func (sap *ScyllaApplicationNetworkProvider) GetConnectionByZtNetworkId(ztNetworkId string) ([]entities.ConnectionInstance, derrors.Error) {
 	sap.Lock()
 	defer sap.Unlock()
 	if err := sap.CheckAndConnect(); err != nil {
@@ -180,7 +180,6 @@ func (sap *ScyllaApplicationNetworkProvider) GetConnectionByZtNetworkId(ztNetwor
 
 	return connections, nil
 }
-
 
 func (sap *ScyllaApplicationNetworkProvider) ListConnectionInstances(organizationId string) ([]entities.ConnectionInstance, derrors.Error) {
 	sap.Lock()

@@ -138,7 +138,7 @@ func (manager *Manager) GetConnectionInstance(connectionId *grpc_application_net
 		return nil, err
 	}
 
-	conn, err :=   manager.AppNetProvider.GetConnectionInstance(connectionId.OrganizationId, connectionId.SourceInstanceId, connectionId.TargetInstanceId,
+	conn, err := manager.AppNetProvider.GetConnectionInstance(connectionId.OrganizationId, connectionId.SourceInstanceId, connectionId.TargetInstanceId,
 		connectionId.InboundName, connectionId.OutboundName)
 	if err != nil {
 		return nil, conversions.ToDerror(err)
@@ -213,7 +213,7 @@ func (manager *Manager) RemoveConnectionInstance(removeConnectionRequest *grpc_a
 	return nil
 }
 
-func (manager *Manager) GetConnectionByZtNetworkId( request *grpc_application_network_go.ZTNetworkConnectionId) (*entities.ConnectionInstance, derrors.Error){
+func (manager *Manager) GetConnectionByZtNetworkId(request *grpc_application_network_go.ZTNetworkConnectionId) (*entities.ConnectionInstance, derrors.Error) {
 
 	if err := manager.validOrganization(request.OrganizationId); err != nil {
 		return nil, err
@@ -231,7 +231,6 @@ func (manager *Manager) GetConnectionByZtNetworkId( request *grpc_application_ne
 	return nil, derrors.NewNotFoundError("ConnectionByZtNetworkId not found").WithParams(request.OrganizationId, request.ZtNetworkId)
 
 }
-
 
 // ListConnectionInstances Retrieves a list of all the connection instances linked to the given organization
 func (manager *Manager) ListConnectionInstances(organizationId *grpc_organization_go.OrganizationId) ([]entities.ConnectionInstance, derrors.Error) {
@@ -310,12 +309,11 @@ func (manager *Manager) ListOutboundConnections(appInstanceID *grpc_application_
 	return outboundList, nil
 }
 
-
 // check if the instance has a service wich its identifier is serviceId
-func (manager *Manager) checkServiceId (inst *entities.AppInstance, serviceId string) derrors.Error {
+func (manager *Manager) checkServiceId(inst *entities.AppInstance, serviceId string) derrors.Error {
 	found := false
-	for  i:=0; i<len(inst.Groups) && !found ; i++ { // , group := range inst.Groups {
-		for j:=0; j<len(inst.Groups[i].ServiceInstances) && ! found; j++ { //, service := range group.ServiceInstances {
+	for i := 0; i < len(inst.Groups) && !found; i++ { // , group := range inst.Groups {
+		for j := 0; j < len(inst.Groups[i].ServiceInstances) && !found; j++ { //, service := range group.ServiceInstances {
 			if inst.Groups[i].ServiceInstances[j].ServiceId == serviceId { // .ServiceId == serviceId{
 				found = true
 			}
@@ -327,7 +325,7 @@ func (manager *Manager) checkServiceId (inst *entities.AppInstance, serviceId st
 	return nil
 }
 
-func (manager *Manager) AddZTNetworkConnection(addRequest *grpc_application_network_go.ZTNetworkConnection) (*entities.ZTNetworkConnection, derrors.Error){
+func (manager *Manager) AddZTNetworkConnection(addRequest *grpc_application_network_go.ZTNetworkConnection) (*entities.ZTNetworkConnection, derrors.Error) {
 
 	// check if the organization exists
 	err := manager.validOrganization(addRequest.OrganizationId)
@@ -352,8 +350,9 @@ func (manager *Manager) AddZTNetworkConnection(addRequest *grpc_application_netw
 	}
 	return toAdd, nil
 }
+
 // ListZTNetworkConnection lists the connections in one zt network (one inbound and one outbound)
-func (manager *Manager) ListZTNetworkConnection(ztNetworkId *grpc_application_network_go.ZTNetworkConnectionId) ([]entities.ZTNetworkConnection, derrors.Error){
+func (manager *Manager) ListZTNetworkConnection(ztNetworkId *grpc_application_network_go.ZTNetworkConnectionId) ([]entities.ZTNetworkConnection, derrors.Error) {
 	// check if the organization exists
 	err := manager.validOrganization(ztNetworkId.OrganizationId)
 	if err != nil {
@@ -365,8 +364,9 @@ func (manager *Manager) ListZTNetworkConnection(ztNetworkId *grpc_application_ne
 	}
 	return list, nil
 }
+
 // UpdateZTNetworkConnection updates an existing zt connection
-func (manager *Manager) UpdateZTNetworkConnection(updateRequest *grpc_application_network_go.UpdateZTNetworkConnectionRequest) derrors.Error{
+func (manager *Manager) UpdateZTNetworkConnection(updateRequest *grpc_application_network_go.UpdateZTNetworkConnectionRequest) derrors.Error {
 	// check if the organization exists
 	err := manager.validOrganization(updateRequest.OrganizationId)
 	if err != nil {
@@ -390,7 +390,7 @@ func (manager *Manager) UpdateZTNetworkConnection(updateRequest *grpc_applicatio
 }
 
 // Remove ZTNetwork removes the ztNetworkConnection (the inbound and the outbound)
-func (manager *Manager) RemoveZTNetworkConnection(ztNetworkId *grpc_application_network_go.ZTNetworkConnectionId) derrors.Error{
+func (manager *Manager) RemoveZTNetworkConnection(ztNetworkId *grpc_application_network_go.ZTNetworkConnectionId) derrors.Error {
 	// check if the organization exists
 	err := manager.validOrganization(ztNetworkId.OrganizationId)
 	if err != nil {

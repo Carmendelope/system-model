@@ -8,7 +8,7 @@ import (
 type Provider interface {
 
 	// AddDeviceGroup adds a new device group
-	AddDeviceGroup (deviceGroup devices.DeviceGroup) derrors.Error
+	AddDeviceGroup(deviceGroup devices.DeviceGroup) derrors.Error
 	// ExistsDeviceGroup checks if a group exists on the system.
 	ExistsDeviceGroup(organizationID string, deviceGroupID string) (bool, derrors.Error)
 	// ExistsDeviceGroupByName checks if a group exists on the system.
@@ -23,7 +23,7 @@ type Provider interface {
 	RemoveDeviceGroup(organizationID string, deviceGroup string) derrors.Error
 
 	// AddDevice adds a new device group
-	AddDevice (device devices.Device) derrors.Error
+	AddDevice(device devices.Device) derrors.Error
 	// ExistsDevice checks if a device exists on the system.
 	ExistsDevice(organizationID string, deviceGroupID string, deviceID string) (bool, derrors.Error)
 	// GetDevice returns a device .
@@ -36,5 +36,4 @@ type Provider interface {
 	UpdateDevice(device devices.Device) derrors.Error
 
 	Clear() derrors.Error
-
 }

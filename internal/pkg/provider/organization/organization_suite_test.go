@@ -6,8 +6,7 @@ import (
 	"testing"
 )
 
-func TestOrganizationProviderPackage(t *testing.T){
+func TestOrganizationProviderPackage(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "Organization Providers package suite")
 }
-

@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestDeviceProviderPackage(t *testing.T){
+func TestDeviceProviderPackage(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "DeviceProvider package suite")
 }

@@ -18,9 +18,9 @@ var debugLevel bool
 var consoleLogging bool
 
 var rootCmd = &cobra.Command{
-	Use:   "system-model",
-	Short: "System Model server component",
-	Long:  `The System Model server component is responsible of the high level entities in the system.`,
+	Use:     "system-model",
+	Short:   "System Model server component",
+	Long:    `The System Model server component is responsible of the high level entities in the system.`,
 	Version: "unknown-version",
 
 	Run: func(cmd *cobra.Command, args []string) {

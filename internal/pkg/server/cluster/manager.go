@@ -17,7 +17,7 @@ import (
 
 // Manager structure with the required providers for cluster operations.
 type Manager struct {
-	OrgProvider organization.Provider
+	OrgProvider     organization.Provider
 	ClusterProvider cluster.Provider
 }
 
@@ -27,12 +27,12 @@ func NewManager(orgProvider organization.Provider, clusterProvider cluster.Provi
 }
 
 // AddCluster adds a new cluster to the system.
-func (m * Manager) AddCluster(addClusterRequest *grpc_infrastructure_go.AddClusterRequest) (*entities.Cluster, derrors.Error) {
+func (m *Manager) AddCluster(addClusterRequest *grpc_infrastructure_go.AddClusterRequest) (*entities.Cluster, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(addClusterRequest.OrganizationId)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addClusterRequest.OrganizationId)
 	}
 	toAdd := entities.NewClusterFromGRPC(addClusterRequest)
@@ -48,12 +48,12 @@ func (m * Manager) AddCluster(addClusterRequest *grpc_infrastructure_go.AddClust
 	return toAdd, nil
 }
 
-func (m * Manager) UpdateCluster(updateRequest * grpc_infrastructure_go.UpdateClusterRequest) (*entities.Cluster, derrors.Error){
+func (m *Manager) UpdateCluster(updateRequest *grpc_infrastructure_go.UpdateClusterRequest) (*entities.Cluster, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(updateRequest.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if ! exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(updateRequest.OrganizationId)
 	}
 
@@ -61,28 +61,28 @@ func (m * Manager) UpdateCluster(updateRequest * grpc_infrastructure_go.UpdateCl
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("clusterID").WithParams(updateRequest.OrganizationId, updateRequest.ClusterId)
 	}
 	old, err := m.ClusterProvider.Get(updateRequest.ClusterId)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	old.ApplyUpdate(*updateRequest)
 	err = m.ClusterProvider.Update(*old)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	return old, nil
 }
 
 // GetCluster retrieves the cluster information.
-func (m * Manager) GetCluster(clusterID *grpc_infrastructure_go.ClusterId) (*entities.Cluster, derrors.Error) {
+func (m *Manager) GetCluster(clusterID *grpc_infrastructure_go.ClusterId) (*entities.Cluster, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(clusterID.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if ! exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(clusterID.OrganizationId)
 	}
 
@@ -90,26 +90,26 @@ func (m * Manager) GetCluster(clusterID *grpc_infrastructure_go.ClusterId) (*ent
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("clusterID").WithParams(clusterID.OrganizationId, clusterID.ClusterId)
 	}
 	return m.ClusterProvider.Get(clusterID.ClusterId)
 }
 
 // ListClusters obtains a list of the clusters in the organization.
-func (m * Manager) ListClusters(organizationID *grpc_organization_go.OrganizationId) ([] entities.Cluster, derrors.Error) {
-	exists, err	 := m.OrgProvider.Exists(organizationID.OrganizationId)
+func (m *Manager) ListClusters(organizationID *grpc_organization_go.OrganizationId) ([]entities.Cluster, derrors.Error) {
+	exists, err := m.OrgProvider.Exists(organizationID.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(organizationID.OrganizationId)
 	}
 	clusters, err := m.OrgProvider.ListClusters(organizationID.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	result := make([] entities.Cluster, 0)
+	result := make([]entities.Cluster, 0)
 	for _, cID := range clusters {
 		toAdd, err := m.ClusterProvider.Get(cID)
 		if err != nil {
@@ -122,12 +122,12 @@ func (m * Manager) ListClusters(organizationID *grpc_organization_go.Organizatio
 
 // RemoveCluster removes a cluster from an organization. Notice that removing a cluster implies draining the cluster
 // of running applications.
-func (m * Manager) RemoveCluster(removeClusterRequest *grpc_infrastructure_go.RemoveClusterRequest) derrors.Error {
+func (m *Manager) RemoveCluster(removeClusterRequest *grpc_infrastructure_go.RemoveClusterRequest) derrors.Error {
 	exists, err := m.OrgProvider.Exists(removeClusterRequest.OrganizationId)
 	if err != nil {
 		return err
 	}
-	if ! exists{
+	if !exists {
 		return derrors.NewNotFoundError("organizationID").WithParams(removeClusterRequest.OrganizationId)
 	}
 
@@ -135,7 +135,7 @@ func (m * Manager) RemoveCluster(removeClusterRequest *grpc_infrastructure_go.Re
 	if err != nil {
 		return err
 	}
-	if !exists{
+	if !exists {
 		return derrors.NewNotFoundError("clusterID").WithParams(removeClusterRequest.OrganizationId, removeClusterRequest.ClusterId)
 	}
 
@@ -149,7 +149,7 @@ func (m * Manager) RemoveCluster(removeClusterRequest *grpc_infrastructure_go.Re
 		rollbackError := m.OrgProvider.AddCluster(removeClusterRequest.OrganizationId, removeClusterRequest.ClusterId)
 		if rollbackError != nil {
 			log.Error().Str("trace", conversions.ToDerror(rollbackError).DebugReport()).
-				Str("removeClusterRequest.OrganizationId",removeClusterRequest.OrganizationId).
+				Str("removeClusterRequest.OrganizationId", removeClusterRequest.OrganizationId).
 				Str("removeClusterRequest.ClusterId", removeClusterRequest.ClusterId).
 				Msg("error in Rollback")
 		}
@@ -157,12 +157,12 @@ func (m * Manager) RemoveCluster(removeClusterRequest *grpc_infrastructure_go.Re
 	return err
 }
 
-func (m * Manager) CordonCluster(clusterID *grpc_infrastructure_go.ClusterId) derrors.Error {
+func (m *Manager) CordonCluster(clusterID *grpc_infrastructure_go.ClusterId) derrors.Error {
 	exists, err := m.OrgProvider.Exists(clusterID.OrganizationId)
 	if err != nil {
 		return err
 	}
-	if ! exists{
+	if !exists {
 		return derrors.NewNotFoundError("organizationID").WithParams(clusterID.OrganizationId)
 	}
 
@@ -170,35 +170,52 @@ func (m * Manager) CordonCluster(clusterID *grpc_infrastructure_go.ClusterId) de
 	if err != nil {
 		return err
 	}
-	if !exists{
+	if !exists {
 		return derrors.NewNotFoundError("clusterID").WithParams(clusterID.OrganizationId, clusterID.ClusterId)
 	}
 
 	old, err := m.ClusterProvider.Get(clusterID.ClusterId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
-	if old.Cordon {
-		// this was already cordoned. Nothing to do
+	if old.Status == entities.ClusterStatusUnknown {
+		return derrors.NewFailedPreconditionError("cannot cordon cluster with unknown state")
+	}
+	// Check the the cordon status
+	if old.Status == entities.ClusterStatusOfflineCordon || old.Status == entities.ClusterStatusOnlineCordon {
 		return nil
 	}
 
+	newStatus := entities.ClusterStatusUnknown
+	switch old.Status {
+	case entities.ClusterStatusOnline:
+		{
+			newStatus = entities.ClusterStatusOnlineCordon
+			break
+		}
+	case entities.ClusterStatusOffline:
+		{
+			newStatus = entities.ClusterStatusOfflineCordon
+			break
+		}
+	}
+
 	// this is going to be cordoned
-	old.Cordon = true
+	old.Status = newStatus
 	err = m.ClusterProvider.Update(*old)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (m * Manager) UncordonCluster(clusterID *grpc_infrastructure_go.ClusterId) derrors.Error {
+func (m *Manager) UncordonCluster(clusterID *grpc_infrastructure_go.ClusterId) derrors.Error {
 	exists, err := m.OrgProvider.Exists(clusterID.OrganizationId)
 	if err != nil {
 		return err
 	}
-	if ! exists{
+	if !exists {
 		return derrors.NewNotFoundError("organizationID").WithParams(clusterID.OrganizationId)
 	}
 
@@ -206,23 +223,38 @@ func (m * Manager) UncordonCluster(clusterID *grpc_infrastructure_go.ClusterId) 
 	if err != nil {
 		return err
 	}
-	if !exists{
+	if !exists {
 		return derrors.NewNotFoundError("clusterID").WithParams(clusterID.OrganizationId, clusterID.ClusterId)
 	}
 
 	old, err := m.ClusterProvider.Get(clusterID.ClusterId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
-	if !old.Cordon {
-		// this was already cordoned. Nothing to do
+	if old.Status == entities.ClusterStatusUnknown {
+		return derrors.NewFailedPreconditionError("cannot uncordon cluster with unknown state")
+	}
+	// Check the the cordon status for already uncordoned
+	if old.Status == entities.ClusterStatusOffline || old.Status == entities.ClusterStatusOnline {
 		return nil
 	}
 
-	// this is going to be cordoned
-	old.Cordon = false
+	newStatus := entities.ClusterStatusUnknown
+	switch old.Status {
+	case entities.ClusterStatusOnlineCordon:
+		{
+			newStatus = entities.ClusterStatusOnline
+			break
+		}
+	case entities.ClusterStatusOfflineCordon:
+		{
+			newStatus = entities.ClusterStatusOffline
+			break
+		}
+	}
+	old.Status = newStatus
 	err = m.ClusterProvider.Update(*old)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 

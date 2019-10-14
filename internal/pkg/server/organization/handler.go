@@ -15,7 +15,7 @@ import (
 )
 
 // Handler structure for the organization requests.
-type Handler struct{
+type Handler struct {
 	Manager Manager
 }
 
@@ -38,6 +38,7 @@ func (h *Handler) AddOrganization(ctx context.Context, addOrganizationRequest *g
 	log.Debug().Str("organizationID", org.ID).Msg("organization has been added")
 	return org.ToGRPC(), nil
 }
+
 // GetOrganization retrieves the profile information of a given organization.
 func (h *Handler) GetOrganization(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_organization_go.Organization, error) {
 	retrieved, err := h.Manager.GetOrganization(*organizationID)
@@ -48,7 +49,7 @@ func (h *Handler) GetOrganization(ctx context.Context, organizationID *grpc_orga
 }
 
 // ListOrganizations returns the list of organizations in the system.
-func (h *Handler) ListOrganizations(ctx context.Context, _ *grpc_common_go.Empty) (*grpc_organization_go.OrganizationList, error){
+func (h *Handler) ListOrganizations(ctx context.Context, _ *grpc_common_go.Empty) (*grpc_organization_go.OrganizationList, error) {
 
 	retrieved, err := h.Manager.ListOrganization()
 	if err != nil {
@@ -57,10 +58,10 @@ func (h *Handler) ListOrganizations(ctx context.Context, _ *grpc_common_go.Empty
 	return entities.OrganizationListToGRPC(retrieved), nil
 
 }
+
 // UpdateOrganization updates the public information of an organization.
 func (h *Handler) UpdateOrganization(ctx context.Context, updateOrganizationRequest *grpc_organization_go.UpdateOrganizationRequest) (*grpc_common_go.Success, error) {
 	notImplemented := derrors.NewUnimplementedError("update organization")
 
 	return nil, conversions.ToGRPCError(notImplemented)
 }
-

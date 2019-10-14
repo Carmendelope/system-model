@@ -43,11 +43,10 @@ type Provider interface {
 
 	AddZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error
 	ExistsZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string) (bool, derrors.Error)
-	GetZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string)(*entities.ZTNetworkConnection, derrors.Error)
+	GetZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string) (*entities.ZTNetworkConnection, derrors.Error)
 	UpdateZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error
 	ListZTConnections(organizationId string, networkId string) ([]entities.ZTNetworkConnection, derrors.Error)
-	RemoveZTConnection(organizationId string, networkId string)derrors.Error
-
+	RemoveZTConnection(organizationId string, networkId string) derrors.Error
 
 	// clear the connections information
 	Clear() derrors.Error

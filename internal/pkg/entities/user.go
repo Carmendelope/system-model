@@ -12,14 +12,14 @@ import (
 
 // User model the information available regarding a User of an organization
 type User struct {
-	OrganizationId       string   `json:"organization_id,omitempty"`
-	Email                string   `json:"email,omitempty"`
-	Name                 string   `json:"name,omitempty"`
-	PhotoUrl             string   `json:"photo_url,omitempty"`
-	MemberSince          int64    `json:"member_since,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty"`
+	Email          string `json:"email,omitempty"`
+	Name           string `json:"name,omitempty"`
+	PhotoUrl       string `json:"photo_url,omitempty"`
+	MemberSince    int64  `json:"member_since,omitempty"`
 }
 
-func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) * User{
+func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) *User {
 	return &User{
 		OrganizationId: addUserRequest.OrganizationId,
 		Email:          addUserRequest.Email,
@@ -29,18 +29,18 @@ func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) * User{
 	}
 }
 
-func (u * User) ToGRPC() * grpc_user_go.User {
+func (u *User) ToGRPC() *grpc_user_go.User {
 	return &grpc_user_go.User{
-		OrganizationId:       u.OrganizationId,
-		Email:                u.Email,
-		Name:                 u.Name,
-		PhotoUrl:             u.PhotoUrl,
-		MemberSince:          u.MemberSince,
+		OrganizationId: u.OrganizationId,
+		Email:          u.Email,
+		Name:           u.Name,
+		PhotoUrl:       u.PhotoUrl,
+		MemberSince:    u.MemberSince,
 	}
 }
 
-func (u * User) ApplyUpdate(request * grpc_user_go.UpdateUserRequest) {
-	if request.Name != ""{
+func (u *User) ApplyUpdate(request *grpc_user_go.UpdateUserRequest) {
+	if request.Name != "" {
 		u.Name = request.Name
 	}
 }

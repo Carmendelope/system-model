@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 )
+
 /*
 IT_SCYLLA_HOST=127.0.0.1
 IT_NALEJ_KEYSPACE=nalej
@@ -27,14 +28,13 @@ docker exec -it scylla cqlsh
 create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 create table nalej.Users (organization_id text, email text, name text, photo_url text, member_since int, PRIMARY KEY (email));
 
- */
+*/
 
-
-var _ = ginkgo.Describe("Scylla user provider", func(){
+var _ = ginkgo.Describe("Scylla user provider", func() {
 
 	var numUsers = 50
 
-	if ! utils.RunIntegrationTests() {
+	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
 	}
@@ -44,7 +44,7 @@ var _ = ginkgo.Describe("Scylla user provider", func(){
 		ginkgo.Fail("missing environment variables")
 	}
 
-	scyllaPort, _  := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
+	scyllaPort, _ := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
 
 	if scyllaPort <= 0 {
 		ginkgo.Fail("missing environment variables")
@@ -71,7 +71,7 @@ var _ = ginkgo.Describe("Scylla user provider", func(){
 
 	RunTest(sp)
 
-	ginkgo.It("Should be able to add user", func(){
+	ginkgo.It("Should be able to add user", func() {
 
 		for i := 0; i < numUsers; i++ {
 			email := fmt.Sprintf("email_%d@company.org", i)

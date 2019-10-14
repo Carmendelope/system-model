@@ -15,6 +15,7 @@ import (
 
 const AccountTable = "Account"
 const AccountTablePK = "account_id"
+
 var allAccountColumns = []string{"account_id", "name", "created", "billing_info", "state", "state_info"}
 var allAccountColumnsNoPK = []string{"name", "created", "billing_info", "state", "state_info"}
 
@@ -23,11 +24,11 @@ type ScyllaAccountProvider struct {
 	sync.Mutex
 }
 
-func NewScyllaAccountProvider(address string, port int, keyspace string) * ScyllaAccountProvider{
+func NewScyllaAccountProvider(address string, port int, keyspace string) *ScyllaAccountProvider {
 	provider := ScyllaAccountProvider{
-		ScyllaDB : scylladb.ScyllaDB{
-			Address: address,
-			Port : port,
+		ScyllaDB: scylladb.ScyllaDB{
+			Address:  address,
+			Port:     port,
 			Keyspace: keyspace,
 		},
 	}
@@ -43,14 +44,14 @@ func (sp *ScyllaAccountProvider) Disconnect() {
 }
 
 // Add a new account to the system.
-func (sp *ScyllaAccountProvider) Add(account entities.Account) derrors.Error{
+func (sp *ScyllaAccountProvider) Add(account entities.Account) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 	return sp.UnsafeAdd(AccountTable, AccountTablePK, account.AccountId, allAccountColumns, account)
 }
 
 // Update the information of an account.
-func (sp *ScyllaAccountProvider) Update(account entities.Account) derrors.Error{
+func (sp *ScyllaAccountProvider) Update(account entities.Account) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -58,14 +59,14 @@ func (sp *ScyllaAccountProvider) Update(account entities.Account) derrors.Error{
 }
 
 // Exists checks if an account exists on the system.
-func (sp *ScyllaAccountProvider) Exists(accountID string) (bool, derrors.Error){
+func (sp *ScyllaAccountProvider) Exists(accountID string) (bool, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
 	return sp.UnsafeGenericExist(AccountTable, AccountTablePK, accountID)
 }
 
-func (sp *ScyllaAccountProvider)ExistsByName(accountName string) (bool, derrors.Error){
+func (sp *ScyllaAccountProvider) ExistsByName(accountName string) (bool, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -73,7 +74,7 @@ func (sp *ScyllaAccountProvider)ExistsByName(accountName string) (bool, derrors.
 }
 
 // Get an account.
-func (sp *ScyllaAccountProvider) Get(accountID string) (*entities.Account, derrors.Error){
+func (sp *ScyllaAccountProvider) Get(accountID string) (*entities.Account, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -86,7 +87,7 @@ func (sp *ScyllaAccountProvider) Get(accountID string) (*entities.Account, derro
 	return account.(*entities.Account), nil
 }
 
-func (sp *ScyllaAccountProvider)List() ([]entities.Account, derrors.Error){
+func (sp *ScyllaAccountProvider) List() ([]entities.Account, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -109,7 +110,7 @@ func (sp *ScyllaAccountProvider)List() ([]entities.Account, derrors.Error){
 }
 
 // Remove an account
-func (sp *ScyllaAccountProvider) Remove(accountID string) derrors.Error{
+func (sp *ScyllaAccountProvider) Remove(accountID string) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -117,7 +118,7 @@ func (sp *ScyllaAccountProvider) Remove(accountID string) derrors.Error{
 }
 
 // Clear all accounts
-func (sp *ScyllaAccountProvider) Clear() derrors.Error{
+func (sp *ScyllaAccountProvider) Clear() derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 

@@ -19,7 +19,7 @@ type Handler struct {
 }
 
 // NewHandler creates a new Handler with a linked manager.
-func NewHandler(manager Manager) *Handler{
+func NewHandler(manager Manager) *Handler {
 	return &Handler{manager}
 }
 
@@ -83,7 +83,7 @@ func (h *Handler) ListNodes(ctx context.Context, clusterID *grpc_infrastructure_
 		toReturn = append(toReturn, n.ToGRPC())
 	}
 	result := &grpc_infrastructure_go.NodeList{
-		Nodes:          toReturn,
+		Nodes: toReturn,
 	}
 	return result, nil
 }

@@ -12,38 +12,37 @@ import (
 
 //  Device model the information available regarding a Device of an organization
 type Device struct {
-	OrganizationId	string                           `json:"organization_id,omitempty"`
-	DeviceGroupId 	string                           `json:"device_group_id,omitempty"`
-	DeviceId 		string                           `json:"device_id,omitempty"`
-	RegisterSince	int64                            `json:"register_since,omitempty"`
-	Labels			map[string]string                `json:"labels,omitempty"`
-	Os 				*entities.OperatingSystemInfo    `json:"os,omitempty" cql:"os"`
-	Hardware 		*entities.HardwareInfo           `json:"hardware,omitempty" cql:"hardware"`
-	Storage 		[]*entities.StorageHardwareInfo  `json:"storage,omitempty" cql:"storage"`
-	Location        *entities.InventoryLocation      `json:"location,omitempty" cql:"location"`
+	OrganizationId string                          `json:"organization_id,omitempty"`
+	DeviceGroupId  string                          `json:"device_group_id,omitempty"`
+	DeviceId       string                          `json:"device_id,omitempty"`
+	RegisterSince  int64                           `json:"register_since,omitempty"`
+	Labels         map[string]string               `json:"labels,omitempty"`
+	Os             *entities.OperatingSystemInfo   `json:"os,omitempty" cql:"os"`
+	Hardware       *entities.HardwareInfo          `json:"hardware,omitempty" cql:"hardware"`
+	Storage        []*entities.StorageHardwareInfo `json:"storage,omitempty" cql:"storage"`
+	Location       *entities.InventoryLocation     `json:"location,omitempty" cql:"location"`
 }
 
 type DeviceGroup struct {
-	OrganizationId 	string
-	DeviceGroupId	string
-	Name 			string
-	Created  		int64
-	Labels			map[string]string
+	OrganizationId string
+	DeviceGroupId  string
+	Name           string
+	Created        int64
+	Labels         map[string]string
 }
 
-func NewDeviceGroup (organizationID string, deviceGroupID string, name string, labels map[string]string) * DeviceGroup {
+func NewDeviceGroup(organizationID string, deviceGroupID string, name string, labels map[string]string) *DeviceGroup {
 	return &DeviceGroup{
-		OrganizationId:organizationID,
-		DeviceGroupId: deviceGroupID,
-		Name : name,
-		Created: time.Now().Unix(),
-		Labels: labels,
+		OrganizationId: organizationID,
+		DeviceGroupId:  deviceGroupID,
+		Name:           name,
+		Created:        time.Now().Unix(),
+		Labels:         labels,
 	}
 }
 
-
 // ----------- Device Group ----------- //
-func NewDeviceGroupFromGRPC (addRequest * grpc_device_go.AddDeviceGroupRequest) * DeviceGroup {
+func NewDeviceGroupFromGRPC(addRequest *grpc_device_go.AddDeviceGroupRequest) *DeviceGroup {
 	if addRequest == nil {
 		return nil
 	}
@@ -58,17 +57,17 @@ func NewDeviceGroupFromGRPC (addRequest * grpc_device_go.AddDeviceGroupRequest) 
 
 }
 
-func (d * DeviceGroup) ToGRPC() * grpc_device_go.DeviceGroup {
+func (d *DeviceGroup) ToGRPC() *grpc_device_go.DeviceGroup {
 	return &grpc_device_go.DeviceGroup{
 		OrganizationId: d.OrganizationId,
-		DeviceGroupId:	d.DeviceGroupId,
-		Name:			d.Name,
-		Labels:			d.Labels,
-		Created:		d.Created,
+		DeviceGroupId:  d.DeviceGroupId,
+		Name:           d.Name,
+		Labels:         d.Labels,
+		Created:        d.Created,
 	}
 }
 
-func ValidAddDeviceGroupRequest (addRequest * grpc_device_go.AddDeviceGroupRequest) derrors.Error {
+func ValidAddDeviceGroupRequest(addRequest *grpc_device_go.AddDeviceGroupRequest) derrors.Error {
 
 	if addRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
@@ -77,7 +76,7 @@ func ValidAddDeviceGroupRequest (addRequest * grpc_device_go.AddDeviceGroupReque
 	return nil
 }
 
-func ValidDeviceGroupId (deviceGroup * grpc_device_go.DeviceGroupId) derrors.Error {
+func ValidDeviceGroupId(deviceGroup *grpc_device_go.DeviceGroupId) derrors.Error {
 
 	if deviceGroup.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
@@ -89,7 +88,7 @@ func ValidDeviceGroupId (deviceGroup * grpc_device_go.DeviceGroupId) derrors.Err
 	return nil
 }
 
-func ValidRemoveDeviceGroupRequest (removeRequest * grpc_device_go.RemoveDeviceGroupRequest) derrors.Error {
+func ValidRemoveDeviceGroupRequest(removeRequest *grpc_device_go.RemoveDeviceGroupRequest) derrors.Error {
 	if removeRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
 	}
@@ -100,11 +99,11 @@ func ValidRemoveDeviceGroupRequest (removeRequest * grpc_device_go.RemoveDeviceG
 	return nil
 }
 
-func ValidGetDeviceGroupsRequest (request *grpc_device_go.GetDeviceGroupsRequest) derrors.Error {
+func ValidGetDeviceGroupsRequest(request *grpc_device_go.GetDeviceGroupsRequest) derrors.Error {
 	if request.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
 	}
-	if len(request.DeviceGroupNames) == 0{
+	if len(request.DeviceGroupNames) == 0 {
 		return derrors.NewInvalidArgumentError("device_group_names cannot be empty")
 	}
 
@@ -112,12 +111,12 @@ func ValidGetDeviceGroupsRequest (request *grpc_device_go.GetDeviceGroupsRequest
 }
 
 // ----------- Device ----------- //
-func NewDeviceFromGRPC (addRequest * grpc_device_go.AddDeviceRequest) * Device{
+func NewDeviceFromGRPC(addRequest *grpc_device_go.AddDeviceRequest) *Device {
 
 	var os *entities.OperatingSystemInfo
-	var hardware 		*entities.HardwareInfo
-	var storage 		[]*entities.StorageHardwareInfo
-	storage = make ([]*entities.StorageHardwareInfo, 0)
+	var hardware *entities.HardwareInfo
+	var storage []*entities.StorageHardwareInfo
+	storage = make([]*entities.StorageHardwareInfo, 0)
 
 	if addRequest.AssetInfo != nil {
 		os = entities.NewOperatingSystemInfoFromGRPC(addRequest.AssetInfo.Os)
@@ -128,20 +127,20 @@ func NewDeviceFromGRPC (addRequest * grpc_device_go.AddDeviceRequest) * Device{
 	}
 
 	return &Device{
-		OrganizationId:	addRequest.OrganizationId,
-		DeviceGroupId: 	addRequest.DeviceGroupId,
-		DeviceId:     	addRequest.DeviceId,
-		Labels:			addRequest.Labels,
-		RegisterSince: 	time.Now().Unix(),
-		Os: 		  	os,
-		Hardware: 		hardware,
-		Storage: 		storage,
+		OrganizationId: addRequest.OrganizationId,
+		DeviceGroupId:  addRequest.DeviceGroupId,
+		DeviceId:       addRequest.DeviceId,
+		Labels:         addRequest.Labels,
+		RegisterSince:  time.Now().Unix(),
+		Os:             os,
+		Hardware:       hardware,
+		Storage:        storage,
 	}
 }
 
-func (d * Device) ToGRPC() *grpc_device_go.Device {
+func (d *Device) ToGRPC() *grpc_device_go.Device {
 
-	storage := make ([]*grpc_inventory_go.StorageHardwareInfo, 0)
+	storage := make([]*grpc_inventory_go.StorageHardwareInfo, 0)
 	for _, sto := range d.Storage {
 		storage = append(storage, sto.ToGRPC())
 	}
@@ -161,9 +160,9 @@ func (d * Device) ToGRPC() *grpc_device_go.Device {
 	}
 }
 
-func (d * Device) ToGRPCDeviceManager() *grpc_device_manager_go.Device {
+func (d *Device) ToGRPCDeviceManager() *grpc_device_manager_go.Device {
 
-	storage := make ([]*grpc_inventory_go.StorageHardwareInfo, 0)
+	storage := make([]*grpc_inventory_go.StorageHardwareInfo, 0)
 	for _, sto := range d.Storage {
 		storage = append(storage, sto.ToGRPC())
 	}
@@ -201,13 +200,13 @@ func (d *Device) ApplyUpdate(updateRequest grpc_device_go.UpdateDeviceRequest) {
 	if updateRequest.UpdateLocation {
 		d.Location = &entities.InventoryLocation{
 			Geolocation: updateRequest.Location.Geolocation,
-			Geohash: updateRequest.Location.Geohash,
+			Geohash:     updateRequest.Location.Geohash,
 		}
 	}
 	log.Debug().Interface("updated", d).Msg("after applying update")
 }
 
-func ValidDeviceID (device * grpc_device_go.DeviceId) derrors.Error {
+func ValidDeviceID(device *grpc_device_go.DeviceId) derrors.Error {
 
 	if device.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
@@ -222,7 +221,7 @@ func ValidDeviceID (device * grpc_device_go.DeviceId) derrors.Error {
 	return nil
 }
 
-func ValidAddDeviceRequest (request * grpc_device_go.AddDeviceRequest) derrors.Error {
+func ValidAddDeviceRequest(request *grpc_device_go.AddDeviceRequest) derrors.Error {
 	if request.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
 	}
@@ -235,7 +234,7 @@ func ValidAddDeviceRequest (request * grpc_device_go.AddDeviceRequest) derrors.E
 	return nil
 }
 
-func ValidRemoveDeviceRequest (request * grpc_device_go.RemoveDeviceRequest) derrors.Error {
+func ValidRemoveDeviceRequest(request *grpc_device_go.RemoveDeviceRequest) derrors.Error {
 
 	if request.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
@@ -247,9 +246,9 @@ func ValidRemoveDeviceRequest (request * grpc_device_go.RemoveDeviceRequest) der
 		return derrors.NewInvalidArgumentError("device_id cannot be empty")
 	}
 	return nil
- }
+}
 
-func ValidUpdateDeviceRequest(request * grpc_device_go.UpdateDeviceRequest) derrors.Error {
+func ValidUpdateDeviceRequest(request *grpc_device_go.UpdateDeviceRequest) derrors.Error {
 	if request.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError("organization_id cannot be empty")
 	}

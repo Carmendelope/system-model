@@ -59,7 +59,6 @@ func RunTest(provider Provider) {
 	// List Organization
 	ginkgo.It("Should be able to recover a empty list of organizations", func() {
 
-
 		orgLst, err := provider.List()
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(orgLst).NotTo(gomega.BeNil())
@@ -93,9 +92,9 @@ func RunTest(provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(exists).NotTo(gomega.BeTrue())
 	})
-	ginkgo.It("Should be able to find a organization by name", func(){
+	ginkgo.It("Should be able to find a organization by name", func() {
 
-		org := &entities.Organization{ID:"Org_0001", Name:"organization 0001", Created:12}
+		org := &entities.Organization{ID: "Org_0001", Name: "organization 0001", Created: 12}
 
 		err := provider.Add(*org)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -105,7 +104,7 @@ func RunTest(provider Provider) {
 		gomega.Expect(exists).To(gomega.BeTrue())
 
 	})
-	ginkgo.It("Should not be able to find a organization by name", func(){
+	ginkgo.It("Should not be able to find a organization by name", func() {
 
 		exists, err := provider.ExistsByName("Org_0001")
 		gomega.Expect(err).To(gomega.Succeed())

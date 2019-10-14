@@ -13,8 +13,8 @@ import (
 	"sync"
 )
 
-
 const ProjectTable = "Project"
+
 var allProjectColumns = []string{"owner_account_id", "project_id", "name", "created", "state", "state_info"}
 var allProjectColumnsNoPK = []string{"name", "created", "state", "state_info"}
 
@@ -23,11 +23,11 @@ type ScyllaProjectProvider struct {
 	sync.Mutex
 }
 
-func NewScyllaProjectProvider(address string, port int, keyspace string) * ScyllaProjectProvider{
+func NewScyllaProjectProvider(address string, port int, keyspace string) *ScyllaProjectProvider {
 	provider := ScyllaProjectProvider{
-		ScyllaDB : scylladb.ScyllaDB{
-			Address: address,
-			Port : port,
+		ScyllaDB: scylladb.ScyllaDB{
+			Address:  address,
+			Port:     port,
 			Keyspace: keyspace,
 		},
 	}
@@ -41,12 +41,13 @@ func (sp *ScyllaProjectProvider) Disconnect() {
 	defer sp.Unlock()
 	sp.ScyllaDB.Disconnect()
 }
+
 //
-func (sp *ScyllaProjectProvider) createPKMap(accountID string, projectID string) map[string]interface{}{
+func (sp *ScyllaProjectProvider) createPKMap(accountID string, projectID string) map[string]interface{} {
 
 	res := map[string]interface{}{
 		"owner_account_id": accountID,
-		"project_id": projectID,
+		"project_id":       projectID,
 	}
 
 	return res
@@ -56,7 +57,7 @@ func (sp *ScyllaProjectProvider) createPKMap(accountID string, projectID string)
 // This provider is for a table that has a PK with two fields, we use scylladb composite methods
 // ------------------------------------------------------------------------------------------------
 // Add a new project to the system.
-func (sp *ScyllaProjectProvider)Add(project entities.Project) derrors.Error{
+func (sp *ScyllaProjectProvider) Add(project entities.Project) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -66,7 +67,7 @@ func (sp *ScyllaProjectProvider)Add(project entities.Project) derrors.Error{
 }
 
 // Update the information of a project.
-func (sp *ScyllaProjectProvider)Update(project entities.Project) derrors.Error{
+func (sp *ScyllaProjectProvider) Update(project entities.Project) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -76,7 +77,7 @@ func (sp *ScyllaProjectProvider)Update(project entities.Project) derrors.Error{
 }
 
 // Exists checks if a project exists on the system.
-func (sp *ScyllaProjectProvider)Exists(accountID string, projectID string) (bool, derrors.Error){
+func (sp *ScyllaProjectProvider) Exists(accountID string, projectID string) (bool, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -86,13 +87,13 @@ func (sp *ScyllaProjectProvider)Exists(accountID string, projectID string) (bool
 }
 
 // check if there is a project in the account with the received name
-func (sp * ScyllaProjectProvider) ExistsByName(accountID string, name string) (bool, derrors.Error) {
+func (sp *ScyllaProjectProvider) ExistsByName(accountID string, name string) (bool, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
 	indexMap := map[string]interface{}{
 		"owner_account_id": accountID,
-		"name": name,
+		"name":             name,
 	}
 
 	return sp.UnsafeGenericCompositeExist(ProjectTable, indexMap)
@@ -101,7 +102,7 @@ func (sp * ScyllaProjectProvider) ExistsByName(accountID string, name string) (b
 }
 
 // Get a project.
-func (sp *ScyllaProjectProvider)Get(accountID string, projectID string) (*entities.Project, derrors.Error){
+func (sp *ScyllaProjectProvider) Get(accountID string, projectID string) (*entities.Project, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -117,7 +118,7 @@ func (sp *ScyllaProjectProvider)Get(accountID string, projectID string) (*entiti
 }
 
 // Remove a project
-func (sp *ScyllaProjectProvider)Remove(accountID string, projectID string) derrors.Error{
+func (sp *ScyllaProjectProvider) Remove(accountID string, projectID string) derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -128,7 +129,7 @@ func (sp *ScyllaProjectProvider)Remove(accountID string, projectID string) derro
 }
 
 // List all the projects of an account
-func (sp *ScyllaProjectProvider) ListAccountProjects(accountID string) ([]entities.Project, derrors.Error){
+func (sp *ScyllaProjectProvider) ListAccountProjects(accountID string) ([]entities.Project, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -151,9 +152,8 @@ func (sp *ScyllaProjectProvider) ListAccountProjects(accountID string) ([]entiti
 	return projects, nil
 }
 
-
 // Clear all projects
-func (sp *ScyllaProjectProvider)Clear() derrors.Error{
+func (sp *ScyllaProjectProvider) Clear() derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 

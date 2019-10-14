@@ -163,9 +163,9 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			gomega.Expect(connectionInstance).To(gomega.BeNil())
 		})
 	})
-	
+
 	ginkgo.Context("when getting a connection", func() {
-		
+
 		ginkgo.It("should retrieve a previously added connection using the composite PK", func() {
 			organization := addOrganization(organizationProvider)
 			sourceInstance := addSourceInstance(organization.ID, false, applicationProvider)

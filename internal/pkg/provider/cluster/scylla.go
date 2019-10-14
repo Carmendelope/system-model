@@ -15,7 +15,6 @@ const clusterTable = "Clusters"
 const clusterTablePK = "cluster_id"
 const clusterNodeTable = "Cluster_Nodes"
 
-
 type ScyllaClusterProvider struct {
 	Address  string
 	Port     int
@@ -27,7 +26,7 @@ type ScyllaClusterProvider struct {
 const rowNotFound = "not found"
 
 func NewScyllaClusterProvider(address string, port int, keyspace string) *ScyllaClusterProvider {
-	provider := ScyllaClusterProvider{ Address: address, Port: port, Keyspace: keyspace, Session: nil}
+	provider := ScyllaClusterProvider{Address: address, Port: port, Keyspace: keyspace, Session: nil}
 	provider.connect()
 	return &provider
 }
@@ -179,7 +178,7 @@ func (sp *ScyllaClusterProvider) Update(cluster entities.Cluster) derrors.Error 
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError(cluster.ClusterId)
 	}
 
@@ -191,7 +190,7 @@ func (sp *ScyllaClusterProvider) Update(cluster entities.Cluster) derrors.Error 
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
-		return derrors.AsError(err,"cannot update cluster")
+		return derrors.AsError(err, "cannot update cluster")
 	}
 
 	return nil
@@ -237,7 +236,7 @@ func (sp *ScyllaClusterProvider) Get(clusterID string) (*entities.Cluster, derro
 	}
 
 	var cluster entities.Cluster
-	stmt, names := qb.Select(clusterTable).Columns("organization_id", "cluster_id", "name","cluster_type", "hostname",
+	stmt, names := qb.Select(clusterTable).Columns("organization_id", "cluster_id", "name", "cluster_type", "hostname",
 		"control_plane_hostname", "multitenant", "status", "labels", "cordon", "cluster_watch", "last_alive_timestamp").Where(qb.Eq(clusterTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		clusterTablePK: clusterID,
@@ -271,7 +270,7 @@ func (sp *ScyllaClusterProvider) Remove(clusterID string) derrors.Error {
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError(clusterID)
 	}
 
@@ -411,7 +410,7 @@ func (sp *ScyllaClusterProvider) DeleteNode(clusterID string, nodeID string) der
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError("node").WithParams(clusterID, nodeID)
 	}
 

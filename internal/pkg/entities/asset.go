@@ -10,7 +10,6 @@ import (
 	"time"
 )
 
-
 // AgentOpSummary contains the result of an asset operation
 // this is a provisional result!
 type AgentOpSummary struct {
@@ -21,27 +20,27 @@ type AgentOpSummary struct {
 	// Status indicates if the operation was successfull
 	Status OpStatus `json:"status,omitempty" cql:"status"`
 	// Info with additional information for an operation.
-	Info                 string   `json:"info,omitempty" cql:"info"`
+	Info string `json:"info,omitempty" cql:"info"`
 }
 
-func (a * AgentOpSummary) ToGRPC() *grpc_inventory_go.AgentOpSummary {
+func (a *AgentOpSummary) ToGRPC() *grpc_inventory_go.AgentOpSummary {
 	if a == nil {
 		return nil
 	}
 	return &grpc_inventory_go.AgentOpSummary{
-		OperationId:a.OperationId,
-		Timestamp:	a.Timestamp,
-		Status: 	OpStatusToGRPC[a.Status],
-		Info: 		a.Info,
+		OperationId: a.OperationId,
+		Timestamp:   a.Timestamp,
+		Status:      OpStatusToGRPC[a.Status],
+		Info:        a.Info,
 	}
 }
 
 func NewAgentOpSummaryFromGRPC(op *grpc_inventory_go.AgentOpSummary) *AgentOpSummary {
 	return &AgentOpSummary{
-		OperationId:op.OperationId,
-		Timestamp:	op.Timestamp,
-		Status: 	OpStatusFromGRPC[op.Status],
-		Info: 		op.Info,
+		OperationId: op.OperationId,
+		Timestamp:   op.Timestamp,
+		Status:      OpStatusFromGRPC[op.Status],
+		Info:        op.Info,
 	}
 }
 
@@ -70,25 +69,25 @@ type Asset struct {
 	// Storage information.
 	Storage []StorageHardwareInfo `json:"storage,omitempty" cql:"storage"`
 	// EicNetIp contains the current IP address that connects the asset to the EIC.
-	EicNetIp             string   `json:"eic_net_ip,omitempty" cql:"eic_net_ip"`
+	EicNetIp string `json:"eic_net_ip,omitempty" cql:"eic_net_ip"`
 	// AgentOpSummary contains the result of the last operation fr this asset
 	LastOpResult *AgentOpSummary `json:"last_op_result,omitempty" cql: "eic_net_ip"`
 	// LastAliveTimestamp contains the last alive message received
-	LastAliveTimestamp   int64    `json:"last_alive_timestamp,omitempty" cql:"last_alive_timestamp"`
+	LastAliveTimestamp int64 `json:"last_alive_timestamp,omitempty" cql:"last_alive_timestamp"`
 	// Location contains the location of the asset
-	Location             *InventoryLocation `json:"location,omitempty"`
+	Location *InventoryLocation `json:"location,omitempty"`
 }
 
-func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
+func NewAssetFromGRPC(addRequest *grpc_inventory_go.AddAssetRequest) *Asset {
 
-	storage := make ([]StorageHardwareInfo, 0)
+	storage := make([]StorageHardwareInfo, 0)
 	for _, sto := range addRequest.Storage {
-		storage = append(storage, * NewStorageHardwareInfoFromGRPC(sto) )
+		storage = append(storage, *NewStorageHardwareInfoFromGRPC(sto))
 	}
 
 	location := &InventoryLocation{
 		Geolocation: DefaultLocation,
-		Geohash: "",
+		Geohash:     "",
 	}
 
 	if addRequest.Location != nil && addRequest.Location.Geolocation != "" {
@@ -96,46 +95,46 @@ func NewAssetFromGRPC(addRequest * grpc_inventory_go.AddAssetRequest) *Asset{
 	}
 
 	return &Asset{
-		OrganizationId: addRequest.OrganizationId,
+		OrganizationId:   addRequest.OrganizationId,
 		EdgeControllerId: addRequest.EdgeControllerId,
-		AssetId:        GenerateUUID(),
-		AgentId:        addRequest.AgentId,
-		Show:           true,
-		Created:        time.Now().Unix(),
-		Labels:         addRequest.Labels,
-		Os:             NewOperatingSystemInfoFromGRPC(addRequest.Os),
-		Hardware:       NewHardwareInfoFromGRPC(addRequest.Hardware),
-		Storage:        storage,
-		Location:       location,
+		AssetId:          GenerateUUID(),
+		AgentId:          addRequest.AgentId,
+		Show:             true,
+		Created:          time.Now().Unix(),
+		Labels:           addRequest.Labels,
+		Os:               NewOperatingSystemInfoFromGRPC(addRequest.Os),
+		Hardware:         NewHardwareInfoFromGRPC(addRequest.Hardware),
+		Storage:          storage,
+		Location:         location,
 	}
 }
 
-func (a * Asset) ToGRPC() *grpc_inventory_go.Asset{
+func (a *Asset) ToGRPC() *grpc_inventory_go.Asset {
 
-	storage := make ([]*grpc_inventory_go.StorageHardwareInfo, 0)
+	storage := make([]*grpc_inventory_go.StorageHardwareInfo, 0)
 	for _, sto := range a.Storage {
-		storage = append(storage,sto.ToGRPC() )
+		storage = append(storage, sto.ToGRPC())
 	}
 
 	return &grpc_inventory_go.Asset{
-		OrganizationId:       a.OrganizationId,
-		EdgeControllerId:     a.EdgeControllerId,
-		AssetId:              a.AssetId,
-		AgentId:              a.AgentId,
-		Show:                 a.Show,
-		Created:              a.Created,
-		Labels:               a.Labels,
-		Os:                   a.Os.ToGRPC(),
-		Hardware:             a.Hardware.ToGRPC(),
-		Storage:              storage,
-		EicNetIp:             a.EicNetIp,
-		LastAliveTimestamp:   a.LastAliveTimestamp,
-		LastOpResult:         a.LastOpResult.ToGRPC(),
-		Location:             a.Location.ToGRPC(),
+		OrganizationId:     a.OrganizationId,
+		EdgeControllerId:   a.EdgeControllerId,
+		AssetId:            a.AssetId,
+		AgentId:            a.AgentId,
+		Show:               a.Show,
+		Created:            a.Created,
+		Labels:             a.Labels,
+		Os:                 a.Os.ToGRPC(),
+		Hardware:           a.Hardware.ToGRPC(),
+		Storage:            storage,
+		EicNetIp:           a.EicNetIp,
+		LastAliveTimestamp: a.LastAliveTimestamp,
+		LastOpResult:       a.LastOpResult.ToGRPC(),
+		Location:           a.Location.ToGRPC(),
 	}
 }
 
-func (a * Asset) ApplyUpdate(request * grpc_inventory_go.UpdateAssetRequest){
+func (a *Asset) ApplyUpdate(request *grpc_inventory_go.UpdateAssetRequest) {
 	if request.AddLabels {
 		if a.Labels == nil {
 			a.Labels = make(map[string]string, 0)
@@ -165,14 +164,13 @@ func (a * Asset) ApplyUpdate(request * grpc_inventory_go.UpdateAssetRequest){
 				Geohash:     request.Location.Geohash,
 			}
 		} else {
-				a.Location.Geolocation = request.Location.Geolocation
-				a.Location.Geohash = request.Location.Geohash
-			}
+			a.Location.Geolocation = request.Location.Geolocation
+			a.Location.Geohash = request.Location.Geohash
 		}
 	}
+}
 
-
-func ValidAddAssetRequest(addRequest * grpc_inventory_go.AddAssetRequest) derrors.Error{
+func ValidAddAssetRequest(addRequest *grpc_inventory_go.AddAssetRequest) derrors.Error {
 	if addRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
 	}
@@ -182,7 +180,7 @@ func ValidAddAssetRequest(addRequest * grpc_inventory_go.AddAssetRequest) derror
 	return nil
 }
 
-func ValidAssetID(assetID * grpc_inventory_go.AssetId) derrors.Error{
+func ValidAssetID(assetID *grpc_inventory_go.AssetId) derrors.Error {
 	if assetID.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
 	}

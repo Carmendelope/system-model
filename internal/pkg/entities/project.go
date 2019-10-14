@@ -17,11 +17,11 @@ const (
 )
 
 var ProjectStateToGRPC = map[ProjectState]grpc_project_go.ProjectState{
-	ProjectState_Active: grpc_project_go.ProjectState_ACTIVE,
-	ProjectState_Deactivated : grpc_project_go.ProjectState_DEACTIVATED,
+	ProjectState_Active:      grpc_project_go.ProjectState_ACTIVE,
+	ProjectState_Deactivated: grpc_project_go.ProjectState_DEACTIVATED,
 }
-var ProjectStateFromGRPC = map[grpc_project_go.ProjectState]ProjectState {
-	grpc_project_go.ProjectState_ACTIVE: ProjectState_Active,
+var ProjectStateFromGRPC = map[grpc_project_go.ProjectState]ProjectState{
+	grpc_project_go.ProjectState_ACTIVE:      ProjectState_Active,
 	grpc_project_go.ProjectState_DEACTIVATED: ProjectState_Deactivated,
 }
 
@@ -38,7 +38,7 @@ type Project struct {
 	State ProjectState `json:"state,omitempty"`
 	// StateInfo in case the project is in a non active state,
 	// it contains the information about the reason for this state
-	StateInfo            string   `json:"state_info,omitempty"`
+	StateInfo string `json:"state_info,omitempty"`
 }
 
 func NewProjectToGRPC(project *grpc_project_go.AddProjectRequest) *Project {
@@ -46,12 +46,12 @@ func NewProjectToGRPC(project *grpc_project_go.AddProjectRequest) *Project {
 		return nil
 	}
 	return &Project{
-		ProjectId:		GenerateUUID(),
+		ProjectId:      GenerateUUID(),
 		OwnerAccountId: project.AccountId,
-		Name: 			project.Name,
-		Created: 		time.Now().Unix(),
-		State: 			ProjectState_Active,
-		StateInfo: 		"",
+		Name:           project.Name,
+		Created:        time.Now().Unix(),
+		State:          ProjectState_Active,
+		StateInfo:      "",
 	}
 }
 
@@ -60,19 +60,19 @@ func (p *Project) ToGRPC() *grpc_project_go.Project {
 		return nil
 	}
 	return &grpc_project_go.Project{
-		ProjectId: p.ProjectId,
+		ProjectId:      p.ProjectId,
 		OwnerAccountId: p.OwnerAccountId,
-		Name: p.Name,
-		Created: p.Created,
-		State: ProjectStateToGRPC[p.State],
-		StateInfo: p.StateInfo,
+		Name:           p.Name,
+		Created:        p.Created,
+		State:          ProjectStateToGRPC[p.State],
+		StateInfo:      p.StateInfo,
 	}
 }
 
 // -------------------
 // apply update
 // -------------------
-func (p *Project) ApplyUpdate( update *grpc_project_go.UpdateProjectRequest){
+func (p *Project) ApplyUpdate(update *grpc_project_go.UpdateProjectRequest) {
 
 	if update.UpdateName {
 		p.Name = update.Name
@@ -85,6 +85,7 @@ func (p *Project) ApplyUpdate( update *grpc_project_go.UpdateProjectRequest){
 	}
 
 }
+
 // -------------------
 // validation methods
 // -------------------
@@ -95,7 +96,7 @@ func ValidateAddProjectRequest(request *grpc_project_go.AddProjectRequest) derro
 	return nil
 }
 
-func ValidateProjectId(request *grpc_project_go.ProjectId) derrors.Error{
+func ValidateProjectId(request *grpc_project_go.ProjectId) derrors.Error {
 	if request.AccountId == "" {
 		return derrors.NewInvalidArgumentError(emptyAccountId)
 	}
@@ -105,7 +106,7 @@ func ValidateProjectId(request *grpc_project_go.ProjectId) derrors.Error{
 	return nil
 }
 
-func ValidateUpdateProjectRequest (request *grpc_project_go.UpdateProjectRequest) derrors.Error{
+func ValidateUpdateProjectRequest(request *grpc_project_go.UpdateProjectRequest) derrors.Error {
 	if request.AccountId == "" {
 		return derrors.NewInvalidArgumentError(emptyAccountId)
 	}

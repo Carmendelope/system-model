@@ -17,22 +17,22 @@ import (
 
 // Manager structure with the required providers for role operations.
 type Manager struct {
-	OrgProvider organization.Provider
+	OrgProvider  organization.Provider
 	RoleProvider role.Provider
 }
 
 // NewManager creates a Manager using a set of providers.
-func NewManager(orgProvider organization.Provider, roleProvider role.Provider) Manager{
+func NewManager(orgProvider organization.Provider, roleProvider role.Provider) Manager {
 	return Manager{orgProvider, roleProvider}
 }
 
 // AddRole adds a new role to a given organization.
-func (m * Manager) AddRole(addRoleRequest *grpc_role_go.AddRoleRequest) (*entities.Role, derrors.Error){
+func (m *Manager) AddRole(addRoleRequest *grpc_role_go.AddRoleRequest) (*entities.Role, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(addRoleRequest.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(addRoleRequest.OrganizationId)
 	}
 	toAdd := entities.NewRoleFromGRPC(addRoleRequest)
@@ -48,12 +48,12 @@ func (m * Manager) AddRole(addRoleRequest *grpc_role_go.AddRoleRequest) (*entiti
 }
 
 // GetRole returns an existing role.
-func (m * Manager) GetRole(roleID *grpc_role_go.RoleId) (*entities.Role, derrors.Error){
+func (m *Manager) GetRole(roleID *grpc_role_go.RoleId) (*entities.Role, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(roleID.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if ! exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(roleID.OrganizationId)
 	}
 
@@ -68,19 +68,19 @@ func (m * Manager) GetRole(roleID *grpc_role_go.RoleId) (*entities.Role, derrors
 }
 
 // ListRoles retrieves the list of roles of a given organization.
-func (m * Manager) ListRoles(organizationID *grpc_organization_go.OrganizationId) ([]entities.Role, derrors.Error){
+func (m *Manager) ListRoles(organizationID *grpc_organization_go.OrganizationId) ([]entities.Role, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(organizationID.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, derrors.NewNotFoundError("organizationID").WithParams(organizationID.OrganizationId)
 	}
 	roles, err := m.OrgProvider.ListRoles(organizationID.OrganizationId)
 	if err != nil {
 		return nil, err
 	}
-	result := make([] entities.Role, 0)
+	result := make([]entities.Role, 0)
 	for _, rID := range roles {
 		toAdd, err := m.RoleProvider.Get(rID)
 		if err != nil {
@@ -92,12 +92,12 @@ func (m * Manager) ListRoles(organizationID *grpc_organization_go.OrganizationId
 }
 
 // RemoveRole removes a given role from an organization.
-func (m * Manager) RemoveRole(removeRoleRequest *grpc_role_go.RemoveRoleRequest) derrors.Error{
+func (m *Manager) RemoveRole(removeRoleRequest *grpc_role_go.RemoveRoleRequest) derrors.Error {
 	exists, err := m.OrgProvider.Exists(removeRoleRequest.OrganizationId)
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError("organizationID").WithParams(removeRoleRequest.OrganizationId)
 	}
 

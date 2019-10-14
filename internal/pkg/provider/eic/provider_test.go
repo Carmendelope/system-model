@@ -16,7 +16,7 @@ func RunTest(provider Provider) {
 		provider.Clear()
 	})
 
-	ginkgo.It("should be able to add a controller", func(){
+	ginkgo.It("should be able to add a controller", func() {
 		toAdd := CreateTestEdgeController()
 		err := provider.Add(*toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -25,7 +25,7 @@ func RunTest(provider Provider) {
 		gomega.Expect(exists).To(gomega.BeTrue())
 	})
 
-	ginkgo.It("should be able to update an EIC", func(){
+	ginkgo.It("should be able to update an EIC", func() {
 		toAdd := CreateTestEdgeController()
 		err := provider.Add(*toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -34,7 +34,7 @@ func RunTest(provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 	})
 
-	ginkgo.It("should be able to retrieve an EIC", func(){
+	ginkgo.It("should be able to retrieve an EIC", func() {
 		toAdd := CreateTestEdgeController()
 		err := provider.Add(*toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -46,17 +46,17 @@ func RunTest(provider Provider) {
 		gomega.Expect(retrieved).To(gomega.Equal(toAdd))
 	})
 
-	ginkgo.It("should be able to list the EIC of an organization", func(){
-	    numEIC := 10
-	    organizationID := entities.GenerateUUID()
-	    for index := 0; index < numEIC; index ++{
-	    	toAdd := CreateTestEdgeController()
-	    	toAdd.OrganizationId = organizationID
+	ginkgo.It("should be able to list the EIC of an organization", func() {
+		numEIC := 10
+		organizationID := entities.GenerateUUID()
+		for index := 0; index < numEIC; index++ {
+			toAdd := CreateTestEdgeController()
+			toAdd.OrganizationId = organizationID
 			err := provider.Add(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
 		}
-	    // Add elements to other organizations
-		for index := 0; index < numEIC; index ++{
+		// Add elements to other organizations
+		for index := 0; index < numEIC; index++ {
 			toAdd := CreateTestEdgeController()
 			err := provider.Add(*toAdd)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -66,7 +66,7 @@ func RunTest(provider Provider) {
 		gomega.Expect(len(retrieved)).To(gomega.Equal(numEIC))
 	})
 
-	ginkgo.It("should be able to remove an EIC", func(){
+	ginkgo.It("should be able to remove an EIC", func() {
 		toAdd := CreateTestEdgeController()
 		err := provider.Add(*toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -76,7 +76,7 @@ func RunTest(provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(exists).To(gomega.BeFalse())
 	})
-	ginkgo.It("should be able to update an EIC", func(){
+	ginkgo.It("should be able to update an EIC", func() {
 		toAdd := CreateTestEdgeController()
 		err := provider.Add(*toAdd)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -89,7 +89,6 @@ func RunTest(provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(ec).NotTo(gomega.BeNil())
 		gomega.Expect(ec.Name).Should(gomega.Equal("new Name"))
-
 
 	})
 

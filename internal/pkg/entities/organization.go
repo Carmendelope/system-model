@@ -35,7 +35,7 @@ func (o *Organization) ToGRPC() *grpc_organization_go.Organization {
 }
 
 func OrganizationListToGRPC(list []Organization) *grpc_organization_go.OrganizationList {
-	result := make([] *grpc_organization_go.Organization, 0, len(list))
+	result := make([]*grpc_organization_go.Organization, 0, len(list))
 	for _, el := range list {
 		result = append(result, el.ToGRPC())
 	}

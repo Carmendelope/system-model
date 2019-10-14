@@ -9,24 +9,24 @@ import (
 	"time"
 )
 
-func CreateBillingInfo(accountID string) *entities.AccountBillingInfo{
+func CreateBillingInfo(accountID string) *entities.AccountBillingInfo {
 	return &entities.AccountBillingInfo{
-		AccountId: accountID,
-		FullName: "user1",
-		CompanyName: "company test",
-		Address: "Address 10",
+		AccountId:      accountID,
+		FullName:       "user1",
+		CompanyName:    "company test",
+		Address:        "Address 10",
 		AdditionalInfo: "info",
 	}
 }
 
-func CreateAccount() *entities.Account{
+func CreateAccount() *entities.Account {
 	id := entities.GenerateUUID()
 	return &entities.Account{
-		AccountId: id,
-		Name: "account test",
-		Created: time.Now().Unix(),
+		AccountId:   id,
+		Name:        "account test",
+		Created:     time.Now().Unix(),
 		BillingInfo: CreateBillingInfo(id),
-		State: entities.AccountState_Active,
-		StateInfo: "active info",
+		State:       entities.AccountState_Active,
+		StateInfo:   "active info",
 	}
 }
