@@ -6,6 +6,7 @@ package cluster
 
 import (
 	"context"
+	grpc_connectivity_manager_go "github.com/nalej/grpc-connectivity-manager-go"
 	"github.com/nalej/grpc-infrastructure-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/test"
@@ -126,13 +127,13 @@ var _ = ginkgo.Describe("Cluster service", func() {
 				UpdateHostname: true,
 				Hostname:       "newHostname",
 				UpdateStatus:   true,
-				Status:         grpc_infrastructure_go.InfraStatus_RUNNING,
+				Status:         grpc_connectivity_manager_go.ClusterStatus_ONLINE,
 			}
 			updated, err := client.UpdateCluster(context.Background(), updateClusterReq)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(updated.Name).Should(gomega.Equal(updateClusterReq.Name))
 			gomega.Expect(updated.Hostname).Should(gomega.Equal(updateClusterReq.Hostname))
-			gomega.Expect(updated.Status).Should(gomega.Equal(updateClusterReq.Status))
+			gomega.Expect(updated.ClusterStatus).Should(gomega.Equal(updateClusterReq.Status))
 		})
 		ginkgo.It("should be able to add labels to a cluster", func() {
 			toAdd := createAddClusterRequest(targetOrganization.ID)
@@ -251,26 +252,15 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(added).ShouldNot(gomega.BeNil())
 			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 
-			clusterID := &grpc_infrastructure_go.ClusterId{
-				ClusterId:      added.ClusterId,
+			// Set to online
+			updateClusterReq := &grpc_infrastructure_go.UpdateClusterRequest{
 				OrganizationId: targetOrganization.ID,
+				ClusterId:      added.ClusterId,
+				UpdateStatus:   true,
+				Status:         grpc_connectivity_manager_go.ClusterStatus_ONLINE,
 			}
-			ok, err := client.CordonCluster(context.Background(), clusterID)
-			gomega.Expect(ok).ShouldNot(gomega.BeNil())
-			gomega.Expect(err).Should(gomega.Succeed())
-			// retrieve the changes in the cluster and check it
-			retrieved, err := client.GetCluster(context.Background(), clusterID)
-			gomega.Expect(err).Should(gomega.Succeed())
-			gomega.Expect(added.Cordon).Should(gomega.BeFalse())
-			gomega.Expect(retrieved.Cordon).Should(gomega.BeTrue())
-		})
-		ginkgo.It("should be able to uncordon a cluster", func() {
-			// add cluster to be cordoned
-			toAdd := createAddClusterRequest(targetOrganization.ID)
-			added, err := client.AddCluster(context.Background(), toAdd)
+			_, err = client.UpdateCluster(context.Background(), updateClusterReq)
 			gomega.Expect(err).To(gomega.Succeed())
-			gomega.Expect(added).ShouldNot(gomega.BeNil())
-			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 
 			clusterID := &grpc_infrastructure_go.ClusterId{
 				ClusterId:      added.ClusterId,
@@ -282,16 +272,35 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			// retrieve the changes in the cluster and check it
 			retrieved, err := client.GetCluster(context.Background(), clusterID)
 			gomega.Expect(err).Should(gomega.Succeed())
-			gomega.Expect(added.Cordon).Should(gomega.BeFalse())
-			gomega.Expect(retrieved.Cordon).Should(gomega.BeTrue())
-			// now uncordon the cluster
-			ok, err = client.UncordonCluster(context.Background(), clusterID)
+			gomega.Expect(retrieved.ClusterStatus).Should(gomega.Equal(grpc_connectivity_manager_go.ClusterStatus_ONLINE_CORDON))
+		})
+		ginkgo.It("should be able to uncordon a cluster", func() {
+			// add cluster to be cordoned
+			toAdd := createAddClusterRequest(targetOrganization.ID)
+			added, err := client.AddCluster(context.Background(), toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
+			// Set to online
+			updateClusterReq := &grpc_infrastructure_go.UpdateClusterRequest{
+				OrganizationId: targetOrganization.ID,
+				ClusterId:      added.ClusterId,
+				UpdateStatus:   true,
+				Status:         grpc_connectivity_manager_go.ClusterStatus_ONLINE_CORDON,
+			}
+			_, err = client.UpdateCluster(context.Background(), updateClusterReq)
+			gomega.Expect(err).To(gomega.Succeed())
+			clusterID := &grpc_infrastructure_go.ClusterId{
+				ClusterId:      added.ClusterId,
+				OrganizationId: targetOrganization.ID,
+			}
+			ok, err := client.UncordonCluster(context.Background(), clusterID)
 			gomega.Expect(ok).ShouldNot(gomega.BeNil())
 			gomega.Expect(err).Should(gomega.Succeed())
-			// retrieve to check this was uncordonned
-			retrievedU, err := client.GetCluster(context.Background(), clusterID)
+			// retrieve the changes in the cluster and check it
+			retrieved, err := client.GetCluster(context.Background(), clusterID)
 			gomega.Expect(err).Should(gomega.Succeed())
-			gomega.Expect(retrievedU.Cordon).Should(gomega.BeFalse())
+			gomega.Expect(retrieved.ClusterStatus).Should(gomega.Equal(grpc_connectivity_manager_go.ClusterStatus_ONLINE))
 		})
 
 	})
