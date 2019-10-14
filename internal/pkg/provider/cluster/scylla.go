@@ -151,7 +151,7 @@ func (sp *ScyllaClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 
 	// insert the cluster instance
 	stmt, names := qb.Insert(clusterTable).Columns("organization_id", "cluster_id", "name",
-		"cluster_type", "hostname", "control_plane_hostname", "multitenant", "status", "labels", "cordon", "cluster_watch").ToCql()
+		"cluster_type", "hostname", "control_plane_hostname", "multitenant", "status", "labels", "cordon", "cluster_watch", "last_alive_timestamp").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(cluster)
 	cqlErr := q.ExecRelease()
 
@@ -185,7 +185,7 @@ func (sp *ScyllaClusterProvider) Update(cluster entities.Cluster) derrors.Error 
 
 	// insert the cluster instance
 	stmt, names := qb.Update(clusterTable).Set("organization_id", "name",
-		"cluster_type", "hostname", "multitenant", "control_plane_hostname", "status", "labels", "cordon", "cluster_watch").
+		"cluster_type", "hostname", "multitenant", "control_plane_hostname", "status", "labels", "cordon", "cluster_watch", "last_alive_timestamp").
 		Where(qb.Eq(clusterTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(cluster)
 	cqlErr := q.ExecRelease()
@@ -238,7 +238,7 @@ func (sp *ScyllaClusterProvider) Get(clusterID string) (*entities.Cluster, derro
 
 	var cluster entities.Cluster
 	stmt, names := qb.Select(clusterTable).Columns("organization_id", "cluster_id", "name","cluster_type", "hostname",
-		"control_plane_hostname", "multitenant", "status", "labels", "cordon", "cluster_watch").Where(qb.Eq(clusterTablePK)).ToCql()
+		"control_plane_hostname", "multitenant", "status", "labels", "cordon", "cluster_watch", "last_alive_timestamp").Where(qb.Eq(clusterTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		clusterTablePK: clusterID,
 	})

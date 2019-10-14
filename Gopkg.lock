@@ -148,6 +148,14 @@
   version = "v0.0.30"
 
 [[projects]]
+  digest = "1:94f368a2db0cd367bbde71ad88dcab84d5b8d78518ef3a0c235976594d304d3f"
+  name = "github.com/nalej/grpc-connectivity-manager-go"
+  packages = ["."]
+  pruneopts = ""
+  revision = "3d110b2be9a969d36cf8b26aee397b92f90d2dc4"
+  version = "v0.0.2"
+
+[[projects]]
   digest = "1:0bad099051ea5df46222752d38f98673d2ccec88ab40e30a9ec3d1473cbcd634"
   name = "github.com/nalej/grpc-device-controller-go"
   packages = ["."]
@@ -172,12 +180,12 @@
   version = "v0.0.14"
 
 [[projects]]
-  digest = "1:cf5183e87d0895e8991d382c80bedb76210af928a8df84a572188a06135df17a"
+  digest = "1:e90c5a0c5e0037bde033aa289517430492933bbb8463d576155742a63f6cd91d"
   name = "github.com/nalej/grpc-infrastructure-go"
   packages = ["."]
   pruneopts = ""
-  revision = "9e4b371cba464eb116450349c69aabead44b8e9c"
-  version = "v0.0.40"
+  revision = "77f31816c5de01dabec7dd4f9438bffddc9e3a93"
+  version = "v0.0.44"
 
 [[projects]]
   digest = "1:e2212e912901c83e646d4fb637f8942432adf33341252a4c80fc8d0f17eb7920"
@@ -344,7 +352,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3b22c4b2a448ff2c35e1740c7968afd9053f065d2252726a36ff7b96bf8b4cb1"
+  digest = "1:c835e80fbb8977537a4e3da19d3485a027413297bc7f3683ddc992e12fdb78d0"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -359,15 +367,15 @@
     "trace",
   ]
   pruneopts = ""
-  revision = "72f939374954d0a1b2a1e27dcda950e2724dd5c1"
+  revision = "d98b1b4438230571bd7fbc5aaa89843e92937bd3"
 
 [[projects]]
   branch = "master"
-  digest = "1:a8266488eb6ecc85c48cc604c0c0ccd32d9de7933eef15f8f1ff308e337a5c21"
+  digest = "1:83040dcb06a143fb1cfe8158e43bf82f6eef6868b6a4be094709846e4400aaf4"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = ""
-  revision = "543471e840be449c53d44b32c7adf1261ad67e37"
+  revision = "c178f38b412c7b426e4e97be2e75d11ff7b8d4d4"
 
 [[projects]]
   digest = "1:740b51a55815493a8d0f2b1e0d0ae48fe48953bf7eaf3fcc4198823bf67768c0"
@@ -523,6 +531,7 @@
     "github.com/nalej/grpc-application-network-go",
     "github.com/nalej/grpc-cluster-watcher-go",
     "github.com/nalej/grpc-common-go",
+    "github.com/nalej/grpc-connectivity-manager-go",
     "github.com/nalej/grpc-device-go",
     "github.com/nalej/grpc-device-manager-go",
     "github.com/nalej/grpc-infrastructure-go",

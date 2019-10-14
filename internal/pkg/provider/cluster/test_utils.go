@@ -24,7 +24,7 @@ func CreateTestCluster (clusterID string) *entities.Cluster{
 		Hostname: fmt.Sprintf("host_%s", clusterID),
 		ControlPlaneHostname: fmt.Sprintf("cp_host_%s", clusterID),
 		Multitenant: entities.MultitenantSupport(2),
-		Status: entities.InfraStatus(1),
+		Status: entities.ClusterStatus(1),
 		Labels: labels,
 		Cordon: true}
 }
