@@ -4,6 +4,9 @@
     "system-model",
     "system-model-cli"
   ],
+  "image_list": [
+    "system-model"
+  ],
   "tools": [
     "azure",
     "docker",
