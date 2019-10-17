@@ -21,6 +21,7 @@ resources:
       type: github
       name: nalej/ci-templates
       endpoint: nalej
+      ref: refs/heads/feature/NP-2179_version_into_json
 
 jobs:
 - job: MainWorkflow
