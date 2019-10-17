@@ -19,6 +19,7 @@ resources:
       type: github
       name: nalej/ci-templates
       endpoint: nalej
+      ref: refs/heads/feature/NP-2180_imageList_into_json
 
 jobs:
 - job: MainWorkflow
