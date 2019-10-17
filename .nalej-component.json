@@ -1,5 +1,6 @@
 {
   "language": "golang",
+  "version": "v0.4.0",
   "application_list": [
     "system-model",
     "system-model-cli"
