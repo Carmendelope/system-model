@@ -43,13 +43,14 @@ var _ = ginkgo.Describe("Account service", func() {
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
 		server = grpc.NewServer()
-		test.LaunchServer(server, listener)
 
 		// Register the service
 		accountProvider = account.NewMockupAccountProvider()
 		manager := NewManager(accountProvider)
 		handler := NewHandler(manager)
 		grpc_account_go.RegisterAccountsServer(server, handler)
+
+		test.LaunchServer(server, listener)
 
 		conn, err := test.GetConn(*listener)
 		gomega.Expect(err).Should(gomega.Succeed())

@@ -295,9 +295,6 @@ func (zt *ZTNetworkConnection) ToGRPC() *grpc_application_network_go.ZTNetworkCo
 }
 
 func (zt *ZTNetworkConnection) ApplyUpdate(updateRequest *grpc_application_network_go.UpdateZTNetworkConnectionRequest) {
-	if updateRequest.UpdateClusterId {
-		zt.ClusterId = updateRequest.ClusterId
-	}
 	if updateRequest.UpdateZtIp {
 		zt.ZtIp = updateRequest.ZtIp
 	}
@@ -316,6 +313,9 @@ func ValidateZTNetworkConnection(request *grpc_application_network_go.ZTNetworkC
 	if request.ServiceId == "" {
 		return derrors.NewInvalidArgumentError("expecting a ServiceId")
 	}
+	if request.ClusterId == "" {
+		return derrors.NewInvalidArgumentError("expecting a ClusterId")
+	}
 	return nil
 }
 
@@ -325,6 +325,15 @@ func ValidateZTNetworkConnectionId(request *grpc_application_network_go.ZTNetwor
 	}
 	if request.ZtNetworkId == "" {
 		return derrors.NewInvalidArgumentError("expecting a ZtNetworkId")
+	}
+	if request.AppInstanceId == "" {
+		return derrors.NewInvalidArgumentError("expecting a AppInstanceId")
+	}
+	if request.ServiceId == "" {
+		return derrors.NewInvalidArgumentError("expecting a ServiceId")
+	}
+	if request.ClusterId == "" {
+		return derrors.NewInvalidArgumentError("expecting a ClusterId")
 	}
 	return nil
 }
@@ -341,6 +350,16 @@ func ValidateUpdateZTNetworkConnectionRequest(request *grpc_application_network_
 	}
 	if request.ServiceId == "" {
 		return derrors.NewInvalidArgumentError("expecting a ServiceId")
+	}
+	return nil
+}
+
+func ValidateZTNetworkId(ztNetworkId *grpc_application_network_go.ZTNetworkId)derrors.Error {
+	if ztNetworkId.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError("expecting an OrganizationId")
+	}
+	if ztNetworkId.ZtNetworkId == "" {
+		return derrors.NewInvalidArgumentError("expecting a ZtNetworkId")
 	}
 	return nil
 }

@@ -100,8 +100,8 @@ func (h *Handler) ListConnections(_ context.Context, orgID *grpc_organization_go
 	return result, nil
 }
 
-func (h *Handler) GetConnectionByZtNetworkId(ctx context.Context, request *grpc_application_network_go.ZTNetworkConnectionId) (*grpc_application_network_go.ConnectionInstance, error) {
-	vErr := entities.ValidateZTNetworkConnectionId(request)
+func (h *Handler) GetConnectionByZtNetworkId(ctx context.Context, request *grpc_application_network_go.ZTNetworkId) (*grpc_application_network_go.ConnectionInstance, error) {
+	vErr := entities.ValidateZTNetworkId(request)
 	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
 	}
@@ -167,8 +167,8 @@ func (h *Handler) AddZTNetworkConnection(ctx context.Context, addRequest *grpc_a
 }
 
 // ListZTNetworkConnection lists the connections in one zt network (one inbound and one outbound)
-func (h *Handler) ListZTNetworkConnection(ctx context.Context, ztNetworkId *grpc_application_network_go.ZTNetworkConnectionId) (*grpc_application_network_go.ZTNetworkConnectionList, error) {
-	vErr := entities.ValidateZTNetworkConnectionId(ztNetworkId)
+func (h *Handler) ListZTNetworkConnection(ctx context.Context, ztNetworkId *grpc_application_network_go.ZTNetworkId) (*grpc_application_network_go.ZTNetworkConnectionList, error) {
+	vErr := entities.ValidateZTNetworkId(ztNetworkId)
 	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
 	}
@@ -200,12 +200,25 @@ func (h *Handler) UpdateZTNetworkConnection(ctx context.Context, updateRequest *
 }
 
 // Remove ZTNetwork removes the ztNetworkConnection (the inbound and the outbound)
-func (h *Handler) RemoveZTNetworkConnection(ctx context.Context, ztNetworkId *grpc_application_network_go.ZTNetworkConnectionId) (*grpc_common_go.Success, error) {
-	vErr := entities.ValidateZTNetworkConnectionId(ztNetworkId)
+func (h *Handler) RemoveZTNetworkConnection(ctx context.Context, connection *grpc_application_network_go.ZTNetworkConnectionId) (*grpc_common_go.Success, error) {
+	vErr := entities.ValidateZTNetworkConnectionId(connection)
 	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)
 	}
-	err := h.Manager.RemoveZTNetworkConnection(ztNetworkId)
+	err := h.Manager.RemoveZTNetworkConnection(connection)
+	if err != nil {
+		return nil, err
+	}
+	return &grpc_common_go.Success{}, nil
+}
+
+
+func (h *Handler)  RemoveZTNetworkConnectionByNetworkId (_ context.Context, ztNetworkId *grpc_application_network_go.ZTNetworkId) (*grpc_common_go.Success, error) {
+	vErr := entities.ValidateZTNetworkId(ztNetworkId)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	err := h.Manager.RemoveZTNetworkConnectionByNetworkId(ztNetworkId)
 	if err != nil {
 		return nil, err
 	}
