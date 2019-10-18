@@ -132,6 +132,10 @@ func (manager *Manager) UpdateConnectionInstance(updateConnectionRequest *grpc_a
 	return nil
 }
 
+func (manager *Manager) ExistsConnectionInstance(connId *grpc_application_network_go.ConnectionInstanceId) (bool, derrors.Error) {
+	return manager.AppNetProvider.ExistsConnectionInstance(connId.OrganizationId, connId.SourceInstanceId, connId.TargetInstanceId, connId.InboundName, connId.OutboundName)
+}
+
 func (manager *Manager) GetConnectionInstance(connectionId *grpc_application_network_go.ConnectionInstanceId) (*entities.ConnectionInstance, derrors.Error) {
 	err := manager.validOrganization(connectionId.OrganizationId)
 	if err != nil {

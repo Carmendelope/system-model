@@ -57,6 +57,18 @@ func (h *Handler) RemoveConnection(ctx context.Context, removeConnectionRequest 
 	return &grpc_common_go.Success{}, nil
 }
 
+func (h *Handler) ExistsConnection(ctx context.Context, connectionId *grpc_application_network_go.ConnectionInstanceId) (*grpc_common_go.Exists, error){
+	vErr := entities.ValidateConnectionInstanceId(connectionId)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	exists, err := h.Manager.ExistsConnectionInstance(connectionId)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Exists{Exists:exists}, nil
+}
+
 func (h *Handler) GetConnection(ctx context.Context, connectionId *grpc_application_network_go.ConnectionInstanceId) (*grpc_application_network_go.ConnectionInstance, error) {
 	vErr := entities.ValidateConnectionInstanceId(connectionId)
 	if vErr != nil {
