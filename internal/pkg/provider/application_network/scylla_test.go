@@ -37,6 +37,8 @@ create table if not exists nalej.Connection_Instances
     primary key ((organization_id), source_instance_id, target_instance_id, inbound_name, outbound_name)
 );
 create index if not exists connectionInstanceTargetIndex ON nalej.Connection_Instances (target_instance_id);
+create index IF NOT EXISTS ztNetworId on nalej.connection_instances (zt_network_id);
+
 
 create table if not exists nalej.Connection_Instance_Links
 (
@@ -64,7 +66,7 @@ create table if not exists nalej.ztnetworkconnection
     zt_ip text,
     cluster_id text,
     side int,
-    primary key ((organization_id, zt_network_id), app_instance_id, service_id)
+    primary key ((organization_id, zt_network_id), app_instance_id, service_id, cluster_id)
 );
 
 Environment variables
