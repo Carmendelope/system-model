@@ -23,7 +23,7 @@ type MockupApplicationNetworkProvider struct {
 	connectionInstancesByNetwork map[string][]entities.ConnectionInstance
 	// connectionInstanceLinks derived from a connectionInstance.
 	connectionInstanceLinks map[string][]entities.ConnectionInstanceLink
-	// ztNetworkConnections map of ZTNetworkConnection indexed by organizationId+ztnetworkId+appInstanceId+serviceId
+	// ztNetworkConnections map of ZTNetworkConnection indexed by organizationId+ztnetworkId+appInstanceId+serviceId+clusterId
 	ztNetworkConnections map[string]entities.ZTNetworkConnection
 }
 
@@ -287,13 +287,13 @@ func (m *MockupApplicationNetworkProvider) unsafeExistsZTConnection(pk string) b
 	return exists
 }
 
-func (m *MockupApplicationNetworkProvider) getZTPk(organizationID string, networkId string, appInstanceId string, serviceId string) string {
-	return fmt.Sprintf("%s%s%s%s", organizationID, networkId, appInstanceId, serviceId)
+func (m *MockupApplicationNetworkProvider) getZTPk(organizationID string, networkId string, appInstanceId string, serviceId string, clusterId string) string {
+	return fmt.Sprintf("%s%s%s%s%s", organizationID, networkId, appInstanceId, serviceId, clusterId)
 }
 func (m *MockupApplicationNetworkProvider) AddZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	pk := m.getZTPk(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId, ztConnection.ServiceId)
+	pk := m.getZTPk(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId, ztConnection.ServiceId, ztConnection.ClusterId)
 	if m.unsafeExistsZTConnection(pk) {
 		return derrors.NewAlreadyExistsError("ztNetwork")
 	}
@@ -301,17 +301,17 @@ func (m *MockupApplicationNetworkProvider) AddZTConnection(ztConnection entities
 	return nil
 }
 
-func (m *MockupApplicationNetworkProvider) ExistsZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string) (bool, derrors.Error) {
+func (m *MockupApplicationNetworkProvider) ExistsZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string, clusterId string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	pk := m.getZTPk(organizationId, networkId, appInstanceId, serviceId)
+	pk := m.getZTPk(organizationId, networkId, appInstanceId, serviceId, clusterId)
 	return m.unsafeExistsZTConnection(pk), nil
 }
 
-func (m *MockupApplicationNetworkProvider) GetZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string) (*entities.ZTNetworkConnection, derrors.Error) {
+func (m *MockupApplicationNetworkProvider) GetZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string, clusterId string) (*entities.ZTNetworkConnection, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
-	pk := m.getZTPk(organizationId, networkId, appInstanceId, serviceId)
+	pk := m.getZTPk(organizationId, networkId, appInstanceId, serviceId, clusterId)
 	zt, exists := m.ztNetworkConnections[pk]
 	if !exists {
 		return nil, derrors.NewNotFoundError("ztNetwork")
@@ -334,7 +334,7 @@ func (m *MockupApplicationNetworkProvider) ListZTConnections(organizationId stri
 func (m *MockupApplicationNetworkProvider) UpdateZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
-	pk := m.getZTPk(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId, ztConnection.ServiceId)
+	pk := m.getZTPk(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId, ztConnection.ServiceId, ztConnection.ClusterId)
 	_, exists := m.ztNetworkConnections[pk]
 	if !exists {
 		return derrors.NewNotFoundError("ztNetwork")
@@ -344,7 +344,19 @@ func (m *MockupApplicationNetworkProvider) UpdateZTConnection(ztConnection entit
 	return nil
 }
 
-func (m *MockupApplicationNetworkProvider) RemoveZTConnection(organizationId string, networkId string) derrors.Error {
+func (m *MockupApplicationNetworkProvider) RemoveZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string, clusterId string) derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+	pk := m.getZTPk(organizationId, networkId, appInstanceId, serviceId, clusterId)
+	_, exists := m.ztNetworkConnections[pk]
+	if !exists {
+		return derrors.NewNotFoundError("ztNetwork")
+	}
+	delete (m.ztNetworkConnections, pk)
+	return nil
+}
+
+func (m *MockupApplicationNetworkProvider) RemoveZTConnectionByNetworkId(organizationId string, networkId string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -358,7 +370,7 @@ func (m *MockupApplicationNetworkProvider) RemoveZTConnection(organizationId str
 		return derrors.NewNotFoundError("ztnetworkConnection").WithParams(organizationId, networkId)
 	}
 	for _, ztConnection := range list {
-		pk := m.getZTPk(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId, ztConnection.ServiceId)
+		pk := m.getZTPk(ztConnection.OrganizationId, ztConnection.ZtNetworkId, ztConnection.AppInstanceId, ztConnection.ServiceId, ztConnection.ClusterId)
 		delete(m.ztNetworkConnections, pk)
 	}
 

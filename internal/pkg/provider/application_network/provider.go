@@ -41,12 +41,20 @@ type Provider interface {
 	// RemoveConnectionInstanceLinks Removes all connection links from a connection instance.
 	RemoveConnectionInstanceLinks(organizationId string, sourceInstanceId string, targetInstanceId string, inboundName string, outboundName string) derrors.Error
 
+	// AddZTConnection adds a new ZTConnection
 	AddZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error
-	ExistsZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string) (bool, derrors.Error)
-	GetZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string) (*entities.ZTNetworkConnection, derrors.Error)
+	// ExistsZTConnection checks if a ztConnection exists
+	ExistsZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string, clusterId string) (bool, derrors.Error)
+	// GetZTConnection retrieve the ztConnection using organizationId, networkId, appInstanceId, serviceId and clusterId
+	GetZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string, clusterId string) (*entities.ZTNetworkConnection, derrors.Error)
+	// UpdateZTConnection updates a ztConnection
 	UpdateZTConnection(ztConnection entities.ZTNetworkConnection) derrors.Error
+	// ListZTConnections retrieve all the zt connections of a zero tier network
 	ListZTConnections(organizationId string, networkId string) ([]entities.ZTNetworkConnection, derrors.Error)
-	RemoveZTConnection(organizationId string, networkId string) derrors.Error
+	// RemoveZTConnection removes one zt connections
+	RemoveZTConnection(organizationId string, networkId string, appInstanceId string, serviceId string, clusterId string) derrors.Error
+	// RemoveZTConnectionByNetworkId removes all the zt connections of a zero tier network
+	RemoveZTConnectionByNetworkId(organizationId string, networkId string) derrors.Error
 
 	// clear the connections information
 	Clear() derrors.Error
