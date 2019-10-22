@@ -385,10 +385,15 @@ func (sp *ScyllaApplicationProvider) AddAppEndpoint(appEndPoint entities.AppEndp
 	sp.Lock()
 	defer sp.Unlock()
 
-	pkColumn := sp.createAppEndpointPKMap(appEndPoint.OrganizationId, appEndPoint.AppInstanceId, appEndPoint.ServiceGroupInstanceId,
-		appEndPoint.ServiceInstanceId, appEndPoint.Port, appEndPoint.Protocol)
+	// insert the endpoint
+	stmt, names := qb.Insert(AppEndpointsTable).Columns(allAppEndPointsColumns...).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(appEndPoint)
+	cqlErr := q.ExecRelease()
 
-	return sp.UnsafeCompositeAdd(AppEndpointsTable, pkColumn, allAppEndPointsColumns, appEndPoint)
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot add end point")
+	}
+	return nil
 }
 
 // GetAppEndPointByFQDN ()
