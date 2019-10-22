@@ -298,6 +298,9 @@ func (zt *ZTNetworkConnection) ApplyUpdate(updateRequest *grpc_application_netwo
 	if updateRequest.UpdateZtIp {
 		zt.ZtIp = updateRequest.ZtIp
 	}
+	if updateRequest.UpdateZtMember {
+		zt.ZtMember = updateRequest.ZtMember
+	}
 }
 
 func ValidateZTNetworkConnection(request *grpc_application_network_go.ZTNetworkConnection) derrors.Error {
