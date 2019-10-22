@@ -121,24 +121,24 @@ const (
 
 // ClusterStateToGRPC translates a ClusterState into the gRPC equivalent.
 var ClusterStateToGRPC = map[ClusterState]grpc_infrastructure_go.ClusterState{
-	Provisioning: grpc_infrastructure_go.ClusterState_PROVISIONING,
+	Provisioning:      grpc_infrastructure_go.ClusterState_PROVISIONING,
 	InstallInProgress: grpc_infrastructure_go.ClusterState_INSTALL_IN_PROGRESS,
-	Installed: grpc_infrastructure_go.ClusterState_INSTALLED,
-	Scaling: grpc_infrastructure_go.ClusterState_SCALING,
-	Failure: grpc_infrastructure_go.ClusterState_FAILURE,
-	Uninstalling: grpc_infrastructure_go.ClusterState_UNINSTALLING,
-	Decomissioning: grpc_infrastructure_go.ClusterState_DECOMISIONING,
+	Installed:         grpc_infrastructure_go.ClusterState_INSTALLED,
+	Scaling:           grpc_infrastructure_go.ClusterState_SCALING,
+	Failure:           grpc_infrastructure_go.ClusterState_FAILURE,
+	Uninstalling:      grpc_infrastructure_go.ClusterState_UNINSTALLING,
+	Decomissioning:    grpc_infrastructure_go.ClusterState_DECOMISIONING,
 }
 
 // ClusterStateFromGRPC translates a gRPC state into a ClusterState
 var ClusterStateFromGRPC = map[grpc_infrastructure_go.ClusterState]ClusterState{
-	grpc_infrastructure_go.ClusterState_PROVISIONING: Provisioning,
+	grpc_infrastructure_go.ClusterState_PROVISIONING:        Provisioning,
 	grpc_infrastructure_go.ClusterState_INSTALL_IN_PROGRESS: InstallInProgress,
-	grpc_infrastructure_go.ClusterState_INSTALLED: Installed,
-	grpc_infrastructure_go.ClusterState_SCALING: Scaling,
-	grpc_infrastructure_go.ClusterState_FAILURE: Failure,
-	grpc_infrastructure_go.ClusterState_UNINSTALLING: Uninstalling,
-	grpc_infrastructure_go.ClusterState_DECOMISIONING: Decomissioning,
+	grpc_infrastructure_go.ClusterState_INSTALLED:           Installed,
+	grpc_infrastructure_go.ClusterState_SCALING:             Scaling,
+	grpc_infrastructure_go.ClusterState_FAILURE:             Failure,
+	grpc_infrastructure_go.ClusterState_UNINSTALLING:        Uninstalling,
+	grpc_infrastructure_go.ClusterState_DECOMISIONING:       Decomissioning,
 }
 
 // Cluster entity representing a collection of nodes that supports applicaiton orchestration. This
@@ -257,6 +257,7 @@ func NewClusterFromGRPC(addClusterRequest *grpc_infrastructure_go.AddClusterRequ
 		Status:               ClusterStatusUnknown,
 		Labels:               addClusterRequest.Labels,
 		Cordon:               false,
+		State:                Provisioning,
 		// ClusterWatch:
 		// LastAliveTimestamp:
 	}
@@ -266,6 +267,7 @@ func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 	clusterType := ClusterTypeToGRPC[c.ClusterType]
 	multitenant := MultitenantSupportToGRPC[c.Multitenant]
 	status := ClusterStatusToGRPC[c.Status]
+	state := ClusterStateToGRPC[c.State]
 	return &grpc_infrastructure_go.Cluster{
 		OrganizationId:       c.OrganizationId,
 		ClusterId:            c.ClusterId,
@@ -278,6 +280,7 @@ func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 		Labels:               c.Labels,
 		ClusterWatch:         c.ClusterWatch.ToGRPC(),
 		LastAliveTimestamp:   c.LastAliveTimestamp,
+		State:                state,
 	}
 }
 
