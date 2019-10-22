@@ -26,5 +26,7 @@ func CreateTestCluster(clusterID string) *entities.Cluster {
 		Multitenant:          entities.MultitenantSupport(2),
 		Status:               entities.ClusterStatus(1),
 		Labels:               labels,
-		Cordon:               true}
+		Cordon:               true,
+		State:                entities.Provisioning,
+	}
 }
