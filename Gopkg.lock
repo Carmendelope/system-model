@@ -180,12 +180,12 @@
   version = "v0.0.14"
 
 [[projects]]
-  digest = "1:e90c5a0c5e0037bde033aa289517430492933bbb8463d576155742a63f6cd91d"
+  digest = "1:96864a28be1acbc494016c71070a8b3363c42f71c10bacde184249151020dd2b"
   name = "github.com/nalej/grpc-infrastructure-go"
   packages = ["."]
   pruneopts = ""
-  revision = "77f31816c5de01dabec7dd4f9438bffddc9e3a93"
-  version = "v0.0.44"
+  revision = "53a3f3ecbb7a6504a7c51c452645197ece09709b"
+  version = "v0.0.45"
 
 [[projects]]
   digest = "1:e2212e912901c83e646d4fb637f8942432adf33341252a4c80fc8d0f17eb7920"
