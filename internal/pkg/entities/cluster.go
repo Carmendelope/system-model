@@ -107,8 +107,8 @@ const (
 )
 
 var NetworkTypeFromGRPC = map[grpc_cluster_watcher_go.NetworkType]NetworkType {
-	grpc_cluster_watcher_go.NetworkType_ISTIO: NetworkTypeCilium,
-	grpc_cluster_watcher_go.NetworkType_CILIUM: NetworkTypeIstio,
+	grpc_cluster_watcher_go.NetworkType_ISTIO: NetworkTypeIstio,
+	grpc_cluster_watcher_go.NetworkType_CILIUM: NetworkTypeCilium,
 }
 var NetworkTypeToGRPC = map[NetworkType]grpc_cluster_watcher_go.NetworkType {
 	NetworkTypeIstio: grpc_cluster_watcher_go.NetworkType_ISTIO,
