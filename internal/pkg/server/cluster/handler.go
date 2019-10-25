@@ -31,10 +31,12 @@ func (h *Handler) AddCluster(ctx context.Context, addClusterRequest *grpc_infras
 		Str("hostname", addClusterRequest.Hostname).Msg("add cluster")
 	err := entities.ValidAddClusterRequest(addClusterRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid add cluster request")
 		return nil, conversions.ToGRPCError(err)
 	}
 	cluster, err := h.Manager.AddCluster(addClusterRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot add cluster")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("clusterID", cluster.ClusterId).Msg("cluster has been added")
@@ -47,10 +49,12 @@ func (h *Handler) UpdateCluster(ctx context.Context, updateClusterRequest *grpc_
 		Str("clusterID", updateClusterRequest.ClusterId).Msg("update cluster")
 	err := entities.ValidUpdateClusterRequest(updateClusterRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid update cluster request")
 		return nil, conversions.ToGRPCError(err)
 	}
 	cluster, err := h.Manager.UpdateCluster(updateClusterRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot update cluster")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("clusterID", cluster.ClusterId).Msg("cluster has been updated")
@@ -61,10 +65,12 @@ func (h *Handler) UpdateCluster(ctx context.Context, updateClusterRequest *grpc_
 func (h *Handler) GetCluster(ctx context.Context, clusterID *grpc_infrastructure_go.ClusterId) (*grpc_infrastructure_go.Cluster, error) {
 	err := entities.ValidClusterID(clusterID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid cluster identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	cluster, err := h.Manager.GetCluster(clusterID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot get cluster")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return cluster.ToGRPC(), nil
@@ -74,10 +80,12 @@ func (h *Handler) GetCluster(ctx context.Context, clusterID *grpc_infrastructure
 func (h *Handler) ListClusters(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_infrastructure_go.ClusterList, error) {
 	err := entities.ValidOrganizationID(organizationID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid organization identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	clusters, err := h.Manager.ListClusters(organizationID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot list clusters")
 		return nil, conversions.ToGRPCError(err)
 	}
 	toReturn := make([]*grpc_infrastructure_go.Cluster, 0)
@@ -95,10 +103,12 @@ func (h *Handler) ListClusters(ctx context.Context, organizationID *grpc_organiz
 func (h *Handler) RemoveCluster(ctx context.Context, removeClusterRequest *grpc_infrastructure_go.RemoveClusterRequest) (*grpc_common_go.Success, error) {
 	err := entities.ValidRemoveClusterRequest(removeClusterRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid remove cluster request")
 		return nil, conversions.ToGRPCError(err)
 	}
 	err = h.Manager.RemoveCluster(removeClusterRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot remove cluster")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil
@@ -108,10 +118,12 @@ func (h *Handler) RemoveCluster(ctx context.Context, removeClusterRequest *grpc_
 func (h *Handler) CordonCluster(ctx context.Context, clusterID *grpc_infrastructure_go.ClusterId) (*grpc_common_go.Success, error) {
 	err := entities.ValidClusterID(clusterID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid cluster identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	err = h.Manager.CordonCluster(clusterID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot cordon cluster")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil
@@ -121,10 +133,12 @@ func (h *Handler) CordonCluster(ctx context.Context, clusterID *grpc_infrastruct
 func (h *Handler) UncordonCluster(ctx context.Context, clusterID *grpc_infrastructure_go.ClusterId) (*grpc_common_go.Success, error) {
 	err := entities.ValidClusterID(clusterID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid cluster identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	err = h.Manager.UncordonCluster(clusterID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot uncordon cluster")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil

@@ -364,7 +364,7 @@ func (m *Manager) GetInstance(appInstID *grpc_application_go.AppInstanceId) (*en
 }
 
 // UpdateInstance updates the information of a given instance.
-func (m *Manager) UpdateInstance(updateRequest *grpc_application_go.UpdateAppStatusRequest) error {
+func (m *Manager) UpdateInstance(updateRequest *grpc_application_go.UpdateAppStatusRequest) derrors.Error {
 	exists, err := m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId)
 	if err != nil {
 		return err
@@ -393,7 +393,7 @@ func (m *Manager) UpdateInstance(updateRequest *grpc_application_go.UpdateAppSta
 
 // UpdateService updates an application service.
 // TODO: wait for the conductor to be implemented
-func (m *Manager) UpdateService(updateRequest *grpc_application_go.UpdateServiceStatusRequest) error {
+func (m *Manager) UpdateService(updateRequest *grpc_application_go.UpdateServiceStatusRequest) derrors.Error {
 
 	exists, err := m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId)
 
@@ -445,7 +445,7 @@ func (m *Manager) UpdateService(updateRequest *grpc_application_go.UpdateService
 
 }
 
-func (m *Manager) UpdateAppInstance(appInstance *grpc_application_go.AppInstance) error {
+func (m *Manager) UpdateAppInstance(appInstance *grpc_application_go.AppInstance) derrors.Error {
 	localEntity := entities.NewAppInstanceFromGRPC(appInstance)
 
 	err := m.AppProvider.UpdateInstance(*localEntity)

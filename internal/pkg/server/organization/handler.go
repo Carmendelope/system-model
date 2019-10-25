@@ -29,10 +29,12 @@ func (h *Handler) AddOrganization(ctx context.Context, addOrganizationRequest *g
 	log.Debug().Str("name", addOrganizationRequest.Name).Msg("add organization")
 	err := entities.ValidAddOrganizationRequest(addOrganizationRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid add organization request")
 		return nil, conversions.ToGRPCError(err)
 	}
 	org, err := h.Manager.AddOrganization(*addOrganizationRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot add organization")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("organizationID", org.ID).Msg("organization has been added")
@@ -43,6 +45,7 @@ func (h *Handler) AddOrganization(ctx context.Context, addOrganizationRequest *g
 func (h *Handler) GetOrganization(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_organization_go.Organization, error) {
 	retrieved, err := h.Manager.GetOrganization(*organizationID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot get organization")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return retrieved.ToGRPC(), nil
@@ -50,9 +53,9 @@ func (h *Handler) GetOrganization(ctx context.Context, organizationID *grpc_orga
 
 // ListOrganizations returns the list of organizations in the system.
 func (h *Handler) ListOrganizations(ctx context.Context, _ *grpc_common_go.Empty) (*grpc_organization_go.OrganizationList, error) {
-
 	retrieved, err := h.Manager.ListOrganization()
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot list organizations")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return entities.OrganizationListToGRPC(retrieved), nil
@@ -62,6 +65,6 @@ func (h *Handler) ListOrganizations(ctx context.Context, _ *grpc_common_go.Empty
 // UpdateOrganization updates the public information of an organization.
 func (h *Handler) UpdateOrganization(ctx context.Context, updateOrganizationRequest *grpc_organization_go.UpdateOrganizationRequest) (*grpc_common_go.Success, error) {
 	notImplemented := derrors.NewUnimplementedError("update organization")
-
+	log.Error().Str("trace", notImplemented.DebugReport()).Msg("cannot update organization")
 	return nil, conversions.ToGRPCError(notImplemented)
 }
