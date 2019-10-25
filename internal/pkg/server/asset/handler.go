@@ -30,10 +30,12 @@ func (h *Handler) Add(ctx context.Context, addRequest *grpc_inventory_go.AddAsse
 		Str("agentID", addRequest.AgentId).Msg("add asset")
 	err := entities.ValidAddAssetRequest(addRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid add asset request")
 		return nil, conversions.ToGRPCError(err)
 	}
 	added, err := h.Manager.Add(addRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot add asset")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("assetID", added.AssetId).Msg("asset has been added")
@@ -43,10 +45,12 @@ func (h *Handler) Add(ctx context.Context, addRequest *grpc_inventory_go.AddAsse
 func (h *Handler) Get(ctx context.Context, assetID *grpc_inventory_go.AssetId) (*grpc_inventory_go.Asset, error) {
 	err := entities.ValidAssetID(assetID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid asset identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	asset, err := h.Manager.Get(assetID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot get asset")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return asset.ToGRPC(), nil
@@ -56,10 +60,12 @@ func (h *Handler) Get(ctx context.Context, assetID *grpc_inventory_go.AssetId) (
 func (h *Handler) List(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_inventory_go.AssetList, error) {
 	err := entities.ValidOrganizationID(organizationID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid organization identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	assets, err := h.Manager.List(organizationID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot list assets")
 		return nil, conversions.ToGRPCError(err)
 	}
 	toReturn := make([]*grpc_inventory_go.Asset, 0, len(assets))
@@ -76,10 +82,12 @@ func (h *Handler) List(ctx context.Context, organizationID *grpc_organization_go
 func (h *Handler) Remove(ctx context.Context, assetID *grpc_inventory_go.AssetId) (*grpc_common_go.Success, error) {
 	err := entities.ValidAssetID(assetID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid asset identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	err = h.Manager.Remove(assetID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot remove asset")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil
@@ -89,10 +97,12 @@ func (h *Handler) Remove(ctx context.Context, assetID *grpc_inventory_go.AssetId
 func (h *Handler) Update(ctx context.Context, updateRequest *grpc_inventory_go.UpdateAssetRequest) (*grpc_inventory_go.Asset, error) {
 	err := entities.ValidUpdateAssetRequest(updateRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid update asset request")
 		return nil, conversions.ToGRPCError(err)
 	}
 	updated, err := h.Manager.Update(updateRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot update asset")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("assetID", updated.AssetId).Msg("asset has been updated")
@@ -102,10 +112,12 @@ func (h *Handler) Update(ctx context.Context, updateRequest *grpc_inventory_go.U
 func (h *Handler) ListControllerAssets(ctx context.Context, edgeControllerId *grpc_inventory_go.EdgeControllerId) (*grpc_inventory_go.AssetList, error) {
 	err := entities.ValidEdgeControllerID(edgeControllerId)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid edge controller identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	assets, err := h.Manager.ListControllerAssets(edgeControllerId)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot list controller assets")
 		return nil, conversions.ToGRPCError(err)
 	}
 	toReturn := make([]*grpc_inventory_go.Asset, 0, len(assets))

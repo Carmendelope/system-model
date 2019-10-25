@@ -28,10 +28,12 @@ func (h *Handler) AddProject(ctx context.Context, request *grpc_project_go.AddPr
 	log.Debug().Str("account_id", request.AccountId).Str("Name", request.Name).Msg("add project")
 	err := entities.ValidateAddProjectRequest(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid add project request")
 		return nil, conversions.ToGRPCError(err)
 	}
 	added, err := h.Manager.AddProject(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot add project")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("Name", request.Name).Str("account_id", added.OwnerAccountId).
@@ -41,13 +43,14 @@ func (h *Handler) AddProject(ctx context.Context, request *grpc_project_go.AddPr
 
 // GetProject retrieves a given project
 func (h *Handler) GetProject(ctx context.Context, request *grpc_project_go.ProjectId) (*grpc_project_go.Project, error) {
-
 	err := entities.ValidateProjectId(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid project identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	account, err := h.Manager.GetProject(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot get project")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return account.ToGRPC(), nil
@@ -58,10 +61,12 @@ func (h *Handler) GetProject(ctx context.Context, request *grpc_project_go.Proje
 func (h *Handler) RemoveProject(ctx context.Context, request *grpc_project_go.ProjectId) (*grpc_common_go.Success, error) {
 	err := entities.ValidateProjectId(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid project identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	err = h.Manager.RemoveProject(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot remove project")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil
@@ -69,33 +74,33 @@ func (h *Handler) RemoveProject(ctx context.Context, request *grpc_project_go.Pr
 
 // ListAccountProjects list the projects of a given account
 func (h *Handler) ListAccountProjects(ctx context.Context, request *grpc_account_go.AccountId) (*grpc_project_go.ProjectList, error) {
-
 	err := entities.ValidateAccountId(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid account identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	projects, err := h.Manager.ListAccountProjects(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot list account projects")
 		return nil, conversions.ToGRPCError(err)
 	}
-
 	list := make([]*grpc_project_go.Project, 0)
 	for _, project := range projects {
 		list = append(list, project.ToGRPC())
 	}
-
 	return &grpc_project_go.ProjectList{Projects: list}, nil
 }
 
 // UpdateProject updates the project information
 func (h *Handler) UpdateProject(ctx context.Context, request *grpc_project_go.UpdateProjectRequest) (*grpc_common_go.Success, error) {
-
 	err := entities.ValidateUpdateProjectRequest(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid update project request")
 		return nil, conversions.ToGRPCError(err)
 	}
 	err = h.Manager.UpdateProject(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot update project")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil
