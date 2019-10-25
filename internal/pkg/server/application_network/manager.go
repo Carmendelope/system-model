@@ -85,6 +85,9 @@ func (manager *Manager) UpdateConnectionInstance(updateConnectionRequest *grpc_a
 	if err != nil {
 		return err
 	}
+	// do not check the SourceInstanceId and the TargetInstanceId because, sometimes, in the undeploy action, The instance is removed
+	// before the connections and it could not exist (and we need to update the status of the connection before remove it to avoid to create
+	// to prevent it from being created again )
 
 	connectionInstance, err := manager.AppNetProvider.GetConnectionInstance(
 		updateConnectionRequest.OrganizationId,
@@ -128,6 +131,9 @@ func (manager *Manager) RemoveConnectionInstance(removeConnectionRequest *grpc_a
 	if err != nil {
 		return err
 	}
+
+	// do not check the SourceInstanceId and the TargetInstanceId because, sometimes, in the undeploy action, The instance is removed
+	// before the connections and it could not exist
 
 	conn, err := manager.AppNetProvider.GetConnectionInstance(removeConnectionRequest.OrganizationId, removeConnectionRequest.SourceInstanceId,
 		removeConnectionRequest.TargetInstanceId, removeConnectionRequest.InboundName, removeConnectionRequest.OutboundName)
