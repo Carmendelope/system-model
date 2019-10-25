@@ -85,34 +85,9 @@ func (manager *Manager) UpdateConnectionInstance(updateConnectionRequest *grpc_a
 	if err != nil {
 		return err
 	}
-
-	sourceInstance, err := manager.ApplicationProvider.GetInstance(updateConnectionRequest.SourceInstanceId)
-	if err != nil {
-		return derrors.NewNotFoundError("sourceInstanceID", err).WithParams(updateConnectionRequest.SourceInstanceId)
-	}
-	found := false
-	for _, iface := range sourceInstance.OutboundNetInterfaces {
-		if iface.Name == updateConnectionRequest.OutboundName {
-			found = true
-		}
-	}
-	if !found {
-		return derrors.NewNotFoundError("outboundName").WithParams(updateConnectionRequest.OutboundName)
-	}
-
-	targetInstance, err := manager.ApplicationProvider.GetInstance(updateConnectionRequest.TargetInstanceId)
-	if err != nil {
-		return derrors.NewNotFoundError("targetInstanceID", err).WithParams(updateConnectionRequest.TargetInstanceId)
-	}
-	found = false
-	for _, iface := range targetInstance.InboundNetInterfaces {
-		if iface.Name == updateConnectionRequest.InboundName {
-			found = true
-		}
-	}
-	if !found {
-		return derrors.NewNotFoundError("inboundName").WithParams(updateConnectionRequest.OutboundName)
-	}
+	// do not check the SourceInstanceId and the TargetInstanceId because, sometimes, in the undeploy action, The instance is removed
+	// before the connections and it could not exist (and we need to update the status of the connection before remove it to avoid to create
+	// to prevent it from being created again )
 
 	connectionInstance, err := manager.AppNetProvider.GetConnectionInstance(
 		updateConnectionRequest.OrganizationId,
@@ -157,64 +132,28 @@ func (manager *Manager) RemoveConnectionInstance(removeConnectionRequest *grpc_a
 		return err
 	}
 
-	sourceInstance, err := manager.ApplicationProvider.GetInstance(removeConnectionRequest.SourceInstanceId)
+	// do not check the SourceInstanceId and the TargetInstanceId because, sometimes, in the undeploy action, The instance is removed
+	// before the connections and it could not exist
+
+	conn, err := manager.AppNetProvider.GetConnectionInstance(removeConnectionRequest.OrganizationId, removeConnectionRequest.SourceInstanceId,
+		removeConnectionRequest.TargetInstanceId, removeConnectionRequest.InboundName, removeConnectionRequest.OutboundName)
+
 	if err != nil {
-		return derrors.NewNotFoundError("sourceInstanceID", err).WithParams(removeConnectionRequest.SourceInstanceId)
+		return err
 	}
-	var outboundRequired bool
-	found := false
-	for _, iface := range sourceInstance.OutboundNetInterfaces {
-		if iface.Name == removeConnectionRequest.OutboundName {
-			found = true
-			outboundRequired = iface.Required
-		}
-	}
-	if !found {
-		return derrors.NewNotFoundError("outboundName").WithParams(removeConnectionRequest.OutboundName)
-	}
-	if outboundRequired && !removeConnectionRequest.UserConfirmation {
+
+	if conn.OutboundRequired && !removeConnectionRequest.UserConfirmation {
 		return derrors.NewGenericError("outbound connection is required but user did not grant confirmation")
 	}
 
-	targetInstance, err := manager.ApplicationProvider.GetInstance(removeConnectionRequest.TargetInstanceId)
-	if err != nil {
-		return derrors.NewNotFoundError("targetInstanceID", err).WithParams(removeConnectionRequest.TargetInstanceId)
-	}
-	found = false
-	for _, iface := range targetInstance.InboundNetInterfaces {
-		if iface.Name == removeConnectionRequest.InboundName {
-			found = true
-		}
-	}
-	if !found {
-		return derrors.NewNotFoundError("inboundName").WithParams(removeConnectionRequest.OutboundName)
-	}
-
-	links, err := manager.AppNetProvider.ListConnectionInstanceLinks(
+	return manager.AppNetProvider.RemoveConnectionInstance(
 		removeConnectionRequest.OrganizationId,
 		removeConnectionRequest.SourceInstanceId,
 		removeConnectionRequest.TargetInstanceId,
 		removeConnectionRequest.InboundName,
 		removeConnectionRequest.OutboundName,
 	)
-	if err != nil {
-		return err
-	}
-	if len(links) > 0 {
-		return derrors.NewFailedPreconditionError("the connectionInstance still has links associated")
-	}
 
-	err = manager.AppNetProvider.RemoveConnectionInstance(
-		removeConnectionRequest.OrganizationId,
-		removeConnectionRequest.SourceInstanceId,
-		removeConnectionRequest.TargetInstanceId,
-		removeConnectionRequest.InboundName,
-		removeConnectionRequest.OutboundName,
-	)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (manager *Manager) GetConnectionByZtNetworkId(request *grpc_application_network_go.ZTNetworkId) (*entities.ConnectionInstance, derrors.Error) {
