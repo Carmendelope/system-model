@@ -32,10 +32,10 @@ const ApplicationInstanceTablePK = "app_instance_id"
 
 var allApplicationInstanceColumns = []string{"organization_id", "app_descriptor_id", "app_instance_id",
 	"name", "configuration_options", "environment_variables", "labels", "metadata", "rules", "groups", "status",
-	"inbound_net_interfaces", "outbound_net_interfaces"}
+	"inbound_net_interfaces", "outbound_net_interfaces", "info"}
 var allApplicationInstanceColumnsNoPK = []string{"organization_id", "app_descriptor_id",
 	"name", "configuration_options", "environment_variables", "labels", "metadata", "rules", "groups", "status",
-	"inbound_net_interfaces", "outbound_net_interfaces"}
+	"inbound_net_interfaces", "outbound_net_interfaces", "info"}
 
 // Parametrized Descriptor const
 const ParametrizedDescriptorTable = "ParametrizedDescriptors"
