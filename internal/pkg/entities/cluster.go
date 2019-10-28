@@ -196,22 +196,23 @@ func NewCiliumCertsFromGRPC(cilium *grpc_cluster_watcher_go.ClusterWatchInfo_Cil
 	}
 }
 
+
 type IstioCerts struct {
+	// Cluster name
+	ClusterName string `json:"cluster_name,omitempty" cql:"cluster_name"`
+	// Server name
+	ServerName string `json:"server_name,omitempty" cql:"server_name"`
 	// CA certificate
 	CaCert string `json:"ca_cert,omitempty" cql:"ca_cert"`
-	// CA public key
-	CaKey string `json:"ca_key,omitempty" cql:"ca_key"`
-	// Shared root certificate
-	RootCert string `json:"root_cert,omitempty" cql:"root_cert"`
-	// Certificate chain
-	CertChain string `json:"cert_chain,omitempty" cql:"cert_chain"`
+	// Token
+	Token string `json:"token,omitempty" cql:"cluster_token"`
 }
 
 func NewIstioCertsFromGRPC(istio *grpc_cluster_watcher_go.ClusterWatchInfo_Istio) IstioCerts {
 	return IstioCerts{
-		RootCert: istio.Istio.RootCert,
-		CertChain: istio.Istio.CertChain,
-		CaKey: istio.Istio.CaKey,
+		ClusterName: istio.Istio.ClusterName,
+		ServerName: istio.Istio.ServerName,
+		Token: istio.Istio.Token,
 		CaCert: istio.Istio.CaCert,
 	}
 }
@@ -220,9 +221,9 @@ func (c *IstioCerts) ToGRPC() *grpc_cluster_watcher_go.ClusterWatchInfo_Istio {
 	return &grpc_cluster_watcher_go.ClusterWatchInfo_Istio{
 		Istio: &grpc_cluster_watcher_go.IstioCerts{
 			CaCert: 	c.CaCert,
-			CaKey: 		c.CaKey,
-			CertChain: 	c.CertChain,
-			RootCert: 	c.RootCert,
+			Token:		c.Token,
+			ServerName: c.ServerName,
+			ClusterName:c.ClusterName,
 		},
 	}
 }

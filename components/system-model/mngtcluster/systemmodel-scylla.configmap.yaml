@@ -51,9 +51,8 @@ data:
 
 
     create type IF NOT EXISTS nalej.cluster_cilium_creds(cilium_id text, cilium_etcd_ca_crt text, cilium_etcd_crt text,cilium_etcd_key text);
-    create type IF NOT EXISTS nalej.cluster_istio_creds(ca_cert text, ca_key text, root_cert text, cert_chain text);
+    create type IF NOT EXISTS nalej.cluster_istio_creds(cluster_name text, server_name text, ca_cert text, cluster_token text);
     create type IF NOT EXISTS nalej.cluster_watch_info(name text, organization_id text, cluster_id text, ip text, network_type int, cilium_certs FROZEN<cluster_cilium_creds>, istio_certs FROZEN<cluster_istio_creds>);
-
 
     ------------
     -- TABLES --
