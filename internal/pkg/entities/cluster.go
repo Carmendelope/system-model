@@ -99,7 +99,7 @@ var ClusterStatusFromGRPC = map[grpc_connectivity_manager_go.ClusterStatus]Clust
 	grpc_connectivity_manager_go.ClusterStatus_ONLINE_CORDON:  ClusterStatusOnlineCordon,
 }
 
-<<<<<<< HEAD
+
 // Network type used by the cluster watcher
 type NetworkType int
 const (
@@ -116,7 +116,6 @@ var NetworkTypeToGRPC = map[NetworkType]grpc_cluster_watcher_go.NetworkType {
 	NetworkTypeCilium: grpc_cluster_watcher_go.NetworkType_CILIUM,
 }
 
-=======
 // ClusterState defines the different states of a cluster regarding its provisioning and installation.
 type ClusterState int
 
@@ -166,7 +165,7 @@ var ClusterStateFromGRPC = map[grpc_infrastructure_go.ClusterState]ClusterState{
 	grpc_infrastructure_go.ClusterState_UNINSTALLING:        Uninstalling,
 	grpc_infrastructure_go.ClusterState_DECOMISIONING:       Decomissioning,
 }
->>>>>>> master
+
 
 // Cluster entity representing a collection of nodes that supports applicaiton orchestration. This
 // abstraction is used for monitoring and orchestration purposes.
