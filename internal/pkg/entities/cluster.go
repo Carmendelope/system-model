@@ -125,9 +125,9 @@ const (
 
 // ClusterStateToGRPC translates a ClusterState into the gRPC equivalent.
 var ClusterStateToGRPC = map[ClusterState]grpc_infrastructure_go.ClusterState{
-	Unknown:      grpc_infrastructure_go.ClusterState_UNKNOWN,
+	Unknown:           grpc_infrastructure_go.ClusterState_UNKNOWN,
 	Provisioning:      grpc_infrastructure_go.ClusterState_PROVISIONING,
-	Provisioned:      grpc_infrastructure_go.ClusterState_PROVISIONED,
+	Provisioned:       grpc_infrastructure_go.ClusterState_PROVISIONED,
 	InstallInProgress: grpc_infrastructure_go.ClusterState_INSTALL_IN_PROGRESS,
 	Installed:         grpc_infrastructure_go.ClusterState_INSTALLED,
 	Scaling:           grpc_infrastructure_go.ClusterState_SCALING,
@@ -138,9 +138,9 @@ var ClusterStateToGRPC = map[ClusterState]grpc_infrastructure_go.ClusterState{
 
 // ClusterStateFromGRPC translates a gRPC state into a ClusterState
 var ClusterStateFromGRPC = map[grpc_infrastructure_go.ClusterState]ClusterState{
-	grpc_infrastructure_go.ClusterState_UNKNOWN:        Unknown,
+	grpc_infrastructure_go.ClusterState_UNKNOWN:             Unknown,
 	grpc_infrastructure_go.ClusterState_PROVISIONING:        Provisioning,
-	grpc_infrastructure_go.ClusterState_PROVISIONED:        Provisioned,
+	grpc_infrastructure_go.ClusterState_PROVISIONED:         Provisioned,
 	grpc_infrastructure_go.ClusterState_INSTALL_IN_PROGRESS: InstallInProgress,
 	grpc_infrastructure_go.ClusterState_INSTALLED:           Installed,
 	grpc_infrastructure_go.ClusterState_SCALING:             Scaling,
@@ -298,6 +298,9 @@ func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateCluster
 	}
 	if updateRequest.UpdateHostname {
 		c.Hostname = updateRequest.Hostname
+	}
+	if updateRequest.UpdateControlPlaneHostname {
+		c.ControlPlaneHostname = updateRequest.ControlPlaneHostname
 	}
 	if updateRequest.AddLabels {
 		if c.Labels == nil {
