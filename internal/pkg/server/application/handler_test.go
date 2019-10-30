@@ -1171,7 +1171,7 @@ var _ = ginkgo.Describe("Applications", func() {
 			gomega.Expect(success).ShouldNot(gomega.BeNil())
 		})
 
-		ginkgo.FIt("should be able to add a ztMember", func () {
+		ginkgo.It("should be able to add a ztMember", func () {
 			ztMember, err := client.AddAuthorizedZtNetworkMember(context.Background(), &grpc_application_go.AddAuthorizedZtNetworkMemberRequest{
 				OrganizationId:  	uuid.New().String(),
 				NetworkId: 			uuid.New().String(),
@@ -1185,7 +1185,7 @@ var _ = ginkgo.Describe("Applications", func() {
 			gomega.Expect(ztMember).ShouldNot(gomega.BeNil())
 
 		})
-		ginkgo.FIt("should be able to add two ztMembers", func () {
+		ginkgo.It("should be able to add two ztMembers", func () {
 
 			toAdd := &grpc_application_go.AddAuthorizedZtNetworkMemberRequest{
 				OrganizationId:  	uuid.New().String(),
@@ -1208,7 +1208,7 @@ var _ = ginkgo.Describe("Applications", func() {
 			gomega.Expect(ztMember).ShouldNot(gomega.BeNil())
 
 		})
-		ginkgo.FIt("should be able to list the members of a zt-network", func() {
+		ginkgo.It("should be able to list the members of a zt-network", func() {
 			toAdd := &grpc_application_go.AddAuthorizedZtNetworkMemberRequest{
 				OrganizationId:  	uuid.New().String(),
 				NetworkId: 			uuid.New().String(),

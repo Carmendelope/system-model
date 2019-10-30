@@ -180,12 +180,12 @@
   version = "v0.0.14"
 
 [[projects]]
-  digest = "1:96864a28be1acbc494016c71070a8b3363c42f71c10bacde184249151020dd2b"
+  digest = "1:ee2530c26755dd8f9d0329452cfbe95a1fa08eff1266b43385605800b459d51f"
   name = "github.com/nalej/grpc-infrastructure-go"
   packages = ["."]
   pruneopts = ""
-  revision = "53a3f3ecbb7a6504a7c51c452645197ece09709b"
-  version = "v0.0.45"
+  revision = "b5ebfe524bbaaae72fe0698c783c3298d718edec"
+  version = "v0.0.46"
 
 [[projects]]
   digest = "1:e2212e912901c83e646d4fb637f8942432adf33341252a4c80fc8d0f17eb7920"
@@ -371,11 +371,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b9fc41ed7681f80f4b46aa0aab5394a0d0671cc42877ee143f716378f82fe2a1"
+  digest = "1:a155b7400cb9270dda3f63651160c0349a9e16855975956c79e618e9f30c160c"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = ""
-  revision = "195ce5e7f934b923d8fc432cf5a2561f2b334da9"
+  revision = "f43be2a4598cf3a47be9f94f0c28197ed9eae611"
 
 [[projects]]
   digest = "1:740b51a55815493a8d0f2b1e0d0ae48fe48953bf7eaf3fcc4198823bf67768c0"

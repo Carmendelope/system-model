@@ -103,8 +103,12 @@ var ClusterStatusFromGRPC = map[grpc_connectivity_manager_go.ClusterStatus]Clust
 type ClusterState int
 
 const (
+	// Unknown indicates that the cluster has just been created in system model and no provisioning or install operation has taken place.
+	Unknown ClusterState = iota + 1
 	// Provisioning indicates that the cluster is now being provisioned in a cloud provider or through baremetal provisioning.
-	Provisioning ClusterState = iota + 1
+	Provisioning
+	// Provisioned indicates that the cluster has been successfully provisioned and it is ready to be installed.
+	Provisioned
 	// InstallInProgress indicates that the Nalej platform is being installed on the target cluster.
 	InstallInProgress
 	// Installed indicates that the Nalej platform has been successfully deployed on the target cluster.
@@ -121,7 +125,9 @@ const (
 
 // ClusterStateToGRPC translates a ClusterState into the gRPC equivalent.
 var ClusterStateToGRPC = map[ClusterState]grpc_infrastructure_go.ClusterState{
+	Unknown:      grpc_infrastructure_go.ClusterState_UNKNOWN,
 	Provisioning:      grpc_infrastructure_go.ClusterState_PROVISIONING,
+	Provisioned:      grpc_infrastructure_go.ClusterState_PROVISIONED,
 	InstallInProgress: grpc_infrastructure_go.ClusterState_INSTALL_IN_PROGRESS,
 	Installed:         grpc_infrastructure_go.ClusterState_INSTALLED,
 	Scaling:           grpc_infrastructure_go.ClusterState_SCALING,
@@ -132,7 +138,9 @@ var ClusterStateToGRPC = map[ClusterState]grpc_infrastructure_go.ClusterState{
 
 // ClusterStateFromGRPC translates a gRPC state into a ClusterState
 var ClusterStateFromGRPC = map[grpc_infrastructure_go.ClusterState]ClusterState{
+	grpc_infrastructure_go.ClusterState_UNKNOWN:        Unknown,
 	grpc_infrastructure_go.ClusterState_PROVISIONING:        Provisioning,
+	grpc_infrastructure_go.ClusterState_PROVISIONED:        Provisioned,
 	grpc_infrastructure_go.ClusterState_INSTALL_IN_PROGRESS: InstallInProgress,
 	grpc_infrastructure_go.ClusterState_INSTALLED:           Installed,
 	grpc_infrastructure_go.ClusterState_SCALING:             Scaling,
