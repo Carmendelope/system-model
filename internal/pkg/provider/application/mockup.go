@@ -442,24 +442,18 @@ func (m *MockupApplicationProvider) AddAppZtNetworkMember(member entities.AppZtN
 	service_group_instance, found := instance_id[member.AppInstanceId]
 	if !found {
 		service_group_instance = map[string]map[string]map[string]map[string]entities.AppNetworkMember{}
-			//member.AppInstanceId: make(map[string]map[string]map[string]entities.AppNetworkMember, 0),
-		//}
 		instance_id[member.AppInstanceId] = service_group_instance
 	}
 
 	service_app_instance, found := service_group_instance[member.ServiceGroupInstanceId]
 	if !found {
-		service_app_instance = map[string]map[string]map[string]entities.AppNetworkMember{
-			//member.ServiceGroupInstanceId: make(map[string]map[string]entities.AppNetworkMember, 0),
-		}
+		service_app_instance = map[string]map[string]map[string]entities.AppNetworkMember{}
 		service_group_instance[member.ServiceGroupInstanceId] = service_app_instance
 	}
 
 	zt_network, found := service_app_instance[member.ServiceApplicationInstanceId]
 	if !found {
-		zt_network = map[string]map[string]entities.AppNetworkMember{
-			//member.ZtNetworkId: make(map[string]entities.AppNetworkMember, 0),
-		}
+		zt_network = map[string]map[string]entities.AppNetworkMember{}
 		service_app_instance[member.ServiceApplicationInstanceId] = zt_network
 	}
 
