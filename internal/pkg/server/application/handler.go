@@ -503,6 +503,24 @@ func (h *Handler) GetAuthorizedZtNetworkMember(ctx context.Context, req *grpc_ap
 	return retrieved.ToArrayGRPC(), err
 }
 
+// ListAuthorizedZTNetworkMembers retrieves a list of ztMembers in a zero tier network
+func (h *Handler)  ListAuthorizedZTNetworkMembers(ctx context.Context, req *grpc_application_go.ListAuthorizedZtNetworkMemberRequest) (*grpc_application_go.ZtNetworkMembers, error){
+
+	vErr := entities.ValidListAuthorizedZtNetworkMemberRequest(req)
+	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid list authorized ZT network member request")
+		return nil, conversions.ToGRPCError(vErr)
+	}
+
+	retrieved, err := h.Manager.ListAuthorizedZTNetworkMembers(req.OrganizationId, req.AppInstanceId, req.ZtNetworkId)
+	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot get application ZT network member")
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	return retrieved, err
+
+}
 // AddZtNetworkProxy adds a new network proxy for an existing private network
 func (h *Handler) AddZtNetworkProxy(ctx context.Context, req *grpc_application_go.ServiceProxy) (*grpc_common_go.Success, error) {
 	err := entities.ValidAddZtNetworkProxy(req)

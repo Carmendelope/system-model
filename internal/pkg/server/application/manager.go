@@ -803,6 +803,36 @@ func (m *Manager) GetAppZtNetworkMember(organizationId string, appInstanceId str
 	return m.AppProvider.GetAppZtNetworkMember(organizationId, appInstanceId, serviceGroupInstanceId, serviceApplicationInstanceId)
 }
 
+func (m *Manager) ListAuthorizedZTNetworkMembers(organizationId string, appInstanceId string, ztNetworkId string) (*grpc_application_go.ZtNetworkMembers, derrors.Error){
+	retrieved, err :=  m.AppProvider.ListAppZtNetworkMembers(organizationId, appInstanceId, ztNetworkId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	list := make ([]*grpc_application_go.ZtNetworkMember, 0)
+
+	for _, ret := range retrieved {
+		for _, member := range ret.Members {
+			list = append(list, &grpc_application_go.ZtNetworkMember{
+				OrganizationId: 				ret.OrganizationId,
+				NetworkId:      				ret.ZtNetworkId,
+				MemberId: 						member.MemberId,
+				AppInstanceId: 					ret.AppInstanceId,
+				ServiceGroupInstanceId: 		ret.ServiceGroupInstanceId,
+				ServiceApplicationInstanceId: 	ret.ServiceApplicationInstanceId,
+				IsProxy: 						member.IsProxy,
+				CreatedAt: 						member.CreatedAt,
+			})
+		}
+	}
+
+
+	return &grpc_application_go.ZtNetworkMembers{
+		Members: list,
+	}, nil
+}
+
 func (m *Manager) fillDeviceGroupIds(desc *entities.ParametrizedDescriptor) derrors.Error {
 	// -----------------
 	// check if the descriptor has device_names in the rules

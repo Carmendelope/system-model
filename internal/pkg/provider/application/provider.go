@@ -102,4 +102,7 @@ type Provider interface {
 
 	// GetAppZtNetworkMember get the member of a zt network
 	GetAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string) (*entities.AppZtNetworkMembers, derrors.Error)
+
+	// ListAppZtNetworkMembers retrieves a list of members in a zero tier network
+	ListAppZtNetworkMembers (organizationId string, appInstanceId string, ztNetworkId string) ([]*entities.AppZtNetworkMembers, derrors.Error)
 }

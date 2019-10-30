@@ -2252,6 +2252,13 @@ func ValidRemoveAuthorizedZtNetworkMemberRequest(req *grpc_application_go.Remove
 	return nil
 }
 
+func ValidListAuthorizedZtNetworkMemberRequest (req *grpc_application_go.ListAuthorizedZtNetworkMemberRequest) derrors.Error {
+	if req.OrganizationId == "" || req.AppInstanceId == "" || req.ZtNetworkId == ""  {
+		return derrors.NewInvalidArgumentError("expecting organization_id, app_instance_id, zt_network_id")
+	}
+	return nil
+}
+
 func ValidAppDescriptorId(descriptorID *grpc_application_go.AppDescriptorId) derrors.Error {
 	if descriptorID.OrganizationId == "" || descriptorID.AppDescriptorId == "" {
 		return derrors.NewInvalidArgumentError("expecting organization_id and descriptor_id")
