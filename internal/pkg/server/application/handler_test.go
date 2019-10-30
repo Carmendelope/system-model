@@ -1170,6 +1170,84 @@ var _ = ginkgo.Describe("Applications", func() {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(success).ShouldNot(gomega.BeNil())
 		})
+
+		ginkgo.FIt("should be able to add a ztMember", func () {
+			ztMember, err := client.AddAuthorizedZtNetworkMember(context.Background(), &grpc_application_go.AddAuthorizedZtNetworkMemberRequest{
+				OrganizationId:  	uuid.New().String(),
+				NetworkId: 			uuid.New().String(),
+				MemberId: 			uuid.New().String(),
+				AppInstanceId: 		uuid.New().String(),
+				ServiceGroupInstanceId: uuid.New().String(),
+				ServiceApplicationInstanceId: uuid.New().String(),
+				IsProxy: false,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(ztMember).ShouldNot(gomega.BeNil())
+
+		})
+		ginkgo.FIt("should be able to add two ztMembers", func () {
+
+			toAdd := &grpc_application_go.AddAuthorizedZtNetworkMemberRequest{
+				OrganizationId:  	uuid.New().String(),
+				NetworkId: 			uuid.New().String(),
+				MemberId: 			uuid.New().String(),
+				AppInstanceId: 		uuid.New().String(),
+				ServiceGroupInstanceId: 		uuid.New().String(),
+				ServiceApplicationInstanceId: 	uuid.New().String(),
+				IsProxy: false,
+			}
+
+			ztMember, err := client.AddAuthorizedZtNetworkMember(context.Background(),toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(ztMember).ShouldNot(gomega.BeNil())
+
+			toAdd.IsProxy = true
+			toAdd.MemberId = uuid.New().String()
+			ztMember, err = client.AddAuthorizedZtNetworkMember(context.Background(),toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(ztMember).ShouldNot(gomega.BeNil())
+
+		})
+		ginkgo.FIt("should be able to list the members of a zt-network", func() {
+			toAdd := &grpc_application_go.AddAuthorizedZtNetworkMemberRequest{
+				OrganizationId:  	uuid.New().String(),
+				NetworkId: 			uuid.New().String(),
+				MemberId: 			uuid.New().String(),
+				AppInstanceId: 		uuid.New().String(),
+				ServiceGroupInstanceId: 		uuid.New().String(),
+				ServiceApplicationInstanceId: 	uuid.New().String(),
+				IsProxy: false,
+			}
+
+			ztMember, err := client.AddAuthorizedZtNetworkMember(context.Background(),toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(ztMember).ShouldNot(gomega.BeNil())
+
+			toAdd.IsProxy = true
+			toAdd.MemberId = uuid.New().String()
+			ztMember, err = client.AddAuthorizedZtNetworkMember(context.Background(),toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(ztMember).ShouldNot(gomega.BeNil())
+
+			// new record (same networkId and different service_group_instance_id and service_application_instance_id
+
+			toAdd.ServiceApplicationInstanceId = uuid.New().String()
+			toAdd.ServiceGroupInstanceId = uuid.New().String()
+			ztMember, err = client.AddAuthorizedZtNetworkMember(context.Background(),toAdd)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(ztMember).ShouldNot(gomega.BeNil())
+
+
+			list, err := client.ListAuthorizedZTNetworkMembers(context.Background(), &grpc_application_go.ListAuthorizedZtNetworkMemberRequest{
+				OrganizationId: toAdd.OrganizationId,
+				AppInstanceId: 	toAdd.AppInstanceId,
+				ZtNetworkId: 	toAdd.NetworkId,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(list).ShouldNot(gomega.BeNil())
+			gomega.Expect(len(list.Members)).Should(gomega.Equal(3))
+
+		})
 	})
 
 	ginkgo.Context("Parametrized Descriptor", func() {

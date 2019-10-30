@@ -806,3 +806,41 @@ func (sp *ScyllaApplicationProvider) GetAppZtNetworkMember(organizationId string
 	return &retrievedMembers, nil
 
 }
+
+
+func (sp *ScyllaApplicationProvider) ListAppZtNetworkMembers (organizationId string, appInstanceId string, ztNetworkId string) ([]*entities.AppZtNetworkMembers, derrors.Error) {
+	list := make ([]*entities.AppZtNetworkMembers, 0)
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.CheckAndConnect(); err != nil {
+		return nil, err
+	}
+
+	stmt, names := qb.Select("appztnetworkmembers").Columns("organization_id", "app_instance_id",
+		"service_group_instance_id", "service_application_instance_id", "zt_network_id", "members").
+		Where(qb.Eq("zt_network_id")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"zt_network_id": ztNetworkId,
+	})
+
+	result := make ([]*entities.AppZtNetworkMembers, 0)
+
+	cqlErr := gocqlx.Select(&result, q.Query)
+
+	if cqlErr != nil {
+		return nil, derrors.AsError(cqlErr, "cannot list app ztNetwork members")
+	}
+
+	// retrieve all the records where zt_network_id = ztNetworkId
+	// we need to filter by organizationId and appInstanceId
+	for _, record := range result {
+		if record.OrganizationId == organizationId && record.AppInstanceId == appInstanceId {
+			list = append(list, record)
+		}
+	}
+
+
+	return list, nil
+}
