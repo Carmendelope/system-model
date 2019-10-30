@@ -30,10 +30,12 @@ func (h *Handler) AddRole(ctx context.Context, addRoleRequest *grpc_role_go.AddR
 		Str("name", addRoleRequest.Name).Msg("add role")
 	vErr := entities.ValidAddRoleRequest(addRoleRequest)
 	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid add role request")
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	added, err := h.Manager.AddRole(addRoleRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot add role")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("roleID", added.RoleId).Msg("role has been added")
@@ -44,10 +46,12 @@ func (h *Handler) AddRole(ctx context.Context, addRoleRequest *grpc_role_go.AddR
 func (h *Handler) GetRole(ctx context.Context, roleID *grpc_role_go.RoleId) (*grpc_role_go.Role, error) {
 	vErr := entities.ValidRoleID(roleID)
 	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid role identifier")
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	role, err := h.Manager.GetRole(roleID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot get role")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return role.ToGRPC(), nil
@@ -58,10 +62,12 @@ func (h *Handler) ListRoles(ctx context.Context, organizationID *grpc_organizati
 	log.Debug().Str("organizationID", organizationID.OrganizationId).Msg("list roles")
 	vErr := entities.ValidOrganizationID(organizationID)
 	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid organization identifier")
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	roles, err := h.Manager.ListRoles(organizationID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot list roles")
 		return nil, conversions.ToGRPCError(err)
 	}
 	roleList := make([]*grpc_role_go.Role, 0)
@@ -80,10 +86,12 @@ func (h *Handler) RemoveRole(ctx context.Context, removeRoleRequest *grpc_role_g
 		Str("roleID", removeRoleRequest.RoleId).Msg("remove role")
 	vErr := entities.ValidRemoveRoleRequest(removeRoleRequest)
 	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid remove role request")
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	err := h.Manager.RemoveRole(removeRoleRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot remove role")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil

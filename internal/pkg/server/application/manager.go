@@ -364,7 +364,7 @@ func (m *Manager) GetInstance(appInstID *grpc_application_go.AppInstanceId) (*en
 }
 
 // UpdateInstance updates the information of a given instance.
-func (m *Manager) UpdateInstance(updateRequest *grpc_application_go.UpdateAppStatusRequest) error {
+func (m *Manager) UpdateInstance(updateRequest *grpc_application_go.UpdateAppStatusRequest) derrors.Error {
 	exists, err := m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId)
 	if err != nil {
 		return err
@@ -393,7 +393,7 @@ func (m *Manager) UpdateInstance(updateRequest *grpc_application_go.UpdateAppSta
 
 // UpdateService updates an application service.
 // TODO: wait for the conductor to be implemented
-func (m *Manager) UpdateService(updateRequest *grpc_application_go.UpdateServiceStatusRequest) error {
+func (m *Manager) UpdateService(updateRequest *grpc_application_go.UpdateServiceStatusRequest) derrors.Error {
 
 	exists, err := m.OrgProvider.InstanceExists(updateRequest.OrganizationId, updateRequest.AppInstanceId)
 
@@ -445,7 +445,7 @@ func (m *Manager) UpdateService(updateRequest *grpc_application_go.UpdateService
 
 }
 
-func (m *Manager) UpdateAppInstance(appInstance *grpc_application_go.AppInstance) error {
+func (m *Manager) UpdateAppInstance(appInstance *grpc_application_go.AppInstance) derrors.Error {
 	localEntity := entities.NewAppInstanceFromGRPC(appInstance)
 
 	err := m.AppProvider.UpdateInstance(*localEntity)
@@ -801,6 +801,36 @@ func (m *Manager) RemoveAppZtNetworkMember(organizationId string, appInstanceId 
 
 func (m *Manager) GetAppZtNetworkMember(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceApplicationInstanceId string) (*entities.AppZtNetworkMembers, derrors.Error) {
 	return m.AppProvider.GetAppZtNetworkMember(organizationId, appInstanceId, serviceGroupInstanceId, serviceApplicationInstanceId)
+}
+
+func (m *Manager) ListAuthorizedZTNetworkMembers(organizationId string, appInstanceId string, ztNetworkId string) (*grpc_application_go.ZtNetworkMembers, derrors.Error){
+	retrieved, err :=  m.AppProvider.ListAppZtNetworkMembers(organizationId, appInstanceId, ztNetworkId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	list := make ([]*grpc_application_go.ZtNetworkMember, 0)
+
+	for _, ret := range retrieved {
+		for _, member := range ret.Members {
+			list = append(list, &grpc_application_go.ZtNetworkMember{
+				OrganizationId: 				ret.OrganizationId,
+				NetworkId:      				ret.ZtNetworkId,
+				MemberId: 						member.MemberId,
+				AppInstanceId: 					ret.AppInstanceId,
+				ServiceGroupInstanceId: 		ret.ServiceGroupInstanceId,
+				ServiceApplicationInstanceId: 	ret.ServiceApplicationInstanceId,
+				IsProxy: 						member.IsProxy,
+				CreatedAt: 						member.CreatedAt,
+			})
+		}
+	}
+
+
+	return &grpc_application_go.ZtNetworkMembers{
+		Members: list,
+	}, nil
 }
 
 func (m *Manager) fillDeviceGroupIds(desc *entities.ParametrizedDescriptor) derrors.Error {

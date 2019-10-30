@@ -53,7 +53,6 @@ var _ = ginkgo.Describe("Cluster service", func() {
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
 		server = grpc.NewServer()
-		test.LaunchServer(server, listener)
 
 		// Register the service
 		organizationProvider = orgProvider.NewMockupOrganizationProvider()
@@ -65,6 +64,9 @@ var _ = ginkgo.Describe("Cluster service", func() {
 		conn, err := test.GetConn(*listener)
 		gomega.Expect(err).Should(gomega.Succeed())
 		client = grpc_infrastructure_go.NewClustersClient(conn)
+
+		test.LaunchServer(server, listener)
+
 	})
 
 	ginkgo.AfterSuite(func() {

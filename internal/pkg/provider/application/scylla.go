@@ -32,10 +32,10 @@ const ApplicationInstanceTablePK = "app_instance_id"
 
 var allApplicationInstanceColumns = []string{"organization_id", "app_descriptor_id", "app_instance_id",
 	"name", "configuration_options", "environment_variables", "labels", "metadata", "rules", "groups", "status",
-	"inbound_net_interfaces", "outbound_net_interfaces"}
+	"inbound_net_interfaces", "outbound_net_interfaces", "info"}
 var allApplicationInstanceColumnsNoPK = []string{"organization_id", "app_descriptor_id",
 	"name", "configuration_options", "environment_variables", "labels", "metadata", "rules", "groups", "status",
-	"inbound_net_interfaces", "outbound_net_interfaces"}
+	"inbound_net_interfaces", "outbound_net_interfaces", "info"}
 
 // Parametrized Descriptor const
 const ParametrizedDescriptorTable = "ParametrizedDescriptors"
@@ -385,10 +385,15 @@ func (sp *ScyllaApplicationProvider) AddAppEndpoint(appEndPoint entities.AppEndp
 	sp.Lock()
 	defer sp.Unlock()
 
-	pkColumn := sp.createAppEndpointPKMap(appEndPoint.OrganizationId, appEndPoint.AppInstanceId, appEndPoint.ServiceGroupInstanceId,
-		appEndPoint.ServiceInstanceId, appEndPoint.Port, appEndPoint.Protocol)
+	// insert the endpoint
+	stmt, names := qb.Insert(AppEndpointsTable).Columns(allAppEndPointsColumns...).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(appEndPoint)
+	cqlErr := q.ExecRelease()
 
-	return sp.UnsafeCompositeAdd(AppEndpointsTable, pkColumn, allAppEndPointsColumns, appEndPoint)
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot add end point")
+	}
+	return nil
 }
 
 // GetAppEndPointByFQDN ()
@@ -800,4 +805,42 @@ func (sp *ScyllaApplicationProvider) GetAppZtNetworkMember(organizationId string
 	}
 	return &retrievedMembers, nil
 
+}
+
+
+func (sp *ScyllaApplicationProvider) ListAppZtNetworkMembers (organizationId string, appInstanceId string, ztNetworkId string) ([]*entities.AppZtNetworkMembers, derrors.Error) {
+	list := make ([]*entities.AppZtNetworkMembers, 0)
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	if err := sp.CheckAndConnect(); err != nil {
+		return nil, err
+	}
+
+	stmt, names := qb.Select("appztnetworkmembers").Columns("organization_id", "app_instance_id",
+		"service_group_instance_id", "service_application_instance_id", "zt_network_id", "members").
+		Where(qb.Eq("zt_network_id")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"zt_network_id": ztNetworkId,
+	})
+
+	result := make ([]*entities.AppZtNetworkMembers, 0)
+
+	cqlErr := gocqlx.Select(&result, q.Query)
+
+	if cqlErr != nil {
+		return nil, derrors.AsError(cqlErr, "cannot list app ztNetwork members")
+	}
+
+	// retrieve all the records where zt_network_id = ztNetworkId
+	// we need to filter by organizationId and appInstanceId
+	for _, record := range result {
+		if record.OrganizationId == organizationId && record.AppInstanceId == appInstanceId {
+			list = append(list, record)
+		}
+	}
+
+
+	return list, nil
 }

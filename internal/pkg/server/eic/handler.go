@@ -29,10 +29,12 @@ func (h *Handler) Add(ctx context.Context, request *grpc_inventory_go.AddEdgeCon
 		Str("name", request.Name).Msg("add controller")
 	err := entities.ValidAddEdgeControllerRequest(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("add edge controller request is not valid")
 		return nil, conversions.ToGRPCError(err)
 	}
 	added, err := h.Manager.Add(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot add edge controller")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("edgeControllerID", added.EdgeControllerId).Msg("controller has been added")
@@ -42,10 +44,12 @@ func (h *Handler) Add(ctx context.Context, request *grpc_inventory_go.AddEdgeCon
 func (h *Handler) List(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_inventory_go.EdgeControllerList, error) {
 	err := entities.ValidOrganizationID(organizationID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid organization identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	controllers, err := h.Manager.List(organizationID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot list controllers")
 		return nil, conversions.ToGRPCError(err)
 	}
 	toReturn := make([]*grpc_inventory_go.EdgeController, 0, len(controllers))
@@ -61,10 +65,12 @@ func (h *Handler) List(ctx context.Context, organizationID *grpc_organization_go
 func (h *Handler) Remove(ctx context.Context, edgeControllerID *grpc_inventory_go.EdgeControllerId) (*grpc_common_go.Success, error) {
 	err := entities.ValidEdgeControllerID(edgeControllerID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid edge controller identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	err = h.Manager.Remove(edgeControllerID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot remove edge controller")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil
@@ -73,10 +79,12 @@ func (h *Handler) Remove(ctx context.Context, edgeControllerID *grpc_inventory_g
 func (h *Handler) Update(ctx context.Context, request *grpc_inventory_go.UpdateEdgeControllerRequest) (*grpc_inventory_go.EdgeController, error) {
 	err := entities.ValidUpdateEdgeControllerRequest(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid update edge controller request")
 		return nil, conversions.ToGRPCError(err)
 	}
 	updated, err := h.Manager.Update(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot update edge controller")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("edgeControllerID", updated.EdgeControllerId).Msg("edge controller has been updated")
@@ -86,10 +94,12 @@ func (h *Handler) Update(ctx context.Context, request *grpc_inventory_go.UpdateE
 func (h *Handler) Get(ctx context.Context, edgeControllerID *grpc_inventory_go.EdgeControllerId) (*grpc_inventory_go.EdgeController, error) {
 	err := entities.ValidEdgeControllerID(edgeControllerID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid edge controller identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	retrieved, err := h.Manager.Get(edgeControllerID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot get edge controller")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return retrieved.ToGRPC(), nil

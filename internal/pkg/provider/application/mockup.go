@@ -436,34 +436,31 @@ func (m *MockupApplicationProvider) AddAppZtNetworkMember(member entities.AppZtN
 
 	instance_id, found := m.appZtNetworMembers[member.OrganizationId]
 	if !found {
-		instance_id = map[string]map[string]map[string]map[string]map[string]entities.AppNetworkMember{
-			member.OrganizationId: make(map[string]map[string]map[string]map[string]entities.AppNetworkMember, 0),
-		}
+		instance_id = map[string]map[string]map[string]map[string]map[string]entities.AppNetworkMember{}
+		m.appZtNetworMembers[member.OrganizationId] = instance_id
 	}
 	service_group_instance, found := instance_id[member.AppInstanceId]
 	if !found {
-		service_group_instance = map[string]map[string]map[string]map[string]entities.AppNetworkMember{
-			member.AppInstanceId: make(map[string]map[string]map[string]entities.AppNetworkMember, 0),
-		}
+		service_group_instance = map[string]map[string]map[string]map[string]entities.AppNetworkMember{}
+		instance_id[member.AppInstanceId] = service_group_instance
 	}
 
 	service_app_instance, found := service_group_instance[member.ServiceGroupInstanceId]
 	if !found {
-		service_app_instance = map[string]map[string]map[string]entities.AppNetworkMember{
-			member.ServiceApplicationInstanceId: make(map[string]map[string]entities.AppNetworkMember, 0),
-		}
+		service_app_instance = map[string]map[string]map[string]entities.AppNetworkMember{}
+		service_group_instance[member.ServiceGroupInstanceId] = service_app_instance
 	}
 
 	zt_network, found := service_app_instance[member.ServiceApplicationInstanceId]
 	if !found {
-		zt_network = map[string]map[string]entities.AppNetworkMember{
-			member.ZtNetworkId: make(map[string]entities.AppNetworkMember, 0),
-		}
+		zt_network = map[string]map[string]entities.AppNetworkMember{}
+		service_app_instance[member.ServiceApplicationInstanceId] = zt_network
 	}
 
 	members, found := zt_network[member.ZtNetworkId]
 	if !found {
 		members = make(map[string]entities.AppNetworkMember, 0)
+		zt_network[member.ZtNetworkId] = members
 	}
 
 	for k, v := range member.Members {
@@ -541,4 +538,35 @@ func (m *MockupApplicationProvider) GetAppZtNetworkMember(organizationId string,
 	}
 
 	return &toReturn, nil
+}
+func (m *MockupApplicationProvider) ListAppZtNetworkMembers (organizationId string, appInstanceId string, ztNetworkId string) ([]*entities.AppZtNetworkMembers, derrors.Error) {
+
+	list := make ([]*entities.AppZtNetworkMembers, 0)
+	organizationsMap, found := m.appZtNetworMembers[organizationId]
+	if !found {
+		return list, derrors.NewNotFoundError("not found organization")
+	}
+	instanceMap, found := organizationsMap[appInstanceId]
+	if !found {
+		return list, nil
+	}
+
+	for group, serviceGroupMap := range instanceMap {
+		for instance, instanceMap := range serviceGroupMap {
+			for networkId, networkMap := range instanceMap {
+				if networkId == ztNetworkId {
+					list = append(list, &entities.AppZtNetworkMembers{
+						OrganizationId:         organizationId,
+						AppInstanceId:          appInstanceId,
+						ServiceGroupInstanceId: group,
+						ServiceApplicationInstanceId: instance,
+						ZtNetworkId: ztNetworkId,
+						Members: networkMap,
+					})
+				}
+			}
+		}
+	}
+
+	return list, nil
 }

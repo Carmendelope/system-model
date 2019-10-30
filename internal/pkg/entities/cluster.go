@@ -99,6 +99,7 @@ var ClusterStatusFromGRPC = map[grpc_connectivity_manager_go.ClusterStatus]Clust
 	grpc_connectivity_manager_go.ClusterStatus_ONLINE_CORDON:  ClusterStatusOnlineCordon,
 }
 
+<<<<<<< HEAD
 // Network type used by the cluster watcher
 type NetworkType int
 const (
@@ -115,6 +116,57 @@ var NetworkTypeToGRPC = map[NetworkType]grpc_cluster_watcher_go.NetworkType {
 	NetworkTypeCilium: grpc_cluster_watcher_go.NetworkType_CILIUM,
 }
 
+=======
+// ClusterState defines the different states of a cluster regarding its provisioning and installation.
+type ClusterState int
+
+const (
+	// Unknown indicates that the cluster has just been created in system model and no provisioning or install operation has taken place.
+	Unknown ClusterState = iota + 1
+	// Provisioning indicates that the cluster is now being provisioned in a cloud provider or through baremetal provisioning.
+	Provisioning
+	// Provisioned indicates that the cluster has been successfully provisioned and it is ready to be installed.
+	Provisioned
+	// InstallInProgress indicates that the Nalej platform is being installed on the target cluster.
+	InstallInProgress
+	// Installed indicates that the Nalej platform has been successfully deployed on the target cluster.
+	Installed
+	// Scaling indicates that the cluster is now being modified in terms of number of available nodes.
+	Scaling
+	// Failure indicates that a process related to provisioning or installation has failed.
+	Failure
+	// Uninstalling indicates that the cluster is now being uninstalled and the platform is being undeployed.
+	Uninstalling
+	// Decomisioning indicates that the hardware resources are being freed.
+	Decomissioning
+)
+
+// ClusterStateToGRPC translates a ClusterState into the gRPC equivalent.
+var ClusterStateToGRPC = map[ClusterState]grpc_infrastructure_go.ClusterState{
+	Unknown:           grpc_infrastructure_go.ClusterState_UNKNOWN,
+	Provisioning:      grpc_infrastructure_go.ClusterState_PROVISIONING,
+	Provisioned:       grpc_infrastructure_go.ClusterState_PROVISIONED,
+	InstallInProgress: grpc_infrastructure_go.ClusterState_INSTALL_IN_PROGRESS,
+	Installed:         grpc_infrastructure_go.ClusterState_INSTALLED,
+	Scaling:           grpc_infrastructure_go.ClusterState_SCALING,
+	Failure:           grpc_infrastructure_go.ClusterState_FAILURE,
+	Uninstalling:      grpc_infrastructure_go.ClusterState_UNINSTALLING,
+	Decomissioning:    grpc_infrastructure_go.ClusterState_DECOMISIONING,
+}
+
+// ClusterStateFromGRPC translates a gRPC state into a ClusterState
+var ClusterStateFromGRPC = map[grpc_infrastructure_go.ClusterState]ClusterState{
+	grpc_infrastructure_go.ClusterState_UNKNOWN:             Unknown,
+	grpc_infrastructure_go.ClusterState_PROVISIONING:        Provisioning,
+	grpc_infrastructure_go.ClusterState_PROVISIONED:         Provisioned,
+	grpc_infrastructure_go.ClusterState_INSTALL_IN_PROGRESS: InstallInProgress,
+	grpc_infrastructure_go.ClusterState_INSTALLED:           Installed,
+	grpc_infrastructure_go.ClusterState_SCALING:             Scaling,
+	grpc_infrastructure_go.ClusterState_FAILURE:             Failure,
+	grpc_infrastructure_go.ClusterState_UNINSTALLING:        Uninstalling,
+	grpc_infrastructure_go.ClusterState_DECOMISIONING:       Decomissioning,
+}
+>>>>>>> master
 
 // Cluster entity representing a collection of nodes that supports applicaiton orchestration. This
 // abstraction is used for monitoring and orchestration purposes.
@@ -144,6 +196,8 @@ type Cluster struct {
 	ClusterWatch ClusterWatchInfo `json:"cluster_watch,omitempty"`
 	// Last alive timestamp
 	LastAliveTimestamp int64 `json:"last_alive_timestamp,omitempty"`
+	// State of the cluster with respect to provisioning and installation.
+	State ClusterState `json:"cluster_state,omitempty"`
 }
 
 // The cluster watcher contains information to ensure the connectivity between clusters. This data
@@ -304,6 +358,7 @@ func NewClusterFromGRPC(addClusterRequest *grpc_infrastructure_go.AddClusterRequ
 		Status:               ClusterStatusUnknown,
 		Labels:               addClusterRequest.Labels,
 		Cordon:               false,
+		State:                Provisioning,
 		// ClusterWatch:
 		// LastAliveTimestamp:
 	}
@@ -313,6 +368,7 @@ func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 	clusterType := ClusterTypeToGRPC[c.ClusterType]
 	multitenant := MultitenantSupportToGRPC[c.Multitenant]
 	status := ClusterStatusToGRPC[c.Status]
+	state := ClusterStateToGRPC[c.State]
 	return &grpc_infrastructure_go.Cluster{
 		OrganizationId:       c.OrganizationId,
 		ClusterId:            c.ClusterId,
@@ -325,6 +381,7 @@ func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 		Labels:               c.Labels,
 		ClusterWatch:         c.ClusterWatch.ToGRPC(),
 		LastAliveTimestamp:   c.LastAliveTimestamp,
+		State:                state,
 	}
 }
 
@@ -334,6 +391,9 @@ func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateCluster
 	}
 	if updateRequest.UpdateHostname {
 		c.Hostname = updateRequest.Hostname
+	}
+	if updateRequest.UpdateControlPlaneHostname {
+		c.ControlPlaneHostname = updateRequest.ControlPlaneHostname
 	}
 	if updateRequest.AddLabels {
 		if c.Labels == nil {
@@ -360,6 +420,11 @@ func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateCluster
 	if updateRequest.UpdateLastClusterTimestamp {
 		c.LastAliveTimestamp = updateRequest.LastClusterTimestamp
 	}
+
+	if updateRequest.UpdateClusterState {
+		c.State = ClusterStateFromGRPC[updateRequest.State]
+	}
+
 }
 
 func ValidAddClusterRequest(addClusterRequest *grpc_infrastructure_go.AddClusterRequest) derrors.Error {

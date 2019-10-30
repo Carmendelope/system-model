@@ -25,17 +25,42 @@ func RunTest(provider Provider) {
 
 	// UpdateCluster
 	ginkgo.It("Should be able to update the cluster", func() {
-
 		cluster := CreateTestCluster("UUUId-0")
 
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
-
 		cluster.Multitenant = entities.MultitenantSupport(1)
 
 		err = provider.Update(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
 	})
+
+	ginkgo.It("Should be able to update the cluster state", func() {
+		cluster := CreateTestCluster("UUUId-0")
+		err := provider.Add(*cluster)
+		gomega.Expect(err).To(gomega.Succeed())
+		cluster.State = entities.InstallInProgress
+		err = provider.Update(*cluster)
+		gomega.Expect(err).To(gomega.Succeed())
+		retrieved, err := provider.Get(cluster.ClusterId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(retrieved.State).Should(gomega.Equal(entities.InstallInProgress))
+	})
+
+	ginkgo.It("should be able to update on all cluster states", func(){
+		cluster := CreateTestCluster("UUUId-0")
+		err := provider.Add(*cluster)
+		gomega.Expect(err).To(gomega.Succeed())
+		for newState, _ := range entities.ClusterStateToGRPC{
+			cluster.State = newState
+			err := provider.Update(*cluster)
+			gomega.Expect(err).To(gomega.Succeed())
+			retrieved, err := provider.Get(cluster.ClusterId)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(retrieved.State).Should(gomega.Equal(newState))
+		}
+	})
+
 	ginkgo.It("Should not be able to update the cluster", func() {
 
 		cluster := CreateTestCluster("UUUId-0")

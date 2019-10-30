@@ -29,11 +29,12 @@ func (h *Handler) AddAccount(ctx context.Context, request *grpc_account_go.AddAc
 	log.Debug().Str("Name", request.Name).Msg("add account")
 	err := entities.ValidateAddAccountRequest(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid add account request")
 		return nil, conversions.ToGRPCError(err)
 	}
-
 	added, err := h.Manager.AddAccount(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot add new account")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("Name", request.Name).Str("account_id", added.AccountId).Msg("account added")
@@ -42,13 +43,14 @@ func (h *Handler) AddAccount(ctx context.Context, request *grpc_account_go.AddAc
 
 // GetAccount retrieves a given account
 func (h *Handler) GetAccount(ctx context.Context, request *grpc_account_go.AccountId) (*grpc_account_go.Account, error) {
-
 	err := entities.ValidateAccountId(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid account identifier")
 		return nil, conversions.ToGRPCError(err)
 	}
 	account, err := h.Manager.GetAccount(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot obtain account")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return account.ToGRPC(), nil
@@ -57,29 +59,28 @@ func (h *Handler) GetAccount(ctx context.Context, request *grpc_account_go.Accou
 // ListAccounts retrieves a list of all the accounts in the system. This method is only intended to be used by
 // management API as the users will not be able to list other accounts
 func (h *Handler) ListAccounts(ctx context.Context, request *grpc_common_go.Empty) (*grpc_account_go.AccountList, error) {
-
 	accounts, err := h.Manager.ListAccounts()
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot list accounts")
 		return nil, conversions.ToGRPCError(err)
 	}
 	list := make([]*grpc_account_go.Account, 0)
-
 	for _, account := range accounts {
 		list = append(list, account.ToGRPC())
 	}
-
 	return &grpc_account_go.AccountList{Accounts: list}, nil
 }
 
 // UpdateAccount updates the information of an account
 func (h *Handler) UpdateAccount(ctx context.Context, request *grpc_account_go.UpdateAccountRequest) (*grpc_common_go.Success, error) {
-
 	err := entities.ValidateUpdateAccountRequest(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid update account request")
 		return nil, conversions.ToGRPCError(err)
 	}
 	err = h.Manager.UpdateAccount(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot update account")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil
@@ -87,13 +88,14 @@ func (h *Handler) UpdateAccount(ctx context.Context, request *grpc_account_go.Up
 
 // UpdateAccountBillingInfo updates the billing info of an account
 func (h *Handler) UpdateAccountBillingInfo(ctx context.Context, request *grpc_account_go.UpdateAccountBillingInfoRequest) (*grpc_common_go.Success, error) {
-
 	err := entities.ValidateUpdateAccountBillingInfoRequest(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("invalid update account billing request")
 		return nil, conversions.ToGRPCError(err)
 	}
 	err = h.Manager.UpdateAccountBillingInfo(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot update account billing information")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil

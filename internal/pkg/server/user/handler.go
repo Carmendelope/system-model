@@ -30,10 +30,12 @@ func (h *Handler) AddUser(ctx context.Context, addUserRequest *grpc_user_go.AddU
 		Str("email", addUserRequest.Email).Msg("add user")
 	vErr := entities.ValidAddUserRequest(addUserRequest)
 	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid add user request")
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	added, err := h.Manager.AddUser(addUserRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot add user")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("organizationID", addUserRequest.OrganizationId).
@@ -44,10 +46,12 @@ func (h *Handler) AddUser(ctx context.Context, addUserRequest *grpc_user_go.AddU
 func (h *Handler) Update(ctx context.Context, request *grpc_user_go.UpdateUserRequest) (*grpc_common_go.Success, error) {
 	vErr := entities.ValidUpdateUserRequest(request)
 	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid update user request")
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	err := h.Manager.UpdateUser(request)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot update user")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil
@@ -57,10 +61,12 @@ func (h *Handler) Update(ctx context.Context, request *grpc_user_go.UpdateUserRe
 func (h *Handler) GetUser(ctx context.Context, userID *grpc_user_go.UserId) (*grpc_user_go.User, error) {
 	vErr := entities.ValidUserID(userID)
 	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid user identifier")
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	user, err := h.Manager.GetUser(userID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot get user")
 		return nil, conversions.ToGRPCError(err)
 	}
 	return user.ToGRPC(), nil
@@ -70,10 +76,12 @@ func (h *Handler) GetUser(ctx context.Context, userID *grpc_user_go.UserId) (*gr
 func (h *Handler) GetUsers(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_user_go.UserList, error) {
 	vErr := entities.ValidOrganizationID(organizationID)
 	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid organization identifier")
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	users, err := h.Manager.GetUsers(organizationID)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot get users")
 		return nil, conversions.ToGRPCError(err)
 	}
 	userList := make([]*grpc_user_go.User, 0)
@@ -92,10 +100,12 @@ func (h *Handler) RemoveUser(ctx context.Context, removeRequest *grpc_user_go.Re
 		Str("email", removeRequest.Email).Msg("remove user")
 	vErr := entities.ValidRemoveUserRequest(removeRequest)
 	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid remove user request")
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	err := h.Manager.RemoveUser(removeRequest)
 	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot remove user")
 		return nil, conversions.ToGRPCError(err)
 	}
 	log.Debug().Str("organizationID", removeRequest.OrganizationId).
