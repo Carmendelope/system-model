@@ -1,5 +1,18 @@
 /*
- * Copyright (C) 2019 Nalej - All Rights Reserved
+ * Copyright 2019 Nalej
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 package application_network
@@ -91,7 +104,6 @@ var _ = ginkgo.Describe("Application Network service", func() {
 		listener = test.GetDefaultListener()
 		server = grpc.NewServer()
 
-
 		// Register the service
 		organizationProvider = organization.NewMockupOrganizationProvider()
 		applicationProvider = application.NewMockupApplicationProvider()
@@ -105,7 +117,7 @@ var _ = ginkgo.Describe("Application Network service", func() {
 		client = grpc_application_network_go.NewApplicationNetworkClient(conn)
 
 		test.LaunchServer(server, listener)
-		
+
 	})
 
 	ginkgo.AfterSuite(func() {
@@ -873,14 +885,13 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			gomega.Expect(added).NotTo(gomega.BeNil())
 
 			toUpdate := grpc_application_network_go.UpdateZTNetworkConnectionRequest{
-				OrganizationId:  toAdd.OrganizationId,
-				ZtNetworkId:     toAdd.ZtNetworkId,
-				AppInstanceId:   toAdd.AppInstanceId,
-				ServiceId:       toAdd.ServiceId,
-				ClusterId: 		 toAdd.ClusterId,
-				UpdateZtIp:      true,
-				ZtIp:            "yyy.yyy.yyy.yyy",
-
+				OrganizationId: toAdd.OrganizationId,
+				ZtNetworkId:    toAdd.ZtNetworkId,
+				AppInstanceId:  toAdd.AppInstanceId,
+				ServiceId:      toAdd.ServiceId,
+				ClusterId:      toAdd.ClusterId,
+				UpdateZtIp:     true,
+				ZtIp:           "yyy.yyy.yyy.yyy",
 			}
 			success, err := client.UpdateZTNetworkConnection(context.Background(), &toUpdate)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -901,12 +912,12 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			organization := addOrganization(organizationProvider)
 			instance := addInstance(organization.ID, applicationProvider)
 			toUpdate := grpc_application_network_go.UpdateZTNetworkConnectionRequest{
-				OrganizationId:  organization.ID,
-				ZtNetworkId:     entities.GenerateUUID(),
-				AppInstanceId:   instance.AppInstanceId,
-				ServiceId:       instance.Groups[0].ServiceInstances[0].ServiceId,
-				UpdateZtIp:      true,
-				ZtIp:            "yyy.yyy.yyy.yyy",
+				OrganizationId: organization.ID,
+				ZtNetworkId:    entities.GenerateUUID(),
+				AppInstanceId:  instance.AppInstanceId,
+				ServiceId:      instance.Groups[0].ServiceInstances[0].ServiceId,
+				UpdateZtIp:     true,
+				ZtIp:           "yyy.yyy.yyy.yyy",
 			}
 			success, err := client.UpdateZTNetworkConnection(context.Background(), &toUpdate)
 			gomega.Expect(err).NotTo(gomega.Succeed())
@@ -944,9 +955,9 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			success, err := client.RemoveZTNetworkConnection(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
 				OrganizationId: toAdd.OrganizationId,
 				ZtNetworkId:    toAdd.ZtNetworkId,
-				AppInstanceId: 	toAdd.AppInstanceId,
-				ServiceId: 		toAdd.ServiceId,
-				ClusterId:		toAdd.ClusterId,
+				AppInstanceId:  toAdd.AppInstanceId,
+				ServiceId:      toAdd.ServiceId,
+				ClusterId:      toAdd.ClusterId,
 			})
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(success).NotTo(gomega.BeNil())
@@ -1006,9 +1017,9 @@ var _ = ginkgo.Describe("Application Network service", func() {
 			success, err := client.RemoveZTNetworkConnection(context.Background(), &grpc_application_network_go.ZTNetworkConnectionId{
 				OrganizationId: organization.ID,
 				ZtNetworkId:    entities.GenerateUUID(),
-				AppInstanceId:	entities.GenerateUUID(),
-				ServiceId: 		entities.GenerateUUID(),
-				ClusterId: 		entities.GenerateUUID(),
+				AppInstanceId:  entities.GenerateUUID(),
+				ServiceId:      entities.GenerateUUID(),
+				ClusterId:      entities.GenerateUUID(),
 			})
 			gomega.Expect(err).NotTo(gomega.Succeed())
 			gomega.Expect(success).To(gomega.BeNil())

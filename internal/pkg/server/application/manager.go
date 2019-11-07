@@ -1,5 +1,18 @@
 /*
- * Copyright (C)  2018 Nalej - All Rights Reserved
+ * Copyright 2019 Nalej
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 package application
@@ -803,30 +816,29 @@ func (m *Manager) GetAppZtNetworkMember(organizationId string, appInstanceId str
 	return m.AppProvider.GetAppZtNetworkMember(organizationId, appInstanceId, serviceGroupInstanceId, serviceApplicationInstanceId)
 }
 
-func (m *Manager) ListAuthorizedZTNetworkMembers(organizationId string, appInstanceId string, ztNetworkId string) (*grpc_application_go.ZtNetworkMembers, derrors.Error){
-	retrieved, err :=  m.AppProvider.ListAppZtNetworkMembers(organizationId, appInstanceId, ztNetworkId)
+func (m *Manager) ListAuthorizedZTNetworkMembers(organizationId string, appInstanceId string, ztNetworkId string) (*grpc_application_go.ZtNetworkMembers, derrors.Error) {
+	retrieved, err := m.AppProvider.ListAppZtNetworkMembers(organizationId, appInstanceId, ztNetworkId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	list := make ([]*grpc_application_go.ZtNetworkMember, 0)
+	list := make([]*grpc_application_go.ZtNetworkMember, 0)
 
 	for _, ret := range retrieved {
 		for _, member := range ret.Members {
 			list = append(list, &grpc_application_go.ZtNetworkMember{
-				OrganizationId: 				ret.OrganizationId,
-				NetworkId:      				ret.ZtNetworkId,
-				MemberId: 						member.MemberId,
-				AppInstanceId: 					ret.AppInstanceId,
-				ServiceGroupInstanceId: 		ret.ServiceGroupInstanceId,
-				ServiceApplicationInstanceId: 	ret.ServiceApplicationInstanceId,
-				IsProxy: 						member.IsProxy,
-				CreatedAt: 						member.CreatedAt,
+				OrganizationId:               ret.OrganizationId,
+				NetworkId:                    ret.ZtNetworkId,
+				MemberId:                     member.MemberId,
+				AppInstanceId:                ret.AppInstanceId,
+				ServiceGroupInstanceId:       ret.ServiceGroupInstanceId,
+				ServiceApplicationInstanceId: ret.ServiceApplicationInstanceId,
+				IsProxy:                      member.IsProxy,
+				CreatedAt:                    member.CreatedAt,
 			})
 		}
 	}
-
 
 	return &grpc_application_go.ZtNetworkMembers{
 		Members: list,

@@ -1,5 +1,18 @@
 /*
- * Copyright (C)  2018 Nalej - All Rights Reserved
+ * Copyright 2019 Nalej
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 package entities
@@ -99,20 +112,20 @@ var ClusterStatusFromGRPC = map[grpc_connectivity_manager_go.ClusterStatus]Clust
 	grpc_connectivity_manager_go.ClusterStatus_ONLINE_CORDON:  ClusterStatusOnlineCordon,
 }
 
-
 // Network type used by the cluster watcher
 type NetworkType int
+
 const (
 	NetworkTypeCilium NetworkType = iota + 1
 	NetworkTypeIstio
 )
 
-var NetworkTypeFromGRPC = map[grpc_cluster_watcher_go.NetworkType]NetworkType {
-	grpc_cluster_watcher_go.NetworkType_ISTIO: NetworkTypeIstio,
+var NetworkTypeFromGRPC = map[grpc_cluster_watcher_go.NetworkType]NetworkType{
+	grpc_cluster_watcher_go.NetworkType_ISTIO:  NetworkTypeIstio,
 	grpc_cluster_watcher_go.NetworkType_CILIUM: NetworkTypeCilium,
 }
-var NetworkTypeToGRPC = map[NetworkType]grpc_cluster_watcher_go.NetworkType {
-	NetworkTypeIstio: grpc_cluster_watcher_go.NetworkType_ISTIO,
+var NetworkTypeToGRPC = map[NetworkType]grpc_cluster_watcher_go.NetworkType{
+	NetworkTypeIstio:  grpc_cluster_watcher_go.NetworkType_ISTIO,
 	NetworkTypeCilium: grpc_cluster_watcher_go.NetworkType_CILIUM,
 }
 
@@ -165,7 +178,6 @@ var ClusterStateFromGRPC = map[grpc_infrastructure_go.ClusterState]ClusterState{
 	grpc_infrastructure_go.ClusterState_UNINSTALLING:        Uninstalling,
 	grpc_infrastructure_go.ClusterState_DECOMISIONING:       Decomissioning,
 }
-
 
 // Cluster entity representing a collection of nodes that supports applicaiton orchestration. This
 // abstraction is used for monitoring and orchestration purposes.
@@ -232,23 +244,22 @@ type CiliumCerts struct {
 func (c *CiliumCerts) toGRPC() *grpc_cluster_watcher_go.ClusterWatchInfo_Cilium {
 	return &grpc_cluster_watcher_go.ClusterWatchInfo_Cilium{
 		Cilium: &grpc_cluster_watcher_go.CiliumCerts{
-			CiliumEtcdKey: c.CiliumEtcdKey,
-			CiliumEtcdCrt: c.CiliumEtcdCrt,
+			CiliumEtcdKey:   c.CiliumEtcdKey,
+			CiliumEtcdCrt:   c.CiliumEtcdCrt,
 			CiliumEtcdCaCrt: c.CiliumEtcdCaCrt,
-			CiliumId: c.CiliumId,
+			CiliumId:        c.CiliumId,
 		},
 	}
 }
 
 func NewCiliumCertsFromGRPC(cilium *grpc_cluster_watcher_go.ClusterWatchInfo_Cilium) CiliumCerts {
 	return CiliumCerts{
-		CiliumId: cilium.Cilium.CiliumId,
+		CiliumId:        cilium.Cilium.CiliumId,
 		CiliumEtcdCaCrt: cilium.Cilium.CiliumEtcdCaCrt,
-		CiliumEtcdCrt: cilium.Cilium.CiliumEtcdCrt,
-		CiliumEtcdKey: cilium.Cilium.CiliumEtcdKey,
+		CiliumEtcdCrt:   cilium.Cilium.CiliumEtcdCrt,
+		CiliumEtcdKey:   cilium.Cilium.CiliumEtcdKey,
 	}
 }
-
 
 type IstioCerts struct {
 	// Cluster name
@@ -264,19 +275,19 @@ type IstioCerts struct {
 func NewIstioCertsFromGRPC(istio *grpc_cluster_watcher_go.ClusterWatchInfo_Istio) IstioCerts {
 	return IstioCerts{
 		ClusterName: istio.Istio.ClusterName,
-		ServerName: istio.Istio.ServerName,
-		Token: istio.Istio.Token,
-		CaCert: istio.Istio.CaCert,
+		ServerName:  istio.Istio.ServerName,
+		Token:       istio.Istio.Token,
+		CaCert:      istio.Istio.CaCert,
 	}
 }
 
 func (c *IstioCerts) ToGRPC() *grpc_cluster_watcher_go.ClusterWatchInfo_Istio {
 	return &grpc_cluster_watcher_go.ClusterWatchInfo_Istio{
 		Istio: &grpc_cluster_watcher_go.IstioCerts{
-			CaCert: 	c.CaCert,
-			Token:		c.Token,
-			ServerName: c.ServerName,
-			ClusterName:c.ClusterName,
+			CaCert:      c.CaCert,
+			Token:       c.Token,
+			ServerName:  c.ServerName,
+			ClusterName: c.ClusterName,
 		},
 	}
 }
@@ -284,23 +295,23 @@ func (c *IstioCerts) ToGRPC() *grpc_cluster_watcher_go.ClusterWatchInfo_Istio {
 func NewClusterWatchInfo(name string, organizationId, clusterId string, ip string, networkType NetworkType,
 	ciliumData CiliumCerts, istioData IstioCerts) *ClusterWatchInfo {
 	return &ClusterWatchInfo{
-		Name:            name,
-		OrganizationId:  organizationId,
-		ClusterId:       clusterId,
-		Ip:              ip,
-		NetworkType:     networkType,
-		CiliumData:      ciliumData,
-		IstioData:       istioData,
+		Name:           name,
+		OrganizationId: organizationId,
+		ClusterId:      clusterId,
+		Ip:             ip,
+		NetworkType:    networkType,
+		CiliumData:     ciliumData,
+		IstioData:      istioData,
 	}
 }
 
 func (c *ClusterWatchInfo) ToGRPC() *grpc_cluster_watcher_go.ClusterWatchInfo {
 	toReturn := &grpc_cluster_watcher_go.ClusterWatchInfo{
-		Name:            c.Name,
-		ClusterId:       c.ClusterId,
-		Ip:              c.Ip,
-		NetworkType:     NetworkTypeToGRPC[c.NetworkType],
-		OrganizationId:  c.OrganizationId,
+		Name:           c.Name,
+		ClusterId:      c.ClusterId,
+		Ip:             c.Ip,
+		NetworkType:    NetworkTypeToGRPC[c.NetworkType],
+		OrganizationId: c.OrganizationId,
 	}
 	switch c.NetworkType {
 	case NetworkTypeCilium:
