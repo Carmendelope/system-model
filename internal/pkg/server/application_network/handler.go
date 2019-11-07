@@ -1,5 +1,18 @@
 /*
- * Copyright (C) 2019 Nalej - All Rights Reserved
+ * Copyright 2019 Nalej
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 package application_network
@@ -63,7 +76,7 @@ func (h *Handler) RemoveConnection(ctx context.Context, removeConnectionRequest 
 	return &grpc_common_go.Success{}, nil
 }
 
-func (h *Handler) ExistsConnection(ctx context.Context, connectionId *grpc_application_network_go.ConnectionInstanceId) (*grpc_common_go.Exists, error){
+func (h *Handler) ExistsConnection(ctx context.Context, connectionId *grpc_application_network_go.ConnectionInstanceId) (*grpc_common_go.Exists, error) {
 	vErr := entities.ValidateConnectionInstanceId(connectionId)
 	if vErr != nil {
 		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid connection instance identifier")
@@ -74,7 +87,7 @@ func (h *Handler) ExistsConnection(ctx context.Context, connectionId *grpc_appli
 		log.Error().Str("trace", err.DebugReport()).Msg("cannot determine if the connection instance exists")
 		return nil, conversions.ToGRPCError(err)
 	}
-	return &grpc_common_go.Exists{Exists:exists}, nil
+	return &grpc_common_go.Exists{Exists: exists}, nil
 }
 
 func (h *Handler) GetConnection(ctx context.Context, connectionId *grpc_application_network_go.ConnectionInstanceId) (*grpc_application_network_go.ConnectionInstance, error) {
@@ -235,8 +248,7 @@ func (h *Handler) RemoveZTNetworkConnection(ctx context.Context, connection *grp
 	return &grpc_common_go.Success{}, nil
 }
 
-
-func (h *Handler)  RemoveZTNetworkConnectionByNetworkId (_ context.Context, ztNetworkId *grpc_application_network_go.ZTNetworkId) (*grpc_common_go.Success, error) {
+func (h *Handler) RemoveZTNetworkConnectionByNetworkId(_ context.Context, ztNetworkId *grpc_application_network_go.ZTNetworkId) (*grpc_common_go.Success, error) {
 	vErr := entities.ValidateZTNetworkId(ztNetworkId)
 	if vErr != nil {
 		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid ZT network identifier")
