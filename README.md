@@ -65,6 +65,10 @@ after each test, the tables are truncated
 The database must be created to run the integration test. There is a file `scripts/database.cql` that contains all the 
 sentences to create the keyspace and the tables needed
 
+## Known Issues
+
+All the operations related to accounts and projects are not available yet. It will be ready in future releases 
+
 ## Contributing
 
 Please read [contributing.md](contributing.md) for details on our code of conduct, and the process for submitting pull requests to us.
@@ -80,51 +84,3 @@ See also the list of [contributors](https://github.com/nalej/system-model/contri
 
 ## License
 This project is licensed under the Apache 2.0 License - see the [LICENSE-2.0.txt](LICENSE-2.0.txt) file for details.
-
-
-
-
-## Server
-
-To launch the system model execute:
-
-```
-"level":"info","time":"2018-12-03T10:53:57Z","message":"Launching API!"}
-{"level":"info","app":"v0.1.0","commit":"d92f8385efaebc6fa75316bb9aed9994ed03fee9","time":"2018-12-03T10:53:57Z","message":"Version"}
-{"level":"info","port":8800,"time":"2018-12-03T10:53:57Z","message":"gRPC port"}
-{"level":"info","UseDBScyllaProviders":true,"time":"2018-12-03T10:53:57Z","message":"using dbScylla providers"}
-{"level":"info","URL":"scylladb.nalej","KeySpace":"nalej","Port":9042,"time":"2018-12-03T10:53:57Z","message":"ScyllaDB"}
-{"level":"info","port":8800,"time":"2018-12-03T10:53:57Z","message":"Launching gRPC server"}
-```
-
-## CLI
-
-A CLI has been added for convenience, use:
-
-```
-$ ./bin/system-model-cli
-```
-
-## Kubernetes deploy
-
-Before creating the system model tables, we should deploy scyllaDb with kubernetes (see scylla-deploy project)
-
-Create configMap:
-```
-$ create -f ./components/system-model/mngtcluster/systemmodel-scylla.configmap.yaml
-```
-and create the job responsible for the creation of tables
-```
-kubectl create -f components/system-model/mngtcluster/systemmodel-scylla.job.yaml
-```
-
-## Local integration tests
-
-You can run ScyllaDB tests using the following approach:
-
-```
-docker run --name scylla -p 9042:9042 -d scylladb/scylla
-docker exec -it scylla cqlsh
-```
-
-Load the data
