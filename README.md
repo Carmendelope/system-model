@@ -65,6 +65,10 @@ after each test, the tables are truncated
 The database must be created to run the integration test. There is a file `scripts/database.cql` that contains all the 
 sentences to create the keyspace and the tables needed
 
+## Known Issues
+
+All the operations related to accounts and projects are not available yet. It will be ready in future releases 
+
 ## Contributing
 
 Please read [contributing.md](contributing.md) for details on our code of conduct, and the process for submitting pull requests to us.

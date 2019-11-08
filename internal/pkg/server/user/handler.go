@@ -19,8 +19,11 @@ package user
 
 import (
 	"context"
+	"github.com/nalej/derrors"
+	"github.com/nalej/grpc-account-go"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
+	"github.com/nalej/grpc-project-go"
 	"github.com/nalej/grpc-user-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
@@ -31,6 +34,7 @@ import (
 type Handler struct {
 	Manager Manager
 }
+
 
 // NewHandler creates a new Handler with a linked manager.
 func NewHandler(manager Manager) *Handler {
@@ -124,4 +128,72 @@ func (h *Handler) RemoveUser(ctx context.Context, removeRequest *grpc_user_go.Re
 	log.Debug().Str("organizationID", removeRequest.OrganizationId).
 		Str("email", removeRequest.Email).Msg("user has been removed")
 	return &grpc_common_go.Success{}, nil
+}
+
+func (h *Handler) UpdateContactInfo(_ context.Context, in *grpc_user_go.UpdateContactInfoRequest) (*grpc_common_go.Success, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) AddAccountUser(_ context.Context, in *grpc_user_go.AddAccountUserRequest) (*grpc_user_go.AccountUser, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) RemoveAccountUser(_ context.Context, in *grpc_user_go.AccountUserId) (*grpc_common_go.Success, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) UpdateAccountUser(_ context.Context, in *grpc_user_go.AccountUserUpdateRequest) (*grpc_user_go.AccountUser, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) ListAccountsUser(_ context.Context, in *grpc_account_go.AccountId) (*grpc_user_go.AccountUserList, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) AddAccountUserInvite(_ context.Context, in *grpc_user_go.AddAccountInviteRequest) (*grpc_user_go.AccountUserInvite, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) GetAccountUserInvite(_ context.Context, in *grpc_user_go.AccountUserInviteId) (*grpc_user_go.AccountUserInvite, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) RemoveAccountUserInvite(_ context.Context, in *grpc_user_go.AccountUserInviteId) (*grpc_common_go.Success, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) ListAccountUserInvites(_ context.Context, in *grpc_user_go.UserId) (*grpc_user_go.AccountInviteList, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) AddProjectUser(_ context.Context, in *grpc_user_go.AddProjectUserRequest) (*grpc_user_go.ProjectUser, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) RemoveProjectUser(_ context.Context, in *grpc_user_go.ProjectUserId) (*grpc_common_go.Success, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) UpdateProjectUser(_ context.Context, in *grpc_user_go.ProjectUserUpdateRequest) (*grpc_user_go.ProjectUser, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) ListProjectsUser(_ context.Context, in *grpc_project_go.ProjectId) (*grpc_user_go.ProjectUserList, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) AddProjectUserInvite(_ context.Context, in *grpc_user_go.AddProjectInviteRequest) (*grpc_user_go.ProjectUserInvite, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) GetProjectUserInvite(_ context.Context, in *grpc_user_go.ProjectUserInviteId) (*grpc_user_go.ProjectUserInvite, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) RemoveProjectUserInvite(_ context.Context, in *grpc_user_go.ProjectUserInviteId) (*grpc_common_go.Success, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
+}
+
+func (h *Handler) ListProjectUserInvites(_ context.Context, in *grpc_user_go.UserId) (*grpc_user_go.ProjectInviteList, error) {
+	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
 }
