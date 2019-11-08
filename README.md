@@ -80,5 +80,3 @@ See also the list of [contributors](https://github.com/nalej/system-model/contri
 
 ## License
 This project is licensed under the Apache 2.0 License - see the [LICENSE-2.0.txt](LICENSE-2.0.txt) file for details.
-
-∫
