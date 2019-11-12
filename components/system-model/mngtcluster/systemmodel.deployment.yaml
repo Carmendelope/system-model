@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: system-model
-          image: __NPH_REGISTRY/__NPH_REGISTRY_NAMESPACE/system-model:__NPH_VERSION
+          image: __NPH_REGISTRY_NAMESPACE/system-model:__NPH_VERSION
           imagePullPolicy: Always
           args:
             - "run"
@@ -42,5 +42,3 @@ spec:
                 configMapKeyRef:
                   name: management-config
                   key: public_host
-      imagePullSecrets:
-        - name: nalej-registry
