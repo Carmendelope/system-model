@@ -1,5 +1,5 @@
 variables: 
-  - template: variables/global-variables.yaml@ci_templates
+#  - template: variables/global-variables.yaml@ci_templates
   - template: variables/go-variables.yaml@ci_templates
   - template: variables/k8s-variables.yaml@ci_templates
   - template: variables/nalej-variables.yaml@ci_templates
