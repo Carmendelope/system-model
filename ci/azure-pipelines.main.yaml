@@ -59,13 +59,7 @@ stages:
         sshHostName: $(hostName)
         sshPublicKey: $(sshPublicKey)
         modulePath: $(modulePath)
-
-- stage: 'Testing'
-  jobs:
-  - job: MainWorkflow
-    pool:
-      vmImage: 'ubuntu-latest'  
-    steps:
+        
     - template: go/test.yaml@ci_templates
       parameters:
         modulePath: $(modulePath)
