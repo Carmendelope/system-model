@@ -37,7 +37,7 @@ stages:
         buildUrl: $(buildUrl)$(Build.BuildId)
         slackWebhook: $(slackBuilds)
 
-- stage: 'Set Environment'
+- stage: 'Set_Environment'
   jobs:
   - job: MainWorkflow
     pool:
@@ -70,7 +70,7 @@ stages:
       parameters:
         modulePath: $(modulePath)
 
-- stage: 'Code Quality'
+- stage: 'Code_Quality'
   jobs:
   - job: MainWorkflow
     pool:
@@ -80,7 +80,7 @@ stages:
       parameters:
         modulePath: $(modulePath)
 
-- stage: 'Build Binary'
+- stage: 'Build_Binary'
   jobs:
   - job: MainWorkflow
     pool:
@@ -92,7 +92,7 @@ stages:
         appList: $(appList)
         version: $(version)
   
-- stage: 'Build Image'
+- stage: 'Build_Image'
   jobs:
   - job: MainWorkflow
     pool:
@@ -115,7 +115,7 @@ stages:
     - template: docker/logout.yaml@ci_templates
 
 
-- stage: 'Finish Slack'
+- stage: 'Finish_Slack'
   jobs:
   - job: MainWorkflow
     pool:
