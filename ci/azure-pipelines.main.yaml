@@ -14,7 +14,7 @@ resources:
       ref: 'refs/heads/feature/NP-2334_New_Pipeline_Structure'
 
 stages:
-- stage: 'Start Slack'
+- stage: 'Start_Slack'
   jobs:
   - job: MainWorkflow
     pool:
