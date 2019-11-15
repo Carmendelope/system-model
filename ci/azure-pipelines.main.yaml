@@ -75,6 +75,7 @@ stages:
         version: $(version)
   
 - stage: 'Build_Image'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
   - job: MainWorkflow
     pool:
@@ -90,7 +91,7 @@ stages:
         echo '##vso[task.prependpath]$(GOBIN)'
         echo '##vso[task.prependpath]$(GOROOT)/bin'
       displayName: 'Set up the Go workspace'
-      
+
     - template: docker/login.yaml@ci_templates
       
     - template: docker/build.yaml@ci_templates
