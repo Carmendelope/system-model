@@ -1,17 +1,17 @@
 variables: 
-  - group: common-vars
-  - group: slack-webhooks
-  - group: docker-registries
-  - group: ci-service-principal
-  - group: ssh-credentials
-  - name: GOBIN
-    value: '$(GOPATH)/bin'
-  - name: GOROOT
-    value: '/usr/local/go1.13'
-  - name: GOPATH
-    value: '$(system.defaultWorkingDirectory)/gopath'
-  - name: modulePath
-    value: '$(GOPATH)/src/github.com/$(Build.Repository.Name)'
+- group: common-vars
+- group: slack-webhooks
+- group: docker-registries
+- group: ci-service-principal
+- group: ssh-credentials
+- name: GOBIN
+  value: '$(GOPATH)/bin'
+- name: GOROOT
+  value: '/usr/local/go1.13'
+- name: GOPATH
+  value: '$(system.defaultWorkingDirectory)/gopath'
+- name: modulePath
+  value: '$(GOPATH)/src/github.com/$(Build.Repository.Name)'
 
 resources:
   repositories:
