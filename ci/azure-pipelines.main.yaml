@@ -37,7 +37,7 @@ stages:
         buildUrl: $(buildUrl)$(Build.BuildId)
         slackWebhook: $(slackBuilds)
 
-- stage: 'Set_Environment'
+- stage: 'Go'
   jobs:
   - job: MainWorkflow
     pool:
@@ -59,27 +59,15 @@ stages:
         sshHostName: $(hostName)
         sshPublicKey: $(sshPublicKey)
         modulePath: $(modulePath)
-        
+
     - template: go/test.yaml@ci_templates
       parameters:
         modulePath: $(modulePath)
-
-- stage: 'Code_Quality'
-  jobs:
-  - job: MainWorkflow
-    pool:
-      vmImage: 'ubuntu-latest'  
-    steps:
+ 
     - template: go/gofmt.yaml@ci_templates
       parameters:
         modulePath: $(modulePath)
 
-- stage: 'Build_Binary'
-  jobs:
-  - job: MainWorkflow
-    pool:
-      vmImage: 'ubuntu-latest'  
-    steps:
     - template: go/build.yaml@ci_templates
       parameters:
         modulePath: $(modulePath)
@@ -92,6 +80,17 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'  
     steps:
+    - script: |
+        mkdir -p '$(GOBIN)'
+        mkdir -p '$(GOPATH)/pkg'
+        mkdir -p '$(modulePath)'
+        shopt -s extglob
+        shopt -s dotglob
+        mv !(gopath) '$(modulePath)'
+        echo '##vso[task.prependpath]$(GOBIN)'
+        echo '##vso[task.prependpath]$(GOROOT)/bin'
+      displayName: 'Set up the Go workspace'
+      
     - template: docker/login.yaml@ci_templates
       
     - template: docker/build.yaml@ci_templates
