@@ -110,6 +110,7 @@ stages:
 
 
 - stage: 'Finish_Slack'
+  condition: always()
   jobs:
   - job: MainWorkflow
     pool:
