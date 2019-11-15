@@ -1,9 +1,9 @@
-# variables: 
-# - template: variables/global-variables.yaml@ci_templates
-# - template: variables/go-variables.yaml@ci_templates
-# - template: variables/k8s-variables.yaml@ci_templates
-# - template: variables/nalej-variables.yaml@ci_templates
-# - template: variables/git-variables.yaml@ci_templates
+variables: 
+- template: variables/global-variables.yaml@ci_templates
+- template: variables/go-variables.yaml@ci_templates
+- template: variables/k8s-variables.yaml@ci_templates
+- template: variables/nalej-variables.yaml@ci_templates
+- template: variables/git-variables.yaml@ci_templates
 
 resources:
   repositories:
