@@ -1,9 +1,17 @@
 variables: 
-#  - template: variables/global-variables.yaml@ci_templates
-  - template: variables/go-variables.yaml@ci_templates
-  - template: variables/k8s-variables.yaml@ci_templates
-  - template: variables/nalej-variables.yaml@ci_templates
-  - template: variables/git-variables.yaml@ci_templates
+  - group: common-vars
+  - group: slack-webhooks
+  - group: docker-registries
+  - group: ci-service-principal
+  - group: ssh-credentials
+  - name: GOBIN
+    value: '$(GOPATH)/bin'
+  - name: GOROOT
+    value: '/usr/local/go1.13'
+  - name: GOPATH
+    value: '$(system.defaultWorkingDirectory)/gopath'
+  - name: modulePath
+    value: '$(GOPATH)/src/github.com/$(Build.Repository.Name)'
 
 resources:
   repositories:
@@ -29,104 +37,104 @@ stages:
         buildUrl: $(buildUrl)$(Build.BuildId)
         slackWebhook: $(slackBuilds)
 
-# - stage: 'Set Environment'
-#   jobs:
-#   - job: MainWorkflow
-#     pool:
-#       vmImage: 'ubuntu-latest'  
-#     steps:
-#     - script: |
-#         mkdir -p '$(GOBIN)'
-#         mkdir -p '$(GOPATH)/pkg'
-#         mkdir -p '$(modulePath)'
-#         shopt -s extglob
-#         shopt -s dotglob
-#         mv !(gopath) '$(modulePath)'
-#         echo '##vso[task.prependpath]$(GOBIN)'
-#         echo '##vso[task.prependpath]$(GOROOT)/bin'
-#       displayName: 'Set up the Go workspace'
+- stage: 'Set Environment'
+  jobs:
+  - job: MainWorkflow
+    pool:
+      vmImage: 'ubuntu-latest'  
+    steps:
+    - script: |
+        mkdir -p '$(GOBIN)'
+        mkdir -p '$(GOPATH)/pkg'
+        mkdir -p '$(modulePath)'
+        shopt -s extglob
+        shopt -s dotglob
+        mv !(gopath) '$(modulePath)'
+        echo '##vso[task.prependpath]$(GOBIN)'
+        echo '##vso[task.prependpath]$(GOROOT)/bin'
+      displayName: 'Set up the Go workspace'
 
-#     - template: go/dep.yaml@ci_templates
-#       parameters:
-#         sshHostName: $(hostName)
-#         sshPublicKey: $(sshPublicKey)
-#         modulePath: $(modulePath)
+    - template: go/dep.yaml@ci_templates
+      parameters:
+        sshHostName: $(hostName)
+        sshPublicKey: $(sshPublicKey)
+        modulePath: $(modulePath)
 
-# - stage: 'Testing'
-#   jobs:
-#   - job: MainWorkflow
-#     pool:
-#       vmImage: 'ubuntu-latest'  
-#     steps:
-#     - template: go/test.yaml@ci_templates
-#       parameters:
-#         modulePath: $(modulePath)
+- stage: 'Testing'
+  jobs:
+  - job: MainWorkflow
+    pool:
+      vmImage: 'ubuntu-latest'  
+    steps:
+    - template: go/test.yaml@ci_templates
+      parameters:
+        modulePath: $(modulePath)
 
-# - stage: 'Code Quality'
-#   jobs:
-#   - job: MainWorkflow
-#     pool:
-#       vmImage: 'ubuntu-latest'  
-#     steps:
-#     - template: go/gofmt.yaml@ci_templates
-#       parameters:
-#         modulePath: $(modulePath)
+- stage: 'Code Quality'
+  jobs:
+  - job: MainWorkflow
+    pool:
+      vmImage: 'ubuntu-latest'  
+    steps:
+    - template: go/gofmt.yaml@ci_templates
+      parameters:
+        modulePath: $(modulePath)
 
-# - stage: 'Build Binary'
-#   jobs:
-#   - job: MainWorkflow
-#     pool:
-#       vmImage: 'ubuntu-latest'  
-#     steps:
-#     - template: go/build.yaml@ci_templates
-#       parameters:
-#         modulePath: $(modulePath)
-#         appList: $(appList)
-#         version: $(version)
+- stage: 'Build Binary'
+  jobs:
+  - job: MainWorkflow
+    pool:
+      vmImage: 'ubuntu-latest'  
+    steps:
+    - template: go/build.yaml@ci_templates
+      parameters:
+        modulePath: $(modulePath)
+        appList: $(appList)
+        version: $(version)
   
-# - stage: 'Build Image'
-#   jobs:
-#   - job: MainWorkflow
-#     pool:
-#       vmImage: 'ubuntu-latest'  
-#     steps:
-#     - template: docker/login.yaml@ci_templates
+- stage: 'Build Image'
+  jobs:
+  - job: MainWorkflow
+    pool:
+      vmImage: 'ubuntu-latest'  
+    steps:
+    - template: docker/login.yaml@ci_templates
       
-#     - template: docker/build.yaml@ci_templates
-#       parameters:
-#         modulePath: $(modulePath)
-#         imageList: $(imageList)
-#         version: edge
+    - template: docker/build.yaml@ci_templates
+      parameters:
+        modulePath: $(modulePath)
+        imageList: $(imageList)
+        version: edge
     
-#     - template: docker/push.yaml@ci_templates
-#       parameters:
-#         modulePath: $(modulePath)
-#         imageList: $(imageList)
-#         version: edge
+    - template: docker/push.yaml@ci_templates
+      parameters:
+        modulePath: $(modulePath)
+        imageList: $(imageList)
+        version: edge
       
-#     - template: docker/logout.yaml@ci_templates
+    - template: docker/logout.yaml@ci_templates
 
 
-# - stage: 'Finish Slack'
-#   jobs:
-#   - job: MainWorkflow
-#     pool:
-#       vmImage: 'ubuntu-latest'  
-#     steps: 
-#     - template: slack/build/finish.yaml@ci_templates
-#       parameters:
-#         author: $(authorName)
-#         repository: $(Build.Repository.Name)
-#         branch: $(Build.SourceBranch)
-#         commit: $(Build.SourceVersionMessage)
-#         buildUrl: $(buildUrl)$(Build.BuildId)
-#         slackWebhook: $(slackBuilds)
+- stage: 'Finish Slack'
+  jobs:
+  - job: MainWorkflow
+    pool:
+      vmImage: 'ubuntu-latest'  
+    steps: 
+    - template: slack/build/finish.yaml@ci_templates
+      parameters:
+        author: $(authorName)
+        repository: $(Build.Repository.Name)
+        branch: $(Build.SourceBranch)
+        commit: $(Build.SourceVersionMessage)
+        buildUrl: $(buildUrl)$(Build.BuildId)
+        slackWebhook: $(slackBuilds)
     
-#     - template: slack/build/failed.yaml@ci_templates
-#       parameters:
-#         author: $(authorName)
-#         repository: $(Build.Repository.Name)
-#         branch: $(Build.SourceBranch)
-#         commit: $(Build.SourceVersionMessage)
-#         buildUrl: $(buildUrl)$(Build.BuildId)
-#         slackWebhook: $(slackCIFailed)
+    - template: slack/build/failed.yaml@ci_templates
+      parameters:
+        author: $(authorName)
+        repository: $(Build.Repository.Name)
+        branch: $(Build.SourceBranch)
+        commit: $(Build.SourceVersionMessage)
+        buildUrl: $(buildUrl)$(Build.BuildId)
+        slackWebhook: $(slackCIFailed)
