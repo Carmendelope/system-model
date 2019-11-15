@@ -12,8 +12,15 @@ variables:
   value: '$(system.defaultWorkingDirectory)/gopath'
 - name: modulePath
   value: '$(GOPATH)/src/github.com/$(Build.Repository.Name)'
-- template: variables/nalej-variables.yaml@ci_templates
-
+- name: appList
+  value: $(cat .nalej-component.json | jq -r '.application_list| join(" ")')
+- name: imageList
+  value: $(cat .nalej-component.json | jq -r '.image_list| join(" ")')
+- name: version
+  value: $(cat .nalej-component.json | jq -r '.version')
+- name: language
+  value: $(cat .nalej-component.json | jq -r '.language')
+  
 resources:
   repositories:
     - repository: ci_templates
