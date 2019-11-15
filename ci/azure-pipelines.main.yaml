@@ -12,7 +12,7 @@ variables:
   value: '$(system.defaultWorkingDirectory)/gopath'
 - name: modulePath
   value: '$(GOPATH)/src/github.com/$(Build.Repository.Name)'
-- template: variables/nalej-variables@ci_templates
+- template: variables/nalej-variables.yaml@ci_templates
 
 resources:
   repositories:
