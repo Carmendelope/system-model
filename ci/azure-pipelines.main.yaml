@@ -98,6 +98,7 @@ stages:
         commit: $(Build.SourceVersionMessage)
         buildUrl: $(buildUrl)$(Build.BuildId)
         slackWebhook: $(slackBuilds)
+        modulePath: $(modulePath)
     
     - template: slack/build/failed.yaml@ci_templates
       parameters:
@@ -107,3 +108,4 @@ stages:
         commit: $(Build.SourceVersionMessage)
         buildUrl: $(buildUrl)$(Build.BuildId)
         slackWebhook: $(slackCIFailed)
+        modulePath: $(modulePath)
