@@ -1,21 +1,3 @@
-# variables: 
-# - group: common-vars
-# - group: slack-webhooks
-# - group: docker-registries
-# - group: ci-service-principal
-# - group: ssh-credentials
-# - name: GOBIN
-#   value: '$(GOPATH)/bin'
-# - name: GOROOT
-#   value: '/usr/local/go1.13'
-# - name: GOPATH
-#   value: '$(system.defaultWorkingDirectory)/gopath'
-# - name: modulePath
-#   value: '$(GOPATH)/src/github.com/$(Build.Repository.Name)'
-# - template: variables/k8s-variables.yaml@ci_templates
-
-
-
 variables: 
   - template: variables/global-variables.yaml@ci_templates
   - template: variables/go-variables.yaml@ci_templates
@@ -53,16 +35,18 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'  
     steps:
-    - script: |
-        mkdir -p '$(GOBIN)'
-        mkdir -p '$(GOPATH)/pkg'
-        mkdir -p '$(modulePath)'
-        shopt -s extglob
-        shopt -s dotglob
-        mv !(gopath) '$(modulePath)'
-        echo '##vso[task.prependpath]$(GOBIN)'
-        echo '##vso[task.prependpath]$(GOROOT)/bin'
-      displayName: 'Set up the Go workspace'
+    # - script: |
+    #     mkdir -p '$(GOBIN)'
+    #     mkdir -p '$(GOPATH)/pkg'
+    #     mkdir -p '$(modulePath)'
+    #     shopt -s extglob
+    #     shopt -s dotglob
+    #     mv !(gopath) '$(modulePath)'
+    #     echo '##vso[task.prependpath]$(GOBIN)'
+    #     echo '##vso[task.prependpath]$(GOROOT)/bin'
+    #   displayName: 'Set up the Go workspace'
+
+    - templates: go/workspace@ci_templates
 
     - template: go/dep.yaml@ci_templates
       parameters:
