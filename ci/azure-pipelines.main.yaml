@@ -35,6 +35,17 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'  
     steps:
+    - script: |
+        language=$(cat .nalej-component.json | jq -r '.language')
+        echo '##vso[task.setvariable variable=language]'$language
+      name: SetLanguage
+
+  - job: GoWorkflow
+    dependsOn: MainWorkflow
+    condition: eq($[ dependencies.MainWorkflow.outputs['SetLanguage.language'] ], 'golang')
+    pool:
+      vmImage: 'ubuntu-latest'  
+    steps:
     - template: steps/go_main.yaml@ci_templates
 
 
