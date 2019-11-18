@@ -35,27 +35,28 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'  
     steps:
-    - template: go/workspace.yaml@ci_templates
+    - template: steps/go_main.yaml@ci_templates
+    # - template: go/workspace.yaml@ci_templates
 
-    - template: go/dep.yaml@ci_templates
-      parameters:
-        sshHostName: $(hostName)
-        sshPublicKey: $(sshPublicKey)
-        modulePath: $(modulePath)
+    # - template: go/dep.yaml@ci_templates
+    #   parameters:
+    #     sshHostName: $(hostName)
+    #     sshPublicKey: $(sshPublicKey)
+    #     modulePath: $(modulePath)
 
-    - template: go/test.yaml@ci_templates
-      parameters:
-        modulePath: $(modulePath)
+    # - template: go/test.yaml@ci_templates
+    #   parameters:
+    #     modulePath: $(modulePath)
  
-    - template: go/gofmt.yaml@ci_templates
-      parameters:
-        modulePath: $(modulePath)
+    # - template: go/gofmt.yaml@ci_templates
+    #   parameters:
+    #     modulePath: $(modulePath)
 
-    - template: go/build.yaml@ci_templates
-      parameters:
-        modulePath: $(modulePath)
-        appList: $(appList)
-        version: $(version)
+    # - template: go/build.yaml@ci_templates
+    #   parameters:
+    #     modulePath: $(modulePath)
+    #     appList: $(appList)
+    #     version: $(version)
   
 - stage: 'Image_Build'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
