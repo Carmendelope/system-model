@@ -32,14 +32,9 @@ stages:
 - stage: 'Binary_Build'
   jobs:
   - job: MainWorkflow
-    condition: eq(variables['language'], 'golang')
     pool:
       vmImage: 'ubuntu-latest'  
     steps:
-    - script: |
-        echo $(modulePath)
-        echo $(version)
-        echo $(language)
     - template: steps/go_main.yaml@ci_templates
     # - template: go/workspace.yaml@ci_templates
 
