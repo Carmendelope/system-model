@@ -32,11 +32,11 @@ stages:
 - stage: 'Binary_Build'
   jobs:
   - job: MainWorkflow
+    condition: eq('$(language)', 'go')
     pool:
       vmImage: 'ubuntu-latest'  
     steps:
     - template: steps/go_main.yaml@ci_templates
-      condition: eq('$(language)', 'go')
     # - template: go/workspace.yaml@ci_templates
 
     # - template: go/dep.yaml@ci_templates
