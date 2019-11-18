@@ -30,15 +30,17 @@ stages:
         slackWebhook: $(slackBuilds)
 
 - stage: 'Binary_Build'
+  dependsOn: 'Start_Slack'
   jobs:
   - job: MainWorkflow
     pool:
       vmImage: 'ubuntu-latest'  
     steps:
     - template: steps/go_main.yaml@ci_templates
-  
+
 - stage: 'Image_Build'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  dependsOn: 'Binary_Build'
   jobs:
   - job: MainWorkflow
     pool:
