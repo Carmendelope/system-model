@@ -46,7 +46,7 @@ stages:
     #     echo '##vso[task.prependpath]$(GOROOT)/bin'
     #   displayName: 'Set up the Go workspace'
 
-    - templates: go/workspace@ci_templates
+    - template: go/workspace@ci_templates
 
     - template: go/dep.yaml@ci_templates
       parameters:
