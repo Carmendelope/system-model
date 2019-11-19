@@ -116,6 +116,14 @@
   version = "v0.0.87"
 
 [[projects]]
+  digest = "1:0a59039a032ea25d8febb1a3730cb55f5a0dc87af71748d885ab9a7752a1dcc2"
+  name = "github.com/nalej/grpc-application-history-logs-go"
+  packages = ["."]
+  pruneopts = ""
+  revision = "072dd6a1b05cd6b9289e7b21faa2b0d8dd7b252e"
+  version = "v0.0.1"
+
+[[projects]]
   digest = "1:345c4e990857221495cc88b1d8ce32ee81de776f747b9d4404859896d38f091d"
   name = "github.com/nalej/grpc-application-network-go"
   packages = ["."]
@@ -530,6 +538,7 @@
     "github.com/nalej/derrors",
     "github.com/nalej/grpc-account-go",
     "github.com/nalej/grpc-application-go",
+    "github.com/nalej/grpc-application-history-logs-go",
     "github.com/nalej/grpc-application-network-go",
     "github.com/nalej/grpc-cluster-watcher-go",
     "github.com/nalej/grpc-common-go",
