@@ -30,7 +30,6 @@ stages:
         slackWebhook: $(slackBuilds)
 
 - stage: 'Binary_Build'
-  condition: eq(variables['language'], 'golang')
   dependsOn: 'Start_Slack'
   jobs:
   - job: MainWorkflow
