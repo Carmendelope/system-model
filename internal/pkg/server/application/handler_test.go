@@ -612,7 +612,7 @@ var _ = ginkgo.Describe("Applications", func() {
 				gomega.Expect(len(retrieved.Instances)).Should(gomega.Equal(numInstances))
 			})
 
-			ginkgo.FIt("should retrieve reduce summary instance on an existing organization", func() {
+			ginkgo.It("should retrieve reduce summary instance on an existing organization", func() {
 				numInstances := 3
 				for i := 0; i < numInstances; i++ {
 					toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
