@@ -32,7 +32,7 @@ stages:
 - stage: 'BinaryBuild'
   dependsOn: 'SlackStart'
   jobs:
-  - job: MainWorkflow
+  - job: 
     pool:
       vmImage: 'ubuntu-latest'  
     steps:
@@ -42,7 +42,7 @@ stages:
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   dependsOn: 'BinaryBuild'
   jobs:
-  - job: MainWorkflow
+  - job: 
     pool:
       vmImage: 'ubuntu-latest'  
     steps:
@@ -51,7 +51,7 @@ stages:
 - stage: 'SlackFinish'
   condition: always()
   jobs:
-  - job: MainWorkflow
+  - job: 
     pool:
       vmImage: 'ubuntu-latest'  
     steps: 
