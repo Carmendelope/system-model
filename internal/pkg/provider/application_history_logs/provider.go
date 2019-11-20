@@ -24,8 +24,8 @@ import (
 
 // Provider for the application networking instances.
 type Provider interface {
-	Add (*grpc_application_history_logs_go.AddLogRequest) derrors.Error
-	Update (*grpc_application_history_logs_go.UpdateLogRequest) derrors.Error
-	Search (*grpc_application_history_logs_go.SearchLogRequest) (*grpc_application_history_logs_go.LogResponse, derrors.Error)
-	Remove (request *grpc_application_history_logs_go.RemoveLogsRequest) derrors.Error
+	Add(*grpc_application_history_logs_go.AddLogRequest) derrors.Error
+	Update(*grpc_application_history_logs_go.UpdateLogRequest) derrors.Error
+	Search(*grpc_application_history_logs_go.SearchLogRequest) (*grpc_application_history_logs_go.LogResponse, derrors.Error)
+	Remove(request *grpc_application_history_logs_go.RemoveLogsRequest) derrors.Error
 }

@@ -35,8 +35,8 @@ func NewHandler(manager Manager) *Handler {
 	return &Handler{manager}
 }
 
-func (h *Handler) Add (ctx context.Context, addLogRequest *grpc_application_history_logs_go.AddLogRequest) error {
-	vErr := entities.ValidAddLogRequest (addLogRequest)
+func (h *Handler) Add(ctx context.Context, addLogRequest *grpc_application_history_logs_go.AddLogRequest) error {
+	vErr := entities.ValidAddLogRequest(addLogRequest)
 	if vErr != nil {
 		log.Error().Str("validation error", vErr.DebugReport()).Msg("invalid add log request")
 		return conversions.ToGRPCError(vErr)
@@ -50,8 +50,8 @@ func (h *Handler) Add (ctx context.Context, addLogRequest *grpc_application_hist
 	return nil
 }
 
-func (h *Handler) Update (ctx context.Context, updateLogRequest *grpc_application_history_logs_go.UpdateLogRequest) error {
-	vErr := entities.ValidUpdateLogRequest (updateLogRequest)
+func (h *Handler) Update(ctx context.Context, updateLogRequest *grpc_application_history_logs_go.UpdateLogRequest) error {
+	vErr := entities.ValidUpdateLogRequest(updateLogRequest)
 	if vErr != nil {
 		log.Error().Str("validation error", vErr.DebugReport()).Msg("invalid update log request")
 		return conversions.ToGRPCError(vErr)
@@ -65,8 +65,8 @@ func (h *Handler) Update (ctx context.Context, updateLogRequest *grpc_applicatio
 	return nil
 }
 
-func (h *Handler) Search (ctx context.Context, searchLogRequest *grpc_application_history_logs_go.SearchLogRequest) (*grpc_application_history_logs_go.LogResponse, error) {
-	vErr := entities.ValidSearchLogRequest (searchLogRequest)
+func (h *Handler) Search(ctx context.Context, searchLogRequest *grpc_application_history_logs_go.SearchLogRequest) (*grpc_application_history_logs_go.LogResponse, error) {
+	vErr := entities.ValidSearchLogRequest(searchLogRequest)
 	if vErr != nil {
 		log.Error().Str("validation error", vErr.DebugReport()).Msg("invalid add log request")
 		return nil, conversions.ToGRPCError(vErr)
@@ -80,8 +80,8 @@ func (h *Handler) Search (ctx context.Context, searchLogRequest *grpc_applicatio
 	return logResponse, nil
 }
 
-func (h *Handler) Remove (ctx context.Context, removeLogRequest *grpc_application_history_logs_go.RemoveLogsRequest) error {
-	vErr := entities.ValidRemoveLogRequest (removeLogRequest)
+func (h *Handler) Remove(ctx context.Context, removeLogRequest *grpc_application_history_logs_go.RemoveLogsRequest) error {
+	vErr := entities.ValidRemoveLogRequest(removeLogRequest)
 	if vErr != nil {
 		log.Error().Str("validation error", vErr.DebugReport()).Msg("invalid add log request")
 		return conversions.ToGRPCError(vErr)

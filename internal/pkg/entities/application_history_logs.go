@@ -9,9 +9,9 @@ type LogResponse struct {
 	// OrganizationId with the organization identifier
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
 	//
-	AvailableFrom int64 `json:"available_from,omitempty" cql:"available_from"`
+	From int64 `json:"from,omitempty" cql:"from"`
 	//
-	AvailableTo int64 `json:"available_to,omitempty" cql:"available_to"`
+	To int64 `json:"to,omitempty" cql:"to"`
 	//
 	Events []ServiceInstanceLog `json:"events,omitempty" cql:"events"`
 }
@@ -70,10 +70,10 @@ type UpdateLogRequest struct {
 type SearchLogsRequest struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
-	// AvailableFrom contains the timestamp from which a service instance was available
-	AvailableFrom int64 `json:"available_from,omitempty" cql:"available_from"`
-	// AvailableTo contains the timestamp to which a service instance was available
-	AvailableTo int64 `json:"available_to,omitempty" cql:"available_to"`
+	// From contains the timestamp from which a service instance was available
+	From int64 `json:"available_from,omitempty" cql:"available_from"`
+	// To contains the timestamp to which a service instance was available
+	To int64 `json:"available_to,omitempty" cql:"available_to"`
 }
 
 type RemoveLogRequest struct {
@@ -83,7 +83,7 @@ type RemoveLogRequest struct {
 	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
 }
 
-func ValidAddLogRequest (addLogRequest *grpc_application_history_logs_go.AddLogRequest) derrors.Error {
+func ValidAddLogRequest(addLogRequest *grpc_application_history_logs_go.AddLogRequest) derrors.Error {
 	if addLogRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
 	}
@@ -105,7 +105,7 @@ func ValidAddLogRequest (addLogRequest *grpc_application_history_logs_go.AddLogR
 	return nil
 }
 
-func ValidUpdateLogRequest (updateLogRequest *grpc_application_history_logs_go.UpdateLogRequest) derrors.Error {
+func ValidUpdateLogRequest(updateLogRequest *grpc_application_history_logs_go.UpdateLogRequest) derrors.Error {
 	if updateLogRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
 	}
@@ -118,14 +118,14 @@ func ValidUpdateLogRequest (updateLogRequest *grpc_application_history_logs_go.U
 	return nil
 }
 
-func ValidSearchLogRequest (searchLogRequest *grpc_application_history_logs_go.SearchLogRequest) derrors.Error {
+func ValidSearchLogRequest(searchLogRequest *grpc_application_history_logs_go.SearchLogRequest) derrors.Error {
 	if searchLogRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
 	}
 	return nil
 }
 
-func ValidRemoveLogRequest (removeLogRequest *grpc_application_history_logs_go.RemoveLogsRequest) derrors.Error {
+func ValidRemoveLogRequest(removeLogRequest *grpc_application_history_logs_go.RemoveLogsRequest) derrors.Error {
 	if removeLogRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
 	}
