@@ -16,7 +16,7 @@ resources:
 stages:
 - stage: 'SlackStart'
   jobs:
-  - job: MainWorkflow
+  - job: 
     pool:
       vmImage: 'ubuntu-latest'    
     steps:
