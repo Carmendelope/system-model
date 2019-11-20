@@ -14,7 +14,7 @@ resources:
       ref: 'refs/heads/feature/NP-2334_New_Pipeline_Structure'
 
 stages:
-- stage: 'Slack-Start'
+- stage: 'SlackStart'
   jobs:
   - job: MainWorkflow
     pool:
@@ -29,7 +29,7 @@ stages:
         buildUrl: $(buildUrl)$(Build.BuildId)
         slackWebhook: $(slackBuilds)
 
-- stage: 'Binary-Build'
+- stage: 'BinaryBuild'
   dependsOn: 'Start_Slack'
   jobs:
   - job: MainWorkflow
@@ -38,7 +38,7 @@ stages:
     steps:
     - template: steps/go-main.yaml@ci_templates
 
-- stage: 'Image-Build'
+- stage: 'ImageBuild'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   dependsOn: 'Binary_Build'
   jobs:
@@ -48,7 +48,7 @@ stages:
     steps:
     - template: steps/docker-main.yaml@ci_templates
 
-- stage: 'Slack-Finish'
+- stage: 'SlackFinish'
   condition: always()
   jobs:
   - job: MainWorkflow
