@@ -506,6 +506,37 @@ func (m *Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceId
 	return err
 }
 
+func (m *Manager) GetAppInstanceReducedSummary(appInstanceId *grpc_application_go.AppInstanceId) (*entities.AppInstancesReducedSummary, derrors.Error) {
+
+	exists, err := m.OrgProvider.Exists(appInstanceId.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(appInstanceId.OrganizationId)
+	}
+
+	exists, err = m.OrgProvider.InstanceExists(appInstanceId.OrganizationId, appInstanceId.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, derrors.NewNotFoundError("appInstanceID").WithParams(appInstanceId.OrganizationId, appInstanceId.AppInstanceId)
+	}
+	instance, err := m.AppProvider.GetInstance(appInstanceId.AppInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	descriptorName := ""
+	descriptor, err := m.AppProvider.GetDescriptor(instance.AppDescriptorId)
+	if err != nil {
+		log.Warn().Str("descriptorId", instance.AppDescriptorId).Msg("Descriptor not found")
+	} else {
+		descriptorName = descriptor.Name
+	}
+	return entities.NewAppInstancesReducedSummary(instance, descriptorName), nil
+}
+
 func (m *Manager) ListAppInstancesReducedSummary(organizationID *grpc_organization_go.OrganizationId) ([]entities.AppInstancesReducedSummary, derrors.Error) {
 
 	exists, err := m.OrgProvider.Exists(organizationID.OrganizationId)

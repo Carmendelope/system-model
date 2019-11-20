@@ -214,6 +214,17 @@ func (h *Handler) GetAppInstance(ctx context.Context, appInstID *grpc_applicatio
 	}
 	return instance.ToGRPC(), nil
 }
+func (h *Handler) GetAppInstanceReducedSummary(ctx context.Context, appInstanceId *grpc_application_go.AppInstanceId) (*grpc_application_go.AppInstanceReducedSummary, error) {
+	vErr := entities.ValidAppInstanceId(appInstanceId)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	summary, err := h.Manager.GetAppInstanceReducedSummary(appInstanceId)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return summary.ToGRPC(), nil
+}
 
 func (h *Handler) ListAppInstancesReducedSummary(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppInstanceReducedSummaryList, error) {
 	vErr := entities.ValidOrganizationID(organizationID)
