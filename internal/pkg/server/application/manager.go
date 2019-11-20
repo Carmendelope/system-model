@@ -506,6 +506,51 @@ func (m *Manager) RemoveAppInstance(appInstID *grpc_application_go.AppInstanceId
 	return err
 }
 
+func (m *Manager) ListAppInstancesReducedSummary(organizationID *grpc_organization_go.OrganizationId) ([]entities.AppInstancesReducedSummary, derrors.Error) {
+
+	exists, err := m.OrgProvider.Exists(organizationID.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, derrors.NewNotFoundError("organizationID").WithParams(organizationID.OrganizationId)
+	}
+	// get al the instances of an organization (instance identifiers)
+	instances, err := m.OrgProvider.ListInstances(organizationID.OrganizationId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Map of descriptor names indexed by descriptorId,
+	// This map prevents us from asking several times for the same descriptor
+	descriptorNames := make(map[string]string, 0)
+	result := make([]entities.AppInstancesReducedSummary, 0)
+	for _, instID := range instances {
+		// foreach instance identifier -> get the instance info
+		toAdd, err := m.AppProvider.GetInstance(instID)
+		if err != nil {
+			log.Warn().Str("instance", instID).Msg("not found!!")
+		} else {
+			descriptorName := ""
+			name, exists := descriptorNames[toAdd.AppDescriptorId]
+			if exists {
+				descriptorName = name
+			} else {
+				descriptor, err := m.AppProvider.GetDescriptor(toAdd.AppDescriptorId)
+				if err != nil {
+					log.Warn().Str("descriptorId", toAdd.AppDescriptorId).Msg("Descriptor not found")
+				} else {
+					descriptorNames[toAdd.AppDescriptorId] = descriptor.Name
+					descriptorName = descriptor.Name
+				}
+			}
+			// add the instance summary
+			result = append(result, *entities.NewAppInstancesReducedSummary(toAdd, descriptorName))
+		}
+	}
+	return result, nil
+}
+
 func (m *Manager) GetInstanceParameters(request *grpc_application_go.AppInstanceId) ([]entities.InstanceParameter, derrors.Error) {
 	exists, err := m.OrgProvider.Exists(request.OrganizationId)
 	if err != nil {
