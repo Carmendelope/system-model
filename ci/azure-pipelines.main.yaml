@@ -11,7 +11,7 @@ resources:
       type: github
       name: nalej/ci-templates
       endpoint: nalej
-      ref: 'refs/heads/feature/NP-2334_New_Pipeline_Structure'
+      ref: 'refs/tags/v1.0.3'
 
 stages:
 - stage: 'SlackStart'
