@@ -30,7 +30,7 @@ stages:
         slackWebhook: $(slackBuilds)
 
 - stage: 'BinaryBuild'
-  dependsOn: 'StartSlack'
+  dependsOn: 'SlackStart'
   jobs:
   - job: MainWorkflow
     pool:
