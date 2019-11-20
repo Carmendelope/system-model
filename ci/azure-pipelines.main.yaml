@@ -1,9 +1,9 @@
 variables: 
-  - template: variables/global-variables.yaml@ci_templates
-  - template: variables/go-variables.yaml@ci_templates
-  - template: variables/k8s-variables.yaml@ci_templates
-  - template: variables/nalej-variables.yaml@ci_templates
-  - template: variables/git-variables.yaml@ci_templates
+  - template: variables/global.yaml@ci_templates
+  - template: variables/go.yaml@ci_templates
+  - template: variables/k8s.yaml@ci_templates
+  - template: variables/nalej.yaml@ci_templates
+  - template: variables/git.yaml@ci_templates
 
 resources:
   repositories:
@@ -14,7 +14,7 @@ resources:
       ref: 'refs/heads/feature/NP-2334_New_Pipeline_Structure'
 
 stages:
-- stage: 'Start_Slack'
+- stage: 'Slack-Start'
   jobs:
   - job: MainWorkflow
     pool:
@@ -29,16 +29,16 @@ stages:
         buildUrl: $(buildUrl)$(Build.BuildId)
         slackWebhook: $(slackBuilds)
 
-- stage: 'Binary_Build'
+- stage: 'Binary-Build'
   dependsOn: 'Start_Slack'
   jobs:
   - job: MainWorkflow
     pool:
       vmImage: 'ubuntu-latest'  
     steps:
-    - template: steps/go_main.yaml@ci_templates
+    - template: steps/go-main.yaml@ci_templates
 
-- stage: 'Image_Build'
+- stage: 'Image-Build'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   dependsOn: 'Binary_Build'
   jobs:
@@ -46,31 +46,16 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'  
     steps:
-    - template: steps/docker_main.yaml@ci_templates
+    - template: steps/docker-main.yaml@ci_templates
 
-- stage: 'Finish_Slack'
+- stage: 'Slack-Finish'
   condition: always()
   jobs:
   - job: MainWorkflow
     pool:
       vmImage: 'ubuntu-latest'  
     steps: 
-    - template: slack/build/finish.yaml@ci_templates
-      parameters:
-        author: $(authorName)
-        repository: $(Build.Repository.Name)
-        branch: $(Build.SourceBranch)
-        commit: $(Build.SourceVersionMessage)
-        buildUrl: $(buildUrl)$(Build.BuildId)
-        slackWebhook: $(slackBuilds)
-        modulePath: $(modulePath)
+    - template: steps/slack-finish-main.yaml@ci_templates
+
     
-    - template: slack/build/failed.yaml@ci_templates
-      parameters:
-        author: $(authorName)
-        repository: $(Build.Repository.Name)
-        branch: $(Build.SourceBranch)
-        commit: $(Build.SourceVersionMessage)
-        buildUrl: $(buildUrl)$(Build.BuildId)
-        slackWebhook: $(slackCIFailed)
-        modulePath: $(modulePath)
+
