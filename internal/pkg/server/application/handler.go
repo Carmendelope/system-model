@@ -215,6 +215,26 @@ func (h *Handler) GetAppInstance(ctx context.Context, appInstID *grpc_applicatio
 	return instance.ToGRPC(), nil
 }
 
+func (h *Handler) ListAppInstancesReducedSummary(ctx context.Context, organizationID *grpc_organization_go.OrganizationId) (*grpc_application_go.AppInstanceReducedSummaryList, error) {
+	vErr := entities.ValidOrganizationID(organizationID)
+	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("cannot list app intances reduced summary")
+	}
+
+	list, err := h.Manager.ListAppInstancesReducedSummary(organizationID)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	summaryList := make([]*grpc_application_go.AppInstanceReducedSummary, len(list))
+	for i, summary := range list {
+		summaryList[i] = summary.ToGRPC()
+	}
+	return &grpc_application_go.AppInstanceReducedSummaryList{
+		Instances: summaryList,
+	}, nil
+
+}
+
 // UpdateAppStatus updates the status of an application instance.
 func (h *Handler) UpdateAppStatus(ctx context.Context, updateAppStatus *grpc_application_go.UpdateAppStatusRequest) (*grpc_common_go.Success, error) {
 	err := entities.ValidUpdateAppStatusRequest(updateAppStatus)

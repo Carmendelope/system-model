@@ -2217,6 +2217,116 @@ func (m *AppZtNetworkMembers) ToArrayGRPC() *grpc_application_go.ZtNetworkMember
 	return &result
 }
 
+// ---------------------------
+// AppInstancesReducedSummary
+// ---------------------------
+type AppInstancesReducedSummary struct {
+	// OrganizationId with the organization identifier.
+	OrganizationId string `json:"organization_id,omitempty"`
+	// AppDescriptorId with the application descriptor identifier.
+	AppDescriptorId string `json:"app_descriptor_id,omitempty"`
+	// AppDescriptorName with the name of the application descriptor.
+	AppDescriptorName string `json:"app_descriptor_name,omitempty"`
+	// AppInstanceId with the application instance identifier.
+	AppInstanceId string `json:"app_instance_id,omitempty"`
+	// Name of the application.
+	AppInstanceName string `json:"app_instance_name,omitempty"`
+	// ServiceGroupReducedSummary with a list of service groups identifiers and names
+	Groups []*ServiceGroupReducedSummary `json:"groups,omitempty"`
+}
+
+func NewAppInstancesReducedSummary(instance *AppInstance, descriptorName string) *AppInstancesReducedSummary {
+	groups := make([]*ServiceGroupReducedSummary, len(instance.Groups))
+	for i, group := range instance.Groups {
+		groups[i] = NewServiceGroupReducedSummary(group)
+	}
+	return &AppInstancesReducedSummary{
+		OrganizationId:    instance.OrganizationId,
+		AppDescriptorId:   instance.AppDescriptorId,
+		AppDescriptorName: descriptorName,
+		AppInstanceId:     instance.AppInstanceId,
+		AppInstanceName:   instance.Name,
+		Groups:            groups,
+	}
+}
+
+func (a *AppInstancesReducedSummary) ToGRPC() *grpc_application_go.AppInstanceReducedSummary {
+	groups := make([]*grpc_application_go.ServiceGroupReducedSummary, len(a.Groups))
+	for i, group := range a.Groups {
+		groups[i] = group.ToGRPC()
+	}
+	return &grpc_application_go.AppInstanceReducedSummary{
+		OrganizationId:    a.OrganizationId,
+		AppDescriptorId:   a.AppDescriptorId,
+		AppDescriptorName: a.AppDescriptorName,
+		AppInstanceId:     a.AppDescriptorId,
+		AppInstanceName:   a.AppInstanceName,
+		Groups:            groups,
+	}
+}
+
+type ServiceGroupReducedSummary struct {
+	// ServiceGroupId with the group identifier.
+	ServiceGroupId string `json:"service_group_id,omitempty"`
+	// Unique identifier for this instance
+	ServiceGroupInstanceId string `json:"service_group_instance_id,omitempty"`
+	// ServiceGroupName with the name of the service group
+	ServiceGroupName string `json:"service_group_name,omitempty"`
+	// ServiceReducedSummary with a list of services identifiers and names
+	ServiceInstances []*ServiceReducedSummary `json:"service_instances,omitempty"`
+}
+
+func NewServiceGroupReducedSummary(group ServiceGroupInstance) *ServiceGroupReducedSummary {
+	serviceList := make([]*ServiceReducedSummary, len(group.ServiceInstances))
+	for i, service := range group.ServiceInstances {
+		serviceList[i] = NewServiceReducedSummary(service)
+	}
+	return &ServiceGroupReducedSummary{
+		ServiceGroupId:         group.ServiceGroupId,
+		ServiceGroupInstanceId: group.ServiceGroupInstanceId,
+		ServiceGroupName:       group.Name,
+		ServiceInstances:       serviceList,
+	}
+}
+
+func (s *ServiceGroupReducedSummary) ToGRPC() *grpc_application_go.ServiceGroupReducedSummary {
+	instances := make([]*grpc_application_go.ServiceReducedSummary, len(s.ServiceInstances))
+	for i, inst := range s.ServiceInstances {
+		instances[i] = inst.ToGRPC()
+	}
+	return &grpc_application_go.ServiceGroupReducedSummary{
+		ServiceGroupId:         s.ServiceGroupId,
+		ServiceGroupInstanceId: s.ServiceGroupInstanceId,
+		ServiceGroupName:       s.ServiceGroupName,
+		ServiceInstances:       instances,
+	}
+}
+
+type ServiceReducedSummary struct {
+	// ServiceId with the service identifier.
+	ServiceId string `json:"service_id,omitempty"`
+	// Unique identifier for this instance
+	ServiceInstanceId string `json:"service_instance_id,omitempty"`
+	// Name of the service.
+	ServiceName string `json:"service_name,omitempty"`
+}
+
+func NewServiceReducedSummary(service ServiceInstance) *ServiceReducedSummary {
+	return &ServiceReducedSummary{
+		ServiceId:         service.ServiceId,
+		ServiceInstanceId: service.ServiceInstanceId,
+		ServiceName:       service.Name,
+	}
+}
+
+func (s *ServiceReducedSummary) ToGRPC() *grpc_application_go.ServiceReducedSummary {
+	return &grpc_application_go.ServiceReducedSummary{
+		ServiceId:         s.ServiceId,
+		ServiceInstanceId: s.ServiceInstanceId,
+		ServiceName:       s.ServiceName,
+	}
+}
+
 // Validation functions
 
 func ValidAddZtNetworkProxy(req *grpc_application_go.ServiceProxy) derrors.Error {

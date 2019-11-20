@@ -72,7 +72,6 @@ var _ = ginkgo.Describe("User service", func() {
 
 		test.LaunchServer(server, listener)
 
-
 		conn, err := test.GetConn(*listener)
 		gomega.Expect(err).Should(gomega.Succeed())
 		client = grpc_user_go.NewUsersClient(conn)
