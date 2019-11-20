@@ -30,7 +30,7 @@ stages:
         slackWebhook: $(slackBuilds)
 
 - stage: 'BinaryBuild'
-  dependsOn: 'Start_Slack'
+  dependsOn: 'StartSlack'
   jobs:
   - job: MainWorkflow
     pool:
@@ -40,7 +40,7 @@ stages:
 
 - stage: 'ImageBuild'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-  dependsOn: 'Binary_Build'
+  dependsOn: 'BinaryBuild'
   jobs:
   - job: MainWorkflow
     pool:
