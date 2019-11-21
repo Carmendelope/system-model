@@ -97,7 +97,7 @@ func (m *MockupApplicationHistoryLogsProvider) Search(searchLogsRequest *entitie
 	m.Lock()
 	defer m.Unlock()
 
-	var events *[]entities.ServiceInstanceLog = nil
+	events := make([]entities.ServiceInstanceLog, 0)
 	list, exists := m.serviceInstanceLogs[searchLogsRequest.OrganizationId]
 	if !exists {
 		return derrors.NewNotFoundError("organization id").WithParams(searchLogsRequest.OrganizationId), nil
@@ -105,7 +105,7 @@ func (m *MockupApplicationHistoryLogsProvider) Search(searchLogsRequest *entitie
 
 	for _, serviceInstanceLog := range list {
 		if (serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Created >= searchLogsRequest.From) || (serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Terminated >= searchLogsRequest.To) {
-			*events = append(*events, *serviceInstanceLog)
+			events = append(events, *serviceInstanceLog)
 		}
 	}
 
@@ -113,7 +113,7 @@ func (m *MockupApplicationHistoryLogsProvider) Search(searchLogsRequest *entitie
 		OrganizationId: searchLogsRequest.OrganizationId,
 		From:           searchLogsRequest.From,
 		To:             searchLogsRequest.To,
-		Events:         *events,
+		Events:         events,
 	}
 }
 
@@ -124,18 +124,22 @@ func (m *MockupApplicationHistoryLogsProvider) Remove(removeLogRequest *entities
 	list, exists := m.serviceInstanceLogs[removeLogRequest.OrganizationId]
 	if exists {
 		found := false
-		newLogs := make([]*entities.ServiceInstanceLog, len(list))
-		for i, serviceInstanceLog := range list {
+		newLogs := make([]*entities.ServiceInstanceLog, 0)
+		for _, serviceInstanceLog := range list {
 			if serviceInstanceLog.AppInstanceId == removeLogRequest.AppInstanceId {
 				found = true
 			} else {
-				newLogs[i] = serviceInstanceLog
+				newLogs = append(newLogs, serviceInstanceLog)
 			}
 		}
 		if !found {
 			return derrors.NewNotFoundError("app instance id").WithParams(removeLogRequest.AppInstanceId)
 		}
-		m.serviceInstanceLogs[removeLogRequest.OrganizationId] = newLogs
+		if len(newLogs) == 0{
+			delete(m.serviceInstanceLogs,removeLogRequest.OrganizationId )
+		}else {
+			m.serviceInstanceLogs[removeLogRequest.OrganizationId] = newLogs
+		}
 	} else {
 		return derrors.NewNotFoundError("organization id").WithParams(removeLogRequest.OrganizationId)
 	}
@@ -144,9 +148,9 @@ func (m *MockupApplicationHistoryLogsProvider) Remove(removeLogRequest *entities
 }
 
 func (m *MockupApplicationHistoryLogsProvider) unsafeExistsServiceInstanceLog(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstanceId string) (bool, derrors.Error) {
-	list, exists := m.serviceInstanceLogs[organizationId]
+	serviceInstanceLogsList, exists := m.serviceInstanceLogs[organizationId]
 	if exists {
-		for _, serviceInstanceLog := range list {
+		for _, serviceInstanceLog := range serviceInstanceLogsList {
 			if serviceInstanceLog.AppInstanceId == appInstanceId && serviceInstanceId == serviceInstanceLog.ServiceInstanceId && serviceGroupInstanceId == serviceInstanceLog.ServiceGroupInstanceId {
 				return true, nil
 			}
@@ -154,7 +158,8 @@ func (m *MockupApplicationHistoryLogsProvider) unsafeExistsServiceInstanceLog(or
 	} else {
 		return false, derrors.NewNotFoundError("organization id").WithParams(organizationId)
 	}
-	return false, nil
+
+	return false, derrors.NewNotFoundError("app instance id").WithParams(appInstanceId)
 }
 
 func AddLogRequestToServiceInstanceLog(addLogRequest entities.AddLogRequest) entities.ServiceInstanceLog {
