@@ -1,18 +1,5 @@
 /*
- * Copyright 2019 Nalej
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * Copyright (C) 2019 Nalej - All Rights Reserved
  */
 
 package cluster
@@ -42,9 +29,43 @@ type ScyllaClusterProvider struct {
 
 const rowNotFound = "not found"
 
+var (
+	clusterColumnsNoPK = []string{
+		"organization_id",
+		"name",
+		"cluster_type",
+		"hostname",
+		"control_plane_hostname",
+		"multitenant",
+		"status",
+		"labels",
+		"cordon",
+		"cluster_watch",
+		"last_alive_timestamp",
+		"millicores_conversion_factor",
+		"state",
+	}
+	clusterColumns = []string{
+		"organization_id",
+		"cluster_id",
+		"name",
+		"cluster_type",
+		"hostname",
+		"control_plane_hostname",
+		"multitenant",
+		"status",
+		"labels",
+		"cordon",
+		"cluster_watch",
+		"last_alive_timestamp",
+		"millicores_conversion_factor",
+		"state",
+	}
+)
+
 func NewScyllaClusterProvider(address string, port int, keyspace string) *ScyllaClusterProvider {
 	provider := ScyllaClusterProvider{Address: address, Port: port, Keyspace: keyspace, Session: nil}
-	provider.connect()
+	_ = provider.connect()
 	return &provider
 }
 
@@ -166,8 +187,7 @@ func (sp *ScyllaClusterProvider) Add(cluster entities.Cluster) derrors.Error {
 	}
 
 	// insert the cluster instance
-	stmt, names := qb.Insert(clusterTable).Columns("organization_id", "cluster_id", "name",
-		"cluster_type", "hostname", "control_plane_hostname", "multitenant", "status", "labels", "cordon", "cluster_watch", "last_alive_timestamp", "state").ToCql()
+	stmt, names := qb.Insert(clusterTable).Columns(clusterColumns...).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(cluster)
 	cqlErr := q.ExecRelease()
 
@@ -200,8 +220,7 @@ func (sp *ScyllaClusterProvider) Update(cluster entities.Cluster) derrors.Error 
 	}
 
 	// insert the cluster instance
-	stmt, names := qb.Update(clusterTable).Set("organization_id", "name",
-		"cluster_type", "hostname", "multitenant", "control_plane_hostname", "status", "labels", "cordon", "cluster_watch", "last_alive_timestamp", "state").
+	stmt, names := qb.Update(clusterTable).Set(clusterColumnsNoPK...).
 		Where(qb.Eq(clusterTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(cluster)
 	cqlErr := q.ExecRelease()
@@ -253,8 +272,7 @@ func (sp *ScyllaClusterProvider) Get(clusterID string) (*entities.Cluster, derro
 	}
 
 	var cluster entities.Cluster
-	stmt, names := qb.Select(clusterTable).Columns("organization_id", "cluster_id", "name", "cluster_type", "hostname",
-		"control_plane_hostname", "multitenant", "status", "labels", "cordon", "cluster_watch", "last_alive_timestamp", "state").Where(qb.Eq(clusterTablePK)).ToCql()
+	stmt, names := qb.Select(clusterTable).Columns(clusterColumns...).Where(qb.Eq(clusterTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		clusterTablePK: clusterID,
 	})
