@@ -81,7 +81,7 @@ func RunTest (provider Provider) {
 
 	ginkgo.Context("SearchServiceInstanceLog", func() {
 		ginkgo.It("should be able to search for some ServiceInstanceLogs", func() {
-			toAdd := entities.AddLogRequest{
+			toAddA := entities.AddLogRequest{
 				OrganizationId:         entities.GenerateUUID(),
 				AppDescriptorId:        entities.GenerateUUID(),
 				AppInstanceId:          entities.GenerateUUID(),
@@ -91,25 +91,133 @@ func RunTest (provider Provider) {
 				ServiceInstanceId:      entities.GenerateUUID(),
 				Created:                entities.GenerateInt64(),
 			}
-			err := provider.Add(&toAdd)
+			err := provider.Add(&toAddA)
 			gomega.Expect(err).To(gomega.BeNil())
 			exists, err := provider.ExistsServiceInstanceLog(
-				toAdd.OrganizationId,
-				toAdd.AppInstanceId,
-				toAdd.ServiceGroupInstanceId,
-				toAdd.ServiceInstanceId,
+				toAddA.OrganizationId,
+				toAddA.AppInstanceId,
+				toAddA.ServiceGroupInstanceId,
+				toAddA.ServiceInstanceId,
 			)
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(exists).To(gomega.BeTrue())
 
-			toSearch := entities.SearchLogsRequest{
-				OrganizationId: toAdd.OrganizationId,
-				From:           toAdd.Created - 100,
-				To:             toAdd.Created + 100,
+			toUpdateA := entities.UpdateLogRequest{
+				OrganizationId:    toAddA.OrganizationId,
+				AppInstanceId:     toAddA.AppInstanceId,
+				ServiceInstanceId: toAddA.ServiceInstanceId,
+				Terminated:        toAddA.Created + 100,
 			}
-			err, logResponse := provider.Search(&toSearch)
+			err = provider.Update(&toUpdateA)
 			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAdd.OrganizationId))
+			exists, err = provider.ExistsServiceInstanceLog(
+				toAddA.OrganizationId,
+				toAddA.AppInstanceId,
+				toAddA.ServiceGroupInstanceId,
+				toAddA.ServiceInstanceId,
+			)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(exists).To(gomega.BeTrue())
+
+			Query0 := entities.SearchLogsRequest{
+				OrganizationId: toAddA.OrganizationId,
+				From:           toAddA.Created + 25,
+				To:             toAddA.Created + 75,
+			}
+			err, logResponse := provider.Search(&Query0)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddA.OrganizationId))
+
+			Query1 := entities.SearchLogsRequest{
+				OrganizationId: toAddA.OrganizationId,
+				From:           toAddA.Created - 100,
+				To:             toAddA.Created + 200,
+			}
+			err, logResponse = provider.Search(&Query1)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddA.OrganizationId))
+
+			Query2 := entities.SearchLogsRequest{
+				OrganizationId: toAddA.OrganizationId,
+				From:           toAddA.Created + 50,
+				To:             toAddA.Created + 200,
+			}
+			err, logResponse = provider.Search(&Query2)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddA.OrganizationId))
+
+			Query3 := entities.SearchLogsRequest{
+				OrganizationId: toAddA.OrganizationId,
+				From:           toAddA.Created - 100,
+				To:             toAddA.Created + 50,
+			}
+			err, logResponse = provider.Search(&Query3)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddA.OrganizationId))
+
+			Query4 := entities.SearchLogsRequest{
+				OrganizationId: toAddA.OrganizationId,
+				From:           toAddA.Created - 100,
+				To:             toAddA.Created - 50,
+			}
+			_, logResponse = provider.Search(&Query4)
+			gomega.Expect(logResponse.OrganizationId).To(gomega.BeNil())
+
+			Query5 := entities.SearchLogsRequest{
+				OrganizationId: toAddA.OrganizationId,
+				From:           toAddA.Created + 200,
+				To:             toAddA.Created + 300,
+			}
+			_, logResponse = provider.Search(&Query5)
+			gomega.Expect(logResponse.OrganizationId).To(gomega.BeNil())
+
+			_ = provider.Clear()
+
+			toAddB := entities.AddLogRequest{
+				OrganizationId:         entities.GenerateUUID(),
+				AppDescriptorId:        entities.GenerateUUID(),
+				AppInstanceId:          entities.GenerateUUID(),
+				ServiceGroupId:         entities.GenerateUUID(),
+				ServiceGroupInstanceId: entities.GenerateUUID(),
+				ServiceId:              entities.GenerateUUID(),
+				ServiceInstanceId:      entities.GenerateUUID(),
+				Created:                entities.GenerateInt64(),
+			}
+			err = provider.Add(&toAddB)
+			exists, err = provider.ExistsServiceInstanceLog(
+				toAddA.OrganizationId,
+				toAddA.AppInstanceId,
+				toAddA.ServiceGroupInstanceId,
+				toAddA.ServiceInstanceId,
+			)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(exists).To(gomega.BeTrue())
+
+			Query6 := entities.SearchLogsRequest{
+				OrganizationId: toAddB.OrganizationId,
+				From:           toAddB.Created - 100,
+				To:             toAddB.Created + 100,
+			}
+			err, logResponse = provider.Search(&Query6)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddB.OrganizationId))
+
+			Query7 := entities.SearchLogsRequest{
+				OrganizationId: toAddB.OrganizationId,
+				From:           toAddB.Created + 50,
+				To:             toAddB.Created + 100,
+			}
+			err, logResponse = provider.Search(&Query7)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddB.OrganizationId))
+
+			Query8 := entities.SearchLogsRequest{
+				OrganizationId: toAddB.OrganizationId,
+				From:           toAddB.Created - 100,
+				To:             toAddB.Created - 50,
+			}
+			err, logResponse = provider.Search(&Query8)
+			gomega.Expect(logResponse.OrganizationId).To(gomega.BeNil())
 		})
 	})
 

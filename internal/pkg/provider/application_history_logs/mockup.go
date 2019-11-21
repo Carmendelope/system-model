@@ -102,19 +102,19 @@ func (m *MockupApplicationHistoryLogsProvider) Search(searchLogsRequest *entitie
 	list, exists := m.serviceInstanceLogs[searchLogsRequest.OrganizationId]
 	if !exists {
 		return derrors.NewNotFoundError("organization id").WithParams(searchLogsRequest.OrganizationId), nil
-	}
-
-	for _, serviceInstanceLog := range list {
-		if (serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Created >= searchLogsRequest.From) || (serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Terminated >= searchLogsRequest.To) {
-			events = append(events, *serviceInstanceLog)
+	} else {
+		for _, serviceInstanceLog := range list {
+			if (serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Created >= searchLogsRequest.From) || (serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Terminated >= searchLogsRequest.To) {
+				events = append(events, *serviceInstanceLog)
+			}
 		}
-	}
 
-	return nil, &entities.LogResponse{
-		OrganizationId: searchLogsRequest.OrganizationId,
-		From:           searchLogsRequest.From,
-		To:             searchLogsRequest.To,
-		Events:         events,
+		return nil, &entities.LogResponse{
+			OrganizationId: searchLogsRequest.OrganizationId,
+			From:           searchLogsRequest.From,
+			To:             searchLogsRequest.To,
+			Events:         events,
+		}
 	}
 }
 
