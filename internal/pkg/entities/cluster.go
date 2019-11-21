@@ -166,6 +166,10 @@ var ClusterStateFromGRPC = map[grpc_infrastructure_go.ClusterState]ClusterState{
 	grpc_infrastructure_go.ClusterState_DECOMISIONING:       Decomissioning,
 }
 
+// DefaultMillicoresConversionFactor Default value for the millicores conversion factor
+// TODO To be parametrized depending on the subjacent platform
+const DefaultMillicoresConversionFactor = 1.0
+
 // Cluster entity representing a collection of nodes that supports applicaiton orchestration. This
 // abstraction is used for monitoring and orchestration purposes.
 type Cluster struct {
@@ -347,17 +351,18 @@ func NewCluster(organizationID string, name string, description string, hostname
 func NewClusterFromGRPC(addClusterRequest *grpc_infrastructure_go.AddClusterRequest) *Cluster {
 	uuid := GenerateUUID()
 	return &Cluster{
-		OrganizationId:       addClusterRequest.OrganizationId,
-		ClusterId:            uuid,
-		Name:                 addClusterRequest.Name,
-		ClusterType:          KubernetesCluster,
-		Hostname:             addClusterRequest.Hostname,
-		ControlPlaneHostname: addClusterRequest.ControlPlaneHostname,
-		Multitenant:          MultitenantYes,
-		Status:               ClusterStatusUnknown,
-		Labels:               addClusterRequest.Labels,
-		Cordon:               false,
-		State:                Provisioning,
+		OrganizationId:             addClusterRequest.OrganizationId,
+		ClusterId:                  uuid,
+		Name:                       addClusterRequest.Name,
+		ClusterType:                KubernetesCluster,
+		Hostname:                   addClusterRequest.Hostname,
+		ControlPlaneHostname:       addClusterRequest.ControlPlaneHostname,
+		Multitenant:                MultitenantYes,
+		Status:                     ClusterStatusUnknown,
+		Labels:                     addClusterRequest.Labels,
+		Cordon:                     false,
+		State:                      Provisioning,
+		MillicoresConversionFactor: DefaultMillicoresConversionFactor,
 		// ClusterWatch:
 		// LastAliveTimestamp:
 	}
@@ -369,18 +374,19 @@ func (c *Cluster) ToGRPC() *grpc_infrastructure_go.Cluster {
 	status := ClusterStatusToGRPC[c.Status]
 	state := ClusterStateToGRPC[c.State]
 	return &grpc_infrastructure_go.Cluster{
-		OrganizationId:       c.OrganizationId,
-		ClusterId:            c.ClusterId,
-		Name:                 c.Name,
-		ClusterType:          clusterType,
-		Hostname:             c.Hostname,
-		ControlPlaneHostname: c.ControlPlaneHostname,
-		Multitenant:          multitenant,
-		ClusterStatus:        status,
-		Labels:               c.Labels,
-		ClusterWatch:         c.ClusterWatch.ToGRPC(),
-		LastAliveTimestamp:   c.LastAliveTimestamp,
-		State:                state,
+		OrganizationId:             c.OrganizationId,
+		ClusterId:                  c.ClusterId,
+		Name:                       c.Name,
+		ClusterType:                clusterType,
+		Hostname:                   c.Hostname,
+		ControlPlaneHostname:       c.ControlPlaneHostname,
+		Multitenant:                multitenant,
+		ClusterStatus:              status,
+		Labels:                     c.Labels,
+		ClusterWatch:               c.ClusterWatch.ToGRPC(),
+		LastAliveTimestamp:         c.LastAliveTimestamp,
+		State:                      state,
+		MillicoresConversionFactor: c.MillicoresConversionFactor,
 	}
 }
 
@@ -424,6 +430,9 @@ func (c *Cluster) ApplyUpdate(updateRequest grpc_infrastructure_go.UpdateCluster
 		c.State = ClusterStateFromGRPC[updateRequest.State]
 	}
 
+	if updateRequest.UpdateMillicoresConversionFactor {
+		c.MillicoresConversionFactor = updateRequest.MillicoresConversionFactor
+	}
 }
 
 func ValidAddClusterRequest(addClusterRequest *grpc_infrastructure_go.AddClusterRequest) derrors.Error {
