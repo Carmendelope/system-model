@@ -1,18 +1,5 @@
 /*
- * Copyright 2019 Nalej
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * Copyright (C) 2019 Nalej - All Rights Reserved
  */
 
 package cluster
@@ -27,7 +14,7 @@ import (
 func RunTest(provider Provider) {
 
 	ginkgo.BeforeEach(func() {
-		provider.Clear()
+		_ = provider.Clear()
 	})
 
 	// AddCluster
@@ -38,18 +25,25 @@ func RunTest(provider Provider) {
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
 
+		addedCluster, err := provider.Get(cluster.ClusterId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(addedCluster.MillicoresConversionFactor).To(gomega.Equal(cluster.MillicoresConversionFactor))
 	})
 
 	// UpdateCluster
 	ginkgo.It("Should be able to update the cluster", func() {
 		cluster := CreateTestCluster("UUUId-0")
 
-		err := provider.Add(*cluster)
-		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(provider.Add(*cluster)).To(gomega.Succeed())
 		cluster.Multitenant = entities.MultitenantSupport(1)
 
-		err = provider.Update(*cluster)
+		newMillicoresConversionFactor := cluster.MillicoresConversionFactor + 1
+		cluster.MillicoresConversionFactor = newMillicoresConversionFactor
+		gomega.Expect(provider.Update(*cluster)).To(gomega.Succeed())
+
+		updatedCluster, err := provider.Get(cluster.ClusterId)
 		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(updatedCluster.MillicoresConversionFactor).To(gomega.Equal(newMillicoresConversionFactor))
 	})
 
 	ginkgo.It("Should be able to update the cluster state", func() {
@@ -68,7 +62,7 @@ func RunTest(provider Provider) {
 		cluster := CreateTestCluster("UUUId-0")
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
-		for newState, _ := range entities.ClusterStateToGRPC {
+		for newState := range entities.ClusterStateToGRPC {
 			cluster.State = newState
 			err := provider.Update(*cluster)
 			gomega.Expect(err).To(gomega.Succeed())
