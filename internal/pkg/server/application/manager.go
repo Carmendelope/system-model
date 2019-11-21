@@ -31,6 +31,9 @@ import (
 	"strings"
 )
 
+
+const unknownField = "Unknown"
+
 // Manager structure with the required providers for application operations.
 type Manager struct {
 	OrgProvider      organization.Provider
@@ -527,7 +530,8 @@ func (m *Manager) GetAppInstanceReducedSummary(appInstanceId *grpc_application_g
 	if err != nil {
 		return nil, err
 	}
-	descriptorName := ""
+	descriptorName := unknownField
+
 	descriptor, err := m.AppProvider.GetDescriptor(instance.AppDescriptorId)
 	if err != nil {
 		log.Warn().Str("descriptorId", instance.AppDescriptorId).Msg("Descriptor not found")
@@ -562,7 +566,7 @@ func (m *Manager) ListAppInstancesReducedSummary(organizationID *grpc_organizati
 		if err != nil {
 			log.Warn().Str("instance", instID).Msg("not found!!")
 		} else {
-			descriptorName := ""
+			descriptorName := unknownField
 			name, exists := descriptorNames[toAdd.AppDescriptorId]
 			if exists {
 				descriptorName = name
