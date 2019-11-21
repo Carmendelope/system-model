@@ -1,25 +1,12 @@
 /*
- * Copyright 2019 Nalej
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * Copyright (C) 2019 Nalej - All Rights Reserved
  */
 
 package cluster
 
 import (
 	"context"
-	grpc_connectivity_manager_go "github.com/nalej/grpc-connectivity-manager-go"
+	"github.com/nalej/grpc-connectivity-manager-go"
 	"github.com/nalej/grpc-infrastructure-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/test"
@@ -84,13 +71,13 @@ var _ = ginkgo.Describe("Cluster service", func() {
 
 	ginkgo.AfterSuite(func() {
 		server.Stop()
-		listener.Close()
+		_ = listener.Close()
 	})
 
 	ginkgo.BeforeEach(func() {
 		ginkgo.By("cleaning the mockups", func() {
-			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
-			clusterProvider.(*clusProvider.MockupClusterProvider).Clear()
+			_ = organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
+			_ = clusterProvider.(*clusProvider.MockupClusterProvider).Clear()
 			// Initial data
 			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
 		})
@@ -135,20 +122,23 @@ var _ = ginkgo.Describe("Cluster service", func() {
 			gomega.Expect(added.ClusterId).ShouldNot(gomega.BeEmpty())
 
 			updateClusterReq := &grpc_infrastructure_go.UpdateClusterRequest{
-				OrganizationId: targetOrganization.ID,
-				ClusterId:      added.ClusterId,
-				UpdateName:     true,
-				Name:           "newName",
-				UpdateHostname: true,
-				Hostname:       "newHostname",
-				UpdateStatus:   true,
-				Status:         grpc_connectivity_manager_go.ClusterStatus_ONLINE,
+				OrganizationId:                   targetOrganization.ID,
+				ClusterId:                        added.ClusterId,
+				UpdateName:                       true,
+				Name:                             "newName",
+				UpdateHostname:                   true,
+				Hostname:                         "newHostname",
+				UpdateStatus:                     true,
+				Status:                           grpc_connectivity_manager_go.ClusterStatus_ONLINE,
+				UpdateMillicoresConversionFactor: true,
+				MillicoresConversionFactor:       2.0,
 			}
 			updated, err := client.UpdateCluster(context.Background(), updateClusterReq)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(updated.Name).Should(gomega.Equal(updateClusterReq.Name))
 			gomega.Expect(updated.Hostname).Should(gomega.Equal(updateClusterReq.Hostname))
 			gomega.Expect(updated.ClusterStatus).Should(gomega.Equal(updateClusterReq.Status))
+			gomega.Expect(updated.MillicoresConversionFactor).To(gomega.Equal(updateClusterReq.MillicoresConversionFactor))
 		})
 		ginkgo.It("should be able to add labels to a cluster", func() {
 			toAdd := createAddClusterRequest(targetOrganization.ID)
