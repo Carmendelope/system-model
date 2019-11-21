@@ -54,13 +54,14 @@ func (m *MockupApplicationHistoryLogsProvider) Add(addLogRequest *entities.AddLo
 	defer m.Unlock()
 
 	toAdd := AddLogRequestToServiceInstanceLog(*addLogRequest)
-	_, err := m.unsafeExistsServiceInstanceLog(addLogRequest.OrganizationId, addLogRequest.AppInstanceId, addLogRequest.ServiceGroupInstanceId, addLogRequest.ServiceInstanceId)
+	exists, err := m.unsafeExistsServiceInstanceLog(addLogRequest.OrganizationId, addLogRequest.AppInstanceId, addLogRequest.ServiceGroupInstanceId, addLogRequest.ServiceInstanceId)
 	if err != nil {
-		m.serviceInstanceLogs[addLogRequest.OrganizationId] = append(m.serviceInstanceLogs[addLogRequest.OrganizationId], &toAdd)
-	} else {
 		return err
 	}
-
+	if exists{
+		return derrors.NewAlreadyExistsError("serviceInstanceLog").WithParams(addLogRequest)
+	}
+	m.serviceInstanceLogs[addLogRequest.OrganizationId] = append(m.serviceInstanceLogs[addLogRequest.OrganizationId], &toAdd)
 	return nil
 }
 
@@ -156,7 +157,7 @@ func (m *MockupApplicationHistoryLogsProvider) unsafeExistsServiceInstanceLog(or
 			}
 		}
 	} else {
-		return false, derrors.NewNotFoundError("organization id").WithParams(organizationId)
+		return false, nil
 	}
 
 	return false, derrors.NewNotFoundError("app instance id").WithParams(appInstanceId)

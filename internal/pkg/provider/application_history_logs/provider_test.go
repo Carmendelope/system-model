@@ -24,14 +24,14 @@ func RunTest (provider Provider) {
 				Created:                entities.GenerateInt64(),
 			}
 			err := provider.Add(&toAdd)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			exists, err := provider.ExistsServiceInstanceLog(
 				toAdd.OrganizationId,
 				toAdd.AppInstanceId,
 				toAdd.ServiceGroupInstanceId,
 				toAdd.ServiceInstanceId,
 			)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(exists).To(gomega.BeTrue())
 		})
 	})
@@ -49,14 +49,14 @@ func RunTest (provider Provider) {
 				Created:                entities.GenerateInt64(),
 			}
 			err := provider.Add(&toAdd)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			exists, err := provider.ExistsServiceInstanceLog(
 				toAdd.OrganizationId,
 				toAdd.AppInstanceId,
 				toAdd.ServiceGroupInstanceId,
 				toAdd.ServiceInstanceId,
 			)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(exists).To(gomega.BeTrue())
 
 
@@ -67,14 +67,14 @@ func RunTest (provider Provider) {
 				Terminated:        toAdd.Created + 100,
 			}
 			err = provider.Update(&toUpdate)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			exists, err = provider.ExistsServiceInstanceLog(
 				toAdd.OrganizationId,
 				toAdd.AppInstanceId,
 				toAdd.ServiceGroupInstanceId,
 				toAdd.ServiceInstanceId,
 			)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(exists).To(gomega.BeTrue())
 		})
 	})
@@ -92,14 +92,14 @@ func RunTest (provider Provider) {
 				Created:                entities.GenerateInt64(),
 			}
 			err := provider.Add(&toAdd)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			exists, err := provider.ExistsServiceInstanceLog(
 				toAdd.OrganizationId,
 				toAdd.AppInstanceId,
 				toAdd.ServiceGroupInstanceId,
 				toAdd.ServiceInstanceId,
 			)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(exists).To(gomega.BeTrue())
 
 			toSearch := entities.SearchLogsRequest{
@@ -108,7 +108,7 @@ func RunTest (provider Provider) {
 				To:             toAdd.Created + 100,
 			}
 			err, logResponse := provider.Search(&toSearch)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAdd.OrganizationId))
 		})
 	})
@@ -126,14 +126,14 @@ func RunTest (provider Provider) {
 				Created:                entities.GenerateInt64(),
 			}
 			err := provider.Add(&toAdd)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			exists, err := provider.ExistsServiceInstanceLog(
 				toAdd.OrganizationId,
 				toAdd.AppInstanceId,
 				toAdd.ServiceGroupInstanceId,
 				toAdd.ServiceInstanceId,
 			)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(exists).To(gomega.BeTrue())
 
 			toRemove := entities.RemoveLogRequest{
@@ -141,14 +141,14 @@ func RunTest (provider Provider) {
 				AppInstanceId:  toAdd.AppInstanceId,
 			}
 			err = provider.Remove(&toRemove)
-			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			exists, err = provider.ExistsServiceInstanceLog(
 				toAdd.OrganizationId,
 				toAdd.AppInstanceId,
 				toAdd.ServiceGroupInstanceId,
 				toAdd.ServiceInstanceId,
 			)
-			//gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(exists).To(gomega.BeFalse())
 		})
 	})
