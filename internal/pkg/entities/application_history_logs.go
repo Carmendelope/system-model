@@ -2,7 +2,7 @@ package entities
 
 import (
 	"github.com/nalej/derrors"
-	grpc_application_history_logs_go "github.com/nalej/grpc-application-history-logs-go"
+	"github.com/nalej/grpc-application-history-logs-go"
 )
 
 type LogResponse struct {
@@ -133,4 +133,97 @@ func ValidRemoveLogRequest(removeLogRequest *grpc_application_history_logs_go.Re
 		return derrors.NewInvalidArgumentError(emptyAppInstanceId)
 	}
 	return nil
+}
+
+func ToLogResponse (logResponse grpc_application_history_logs_go.LogResponse) LogResponse {
+	events := make([]ServiceInstanceLog, 0)
+	for _, event := range logResponse.Events {
+		events = append(events, ToServiceInstanceLog(*event))
+	}
+
+	return LogResponse{
+		OrganizationId: logResponse.OrganizationId,
+		From:           logResponse.From,
+		To:             logResponse.To,
+		Events:         events,
+	}
+}
+
+func ToServiceInstanceLog (serviceInstanceLog grpc_application_history_logs_go.ServiceInstanceLog) ServiceInstanceLog {
+	return ServiceInstanceLog{
+		OrganizationId:         serviceInstanceLog.OrganizationId,
+		AppDescriptorId:        serviceInstanceLog.AppDescriptorId,
+		AppInstanceId:          serviceInstanceLog.AppInstanceId,
+		ServiceGroupId:         serviceInstanceLog.ServiceGroupId,
+		ServiceGroupInstanceId: serviceInstanceLog.ServiceGroupInstanceId,
+		ServiceId:              serviceInstanceLog.ServiceId,
+		ServiceInstanceId:      serviceInstanceLog.ServiceInstanceId,
+		Created:                serviceInstanceLog.Created,
+		Terminated:             serviceInstanceLog.Terminated,
+	}
+}
+
+func ToAddLogRequest (addLogRequest grpc_application_history_logs_go.AddLogRequest) AddLogRequest {
+	return AddLogRequest{
+		OrganizationId:         addLogRequest.OrganizationId,
+		AppInstanceId:          addLogRequest.AppInstanceId,
+		AppDescriptorId:        addLogRequest.AppDescriptorId,
+		ServiceGroupId:         addLogRequest.ServiceGroupId,
+		ServiceGroupInstanceId: addLogRequest.ServiceGroupInstanceId,
+		ServiceId:              addLogRequest.ServiceId,
+		ServiceInstanceId:      addLogRequest.ServiceInstanceId,
+		Created:                addLogRequest.Created,
+	}
+}
+
+func ToUpdateLogRequest (updateLogRequest grpc_application_history_logs_go.UpdateLogRequest) UpdateLogRequest {
+	return UpdateLogRequest{
+		OrganizationId:    updateLogRequest.OrganizationId,
+		AppInstanceId:     updateLogRequest.AppInstanceId,
+		ServiceInstanceId: updateLogRequest.ServiceInstanceId,
+		Terminated:        updateLogRequest.Terminated,
+	}
+}
+
+func ToSearchLogsRequest (searchLogsRequest grpc_application_history_logs_go.SearchLogRequest) SearchLogsRequest {
+	return SearchLogsRequest{
+		OrganizationId: searchLogsRequest.OrganizationId,
+		From:           searchLogsRequest.From,
+		To:             searchLogsRequest.To,
+	}
+}
+
+func ToRemoveLogRequest (removeLogRequest grpc_application_history_logs_go.RemoveLogsRequest) RemoveLogRequest {
+	return RemoveLogRequest{
+		OrganizationId: removeLogRequest.OrganizationId,
+		AppInstanceId:  removeLogRequest.AppInstanceId,
+	}
+}
+
+func ToGRPCLogRequest (logResponse LogResponse) grpc_application_history_logs_go.LogResponse {
+	events := make([]*grpc_application_history_logs_go.ServiceInstanceLog, 0)
+	for _, event := range logResponse.Events {
+		events = append(events, ToGRPCServiceInstanceLog(event))
+	}
+
+	return grpc_application_history_logs_go.LogResponse{
+		OrganizationId:       logResponse.OrganizationId,
+		From:                 0,
+		To:                   0,
+		Events:               events,
+	}
+}
+
+func ToGRPCServiceInstanceLog (serviceInstanceLog ServiceInstanceLog) *grpc_application_history_logs_go.ServiceInstanceLog {
+	return &grpc_application_history_logs_go.ServiceInstanceLog{
+		OrganizationId:         serviceInstanceLog.OrganizationId,
+		AppDescriptorId:        serviceInstanceLog.AppDescriptorId,
+		AppInstanceId:          serviceInstanceLog.AppInstanceId,
+		ServiceGroupId:         serviceInstanceLog.ServiceGroupId,
+		ServiceGroupInstanceId: serviceInstanceLog.ServiceGroupInstanceId,
+		ServiceId:              serviceInstanceLog.ServiceId,
+		ServiceInstanceId:      serviceInstanceLog.ServiceInstanceId,
+		Created:                serviceInstanceLog.Created,
+		Terminated:             serviceInstanceLog.Terminated,
+	}
 }

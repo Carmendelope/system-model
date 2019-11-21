@@ -15,19 +15,15 @@
  *
  */
 
-package entities
+package application_history_logs
 
 import (
-	"github.com/satori/go.uuid"
-	"math/rand"
+	"github.com/onsi/ginkgo"
+	"github.com/onsi/gomega"
+	"testing"
 )
 
-// GenerateUUID generates a new UUID.
-func GenerateUUID() string {
-	return uuid.NewV4().String()
-}
-
-// GenerateInt64 generates a random int64 variable.
-func GenerateInt64() int64 {
-	return rand.Int63()
+func TestApplicationHistoryLogs(t *testing.T) {
+	gomega.RegisterFailHandler(ginkgo.Fail)
+	ginkgo.RunSpecs(t, "ApplicationHistoryLogs providers suite")
 }

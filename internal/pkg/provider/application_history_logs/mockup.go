@@ -29,18 +29,32 @@ type MockupApplicationHistoryLogsProvider struct {
 	serviceInstanceLogs map[string][]*entities.ServiceInstanceLog
 }
 
+func (m *MockupApplicationHistoryLogsProvider) ExistsServiceInstanceLog(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstanceId string) (bool, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+
+	return m.unsafeExistsServiceInstanceLog(organizationId, appInstanceId, serviceGroupInstanceId, serviceInstanceId)
+}
+
+func (m *MockupApplicationHistoryLogsProvider) Clear() derrors.Error {
+	m.Lock()
+	defer m.Unlock()
+	m.serviceInstanceLogs = make(map[string][]*entities.ServiceInstanceLog, 0)
+	return nil
+}
+
 func NewMockupApplicationHistoryLogsProvider() *MockupApplicationHistoryLogsProvider {
 	return &MockupApplicationHistoryLogsProvider{
 		serviceInstanceLogs: make(map[string][]*entities.ServiceInstanceLog, 0),
 	}
 }
 
-func (m *MockupApplicationHistoryLogsProvider) Add(addLogRequest entities.AddLogRequest) derrors.Error {
+func (m *MockupApplicationHistoryLogsProvider) Add(addLogRequest *entities.AddLogRequest) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
-	toAdd := AddLogRequestToServiceInstanceLog(addLogRequest)
-	err := m.unsafeExistsAppInstanceId(addLogRequest.OrganizationId, addLogRequest.AppInstanceId)
+	toAdd := AddLogRequestToServiceInstanceLog(*addLogRequest)
+	_, err := m.unsafeExistsServiceInstanceLog(addLogRequest.OrganizationId, addLogRequest.AppInstanceId, addLogRequest.ServiceGroupInstanceId, addLogRequest.ServiceInstanceId)
 	if err != nil {
 		m.serviceInstanceLogs[addLogRequest.OrganizationId] = append(m.serviceInstanceLogs[addLogRequest.OrganizationId], &toAdd)
 	} else {
@@ -50,7 +64,7 @@ func (m *MockupApplicationHistoryLogsProvider) Add(addLogRequest entities.AddLog
 	return nil
 }
 
-func (m *MockupApplicationHistoryLogsProvider) Update(updateLogRequest entities.UpdateLogRequest) derrors.Error {
+func (m *MockupApplicationHistoryLogsProvider) Update(updateLogRequest *entities.UpdateLogRequest) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -79,7 +93,7 @@ func (m *MockupApplicationHistoryLogsProvider) Update(updateLogRequest entities.
 	return nil
 }
 
-func (m *MockupApplicationHistoryLogsProvider) Search(searchLogsRequest entities.SearchLogsRequest) (derrors.Error, *entities.LogResponse) {
+func (m *MockupApplicationHistoryLogsProvider) Search(searchLogsRequest *entities.SearchLogsRequest) (derrors.Error, *entities.LogResponse) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -103,7 +117,7 @@ func (m *MockupApplicationHistoryLogsProvider) Search(searchLogsRequest entities
 	}
 }
 
-func (m *MockupApplicationHistoryLogsProvider) Remove(removeLogRequest entities.RemoveLogRequest) derrors.Error {
+func (m *MockupApplicationHistoryLogsProvider) Remove(removeLogRequest *entities.RemoveLogRequest) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -129,9 +143,18 @@ func (m *MockupApplicationHistoryLogsProvider) Remove(removeLogRequest entities.
 	return nil
 }
 
-func (m *MockupApplicationHistoryLogsProvider) unsafeExistsServiceInstanceLog(compositePK string) bool {
-	_, exists := m.serviceInstanceLogs[compositePK]
-	return exists
+func (m *MockupApplicationHistoryLogsProvider) unsafeExistsServiceInstanceLog(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstanceId string) (bool, derrors.Error) {
+	list, exists := m.serviceInstanceLogs[organizationId]
+	if exists {
+		for _, serviceInstanceLog := range list {
+			if serviceInstanceLog.AppInstanceId == appInstanceId && serviceInstanceId == serviceInstanceLog.ServiceInstanceId && serviceGroupInstanceId == serviceInstanceLog.ServiceGroupInstanceId {
+				return true, nil
+			}
+		}
+	} else {
+		return false, derrors.NewNotFoundError("organization id").WithParams(organizationId)
+	}
+	return false, nil
 }
 
 func AddLogRequestToServiceInstanceLog(addLogRequest entities.AddLogRequest) entities.ServiceInstanceLog {
@@ -145,18 +168,4 @@ func AddLogRequestToServiceInstanceLog(addLogRequest entities.AddLogRequest) ent
 		ServiceInstanceId:      addLogRequest.ServiceInstanceId,
 		Created:                addLogRequest.Created,
 	}
-}
-
-func (m *MockupApplicationHistoryLogsProvider) unsafeExistsAppInstanceId(organizationId string, appInstanceId string) derrors.Error {
-	list, exists := m.serviceInstanceLogs[organizationId]
-	if exists {
-		for _, serviceInstanceLog := range list {
-			if serviceInstanceLog.AppInstanceId == appInstanceId {
-				return derrors.NewAlreadyExistsError("app instance id").WithParams(serviceInstanceLog.AppInstanceId)
-			}
-		}
-	} else {
-		return derrors.NewNotFoundError("organization id").WithParams(organizationId)
-	}
-	return nil
 }

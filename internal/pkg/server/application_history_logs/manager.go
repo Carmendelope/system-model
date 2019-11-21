@@ -3,6 +3,7 @@ package application_history_logs
 import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-application-history-logs-go"
+	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/provider/application_history_logs"
 )
 
@@ -16,7 +17,7 @@ func NewManager(appHistoryLogsProvider application_history_logs.Provider) Manage
 	return Manager{appHistoryLogsProvider}
 }
 
-func (m *Manager) Add(addLogRequest *grpc_application_history_logs_go.AddLogRequest) derrors.Error {
+func (m *Manager) Add(addLogRequest *entities.AddLogRequest) derrors.Error {
 	aErr := m.AppHistoryLogsProvider.Add(addLogRequest)
 	if aErr != nil {
 		return aErr
@@ -24,7 +25,7 @@ func (m *Manager) Add(addLogRequest *grpc_application_history_logs_go.AddLogRequ
 	return nil
 }
 
-func (m *Manager) Update(updateLogRequest *grpc_application_history_logs_go.UpdateLogRequest) derrors.Error {
+func (m *Manager) Update(updateLogRequest *entities.UpdateLogRequest) derrors.Error {
 	uErr := m.AppHistoryLogsProvider.Update(updateLogRequest)
 	if uErr != nil {
 		return uErr
@@ -32,18 +33,22 @@ func (m *Manager) Update(updateLogRequest *grpc_application_history_logs_go.Upda
 	return nil
 }
 
-func (m *Manager) Search(searchLogRequest *grpc_application_history_logs_go.SearchLogRequest) (*grpc_application_history_logs_go.LogResponse, derrors.Error) {
-	logResponse, sErr := m.AppHistoryLogsProvider.Search(searchLogRequest)
+func (m *Manager) Search(searchLogRequest *entities.SearchLogsRequest) (*entities.LogResponse, derrors.Error) {
+	sErr, logResponse := m.AppHistoryLogsProvider.Search(searchLogRequest)
 	if sErr != nil {
 		return nil, sErr
 	}
 	return logResponse, nil
 }
 
-func (m *Manager) Remove(removeLogRequest *grpc_application_history_logs_go.RemoveLogsRequest) derrors.Error {
+func (m *Manager) Remove(removeLogRequest *entities.RemoveLogRequest) derrors.Error {
 	rErr := m.AppHistoryLogsProvider.Remove(removeLogRequest)
 	if rErr != nil {
 		return rErr
 	}
 	return nil
+}
+
+func (m *Manager) ExistServiceInstanceLog (addLogRequest *grpc_application_history_logs_go.AddLogRequest) (bool, derrors.Error) {
+	return m.AppHistoryLogsProvider.ExistsServiceInstanceLog(addLogRequest.OrganizationId, addLogRequest.AppInstanceId, addLogRequest.Created, addLogRequest.ServiceInstanceId)
 }

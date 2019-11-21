@@ -20,6 +20,7 @@ package application_history_logs
 import (
 	"context"
 	"github.com/nalej/grpc-application-history-logs-go"
+	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/rs/zerolog/log"
@@ -42,7 +43,8 @@ func (h *Handler) Add(ctx context.Context, addLogRequest *grpc_application_histo
 		return conversions.ToGRPCError(vErr)
 	}
 
-	aErr := h.Manager.Add(addLogRequest)
+	entALR := entities.ToAddLogRequest(*addLogRequest)
+	aErr := h.Manager.Add(&entALR)
 	if aErr != nil {
 		log.Error().Str("add error", aErr.DebugReport()).Msg("cannot add log")
 		return conversions.ToGRPCError(aErr)
@@ -57,7 +59,8 @@ func (h *Handler) Update(ctx context.Context, updateLogRequest *grpc_application
 		return conversions.ToGRPCError(vErr)
 	}
 
-	uErr := h.Manager.Update(updateLogRequest)
+	entULR := entities.ToUpdateLogRequest(*updateLogRequest)
+	uErr := h.Manager.Update(&entULR)
 	if uErr != nil {
 		log.Error().Str("update error", uErr.DebugReport()).Msg("cannot update log")
 		return conversions.ToGRPCError(uErr)
@@ -72,25 +75,42 @@ func (h *Handler) Search(ctx context.Context, searchLogRequest *grpc_application
 		return nil, conversions.ToGRPCError(vErr)
 	}
 
-	logResponse, sErr := h.Manager.Search(searchLogRequest)
+	entSLR := entities.ToSearchLogsRequest(*searchLogRequest)
+	logResponse, sErr := h.Manager.Search(&entSLR)
 	if sErr != nil {
-		log.Error().Str("add error", sErr.DebugReport()).Msg("cannot add log")
+		log.Error().Str("search error", sErr.DebugReport()).Msg("cannot search log")
 		return nil, conversions.ToGRPCError(sErr)
 	}
-	return logResponse, nil
+	grpcLR := entities.ToGRPCLogRequest(*logResponse)
+	return &grpcLR, nil
 }
 
 func (h *Handler) Remove(ctx context.Context, removeLogRequest *grpc_application_history_logs_go.RemoveLogsRequest) error {
 	vErr := entities.ValidRemoveLogRequest(removeLogRequest)
 	if vErr != nil {
-		log.Error().Str("validation error", vErr.DebugReport()).Msg("invalid add log request")
+		log.Error().Str("validation error", vErr.DebugReport()).Msg("invalid remove log request")
 		return conversions.ToGRPCError(vErr)
 	}
 
-	rErr := h.Manager.Remove(removeLogRequest)
+	entRLR := entities.ToRemoveLogRequest(*removeLogRequest)
+	rErr := h.Manager.Remove(&entRLR)
 	if rErr != nil {
-		log.Error().Str("add error", rErr.DebugReport()).Msg("cannot add log")
+		log.Error().Str("remove error", rErr.DebugReport()).Msg("cannot remove log")
 		return conversions.ToGRPCError(rErr)
 	}
 	return nil
+}
+
+func (h *Handler) ExistServiceInstanceLog (ctx context.Context, addLogRequest *grpc_application_history_logs_go.AddLogRequest) (*grpc_common_go.Exists, error) {
+	vErr := entities.ValidAddLogRequest(addLogRequest)
+	if vErr != nil {
+		log.Error().Str("validation error", vErr.DebugReport()).Msg("invalid request")
+		return &grpc_common_go.Exists{Exists: false,}, conversions.ToGRPCError(vErr)
+	}
+	exists, err := h.Manager.ExistServiceInstanceLog(addLogRequest)
+	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot determine if the service instance log exists")
+		return &grpc_common_go.Exists{Exists: false,}, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Exists{Exists: exists}, nil
 }

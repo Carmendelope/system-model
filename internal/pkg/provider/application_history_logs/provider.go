@@ -19,13 +19,19 @@ package application_history_logs
 
 import (
 	"github.com/nalej/derrors"
-	grpc_application_history_logs_go "github.com/nalej/grpc-application-history-logs-go"
+	"github.com/nalej/system-model/internal/pkg/entities"
 )
 
 // Provider for the application networking instances.
 type Provider interface {
-	Add(*grpc_application_history_logs_go.AddLogRequest) derrors.Error
-	Update(*grpc_application_history_logs_go.UpdateLogRequest) derrors.Error
-	Search(*grpc_application_history_logs_go.SearchLogRequest) (*grpc_application_history_logs_go.LogResponse, derrors.Error)
-	Remove(request *grpc_application_history_logs_go.RemoveLogsRequest) derrors.Error
+	Add(*entities.AddLogRequest) derrors.Error
+	Update(*entities.UpdateLogRequest) derrors.Error
+	Search(*entities.SearchLogsRequest) (derrors.Error, *entities.LogResponse)
+	Remove(*entities.RemoveLogRequest) derrors.Error
+
+	// ExistsServiceInstanceLog checks if a ServiceInstanceLog exists
+	ExistsServiceInstanceLog (organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstanceId string) (bool, derrors.Error)
+
+	// clear the connections information
+	Clear() derrors.Error
 }
