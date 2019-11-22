@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package cluster
@@ -27,7 +26,7 @@ import (
 func RunTest(provider Provider) {
 
 	ginkgo.BeforeEach(func() {
-		provider.Clear()
+		_ = provider.Clear()
 	})
 
 	// AddCluster
@@ -38,18 +37,25 @@ func RunTest(provider Provider) {
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
 
+		addedCluster, err := provider.Get(cluster.ClusterId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(addedCluster.MillicoresConversionFactor).To(gomega.Equal(cluster.MillicoresConversionFactor))
 	})
 
 	// UpdateCluster
 	ginkgo.It("Should be able to update the cluster", func() {
 		cluster := CreateTestCluster("UUUId-0")
 
-		err := provider.Add(*cluster)
-		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(provider.Add(*cluster)).To(gomega.Succeed())
 		cluster.Multitenant = entities.MultitenantSupport(1)
 
-		err = provider.Update(*cluster)
+		newMillicoresConversionFactor := cluster.MillicoresConversionFactor + 1
+		cluster.MillicoresConversionFactor = newMillicoresConversionFactor
+		gomega.Expect(provider.Update(*cluster)).To(gomega.Succeed())
+
+		updatedCluster, err := provider.Get(cluster.ClusterId)
 		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(updatedCluster.MillicoresConversionFactor).To(gomega.Equal(newMillicoresConversionFactor))
 	})
 
 	ginkgo.It("Should be able to update the cluster state", func() {
@@ -68,7 +74,7 @@ func RunTest(provider Provider) {
 		cluster := CreateTestCluster("UUUId-0")
 		err := provider.Add(*cluster)
 		gomega.Expect(err).To(gomega.Succeed())
-		for newState, _ := range entities.ClusterStateToGRPC {
+		for newState := range entities.ClusterStateToGRPC {
 			cluster.State = newState
 			err := provider.Update(*cluster)
 			gomega.Expect(err).To(gomega.Succeed())
