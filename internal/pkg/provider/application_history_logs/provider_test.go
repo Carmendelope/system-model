@@ -161,7 +161,7 @@ func RunTest (provider Provider) {
 				To:             toAddA.Created - 50,
 			}
 			_, logResponse = provider.Search(&Query4)
-			gomega.Expect(logResponse.OrganizationId).To(gomega.BeNil())
+			gomega.Expect(logResponse).To(gomega.BeNil())
 
 			Query5 := entities.SearchLogsRequest{
 				OrganizationId: toAddA.OrganizationId,
@@ -169,7 +169,7 @@ func RunTest (provider Provider) {
 				To:             toAddA.Created + 300,
 			}
 			_, logResponse = provider.Search(&Query5)
-			gomega.Expect(logResponse.OrganizationId).To(gomega.BeNil())
+			gomega.Expect(logResponse).To(gomega.BeNil())
 
 			_ = provider.Clear()
 
@@ -191,7 +191,7 @@ func RunTest (provider Provider) {
 				toAddA.ServiceInstanceId,
 			)
 			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(exists).To(gomega.BeTrue())
+			gomega.Expect(exists).To(gomega.BeFalse())
 
 			Query6 := entities.SearchLogsRequest{
 				OrganizationId: toAddB.OrganizationId,
@@ -217,7 +217,7 @@ func RunTest (provider Provider) {
 				To:             toAddB.Created - 50,
 			}
 			err, logResponse = provider.Search(&Query8)
-			gomega.Expect(logResponse.OrganizationId).To(gomega.BeNil())
+			gomega.Expect(logResponse).To(gomega.BeNil())
 		})
 	})
 

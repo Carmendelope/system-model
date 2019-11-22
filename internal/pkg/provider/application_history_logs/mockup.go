@@ -103,18 +103,25 @@ func (m *MockupApplicationHistoryLogsProvider) Search(searchLogsRequest *entitie
 	if !exists {
 		return derrors.NewNotFoundError("organization id").WithParams(searchLogsRequest.OrganizationId), nil
 	} else {
+		found := false
 		for _, serviceInstanceLog := range list {
-			if (serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Created >= searchLogsRequest.From) || (serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Terminated >= searchLogsRequest.To) {
+			if (serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Terminated >= searchLogsRequest.From && serviceInstanceLog.Created <= searchLogsRequest.To) || (serviceInstanceLog.Terminated == 0 && serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Created <= searchLogsRequest.To) {
 				events = append(events, *serviceInstanceLog)
+				found = true
 			}
 		}
 
-		return nil, &entities.LogResponse{
-			OrganizationId: searchLogsRequest.OrganizationId,
-			From:           searchLogsRequest.From,
-			To:             searchLogsRequest.To,
-			Events:         events,
+		if found {
+			return nil, &entities.LogResponse{
+				OrganizationId: searchLogsRequest.OrganizationId,
+				From:           searchLogsRequest.From,
+				To:             searchLogsRequest.To,
+				Events:         events,
+			}
+		} else {
+			return derrors.NewNotFoundError("search log request").WithParams(searchLogsRequest), nil
 		}
+
 	}
 }
 
