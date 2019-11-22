@@ -2,7 +2,6 @@ variables:
   - template: variables/global.yaml@ci_templates
   - template: variables/go.yaml@ci_templates
   - template: variables/k8s.yaml@ci_templates
-  #- template: variables/nalej.yaml@ci_templates
   - template: variables/git.yaml@ci_templates
 
 resources:
