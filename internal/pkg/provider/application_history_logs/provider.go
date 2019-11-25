@@ -35,6 +35,6 @@ type Provider interface {
 	// ExistsServiceInstanceLog checks if a ServiceInstanceLog exists
 	ExistsServiceInstanceLog(organizationId string, appInstanceId string, serviceGroupInstanceId string, serviceInstanceId string) (bool, derrors.Error)
 
-	// clear the connections information
+	// clear all application history logs
 	Clear() derrors.Error
 }

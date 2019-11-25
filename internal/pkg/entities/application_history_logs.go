@@ -24,28 +24,28 @@ import (
 type LogResponse struct {
 	// OrganizationId with the organization identifier
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
-	//
+	// From defines the timestamp from which the request will be taken into account
 	From int64 `json:"from,omitempty" cql:"from"`
-	//
+	// To defines the timestamp to which the request will be taken into account
 	To int64 `json:"to,omitempty" cql:"to"`
-	//
+	// Events contains the entries of the service instance history result of the query
 	Events []ServiceInstanceLog `json:"events,omitempty" cql:"events"`
 }
 
 type ServiceInstanceLog struct {
 	// OrganizationId with the organization identifier
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
-	// ApplicationDescriptorId
+	// ApplicationDescriptorId with the application descriptor identifier.
 	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
-	// ApplicationInstanceId
+	// AppInstanceId with the application instance identifier.
 	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
-	// ServiceGroupId
+	// ServiceGroupId with the group identifier.
 	ServiceGroupId string `json:"service_group_id,omitempty" cql:"service_group_id"`
-	// ServiceGroupInstanceId
+	// ServiceGroupInstanceId  with the group instance identifier.
 	ServiceGroupInstanceId string `json:"service_group_instance_id,omitempty" cql:"service_group_instance_id"`
-	// ServiceId
+	// ServiceId with the service identifier.
 	ServiceId string `json:"service_id,omitempty" cql:"service_id"`
-	// ServiceInstanceId
+	// ServiceInstanceId with the service instance identifier.
 	ServiceInstanceId string `json:"service_instance_id,omitempty" cql:"service_instance_id"`
 	// Timestamp when the information of when this service instance was created
 	Created int64 `json:"created,omitempty" cql:"created"`
@@ -56,28 +56,28 @@ type ServiceInstanceLog struct {
 type AddLogRequest struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
-	// ApplicationInstanceId
+	// AppInstanceId with the application instance identifier.
 	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
-	// ApplicationDescriptorId
+	// ApplicationDescriptorId with the application descriptor identifier.
 	AppDescriptorId string `json:"app_descriptor_id,omitempty" cql:"app_descriptor_id"`
-	// ServiceGroupId
+	// ServiceGroupId with the group identifier.
 	ServiceGroupId string `json:"service_group_id,omitempty" cql:"service_group_id"`
-	// ServiceGroupInstanceId
+	// ServiceGroupInstanceId  with the group instance identifier.
 	ServiceGroupInstanceId string `json:"service_group_instance_id,omitempty" cql:"service_group_instance_id"`
-	// ServiceId
+	// ServiceId with the service identifier.
 	ServiceId string `json:"service_id,omitempty" cql:"service_id"`
-	// ServiceInstanceId
+	// ServiceInstanceId with the service instance identifier.
 	ServiceInstanceId string `json:"service_instance_id,omitempty" cql:"service_instance_id"`
-	// Timestamp when the information of when this service instance was created
+	// Created with the timestamp of when the information of when this service instance was created
 	Created int64 `json:"created,omitempty" cql:"created"`
 }
 
 type UpdateLogRequest struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
-	// ApplicationInstanceId
+	// AppInstanceId with the application instance identifier.
 	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
-	// ServiceInstanceId
+	// ServiceInstanceId with the service instance identifier.
 	ServiceInstanceId string `json:"service_instance_id,omitempty" cql:"service_instance_id"`
 	// Timestamp when the information of when this service instance was terminated
 	Terminated int64 `json:"terminated,omitempty" cql:"terminated"`
@@ -95,7 +95,7 @@ type SearchLogsRequest struct {
 type RemoveLogRequest struct {
 	// OrganizationId with the organization identifier.
 	OrganizationId string `json:"organization_id,omitempty" cql:"organization_id"`
-	// ApplicationInstanceId
+	// AppInstanceId with the application instance identifier.
 	AppInstanceId string `json:"app_instance_id,omitempty" cql:"app_instance_id"`
 }
 
@@ -149,34 +149,6 @@ func ValidRemoveLogRequest(removeLogRequest *grpc_application_history_logs_go.Re
 		return derrors.NewInvalidArgumentError(emptyAppInstanceId)
 	}
 	return nil
-}
-
-func ToLogResponse(logResponse grpc_application_history_logs_go.LogResponse) LogResponse {
-	events := make([]ServiceInstanceLog, 0)
-	for _, event := range logResponse.Events {
-		events = append(events, ToServiceInstanceLog(*event))
-	}
-
-	return LogResponse{
-		OrganizationId: logResponse.OrganizationId,
-		From:           logResponse.From,
-		To:             logResponse.To,
-		Events:         events,
-	}
-}
-
-func ToServiceInstanceLog(serviceInstanceLog grpc_application_history_logs_go.ServiceInstanceLog) ServiceInstanceLog {
-	return ServiceInstanceLog{
-		OrganizationId:         serviceInstanceLog.OrganizationId,
-		AppDescriptorId:        serviceInstanceLog.AppDescriptorId,
-		AppInstanceId:          serviceInstanceLog.AppInstanceId,
-		ServiceGroupId:         serviceInstanceLog.ServiceGroupId,
-		ServiceGroupInstanceId: serviceInstanceLog.ServiceGroupInstanceId,
-		ServiceId:              serviceInstanceLog.ServiceId,
-		ServiceInstanceId:      serviceInstanceLog.ServiceInstanceId,
-		Created:                serviceInstanceLog.Created,
-		Terminated:             serviceInstanceLog.Terminated,
-	}
 }
 
 func ToAddLogRequest(addLogRequest grpc_application_history_logs_go.AddLogRequest) AddLogRequest {

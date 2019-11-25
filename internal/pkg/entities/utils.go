@@ -18,7 +18,7 @@ package entities
 
 import (
 	"github.com/satori/go.uuid"
-	"math/rand"
+	"time"
 )
 
 // GenerateUUID generates a new UUID.
@@ -26,7 +26,7 @@ func GenerateUUID() string {
 	return uuid.NewV4().String()
 }
 
-// GenerateInt64 generates a random int64 variable.
-func GenerateInt64() int64 {
-	return rand.Int63()
+// GenerateTimestamp generates a new timestamp.
+func GenerateTimestamp() int64 {
+	return time.Now().Unix()
 }

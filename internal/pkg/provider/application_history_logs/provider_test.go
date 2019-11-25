@@ -37,7 +37,7 @@ func RunTest(provider Provider) {
 				ServiceGroupInstanceId: entities.GenerateUUID(),
 				ServiceId:              entities.GenerateUUID(),
 				ServiceInstanceId:      entities.GenerateUUID(),
-				Created:                entities.GenerateInt64(),
+				Created:                entities.GenerateTimestamp(),
 			}
 			err := provider.Add(&toAdd)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -62,7 +62,7 @@ func RunTest(provider Provider) {
 				ServiceGroupInstanceId: entities.GenerateUUID(),
 				ServiceId:              entities.GenerateUUID(),
 				ServiceInstanceId:      entities.GenerateUUID(),
-				Created:                entities.GenerateInt64(),
+				Created:                entities.GenerateTimestamp(),
 			}
 			err := provider.Add(&toAdd)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -104,7 +104,7 @@ func RunTest(provider Provider) {
 				ServiceGroupInstanceId: entities.GenerateUUID(),
 				ServiceId:              entities.GenerateUUID(),
 				ServiceInstanceId:      entities.GenerateUUID(),
-				Created:                entities.GenerateInt64(),
+				Created:                entities.GenerateTimestamp(),
 			}
 			err := provider.Add(&toAddA)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -196,7 +196,7 @@ func RunTest(provider Provider) {
 				ServiceGroupInstanceId: entities.GenerateUUID(),
 				ServiceId:              entities.GenerateUUID(),
 				ServiceInstanceId:      entities.GenerateUUID(),
-				Created:                entities.GenerateInt64(),
+				Created:                entities.GenerateTimestamp(),
 			}
 			err = provider.Add(&toAddB)
 			exists, err = provider.ExistsServiceInstanceLog(
@@ -246,7 +246,7 @@ func RunTest(provider Provider) {
 				ServiceGroupInstanceId: entities.GenerateUUID(),
 				ServiceId:              entities.GenerateUUID(),
 				ServiceInstanceId:      entities.GenerateUUID(),
-				Created:                entities.GenerateInt64(),
+				Created:                entities.GenerateTimestamp(),
 			}
 			err := provider.Add(&toAdd)
 			gomega.Expect(err).To(gomega.BeNil())
