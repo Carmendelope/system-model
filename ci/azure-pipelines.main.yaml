@@ -64,8 +64,11 @@ stages:
           if [ -d components/$image/dockerenv ]; then
             cp -r components/$image/dockerenv dist/$image/.
           fi
-          
-          build_output=$(docker build --no-cache -t mggarc59/$image:$version -f components/$image/Dockerfile dist/$image 2>&1)
+          echo $(version)
+          echo $(imageList)
+          echo $(languageVersion)
+
+          build_output=$(docker build --no-cache -t mggarc59/$image:$v0.5.0 -f components/$image/Dockerfile dist/$image 2>&1)
           if [ $? -ne 0 ]; then
             echo "##vso[task.logissue type=error]There was an error creating the docker image nalej/$image:$version.%0D%0ACommand output:%0D%0A${build_output//$'\n'/'%0D%0A'}%0D%0AError CIE0005"
             echo "##vso[task.complete result=Failed;]"
