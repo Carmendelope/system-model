@@ -39,7 +39,7 @@ stages:
     - template: steps/go-main.yaml@ci_templates
 
 - stage: 'ImageBuild'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   dependsOn: 'BinaryBuild'
   jobs:
   - job: 
