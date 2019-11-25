@@ -47,7 +47,36 @@ stages:
       vmImage: 'ubuntu-latest'  
     steps:
     - template: misc/nalej-component.yaml@ci_templates 
-    - template: steps/docker-main.yaml@ci_templates
+    #- template: steps/docker-main.yaml@ci_templates
+    - template: go/workspace.yaml@ci_templates
+
+    - task: DownloadPipelineArtifact@1
+      inputs:
+        artifactName: binaries_linux-amd64
+        downloadPath: $(modulePath)/bin/linux-amd64
+      displayName: Download binaries to use in the docker image
+
+    - script: |
+        for image in $(imageList); do
+          mkdir -p dist/$image
+          cp bin/linux-amd64/$image dist/$image/$image
+          chmod 755 dist/$image/$image
+          if [ -d components/$image/dockerenv ]; then
+            cp -r components/$image/dockerenv dist/$image/.
+          fi
+          
+          build_output=$(docker build --no-cache -t mggarc59/$image:$version -f components/$image/Dockerfile dist/$image 2>&1)
+          if [ $? -ne 0 ]; then
+            echo "##vso[task.logissue type=error]There was an error creating the docker image nalej/$image:$version.%0D%0ACommand output:%0D%0A${build_output//$'\n'/'%0D%0A'}%0D%0AError CIE0005"
+            echo "##vso[task.complete result=Failed;]"
+            echo "Build the docker images step failed. Output:" >> $(system.defaultWorkingDirectory)/pipeline_errors
+            echo $build_output >> $(system.defaultWorkingDirectory)/pipeline_errors
+            echo "" >> $(system.defaultWorkingDirectory)/pipeline_errors
+            break
+          fi
+        done
+      workingDirectory: "$(modulePath)"
+      displayName: Build the docker images
 
 - stage: 'SlackFinish'
   condition: always()
