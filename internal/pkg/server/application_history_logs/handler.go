@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package application_history_logs
@@ -101,16 +100,16 @@ func (h *Handler) Remove(ctx context.Context, removeLogRequest *grpc_application
 	return nil
 }
 
-func (h *Handler) ExistServiceInstanceLog (ctx context.Context, addLogRequest *grpc_application_history_logs_go.AddLogRequest) (*grpc_common_go.Exists, error) {
+func (h *Handler) ExistServiceInstanceLog(ctx context.Context, addLogRequest *grpc_application_history_logs_go.AddLogRequest) (*grpc_common_go.Exists, error) {
 	vErr := entities.ValidAddLogRequest(addLogRequest)
 	if vErr != nil {
 		log.Error().Str("validation error", vErr.DebugReport()).Msg("invalid request")
-		return &grpc_common_go.Exists{Exists: false,}, conversions.ToGRPCError(vErr)
+		return &grpc_common_go.Exists{Exists: false}, conversions.ToGRPCError(vErr)
 	}
 	exists, err := h.Manager.ExistServiceInstanceLog(addLogRequest)
 	if err != nil {
 		log.Error().Str("trace", err.DebugReport()).Msg("cannot determine if the service instance log exists")
-		return &grpc_common_go.Exists{Exists: false,}, conversions.ToGRPCError(err)
+		return &grpc_common_go.Exists{Exists: false}, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Exists{Exists: exists}, nil
 }

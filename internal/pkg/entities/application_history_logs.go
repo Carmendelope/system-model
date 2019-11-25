@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Nalej
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package entities
 
 import (
@@ -135,7 +151,7 @@ func ValidRemoveLogRequest(removeLogRequest *grpc_application_history_logs_go.Re
 	return nil
 }
 
-func ToLogResponse (logResponse grpc_application_history_logs_go.LogResponse) LogResponse {
+func ToLogResponse(logResponse grpc_application_history_logs_go.LogResponse) LogResponse {
 	events := make([]ServiceInstanceLog, 0)
 	for _, event := range logResponse.Events {
 		events = append(events, ToServiceInstanceLog(*event))
@@ -149,7 +165,7 @@ func ToLogResponse (logResponse grpc_application_history_logs_go.LogResponse) Lo
 	}
 }
 
-func ToServiceInstanceLog (serviceInstanceLog grpc_application_history_logs_go.ServiceInstanceLog) ServiceInstanceLog {
+func ToServiceInstanceLog(serviceInstanceLog grpc_application_history_logs_go.ServiceInstanceLog) ServiceInstanceLog {
 	return ServiceInstanceLog{
 		OrganizationId:         serviceInstanceLog.OrganizationId,
 		AppDescriptorId:        serviceInstanceLog.AppDescriptorId,
@@ -163,7 +179,7 @@ func ToServiceInstanceLog (serviceInstanceLog grpc_application_history_logs_go.S
 	}
 }
 
-func ToAddLogRequest (addLogRequest grpc_application_history_logs_go.AddLogRequest) AddLogRequest {
+func ToAddLogRequest(addLogRequest grpc_application_history_logs_go.AddLogRequest) AddLogRequest {
 	return AddLogRequest{
 		OrganizationId:         addLogRequest.OrganizationId,
 		AppInstanceId:          addLogRequest.AppInstanceId,
@@ -176,7 +192,7 @@ func ToAddLogRequest (addLogRequest grpc_application_history_logs_go.AddLogReque
 	}
 }
 
-func ToUpdateLogRequest (updateLogRequest grpc_application_history_logs_go.UpdateLogRequest) UpdateLogRequest {
+func ToUpdateLogRequest(updateLogRequest grpc_application_history_logs_go.UpdateLogRequest) UpdateLogRequest {
 	return UpdateLogRequest{
 		OrganizationId:    updateLogRequest.OrganizationId,
 		AppInstanceId:     updateLogRequest.AppInstanceId,
@@ -185,7 +201,7 @@ func ToUpdateLogRequest (updateLogRequest grpc_application_history_logs_go.Updat
 	}
 }
 
-func ToSearchLogsRequest (searchLogsRequest grpc_application_history_logs_go.SearchLogRequest) SearchLogsRequest {
+func ToSearchLogsRequest(searchLogsRequest grpc_application_history_logs_go.SearchLogRequest) SearchLogsRequest {
 	return SearchLogsRequest{
 		OrganizationId: searchLogsRequest.OrganizationId,
 		From:           searchLogsRequest.From,
@@ -193,28 +209,28 @@ func ToSearchLogsRequest (searchLogsRequest grpc_application_history_logs_go.Sea
 	}
 }
 
-func ToRemoveLogRequest (removeLogRequest grpc_application_history_logs_go.RemoveLogsRequest) RemoveLogRequest {
+func ToRemoveLogRequest(removeLogRequest grpc_application_history_logs_go.RemoveLogsRequest) RemoveLogRequest {
 	return RemoveLogRequest{
 		OrganizationId: removeLogRequest.OrganizationId,
 		AppInstanceId:  removeLogRequest.AppInstanceId,
 	}
 }
 
-func ToGRPCLogRequest (logResponse LogResponse) grpc_application_history_logs_go.LogResponse {
+func ToGRPCLogRequest(logResponse LogResponse) grpc_application_history_logs_go.LogResponse {
 	events := make([]*grpc_application_history_logs_go.ServiceInstanceLog, 0)
 	for _, event := range logResponse.Events {
 		events = append(events, ToGRPCServiceInstanceLog(event))
 	}
 
 	return grpc_application_history_logs_go.LogResponse{
-		OrganizationId:       logResponse.OrganizationId,
-		From:                 0,
-		To:                   0,
-		Events:               events,
+		OrganizationId: logResponse.OrganizationId,
+		From:           0,
+		To:             0,
+		Events:         events,
 	}
 }
 
-func ToGRPCServiceInstanceLog (serviceInstanceLog ServiceInstanceLog) *grpc_application_history_logs_go.ServiceInstanceLog {
+func ToGRPCServiceInstanceLog(serviceInstanceLog ServiceInstanceLog) *grpc_application_history_logs_go.ServiceInstanceLog {
 	return &grpc_application_history_logs_go.ServiceInstanceLog{
 		OrganizationId:         serviceInstanceLog.OrganizationId,
 		AppDescriptorId:        serviceInstanceLog.AppDescriptorId,

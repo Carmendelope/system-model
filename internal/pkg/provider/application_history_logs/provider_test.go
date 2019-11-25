@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Nalej
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package application_history_logs
 
 import (
@@ -6,7 +22,7 @@ import (
 	"github.com/onsi/gomega"
 )
 
-func RunTest (provider Provider) {
+func RunTest(provider Provider) {
 	ginkgo.AfterEach(func() {
 		_ = provider.Clear()
 	})
@@ -58,7 +74,6 @@ func RunTest (provider Provider) {
 			)
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(exists).To(gomega.BeTrue())
-
 
 			toUpdate := entities.UpdateLogRequest{
 				OrganizationId:    toAdd.OrganizationId,
@@ -124,7 +139,7 @@ func RunTest (provider Provider) {
 				From:           toAddA.Created + 25,
 				To:             toAddA.Created + 75,
 			}
-			err, logResponse := provider.Search(&Query0)
+			logResponse, err := provider.Search(&Query0)
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddA.OrganizationId))
 
@@ -133,7 +148,7 @@ func RunTest (provider Provider) {
 				From:           toAddA.Created - 100,
 				To:             toAddA.Created + 200,
 			}
-			err, logResponse = provider.Search(&Query1)
+			logResponse, err = provider.Search(&Query1)
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddA.OrganizationId))
 
@@ -142,7 +157,7 @@ func RunTest (provider Provider) {
 				From:           toAddA.Created + 50,
 				To:             toAddA.Created + 200,
 			}
-			err, logResponse = provider.Search(&Query2)
+			logResponse, err = provider.Search(&Query2)
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddA.OrganizationId))
 
@@ -151,7 +166,7 @@ func RunTest (provider Provider) {
 				From:           toAddA.Created - 100,
 				To:             toAddA.Created + 50,
 			}
-			err, logResponse = provider.Search(&Query3)
+			logResponse, err = provider.Search(&Query3)
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddA.OrganizationId))
 
@@ -160,7 +175,7 @@ func RunTest (provider Provider) {
 				From:           toAddA.Created - 100,
 				To:             toAddA.Created - 50,
 			}
-			_, logResponse = provider.Search(&Query4)
+			logResponse, _ = provider.Search(&Query4)
 			gomega.Expect(logResponse).To(gomega.BeNil())
 
 			Query5 := entities.SearchLogsRequest{
@@ -168,7 +183,7 @@ func RunTest (provider Provider) {
 				From:           toAddA.Created + 200,
 				To:             toAddA.Created + 300,
 			}
-			_, logResponse = provider.Search(&Query5)
+			logResponse, _ = provider.Search(&Query5)
 			gomega.Expect(logResponse).To(gomega.BeNil())
 
 			_ = provider.Clear()
@@ -198,7 +213,7 @@ func RunTest (provider Provider) {
 				From:           toAddB.Created - 100,
 				To:             toAddB.Created + 100,
 			}
-			err, logResponse = provider.Search(&Query6)
+			logResponse, err = provider.Search(&Query6)
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddB.OrganizationId))
 
@@ -207,7 +222,7 @@ func RunTest (provider Provider) {
 				From:           toAddB.Created + 50,
 				To:             toAddB.Created + 100,
 			}
-			err, logResponse = provider.Search(&Query7)
+			logResponse, err = provider.Search(&Query7)
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(logResponse.OrganizationId).To(gomega.Equal(toAddB.OrganizationId))
 
@@ -216,7 +231,7 @@ func RunTest (provider Provider) {
 				From:           toAddB.Created - 100,
 				To:             toAddB.Created - 50,
 			}
-			err, logResponse = provider.Search(&Query8)
+			logResponse, err = provider.Search(&Query8)
 			gomega.Expect(logResponse).To(gomega.BeNil())
 		})
 	})

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package organization
+package application_history_logs
 
 import (
 	"github.com/nalej/system-model/internal/pkg/utils"
@@ -26,23 +26,15 @@ import (
 
 /*
 docker run --name scylla -p 9042:9042 -d scylladb/scylla
-docker exec -it scylla nodetool status
-
 docker exec -it scylla cqlsh
 
 create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 use nalej;
-create table nalej.organizations (id text, name text, created bigint, PRIMARY KEY (id));
-create table nalej.Organization_Clusters (organization_id text, cluster_id text, PRIMARY KEY (organization_id, cluster_id));
-create table nalej.Organization_Nodes (organization_id text, node_id text, PRIMARY KEY (organization_id, node_id));
-create table nalej.Organization_AppDescriptors (organization_id text, app_descriptor_id text, PRIMARY KEY (organization_id, app_descriptor_id));
-create table nalej.Organization_AppInstances (organization_id text, app_instance_id text, PRIMARY KEY (organization_id, app_instance_id));
-create table nalej.Organization_Users (organization_id text, email text, PRIMARY KEY (organization_id, email));
-create table nalej.Organization_Roles (organization_id text, role_id text, PRIMARY KEY (organization_id, role_id));
+
+create table IF NOT EXISTS nalej.Service_Instance_History (organization_id text, app_instance_id text, app_descriptor_id text, service_group_id text, service_group_instance_id text, service_id text, service_instance_id text, created bigint, terminated bigint, PRIMARY KEY(organization_id, app_instance_id, service_instance_id ));
 */
 
-var _ = ginkgo.Describe("Scylla organization provider", func() {
-
+var _ = ginkgo.Describe("Scylla Application History Logs provider", func() {
 	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
@@ -53,24 +45,21 @@ var _ = ginkgo.Describe("Scylla organization provider", func() {
 		ginkgo.Fail("missing environment variables")
 	}
 	var nalejKeySpace = os.Getenv("IT_NALEJ_KEYSPACE")
-	if nalejKeySpace == "" {
+	if scyllaHost == "" {
 		ginkgo.Fail("missing environment variables")
 	}
-	scyllaPort, err := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
-	if err != nil {
-		ginkgo.Fail("error getting scylla port")
-	}
+	scyllaPort, _ := strconv.Atoi(os.Getenv("IT_SCYLLA_PORT"))
 	if scyllaPort <= 0 {
 		ginkgo.Fail("missing environment variables")
 	}
 
 	// create a provider and connect it
-	sp := NewScyllaOrganizationProvider(scyllaHost, scyllaPort, nalejKeySpace)
+	provider := NewScyllaApplicationHistoryLogsProvider(scyllaHost, scyllaPort, nalejKeySpace)
 
 	ginkgo.AfterSuite(func() {
-		sp.Disconnect()
+		provider.Disconnect()
 	})
 
-	RunTest(sp)
+	RunTest(provider)
 
 })

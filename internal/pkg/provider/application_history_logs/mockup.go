@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package application_history_logs
@@ -58,7 +57,7 @@ func (m *MockupApplicationHistoryLogsProvider) Add(addLogRequest *entities.AddLo
 	if err != nil {
 		return err
 	}
-	if exists{
+	if exists {
 		return derrors.NewAlreadyExistsError("serviceInstanceLog").WithParams(addLogRequest)
 	}
 	m.serviceInstanceLogs[addLogRequest.OrganizationId] = append(m.serviceInstanceLogs[addLogRequest.OrganizationId], &toAdd)
@@ -94,14 +93,14 @@ func (m *MockupApplicationHistoryLogsProvider) Update(updateLogRequest *entities
 	return nil
 }
 
-func (m *MockupApplicationHistoryLogsProvider) Search(searchLogsRequest *entities.SearchLogsRequest) (derrors.Error, *entities.LogResponse) {
+func (m *MockupApplicationHistoryLogsProvider) Search(searchLogsRequest *entities.SearchLogsRequest) (*entities.LogResponse, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
 	events := make([]entities.ServiceInstanceLog, 0)
 	list, exists := m.serviceInstanceLogs[searchLogsRequest.OrganizationId]
 	if !exists {
-		return derrors.NewNotFoundError("organization id").WithParams(searchLogsRequest.OrganizationId), nil
+		return nil, derrors.NewNotFoundError("organization id").WithParams(searchLogsRequest.OrganizationId)
 	} else {
 		found := false
 		for _, serviceInstanceLog := range list {
@@ -112,14 +111,14 @@ func (m *MockupApplicationHistoryLogsProvider) Search(searchLogsRequest *entitie
 		}
 
 		if found {
-			return nil, &entities.LogResponse{
+			return &entities.LogResponse{
 				OrganizationId: searchLogsRequest.OrganizationId,
 				From:           searchLogsRequest.From,
 				To:             searchLogsRequest.To,
 				Events:         events,
-			}
+			}, nil
 		} else {
-			return derrors.NewNotFoundError("search log request").WithParams(searchLogsRequest), nil
+			return nil, derrors.NewNotFoundError("search log request").WithParams(searchLogsRequest)
 		}
 
 	}
@@ -143,9 +142,9 @@ func (m *MockupApplicationHistoryLogsProvider) Remove(removeLogRequest *entities
 		if !found {
 			return derrors.NewNotFoundError("app instance id").WithParams(removeLogRequest.AppInstanceId)
 		}
-		if len(newLogs) == 0{
-			delete(m.serviceInstanceLogs,removeLogRequest.OrganizationId )
-		}else {
+		if len(newLogs) == 0 {
+			delete(m.serviceInstanceLogs, removeLogRequest.OrganizationId)
+		} else {
 			m.serviceInstanceLogs[removeLogRequest.OrganizationId] = newLogs
 		}
 	} else {
