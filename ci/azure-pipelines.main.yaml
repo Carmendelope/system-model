@@ -10,7 +10,7 @@ resources:
       type: github
       name: nalej/ci-templates
       endpoint: nalej
-      ref: refs/heads/feature/NP-2419_Fix_Nodejs_Angular_versions
+      ref: refs/tags/v1.0.4
 
 stages:
 - stage: 'SlackStart'
