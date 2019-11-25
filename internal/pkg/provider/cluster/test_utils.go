@@ -33,16 +33,17 @@ func CreateTestCluster(clusterID string) *entities.Cluster {
 	}
 	return &entities.Cluster{
 
-		OrganizationId:       fmt.Sprintf("organization_%d", id),
-		ClusterId:            fmt.Sprintf("cluster_%s", clusterID),
-		Name:                 fmt.Sprintf("name_%d", id),
-		ClusterType:          entities.ClusterType(1),
-		Hostname:             fmt.Sprintf("host_%s", clusterID),
-		ControlPlaneHostname: fmt.Sprintf("cp_host_%s", clusterID),
-		Multitenant:          entities.MultitenantSupport(2),
-		Status:               entities.ClusterStatus(1),
-		Labels:               labels,
-		Cordon:               true,
-		State:                entities.Provisioning,
+		OrganizationId:             fmt.Sprintf("organization_%d", id),
+		ClusterId:                  fmt.Sprintf("cluster_%s", clusterID),
+		Name:                       fmt.Sprintf("name_%d", id),
+		ClusterType:                entities.ClusterType(1),
+		Hostname:                   fmt.Sprintf("host_%s", clusterID),
+		ControlPlaneHostname:       fmt.Sprintf("cp_host_%s", clusterID),
+		Multitenant:                entities.MultitenantSupport(2),
+		Status:                     entities.ClusterStatus(1),
+		Labels:                     labels,
+		Cordon:                     true,
+		State:                      entities.Provisioning,
+		MillicoresConversionFactor: .5,
 	}
 }

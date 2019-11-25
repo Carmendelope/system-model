@@ -577,6 +577,40 @@ var _ = ginkgo.Describe("Applications", func() {
 				gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
 				gomega.Expect(retrieved.Name).Should(gomega.Equal(added.Name))
 			})
+			ginkgo.It("should retrieve the reduced summary of an existing app", func() {
+				toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
+				added, err := client.AddAppInstance(context.Background(), toAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+
+				success, err := client.UpdateAppInstance(context.Background(), &grpc_application_go.AppInstance{
+					OrganizationId:  targetOrganization.ID,
+					AppDescriptorId: targetDescriptor.AppDescriptorId,
+					AppInstanceId:   added.AppInstanceId,
+					Name:            added.Name,
+					Groups: []*grpc_application_go.ServiceGroupInstance{{
+						ServiceGroupId:         uuid.New().String(),
+						ServiceGroupInstanceId: uuid.New().String(),
+						Name:                   "Service Group Name",
+						ServiceInstances: []*grpc_application_go.ServiceInstance{{
+							ServiceId:         uuid.New().String(),
+							ServiceInstanceId: uuid.New().String(),
+							Name:              fmt.Sprintf("Service Name-%s", uuid.New().String()),
+						}},
+					}},
+				})
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(success).ShouldNot(gomega.BeNil())
+
+				summary, err := client.GetAppInstanceReducedSummary(context.Background(), &grpc_application_go.AppInstanceId{
+					OrganizationId: added.OrganizationId,
+					AppInstanceId:  added.AppInstanceId,
+				})
+
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(summary).NotTo(gomega.BeNil())
+
+			})
 			ginkgo.It("should fail on a non existing instance", func() {
 				retrieved, err := client.GetAppInstance(context.Background(), &grpc_application_go.AppInstanceId{
 					OrganizationId: targetDescriptor.OrganizationId,
@@ -604,6 +638,41 @@ var _ = ginkgo.Describe("Applications", func() {
 					gomega.Expect(added).ShouldNot(gomega.BeNil())
 				}
 				retrieved, err := client.ListAppInstances(context.Background(), &grpc_organization_go.OrganizationId{
+					OrganizationId: targetOrganization.ID,
+				})
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(retrieved).ShouldNot(gomega.BeNil())
+				gomega.Expect(len(retrieved.Instances)).Should(gomega.Equal(numInstances))
+			})
+
+			ginkgo.It("should retrieve reduce summary instance on an existing organization", func() {
+				numInstances := 3
+				for i := 0; i < numInstances; i++ {
+					toAdd := generateAddAppInstance(targetOrganization.ID, targetDescriptor.AppDescriptorId)
+					added, err := client.AddAppInstance(context.Background(), toAdd)
+					gomega.Expect(err).Should(gomega.Succeed())
+					gomega.Expect(added).ShouldNot(gomega.BeNil())
+
+					success, err := client.UpdateAppInstance(context.Background(), &grpc_application_go.AppInstance{
+						OrganizationId:  targetOrganization.ID,
+						AppDescriptorId: targetDescriptor.AppDescriptorId,
+						AppInstanceId:   added.AppInstanceId,
+						Name:            added.Name,
+						Groups: []*grpc_application_go.ServiceGroupInstance{{
+							ServiceGroupId:         uuid.New().String(),
+							ServiceGroupInstanceId: uuid.New().String(),
+							Name:                   fmt.Sprintf("Service Group Name-%d", i),
+							ServiceInstances: []*grpc_application_go.ServiceInstance{{
+								ServiceId:         uuid.New().String(),
+								ServiceInstanceId: uuid.New().String(),
+								Name:              fmt.Sprintf("Service Name-%s", uuid.New().String()),
+							}},
+						}},
+					})
+					gomega.Expect(err).Should(gomega.Succeed())
+					gomega.Expect(success).ShouldNot(gomega.BeNil())
+				}
+				retrieved, err := client.ListAppInstancesReducedSummary(context.Background(), &grpc_organization_go.OrganizationId{
 					OrganizationId: targetOrganization.ID,
 				})
 				gomega.Expect(err).Should(gomega.Succeed())
