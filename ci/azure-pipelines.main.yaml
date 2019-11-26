@@ -105,7 +105,8 @@ stages:
 
     - template: steps/verify_deploy.yaml@ci_templates
       parameters:
-        componentList: $(componentList)
+        #componentList: $(componentList)
+        componentList: 'system-model'
 
     - template: k8s/logs/archive.yaml@ci_templates
       parameters:
