@@ -90,6 +90,9 @@ data:
     create table IF NOT EXISTS nalej.Connection_Instance_Links (organization_id text, connection_id text, source_instance_id text, source_cluster_id text, target_instance_id text, target_cluster_id text, inbound_name text, outbound_name text, status int, PRIMARY KEY ((organization_id), source_instance_id, target_instance_id, inbound_name, outbound_name, source_cluster_id, target_cluster_id));
 
     create table IF NOT EXISTS nalej.ztnetworkconnection (organization_id text, zt_network_id text, app_instance_id text, service_id text, zt_member text, zt_ip text, cluster_id text, side int, PRIMARY KEY ((organization_id, zt_network_id), app_instance_id, service_id, cluster_id));
+
+    create table IF NOT EXISTS nalej.Service_Instance_History (organization_id text, app_instance_id text, app_descriptor_id text, service_group_id text, service_group_instance_id text, service_id text, service_instance_id text, created bigint, terminated bigint, PRIMARY KEY(organization_id, app_instance_id, service_instance_id ));
+
     -----------
     -- INDEX --
     -----------
