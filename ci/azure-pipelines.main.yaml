@@ -10,7 +10,7 @@ resources:
       type: github
       name: nalej/ci-templates
       endpoint: nalej
-      ref: refs/tags/v1.0.4
+      ref: refs/heads/feature/NP-2431_Deploy_Stage
 
 stages:
 - stage: 'SlackStart'
