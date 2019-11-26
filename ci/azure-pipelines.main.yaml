@@ -61,6 +61,14 @@ stages:
     steps:
     - template: misc/nalej-component.yaml@ci_templates
 
+    - template: k8s/configmaps/create.yaml@ci_templates
+      parameters:
+        name: management-config
+        namespace: "__NPH_NAMESPACE"
+        yamlPath: $(system.defaultWorkingDirectory)/dist/yaml/staging/mngtcluster
+        yamlFile: system-model.configmap.yaml
+        contents: "{'public_host': 'http://localhost', 'public_port': '1234', 'dns_host': 'http://localhost', 'dns_port': '1234', 'environment': 'DEVELOPMENT'}"
+
     - template: k8s/yaml/render.yaml@ci_templates
       parameters:
         namespace: "__NPH_NAMESPACE"
@@ -83,14 +91,6 @@ stages:
       parameters:
         kubeconfig: $(kubeconfig)
         namespace: $(namespace)
-
-    - template: k8s/configmaps/create.yaml@ci_templates
-      parameters:
-        name: management-config
-        namespace: "__NPH_NAMESPACE"
-        yamlPath: $(system.defaultWorkingDirectory)/dist/yaml/staging/mngtcluster
-        yamlFile: system-model.configmap.yaml
-        contents: "{'public_host': 'http://localhost', 'public_port': '1234', 'dns_host': 'http://localhost', 'dns_port': '1234', 'environment': 'DEVELOPMENT'}"
 
     - template: k8s/resources/create.yaml@ci_templates
       parameters:
