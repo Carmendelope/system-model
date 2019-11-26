@@ -30,7 +30,6 @@ import (
 	"strings"
 )
 
-
 const unknownField = "Unknown"
 
 // Manager structure with the required providers for application operations.

@@ -111,7 +111,7 @@ func (sahlp *ScyllaApplicationHistoryLogsProvider) Search(searchLogsRequest *ent
 
 	OrganizationIdMap := map[string]interface{}{
 		"organization_id": searchLogsRequest.OrganizationId,
-		"created": searchLogsRequest.To,
+		"created":         searchLogsRequest.To,
 	}
 
 	result := make([]entities.ServiceInstanceLog, 0)
