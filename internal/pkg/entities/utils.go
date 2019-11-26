@@ -18,15 +18,9 @@ package entities
 
 import (
 	"github.com/satori/go.uuid"
-	"time"
 )
 
 // GenerateUUID generates a new UUID.
 func GenerateUUID() string {
 	return uuid.NewV4().String()
-}
-
-// GenerateTimestamp generates a new timestamp.
-func GenerateTimestamp() int64 {
-	return time.Now().Unix()
 }

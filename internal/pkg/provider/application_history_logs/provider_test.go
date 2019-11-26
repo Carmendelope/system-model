@@ -20,6 +20,7 @@ import (
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
+	"time"
 )
 
 func RunTest(provider Provider) {
@@ -37,7 +38,7 @@ func RunTest(provider Provider) {
 				ServiceGroupInstanceId: entities.GenerateUUID(),
 				ServiceId:              entities.GenerateUUID(),
 				ServiceInstanceId:      entities.GenerateUUID(),
-				Created:                entities.GenerateTimestamp(),
+				Created:                time.Now().UnixNano(),
 			}
 			err := provider.Add(&toAdd)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -62,7 +63,7 @@ func RunTest(provider Provider) {
 				ServiceGroupInstanceId: entities.GenerateUUID(),
 				ServiceId:              entities.GenerateUUID(),
 				ServiceInstanceId:      entities.GenerateUUID(),
-				Created:                entities.GenerateTimestamp(),
+				Created:                time.Now().UnixNano(),
 			}
 			err := provider.Add(&toAdd)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -79,7 +80,7 @@ func RunTest(provider Provider) {
 				OrganizationId:    toAdd.OrganizationId,
 				AppInstanceId:     toAdd.AppInstanceId,
 				ServiceInstanceId: toAdd.ServiceInstanceId,
-				Terminated:        toAdd.Created + 100,
+				Terminated:        toAdd.Created + 2*time.Minute.Nanoseconds(),
 			}
 			err = provider.Update(&toUpdate)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -104,7 +105,7 @@ func RunTest(provider Provider) {
 				ServiceGroupInstanceId: entities.GenerateUUID(),
 				ServiceId:              entities.GenerateUUID(),
 				ServiceInstanceId:      entities.GenerateUUID(),
-				Created:                entities.GenerateTimestamp(),
+				Created:                time.Now().UnixNano(),
 			}
 			err := provider.Add(&toAddA)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -121,7 +122,7 @@ func RunTest(provider Provider) {
 				OrganizationId:    toAddA.OrganizationId,
 				AppInstanceId:     toAddA.AppInstanceId,
 				ServiceInstanceId: toAddA.ServiceInstanceId,
-				Terminated:        toAddA.Created + 100,
+				Terminated:        toAddA.Created + 2*time.Minute.Nanoseconds(),
 			}
 			err = provider.Update(&toUpdateA)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -136,8 +137,8 @@ func RunTest(provider Provider) {
 
 			Query0 := entities.SearchLogsRequest{
 				OrganizationId: toAddA.OrganizationId,
-				From:           toAddA.Created + 25,
-				To:             toAddA.Created + 75,
+				From:           toAddA.Created + time.Minute.Nanoseconds()/2,
+				To:             toAddA.Created + 3*time.Minute.Nanoseconds()/4,
 			}
 			logResponse, err := provider.Search(&Query0)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -145,8 +146,8 @@ func RunTest(provider Provider) {
 
 			Query1 := entities.SearchLogsRequest{
 				OrganizationId: toAddA.OrganizationId,
-				From:           toAddA.Created - 100,
-				To:             toAddA.Created + 200,
+				From:           toAddA.Created - 2*time.Minute.Nanoseconds(),
+				To:             toAddA.Created + 4*time.Minute.Nanoseconds(),
 			}
 			logResponse, err = provider.Search(&Query1)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -154,8 +155,8 @@ func RunTest(provider Provider) {
 
 			Query2 := entities.SearchLogsRequest{
 				OrganizationId: toAddA.OrganizationId,
-				From:           toAddA.Created + 50,
-				To:             toAddA.Created + 200,
+				From:           toAddA.Created + time.Minute.Nanoseconds(),
+				To:             toAddA.Created + 4*time.Minute.Nanoseconds(),
 			}
 			logResponse, err = provider.Search(&Query2)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -163,8 +164,8 @@ func RunTest(provider Provider) {
 
 			Query3 := entities.SearchLogsRequest{
 				OrganizationId: toAddA.OrganizationId,
-				From:           toAddA.Created - 100,
-				To:             toAddA.Created + 50,
+				From:           toAddA.Created - 2*time.Minute.Nanoseconds(),
+				To:             toAddA.Created + time.Minute.Nanoseconds(),
 			}
 			logResponse, err = provider.Search(&Query3)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -172,16 +173,16 @@ func RunTest(provider Provider) {
 
 			Query4 := entities.SearchLogsRequest{
 				OrganizationId: toAddA.OrganizationId,
-				From:           toAddA.Created - 100,
-				To:             toAddA.Created - 50,
+				From:           toAddA.Created - 2*time.Minute.Nanoseconds(),
+				To:             toAddA.Created - time.Minute.Nanoseconds(),
 			}
 			logResponse, _ = provider.Search(&Query4)
 			gomega.Expect(logResponse).To(gomega.BeNil())
 
 			Query5 := entities.SearchLogsRequest{
 				OrganizationId: toAddA.OrganizationId,
-				From:           toAddA.Created + 200,
-				To:             toAddA.Created + 300,
+				From:           toAddA.Created + 4*time.Minute.Nanoseconds(),
+				To:             toAddA.Created + 6*time.Minute.Nanoseconds(),
 			}
 			logResponse, _ = provider.Search(&Query5)
 			gomega.Expect(logResponse).To(gomega.BeNil())
@@ -196,7 +197,7 @@ func RunTest(provider Provider) {
 				ServiceGroupInstanceId: entities.GenerateUUID(),
 				ServiceId:              entities.GenerateUUID(),
 				ServiceInstanceId:      entities.GenerateUUID(),
-				Created:                entities.GenerateTimestamp(),
+				Created:                time.Now().UnixNano(),
 			}
 			err = provider.Add(&toAddB)
 			exists, err = provider.ExistsServiceInstanceLog(
@@ -210,8 +211,8 @@ func RunTest(provider Provider) {
 
 			Query6 := entities.SearchLogsRequest{
 				OrganizationId: toAddB.OrganizationId,
-				From:           toAddB.Created - 100,
-				To:             toAddB.Created + 100,
+				From:           toAddB.Created - 2*time.Minute.Nanoseconds(),
+				To:             toAddB.Created + 2*time.Minute.Nanoseconds(),
 			}
 			logResponse, err = provider.Search(&Query6)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -219,8 +220,8 @@ func RunTest(provider Provider) {
 
 			Query7 := entities.SearchLogsRequest{
 				OrganizationId: toAddB.OrganizationId,
-				From:           toAddB.Created + 50,
-				To:             toAddB.Created + 100,
+				From:           toAddB.Created + time.Minute.Nanoseconds(),
+				To:             toAddB.Created + 2*time.Minute.Nanoseconds(),
 			}
 			logResponse, err = provider.Search(&Query7)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -228,8 +229,8 @@ func RunTest(provider Provider) {
 
 			Query8 := entities.SearchLogsRequest{
 				OrganizationId: toAddB.OrganizationId,
-				From:           toAddB.Created - 100,
-				To:             toAddB.Created - 50,
+				From:           toAddB.Created - 2*time.Minute.Nanoseconds(),
+				To:             toAddB.Created - time.Minute.Nanoseconds(),
 			}
 			logResponse, err = provider.Search(&Query8)
 			gomega.Expect(logResponse).To(gomega.BeNil())
@@ -246,7 +247,7 @@ func RunTest(provider Provider) {
 				ServiceGroupInstanceId: entities.GenerateUUID(),
 				ServiceId:              entities.GenerateUUID(),
 				ServiceInstanceId:      entities.GenerateUUID(),
-				Created:                entities.GenerateTimestamp(),
+				Created:                time.Now().UnixNano(),
 			}
 			err := provider.Add(&toAdd)
 			gomega.Expect(err).To(gomega.BeNil())
