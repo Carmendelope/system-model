@@ -8,6 +8,9 @@
   "image_list": [
     "system-model"
   ],
+  "component_list": [
+    "system-model"
+  ],
   "tools": [
     "docker",
     "k8s"
