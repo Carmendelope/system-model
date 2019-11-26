@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package entities
@@ -25,7 +24,11 @@ const emptyEmail = "email cannot be empty"
 const emptyName = "name cannot be empty"
 const emptyRoleId = "role_id cannot be empty"
 const emptyAppDescriptorId = "app_descriptor_id cannot be empty"
+const emptyAppInstanceId = "app_instance_id cannot be empty"
 const emptyAssetId = "asset_id cannot be empty"
 const emptyEdgeControllerId = "edge_controller_id cannot be empty"
 const emptyAccountId = "account_id cannot be empty"
 const emptyProjectId = "project_id cannot be empty"
+const emptyServiceGroupId = "service_group_id cannot be empty"
+const emptyServiceGroupInstanceId = "service_group_instance_id cannot be empty"
+const emptyServiceInstanceId = "service_instance_id cannot be empty"
