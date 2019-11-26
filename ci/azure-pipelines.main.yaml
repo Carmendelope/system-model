@@ -98,7 +98,7 @@ stages:
         platform: mngtcluster
         environment: "staging"
     
-    - template: ci/templates/verify_deploy.yaml
+    - template: templates/verify_deploy.yaml
       parameters:
         kubeconfig: $(kubeconfig)
         namespace: $(namespace)
