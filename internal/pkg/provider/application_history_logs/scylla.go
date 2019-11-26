@@ -111,11 +111,13 @@ func (sahlp *ScyllaApplicationHistoryLogsProvider) Search(searchLogsRequest *ent
 
 	OrganizationIdMap := map[string]interface{}{
 		"organization_id": searchLogsRequest.OrganizationId,
+		"created": searchLogsRequest.To,
 	}
 
 	result := make([]entities.ServiceInstanceLog, 0)
 
-	sb := qb.Select(ServiceInstanceHistoryTable).Columns(ServiceInstanceHistoryColumns...).Where(qb.Eq("organization_id"))
+	// TODO: We should be able to perform this query without allowing filtering. It will involve changing the database design and probably adding an additional table
+	sb := qb.Select(ServiceInstanceHistoryTable).Columns(ServiceInstanceHistoryColumns...).Where(qb.Eq("organization_id")).Where(qb.LtOrEq("created")).AllowFiltering()
 	stmt, names := sb.ToCql()
 	q := gocqlx.Query(sahlp.Session.Query(stmt), names).BindMap(OrganizationIdMap)
 	qErr := q.SelectRelease(&result)
@@ -126,7 +128,7 @@ func (sahlp *ScyllaApplicationHistoryLogsProvider) Search(searchLogsRequest *ent
 	events := make([]entities.ServiceInstanceLog, 0)
 	found := false
 	for _, serviceInstanceLog := range result {
-		if (serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Terminated >= searchLogsRequest.From && serviceInstanceLog.Created <= searchLogsRequest.To) || (serviceInstanceLog.Terminated == 0 && serviceInstanceLog.OrganizationId == searchLogsRequest.OrganizationId && serviceInstanceLog.Created <= searchLogsRequest.To) {
+		if serviceInstanceLog.Terminated >= searchLogsRequest.From || serviceInstanceLog.Terminated == 0 {
 			events = append(events, serviceInstanceLog)
 			found = true
 		}
