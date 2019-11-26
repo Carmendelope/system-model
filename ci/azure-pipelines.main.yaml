@@ -72,7 +72,7 @@ stages:
       parameters:
         name: management-config
         namespace: "__NPH_NAMESPACE"
-        yamlPath: $(system.defaultWorkingDirectory)/dist/yaml/$(stagingDockerRegistry)/mngtcluster
+        yamlPath: $(system.defaultWorkingDirectory)/dist/yaml/staging/mngtcluster
         yamlFile: system-model.configmap.yaml
         contents: "{'public_host': 'http://localhost', 'public_port': '1234', 'dns_host': 'http://localhost', 'dns_port': '1234', 'environment': 'DEVELOPMENT'}"
   
