@@ -104,6 +104,7 @@ stages:
     #     namespace: $(namespace)
 
     - template: steps/verify_component.yaml@ci_templates
+        parameters:
         componentList: $(componentList)
 
     # - template: k8s/logs/archive.yaml@ci_templates
