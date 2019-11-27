@@ -103,7 +103,7 @@ stages:
         kubeconfig: $(kubeconfig)
         namespace: $(namespace)
 
-    - template: steps/verify_deploy.yaml@ci_templates
+    - template: steps/verify_component.yaml@ci_templates
 
     - template: k8s/logs/archive.yaml@ci_templates
       parameters:
