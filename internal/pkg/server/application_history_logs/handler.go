@@ -35,36 +35,36 @@ func NewHandler(manager Manager) *Handler {
 	return &Handler{manager}
 }
 
-func (h *Handler) Add(ctx context.Context, addLogRequest *grpc_application_history_logs_go.AddLogRequest) error {
+func (h *Handler) Add(ctx context.Context, addLogRequest *grpc_application_history_logs_go.AddLogRequest) (*grpc_common_go.Success, error) {
 	vErr := entities.ValidAddLogRequest(addLogRequest)
 	if vErr != nil {
 		log.Error().Str("validation error", vErr.DebugReport()).Msg("invalid add log request")
-		return conversions.ToGRPCError(vErr)
+		return nil, conversions.ToGRPCError(vErr)
 	}
 
 	entALR := entities.ToAddLogRequest(*addLogRequest)
 	aErr := h.Manager.Add(&entALR)
 	if aErr != nil {
 		log.Error().Str("add error", aErr.DebugReport()).Msg("cannot add log")
-		return conversions.ToGRPCError(aErr)
+		return nil, conversions.ToGRPCError(aErr)
 	}
-	return nil
+	return &grpc_common_go.Success{}, nil
 }
 
-func (h *Handler) Update(ctx context.Context, updateLogRequest *grpc_application_history_logs_go.UpdateLogRequest) error {
+func (h *Handler) Update(ctx context.Context, updateLogRequest *grpc_application_history_logs_go.UpdateLogRequest) (*grpc_common_go.Success, error) {
 	vErr := entities.ValidUpdateLogRequest(updateLogRequest)
 	if vErr != nil {
 		log.Error().Str("validation error", vErr.DebugReport()).Msg("invalid update log request")
-		return conversions.ToGRPCError(vErr)
+		return nil, conversions.ToGRPCError(vErr)
 	}
 
 	entULR := entities.ToUpdateLogRequest(*updateLogRequest)
 	uErr := h.Manager.Update(&entULR)
 	if uErr != nil {
 		log.Error().Str("update error", uErr.DebugReport()).Msg("cannot update log")
-		return conversions.ToGRPCError(uErr)
+		return nil, conversions.ToGRPCError(uErr)
 	}
-	return nil
+	return &grpc_common_go.Success{}, nil
 }
 
 func (h *Handler) Search(ctx context.Context, searchLogRequest *grpc_application_history_logs_go.SearchLogRequest) (*grpc_application_history_logs_go.LogResponse, error) {
@@ -84,20 +84,20 @@ func (h *Handler) Search(ctx context.Context, searchLogRequest *grpc_application
 	return &grpcLR, nil
 }
 
-func (h *Handler) Remove(ctx context.Context, removeLogRequest *grpc_application_history_logs_go.RemoveLogsRequest) error {
+func (h *Handler) Remove(ctx context.Context, removeLogRequest *grpc_application_history_logs_go.RemoveLogsRequest) (*grpc_common_go.Success, error) {
 	vErr := entities.ValidRemoveLogRequest(removeLogRequest)
 	if vErr != nil {
 		log.Error().Str("validation error", vErr.DebugReport()).Msg("invalid remove log request")
-		return conversions.ToGRPCError(vErr)
+		return nil, conversions.ToGRPCError(vErr)
 	}
 
 	entRLR := entities.ToRemoveLogRequest(*removeLogRequest)
 	rErr := h.Manager.Remove(&entRLR)
 	if rErr != nil {
 		log.Error().Str("remove error", rErr.DebugReport()).Msg("cannot remove log")
-		return conversions.ToGRPCError(rErr)
+		return nil, conversions.ToGRPCError(rErr)
 	}
-	return nil
+	return &grpc_common_go.Success{}, nil
 }
 
 func (h *Handler) ExistServiceInstanceLog(ctx context.Context, addLogRequest *grpc_application_history_logs_go.AddLogRequest) (*grpc_common_go.Exists, error) {

@@ -19,6 +19,7 @@ package server
 import (
 	"fmt"
 	"github.com/nalej/grpc-account-go"
+	"github.com/nalej/grpc-application-history-logs-go"
 	"github.com/nalej/grpc-application-network-go"
 	"github.com/nalej/grpc-device-go"
 	"github.com/nalej/grpc-infrastructure-go"
@@ -26,6 +27,7 @@ import (
 	"github.com/nalej/grpc-project-go"
 	"github.com/nalej/grpc-role-go"
 	"github.com/nalej/grpc-user-go"
+	"github.com/nalej/system-model/internal/pkg/server/application_history_logs"
 	"github.com/nalej/system-model/internal/pkg/server/application_network"
 	"github.com/nalej/system-model/internal/pkg/server/project"
 
@@ -57,6 +59,7 @@ import (
 	pProvider "github.com/nalej/system-model/internal/pkg/provider/project"
 	rProvider "github.com/nalej/system-model/internal/pkg/provider/role"
 	uProvider "github.com/nalej/system-model/internal/pkg/provider/user"
+	appHistoryLogsProvider "github.com/nalej/system-model/internal/pkg/provider/application_history_logs"
 
 	"github.com/nalej/system-model/internal/pkg/server/application"
 	"github.com/nalej/system-model/internal/pkg/server/organization"
@@ -88,6 +91,7 @@ type Providers struct {
 	accountProvider      acProvider.Provider
 	projectProvider      pProvider.Provider
 	appNetProvider       anProvider.Provider
+	appHistoryLogsProvider appHistoryLogsProvider.Provider
 }
 
 // Name of the service.
@@ -115,6 +119,7 @@ func (s *Service) CreateInMemoryProviders() *Providers {
 		accountProvider:      acProvider.NewMockupAccountProvider(),
 		projectProvider:      pProvider.NewMockupProjectProvider(),
 		appNetProvider:       anProvider.NewMockupApplicationNetworkProvider(),
+		appHistoryLogsProvider: appHistoryLogsProvider.NewMockupApplicationHistoryLogsProvider(),
 	}
 }
 
@@ -144,7 +149,8 @@ func (s *Service) CreateDBScyllaProviders() *Providers {
 		projectProvider: pProvider.NewScyllaProjectProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 		appNetProvider: anProvider.NewScyllaApplicationNetworkProvider(
-			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace), 		appHistoryLogsProvider: appHistoryLogsProvider.NewScyllaApplicationHistoryLogsProvider(
+				s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 	}
 }
 
@@ -208,6 +214,10 @@ func (s *Service) Run() error {
 	//project
 	projectManager := project.NewManager(p.accountProvider, p.projectProvider)
 	projectHandler := project.NewHandler(projectManager)
+	//app history logs
+	appHistoryLogsManager := application_history_logs.NewManager(p.appHistoryLogsProvider)
+	appHistoryLogsHandler := application_history_logs.NewHandler(appHistoryLogsManager)
+
 
 	grpcServer := grpc.NewServer()
 	grpc_organization_go.RegisterOrganizationsServer(grpcServer, organizationHandler)
@@ -222,6 +232,7 @@ func (s *Service) Run() error {
 	grpc_account_go.RegisterAccountsServer(grpcServer, accountHandler)
 	grpc_project_go.RegisterProjectsServer(grpcServer, projectHandler)
 	grpc_application_network_go.RegisterApplicationNetworkServer(grpcServer, appNetHandler)
+	grpc_application_history_logs_go.RegisterApplicationHistoryLogsServer(grpcServer, appHistoryLogsHandler)
 
 	if s.Configuration.Debug {
 		log.Info().Msg("Enabling gRPC server reflection")
