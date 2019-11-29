@@ -88,6 +88,7 @@ func (h *Handler) AttachNode(ctx context.Context, attachNodeRequest *grpc_infras
 
 // ListNodes obtains a list of nodes in a cluster.
 func (h *Handler) ListNodes(ctx context.Context, clusterID *grpc_infrastructure_go.ClusterId) (*grpc_infrastructure_go.NodeList, error) {
+	log.Debug().Str("organizationID", clusterID.OrganizationId).Str("clusterID", clusterID.ClusterId).Msg("list nodes")
 	err := entities.ValidClusterID(clusterID)
 	if err != nil {
 		log.Error().Str("trace", err.DebugReport()).Msg("invalid cluster identifier")
