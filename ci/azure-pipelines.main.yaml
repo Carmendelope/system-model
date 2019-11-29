@@ -50,8 +50,9 @@ stages:
     - template: steps/docker-main.yaml@ci_templates
 
 - stage: 'ComponentDeploy'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-  dependsOn: 'ImageBuild'
+  #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  #dependsOn: 'ImageBuild'
+  dependsOn: 'BinaryBuild'
   jobs:
   - job: 
     pool:
@@ -66,14 +67,8 @@ stages:
         environment: "staging"
         version: edge
 
-    - template: k8s/configmaps/create.yaml@ci_templates
-      parameters:
-        name: management-config
-        namespace: "__NPH_NAMESPACE"
-        yamlPath: $(system.defaultWorkingDirectory)/dist/yaml/staging/mngtcluster
-        yamlFile: system-model.configmap.yaml
-        contents: "{'public_host': 'http://localhost', 'public_port': '1234', 'dns_host': 'http://localhost', 'dns_port': '1234', 'environment': 'DEVELOPMENT'}"
-  
+    - template: k8s/configmaps/management-config.yaml@ci_templates
+      
     - template: k8s/yaml/namespace.yaml@ci_templates
       parameters:
         namespace: $(namespace)
