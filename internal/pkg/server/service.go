@@ -19,6 +19,7 @@ package server
 import (
 	"fmt"
 	"github.com/nalej/grpc-account-go"
+	"github.com/nalej/grpc-application-history-logs-go"
 	"github.com/nalej/grpc-application-network-go"
 	"github.com/nalej/grpc-device-go"
 	"github.com/nalej/grpc-infrastructure-go"
@@ -26,6 +27,7 @@ import (
 	"github.com/nalej/grpc-project-go"
 	"github.com/nalej/grpc-role-go"
 	"github.com/nalej/grpc-user-go"
+	"github.com/nalej/system-model/internal/pkg/server/application_history_logs"
 	"github.com/nalej/system-model/internal/pkg/server/application_network"
 	"github.com/nalej/system-model/internal/pkg/server/project"
 
@@ -47,6 +49,7 @@ import (
 	"github.com/nalej/grpc-organization-go"
 	acProvider "github.com/nalej/system-model/internal/pkg/provider/account"
 	appProvider "github.com/nalej/system-model/internal/pkg/provider/application"
+	appHistoryLogsProvider "github.com/nalej/system-model/internal/pkg/provider/application_history_logs"
 	anProvider "github.com/nalej/system-model/internal/pkg/provider/application_network"
 	aProvider "github.com/nalej/system-model/internal/pkg/provider/asset"
 	clusterProvider "github.com/nalej/system-model/internal/pkg/provider/cluster"
@@ -76,18 +79,19 @@ func NewService(conf Config) *Service {
 
 // Providers structure with all the providers in the system.
 type Providers struct {
-	organizationProvider orgProvider.Provider
-	clusterProvider      clusterProvider.Provider
-	nodeProvider         nodeProvider.Provider
-	applicationProvider  appProvider.Provider
-	roleProvider         rProvider.Provider
-	userProvider         uProvider.Provider
-	deviceProvider       devProvider.Provider
-	assetProvider        aProvider.Provider
-	controllerProvider   eicProvider.Provider
-	accountProvider      acProvider.Provider
-	projectProvider      pProvider.Provider
-	appNetProvider       anProvider.Provider
+	organizationProvider   orgProvider.Provider
+	clusterProvider        clusterProvider.Provider
+	nodeProvider           nodeProvider.Provider
+	applicationProvider    appProvider.Provider
+	roleProvider           rProvider.Provider
+	userProvider           uProvider.Provider
+	deviceProvider         devProvider.Provider
+	assetProvider          aProvider.Provider
+	controllerProvider     eicProvider.Provider
+	accountProvider        acProvider.Provider
+	projectProvider        pProvider.Provider
+	appNetProvider         anProvider.Provider
+	appHistoryLogsProvider appHistoryLogsProvider.Provider
 }
 
 // Name of the service.
@@ -103,18 +107,19 @@ func (s *Service) Description() string {
 // CreateInMemoryProviders returns a set of in-memory providers.
 func (s *Service) CreateInMemoryProviders() *Providers {
 	return &Providers{
-		organizationProvider: orgProvider.NewMockupOrganizationProvider(),
-		clusterProvider:      clusterProvider.NewMockupClusterProvider(),
-		nodeProvider:         nodeProvider.NewMockupNodeProvider(),
-		applicationProvider:  appProvider.NewMockupApplicationProvider(),
-		roleProvider:         rProvider.NewMockupRoleProvider(),
-		userProvider:         uProvider.NewMockupUserProvider(),
-		deviceProvider:       devProvider.NewMockupDeviceProvider(),
-		assetProvider:        aProvider.NewMockupAssetProvider(),
-		controllerProvider:   eicProvider.NewMockupEICProvider(),
-		accountProvider:      acProvider.NewMockupAccountProvider(),
-		projectProvider:      pProvider.NewMockupProjectProvider(),
-		appNetProvider:       anProvider.NewMockupApplicationNetworkProvider(),
+		organizationProvider:   orgProvider.NewMockupOrganizationProvider(),
+		clusterProvider:        clusterProvider.NewMockupClusterProvider(),
+		nodeProvider:           nodeProvider.NewMockupNodeProvider(),
+		applicationProvider:    appProvider.NewMockupApplicationProvider(),
+		roleProvider:           rProvider.NewMockupRoleProvider(),
+		userProvider:           uProvider.NewMockupUserProvider(),
+		deviceProvider:         devProvider.NewMockupDeviceProvider(),
+		assetProvider:          aProvider.NewMockupAssetProvider(),
+		controllerProvider:     eicProvider.NewMockupEICProvider(),
+		accountProvider:        acProvider.NewMockupAccountProvider(),
+		projectProvider:        pProvider.NewMockupProjectProvider(),
+		appNetProvider:         anProvider.NewMockupApplicationNetworkProvider(),
+		appHistoryLogsProvider: appHistoryLogsProvider.NewMockupApplicationHistoryLogsProvider(),
 	}
 }
 
@@ -144,6 +149,8 @@ func (s *Service) CreateDBScyllaProviders() *Providers {
 		projectProvider: pProvider.NewScyllaProjectProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 		appNetProvider: anProvider.NewScyllaApplicationNetworkProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+		appHistoryLogsProvider: appHistoryLogsProvider.NewScyllaApplicationHistoryLogsProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 	}
 }
@@ -208,6 +215,9 @@ func (s *Service) Run() error {
 	//project
 	projectManager := project.NewManager(p.accountProvider, p.projectProvider)
 	projectHandler := project.NewHandler(projectManager)
+	//app history logs
+	appHistoryLogsManager := application_history_logs.NewManager(p.appHistoryLogsProvider)
+	appHistoryLogsHandler := application_history_logs.NewHandler(appHistoryLogsManager)
 
 	grpcServer := grpc.NewServer()
 	grpc_organization_go.RegisterOrganizationsServer(grpcServer, organizationHandler)
@@ -222,6 +232,7 @@ func (s *Service) Run() error {
 	grpc_account_go.RegisterAccountsServer(grpcServer, accountHandler)
 	grpc_project_go.RegisterProjectsServer(grpcServer, projectHandler)
 	grpc_application_network_go.RegisterApplicationNetworkServer(grpcServer, appNetHandler)
+	grpc_application_history_logs_go.RegisterApplicationHistoryLogsServer(grpcServer, appHistoryLogsHandler)
 
 	if s.Configuration.Debug {
 		log.Info().Msg("Enabling gRPC server reflection")
