@@ -126,24 +126,19 @@ func (sahlp *ScyllaApplicationHistoryLogsProvider) Search(searchLogsRequest *ent
 	}
 
 	events := make([]entities.ServiceInstanceLog, 0)
-	found := false
 	for _, serviceInstanceLog := range result {
 		if serviceInstanceLog.Terminated >= searchLogsRequest.From || serviceInstanceLog.Terminated == 0 {
 			events = append(events, serviceInstanceLog)
-			found = true
 		}
 	}
 
-	if found {
-		return &entities.LogResponse{
-			OrganizationId: searchLogsRequest.OrganizationId,
-			From:           searchLogsRequest.From,
-			To:             searchLogsRequest.To,
-			Events:         events,
-		}, nil
-	} else {
-		return nil, derrors.NewNotFoundError("search log request").WithParams(searchLogsRequest)
-	}
+	return &entities.LogResponse{
+		OrganizationId: searchLogsRequest.OrganizationId,
+		From:           searchLogsRequest.From,
+		To:             searchLogsRequest.To,
+		Events:         events,
+	}, nil
+
 }
 
 func (sahlp *ScyllaApplicationHistoryLogsProvider) Remove(removeLogRequest *entities.RemoveLogRequest) derrors.Error {
