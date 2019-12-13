@@ -109,7 +109,6 @@ func (sahlp *ScyllaApplicationHistoryLogsProvider) Search(searchLogsRequest *ent
 	sahlp.Lock()
 	defer sahlp.Unlock()
 
-
 	result := make([]entities.ServiceInstanceLog, 0)
 
 	// TODO: We should be able to perform this query without allowing filtering. It will involve changing the database design and probably adding an additional table

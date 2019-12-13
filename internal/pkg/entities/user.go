@@ -30,7 +30,7 @@ type User struct {
 	Name           string `json:"name,omitempty"`
 	PhotoUrl       string `json:"photo_url,omitempty"`
 	MemberSince    int64  `json:"member_since,omitempty"`
-	LastName 	   string `json:"last_name,omitempty"`
+	LastName       string `json:"last_name,omitempty"`
 	Title          string `json:"title,omitempty"`
 	Phone          string `json:"phone,omitempty"`
 	Location       string `json:"location,omitempty"`
@@ -54,10 +54,10 @@ func (u *User) ToGRPC() *grpc_user_go.User {
 		Name:           u.Name,
 		PhotoUrl:       u.PhotoUrl,
 		MemberSince:    u.MemberSince,
-		ContactInfo:		&grpc_user_go.ContactInfo{
-			FullName:             fmt.Sprintf("%s %s", u.Name, u.LastName),
-			Address:              u.Location,
-			Title:                u.Title,
+		ContactInfo: &grpc_user_go.ContactInfo{
+			FullName: fmt.Sprintf("%s %s", u.Name, u.LastName),
+			Address:  u.Location,
+			Title:    u.Title,
 		},
 	}
 }
