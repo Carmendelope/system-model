@@ -17,6 +17,7 @@
 package entities
 
 import (
+	"fmt"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-user-go"
 	"time"
@@ -53,6 +54,11 @@ func (u *User) ToGRPC() *grpc_user_go.User {
 		Name:           u.Name,
 		PhotoUrl:       u.PhotoUrl,
 		MemberSince:    u.MemberSince,
+		ContactInfo:		&grpc_user_go.ContactInfo{
+			FullName:             fmt.Sprintf("%s %s", u.Name, u.LastName),
+			Address:              u.Location,
+			Title:                u.Title,
+		},
 	}
 }
 
