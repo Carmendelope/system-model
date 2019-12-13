@@ -29,6 +29,10 @@ type User struct {
 	Name           string `json:"name,omitempty"`
 	PhotoUrl       string `json:"photo_url,omitempty"`
 	MemberSince    int64  `json:"member_since,omitempty"`
+	LastName 	   string `json:"last_name,omitempty"`
+	Title          string `json:"title,omitempty"`
+	Phone          string `json:"phone,omitempty"`
+	Location       string `json:"location,omitempty"`
 }
 
 func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) *User {
@@ -38,6 +42,7 @@ func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) *User {
 		Name:           addUserRequest.Name,
 		PhotoUrl:       "",
 		MemberSince:    time.Now().Unix(),
+		Title:          addUserRequest.Title,
 	}
 }
 
