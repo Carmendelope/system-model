@@ -155,6 +155,7 @@ var _ = ginkgo.Describe("User service", func() {
 			OrganizationId: targetOrganization.ID,
 			Email:          added.Email,
 			Name:           "newNameUpdate",
+			UpdateName: true,
 		}
 		_, err = client.Update(context.Background(), updateReq)
 		gomega.Expect(err).To(gomega.Succeed())
