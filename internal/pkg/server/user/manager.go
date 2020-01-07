@@ -74,21 +74,7 @@ func (m *Manager) UpdateUser(request *grpc_user_go.UpdateUserRequest) derrors.Er
 		return err
 	}
 
-	if request.UpdateName {
-		usr.Name = request.Name
-	}
-
-	if request.UpdateLocation {
-		usr.Location = request.Location
-	}
-
-	if request.UpdateTitle {
-		usr.Title = request.Title
-	}
-
-	if request.UpdatePhone {
-		usr.Phone = request.Phone
-	}
+	usr.ApplyUpdate(request)
 
 	err = m.UserProvider.Update(*usr)
 	if err != nil {

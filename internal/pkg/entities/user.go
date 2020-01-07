@@ -63,8 +63,24 @@ func (u *User) ToGRPC() *grpc_user_go.User {
 }
 
 func (u *User) ApplyUpdate(request *grpc_user_go.UpdateUserRequest) {
-	if request.Name != "" {
+	if request.UpdateName {
 		u.Name = request.Name
+	}
+
+	if request.UpdateLocation {
+		u.Location = request.Location
+	}
+
+	if request.UpdateTitle {
+		u.Title = request.Title
+	}
+
+	if request.UpdatePhone {
+		u.Phone = request.Phone
+	}
+
+	if request.UpdatePhotoUrl {
+		u.PhotoUrl = request.PhotoUrl
 	}
 }
 
