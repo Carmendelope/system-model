@@ -40,7 +40,7 @@ func RunTest(provider Provider) {
 		})
 
 		// GetDescriptors
-		ginkgo.FIt("Should be able to get the Descriptor", func() {
+		ginkgo.It("Should be able to get the Descriptor", func() {
 
 			descriptorId := uuid.New().String()
 
