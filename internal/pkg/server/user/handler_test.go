@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Nalej
+ * Copyright 2020 Nalej
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,6 +155,7 @@ var _ = ginkgo.Describe("User service", func() {
 			OrganizationId: targetOrganization.ID,
 			Email:          added.Email,
 			Name:           "newNameUpdate",
+			UpdateName:     true,
 		}
 		_, err = client.Update(context.Background(), updateReq)
 		gomega.Expect(err).To(gomega.Succeed())

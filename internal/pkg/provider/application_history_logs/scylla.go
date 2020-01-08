@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Nalej
+ * Copyright 2020 Nalej
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,6 @@ func (sahlp *ScyllaApplicationHistoryLogsProvider) Update(updateLogRequest *enti
 func (sahlp *ScyllaApplicationHistoryLogsProvider) Search(searchLogsRequest *entities.SearchLogsRequest) (*entities.LogResponse, derrors.Error) {
 	sahlp.Lock()
 	defer sahlp.Unlock()
-
 
 	result := make([]entities.ServiceInstanceLog, 0)
 

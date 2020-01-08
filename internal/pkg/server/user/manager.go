@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Nalej
+ * Copyright 2020 Nalej
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,13 +74,7 @@ func (m *Manager) UpdateUser(request *grpc_user_go.UpdateUserRequest) derrors.Er
 		return err
 	}
 
-	if request.Name != "" {
-		usr.Name = request.Name
-	}
-
-	if request.PhotoUrl != "" {
-		usr.PhotoUrl = request.PhotoUrl
-	}
+	usr.ApplyUpdate(request)
 
 	err = m.UserProvider.Update(*usr)
 	if err != nil {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Nalej
+ * Copyright 2020 Nalej
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,11 @@ type User struct {
 	Name           string `json:"name,omitempty"`
 	PhotoUrl       string `json:"photo_url,omitempty"`
 	MemberSince    int64  `json:"member_since,omitempty"`
+	LastName       string `json:"last_name,omitempty"`
+	Title          string `json:"title,omitempty"`
+	Phone          string `json:"phone,omitempty"`
+	Location       string `json:"location,omitempty"`
+	PhotoBase64    string `json:"photo_base64,omitempty"`
 }
 
 func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) *User {
@@ -37,7 +42,8 @@ func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) *User {
 		Email:          addUserRequest.Email,
 		Name:           addUserRequest.Name,
 		PhotoUrl:       "",
-		MemberSince:    time.Now().Unix(),
+		MemberSince:    time.Now().UnixNano(),
+		Title:          addUserRequest.Title,
 	}
 }
 
@@ -48,12 +54,37 @@ func (u *User) ToGRPC() *grpc_user_go.User {
 		Name:           u.Name,
 		PhotoUrl:       u.PhotoUrl,
 		MemberSince:    u.MemberSince,
+		LastName:       u.LastName,
+		Title:          u.Title,
+		Phone:          u.Phone,
+		Location:       u.Location,
+		PhotoBase64:    u.PhotoBase64,
 	}
 }
 
 func (u *User) ApplyUpdate(request *grpc_user_go.UpdateUserRequest) {
-	if request.Name != "" {
+	if request.UpdateName {
 		u.Name = request.Name
+	}
+
+	if request.UpdateLocation {
+		u.Location = request.Location
+	}
+
+	if request.UpdateTitle {
+		u.Title = request.Title
+	}
+
+	if request.UpdatePhone {
+		u.Phone = request.Phone
+	}
+
+	if request.UpdatePhotoUrl {
+		u.PhotoUrl = request.PhotoUrl
+	}
+
+	if request.UpdateLastName {
+		u.LastName = request.LastName
 	}
 }
 
