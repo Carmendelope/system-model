@@ -683,8 +683,9 @@ var EndpointTypeFromGRPC = map[grpc_application_go.EndpointType]EndpointType{
 
 // -- Endpoint -- //
 type Endpoint struct {
-	Type EndpointType `json:"type,omitempty" cql:"type"`
-	Path string       `json:"path,omitempty" cql:"path"`
+	Type    EndpointType      `json:"type,omitempty" cql:"type"`
+	Path    string            `json:"path,omitempty" cql:"path"`
+	Options map[string]string `json:"options,omitempty" cql:"options"`
 }
 
 func NewEndpointFromGRPC(endpoint *grpc_application_go.Endpoint) *Endpoint {
@@ -693,16 +694,18 @@ func NewEndpointFromGRPC(endpoint *grpc_application_go.Endpoint) *Endpoint {
 	}
 	endpointType, _ := EndpointTypeFromGRPC[endpoint.Type]
 	return &Endpoint{
-		Type: endpointType,
-		Path: endpoint.Path,
+		Type:    endpointType,
+		Path:    endpoint.Path,
+		Options: endpoint.Options,
 	}
 }
 
 func (e *Endpoint) ToGRPC() *grpc_application_go.Endpoint {
 	convertedType, _ := EndpointTypeToGRPC[e.Type]
 	return &grpc_application_go.Endpoint{
-		Type: convertedType,
-		Path: e.Path,
+		Type:    convertedType,
+		Path:    e.Path,
+		Options: e.Options,
 	}
 }
 
