@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Nalej
+ * Copyright 2020 Nalej
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package entities
 
 import (
-	"fmt"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-user-go"
 	"time"
@@ -34,6 +33,7 @@ type User struct {
 	Title          string `json:"title,omitempty"`
 	Phone          string `json:"phone,omitempty"`
 	Location       string `json:"location,omitempty"`
+	PhotoBase64    string `json:"photo_base64,omitempty"`
 }
 
 func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) *User {
@@ -42,7 +42,7 @@ func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) *User {
 		Email:          addUserRequest.Email,
 		Name:           addUserRequest.Name,
 		PhotoUrl:       "",
-		MemberSince:    time.Now().Unix(),
+		MemberSince:    time.Now().UnixNano(),
 		Title:          addUserRequest.Title,
 	}
 }
@@ -54,11 +54,11 @@ func (u *User) ToGRPC() *grpc_user_go.User {
 		Name:           u.Name,
 		PhotoUrl:       u.PhotoUrl,
 		MemberSince:    u.MemberSince,
-		ContactInfo: &grpc_user_go.ContactInfo{
-			FullName: fmt.Sprintf("%s %s", u.Name, u.LastName),
-			Address:  u.Location,
-			Title:    u.Title,
-		},
+		LastName:       u.LastName,
+		Title:          u.Title,
+		Phone:          u.Phone,
+		Location:       u.Location,
+		PhotoBase64:    u.PhotoBase64,
 	}
 }
 
@@ -81,6 +81,10 @@ func (u *User) ApplyUpdate(request *grpc_user_go.UpdateUserRequest) {
 
 	if request.UpdatePhotoUrl {
 		u.PhotoUrl = request.PhotoUrl
+	}
+
+	if request.UpdateLastName {
+		u.LastName = request.LastName
 	}
 }
 
