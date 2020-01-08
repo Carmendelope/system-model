@@ -40,7 +40,7 @@ create type IF NOT EXISTS nalej.service_group_instance (organization_id text, ap
 create type IF NOT EXISTS nalej.credential (username text, password text, email text);
 create type IF NOT EXISTS nalej.deploy_spec (cpu bigint, memory bigint, replicas int, multi_cluster_replica_set boolean);
 create type IF NOT EXISTS nalej.storage (size bigint, mount_path text, type int);
-create type IF NOT EXISTS nalej.endpoint (type int, path text);
+create type IF NOT EXISTS nalej.endpoint (type int, path text, options map<text, text>);
 create type IF NOT EXISTS nalej.endpoint_instance (endpoint_instance_id text, type int, fqdn text, port int);
 create type IF NOT EXISTS nalej.port (name text, internal_port int, exposed_port int, endpoint list<FROZEN<endpoint>>);
 create type IF NOT EXISTS nalej.config_file (organization_id text, app_descriptor_id text, config_file_id text, content blob, mount_path text);
