@@ -109,17 +109,27 @@ func (sahlp *ScyllaApplicationHistoryLogsProvider) Search(searchLogsRequest *ent
 	sahlp.Lock()
 	defer sahlp.Unlock()
 
-	OrganizationIdMap := map[string]interface{}{
-		"organization_id": searchLogsRequest.OrganizationId,
-		"created":         searchLogsRequest.To,
-	}
 
 	result := make([]entities.ServiceInstanceLog, 0)
 
 	// TODO: We should be able to perform this query without allowing filtering. It will involve changing the database design and probably adding an additional table
-	sb := qb.Select(ServiceInstanceHistoryTable).Columns(ServiceInstanceHistoryColumns...).Where(qb.Eq("organization_id")).Where(qb.LtOrEq("created")).AllowFiltering()
+
+	sb := qb.Select(ServiceInstanceHistoryTable).Columns(ServiceInstanceHistoryColumns...).Where(qb.Eq("organization_id"))
+	if searchLogsRequest.To > 0 {
+		sb = sb.Where(qb.LtOrEq("created")).AllowFiltering()
+	}
 	stmt, names := sb.ToCql()
-	q := gocqlx.Query(sahlp.Session.Query(stmt), names).BindMap(OrganizationIdMap)
+	q := gocqlx.Query(sahlp.Session.Query(stmt), names)
+	if searchLogsRequest.To > 0 {
+		q = q.BindMap(map[string]interface{}{
+			"organization_id": searchLogsRequest.OrganizationId,
+			"created":         searchLogsRequest.To,
+		})
+	} else {
+		q = q.BindMap(map[string]interface{}{
+			"organization_id": searchLogsRequest.OrganizationId,
+		})
+	}
 	qErr := q.SelectRelease(&result)
 	if qErr != nil {
 		return nil, derrors.NewGenericError("could not query database", qErr)
