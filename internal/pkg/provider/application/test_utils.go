@@ -136,6 +136,7 @@ func CreateTestService(organizationID string, appDescriptorId string, serviceGro
 		{
 			Type: entities.EndpointType(1),
 			Path: "../../endpoint",
+			Options: map[string]string{"option1": "value1", "option2": "value2"},
 		},
 	}
 
