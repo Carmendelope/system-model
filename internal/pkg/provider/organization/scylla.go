@@ -20,6 +20,7 @@ import (
 	"github.com/gocql/gocql"
 	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-utils/pkg/conversions"
+	"github.com/nalej/scylladb-utils/pkg/scylladb"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/rs/zerolog/log"
 	"github.com/scylladb/gocqlx"
@@ -28,29 +29,45 @@ import (
 )
 
 const organizationTable = "Organizations"
-const organizationTablePK = "id"
 const organizationClusterTable = "Organization_Clusters"
 const organizationNodeTable = "Organization_Nodes"
 const organizationDescriptorTable = "organization_appdescriptors"
 const organizationInstanceTable = "Organization_appinstances"
 const organizationUserTable = "Organization_Users"
 const organizationRoleTable = "Organization_Roles"
+
+// PKs
+const organizationTablePK = "id"
 const organizationTableIndex = "name"
+
+// columns
+var organizationTableColumns = []string{"id", "name", "created"}
+var organizationClusterTableColumns = []string{"organization_id", "cluster_id"}
+var organizationNodeTableColumns = []string{"organization_id", "node_id"}
+var organizationDescriptorTableColumns = []string{"organization_id", "app_descriptor_id"}
+var organizationInstanceTableColumns = []string{"organization_id", "app_instance_id"}
+var organizationUserTableColumns = []string{"organization_id", "email"}
+var organizationRoleTableColumns = []string{"organization_id", "role_id"}
+
+
 
 const rowNotFound = "not found"
 
 type ScyllaOrganizationProvider struct {
-	Address  string
-	Port     int
-	Keyspace string
-	Session  *gocql.Session
+	scylladb.ScyllaDB
 	sync.Mutex
 }
 
 func NewScyllaOrganizationProvider(address string, port int, keyspace string) *ScyllaOrganizationProvider {
-	org := ScyllaOrganizationProvider{Address: address, Port: port, Keyspace: keyspace, Session: nil}
-	org.connect()
-	return &org
+	provider := ScyllaOrganizationProvider{
+		ScyllaDB: scylladb.ScyllaDB{
+			Address:  address,
+			Port:     port,
+			Keyspace: keyspace,
+		},
+	}
+	provider.Connect()
+	return &provider
 }
 
 // connect to the database
@@ -78,10 +95,66 @@ func (sp *ScyllaOrganizationProvider) Disconnect() {
 	sp.Lock()
 	defer sp.Unlock()
 
-	if sp.Session != nil {
-		sp.Session.Close()
-		sp.Session = nil
+}
+
+func (sp *ScyllaOrganizationProvider) createOrganizationClusterPKMap(OrganizationID string, clusterID string) map[string]interface{} {
+
+	res := map[string]interface{}{
+		"organization_id": OrganizationID,
+		"cluster_id":      clusterID,
 	}
+
+	return res
+}
+
+func (sp *ScyllaOrganizationProvider) createOrganizationNodePKMap(OrganizationID string, nodeID string) map[string]interface{} {
+
+	res := map[string]interface{}{
+		"organization_id": OrganizationID,
+		"node_id":         nodeID,
+	}
+
+	return res
+}
+
+func (sp *ScyllaOrganizationProvider) createOrganizationDescriptorPKMap(OrganizationID string, appDescriptorId string) map[string]interface{} {
+
+	res := map[string]interface{}{
+		"organization_id": OrganizationID,
+		"app_descriptor_id":         appDescriptorId,
+	}
+
+	return res
+}
+
+func (sp *ScyllaOrganizationProvider) createOrganizationInstanceKMap(OrganizationID string, appInstanceId string) map[string]interface{} {
+
+	res := map[string]interface{}{
+		"organization_id": OrganizationID,
+		"app_instance_id":         appInstanceId,
+	}
+
+	return res
+}
+
+func (sp *ScyllaOrganizationProvider) createOrganizationUserKMap(OrganizationID string, email string) map[string]interface{} {
+
+	res := map[string]interface{}{
+		"organization_id": OrganizationID,
+		"email":         email,
+	}
+
+	return res
+}
+
+func (sp *ScyllaOrganizationProvider) createOrganizationRoleKMap(OrganizationID string, roleId string) map[string]interface{} {
+
+	res := map[string]interface{}{
+		"organization_id": OrganizationID,
+		"role_id":         roleId,
+	}
+
+	return res
 }
 
 // check that the session is created
@@ -108,216 +181,22 @@ func (sp *ScyllaOrganizationProvider) checkAndConnect() derrors.Error {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-func (sp *ScyllaOrganizationProvider) unsafeExists(organizationID string) (bool, derrors.Error) {
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationTable).Columns(organizationTablePK).Where(qb.Eq(organizationTablePK)).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		organizationTablePK: organizationID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if organization exists")
-		}
-	}
-
-	return true, nil
-}
-
-func (sp *ScyllaOrganizationProvider) unsafeExistsByName(name string) (bool, derrors.Error) {
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationTable).Columns(organizationTableIndex).Where(qb.Eq(organizationTableIndex)).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		organizationTableIndex: name})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if organization exists")
-		}
-	}
-
-	return true, nil
-}
-
-func (sp *ScyllaOrganizationProvider) unsafeClusterExists(organizationID string, clusterID string) (bool, derrors.Error) {
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationClusterTable).Columns("cluster_id").Where(qb.Eq("organization_id")).Where(qb.Eq("cluster_id")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"cluster_id":      clusterID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if cluster exists")
-		}
-	}
-
-	return true, nil
-}
-
-func (sp *ScyllaOrganizationProvider) unsafeNodeExists(organizationID string, nodeID string) (bool, derrors.Error) {
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationNodeTable).Columns("node_id").Where(qb.Eq("organization_id")).Where(qb.Eq("node_id")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"node_id":         nodeID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if node exists")
-		}
-	}
-
-	return true, nil
-
-}
-
-func (sp *ScyllaOrganizationProvider) unsafeDescriptorExists(organizationID string, appDescriptorID string) (bool, derrors.Error) {
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationDescriptorTable).Columns("app_descriptor_id").Where(qb.Eq("organization_id")).Where(qb.Eq("app_descriptor_id")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id":   organizationID,
-		"app_descriptor_id": appDescriptorID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if descriptor exists")
-		}
-	}
-
-	return true, nil
-
-}
-
-func (sp *ScyllaOrganizationProvider) unsafeInstanceExists(organizationID string, appInstanceID string) (bool, derrors.Error) {
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationInstanceTable).Columns("app_instance_id").Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"app_instance_id": appInstanceID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate id instance exists")
-		}
-	}
-
-	return true, nil
-
-}
-
-func (sp *ScyllaOrganizationProvider) unsafeUserExists(organizationID string, email string) (bool, derrors.Error) {
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationUserTable).Columns("email").Where(qb.Eq("organization_id")).Where(qb.Eq("email")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"email":           email})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if user exists")
-		}
-	}
-
-	return true, nil
-
-}
-
-func (sp *ScyllaOrganizationProvider) unsafeRoleExists(organizationID string, roleID string) (bool, derrors.Error) {
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationRoleTable).Columns("role_id").Where(qb.Eq("organization_id")).Where(qb.Eq("role_id")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"role_id":         roleID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if role exists")
-		}
-	}
-
-	return true, nil
-
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-
 // Add a new organization to the system.
 func (sp *ScyllaOrganizationProvider) Add(org entities.Organization) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	if err := sp.checkAndConnect(); err != nil {
-		return err
-	}
-
-	// check if the organization exists
-	exists, err := sp.unsafeExists(org.ID)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return derrors.NewAlreadyExistsError(org.ID)
-	}
-	exists, err = sp.unsafeExistsByName(org.Name)
+	//check if exists an organization with the same name
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTableIndex, org.Name)
 	if err != nil {
 		return err
 	}
 	if exists {
 		return derrors.NewAlreadyExistsError(org.Name)
 	}
+	return sp.UnsafeAdd(organizationTable, organizationTablePK, org.ID, organizationTableColumns, org)
 
-	// insert the organization instance
-	stmt, names := qb.Insert(organizationTable).Columns("id", "name", "created").ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(org)
-	cqlErr := q.ExecRelease()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot add organization")
-	}
-
-	return nil
 }
 
 // Check if an organization exists on the system.
@@ -326,49 +205,31 @@ func (sp *ScyllaOrganizationProvider) Exists(organizationID string) (bool, derro
 	sp.Lock()
 	defer sp.Unlock()
 
-	var returnedId string
+	return sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 
-	if err := sp.checkAndConnect(); err != nil {
-		return false, err
-	}
-	stmt, names := qb.Select(organizationTable).Columns(organizationTablePK).Where(qb.Eq(organizationTablePK)).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		organizationTablePK: organizationID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if organization exists")
-		}
-	}
-
-	return true, nil
 }
 
 func (sp *ScyllaOrganizationProvider) ExistsByName(name string) (bool, derrors.Error) {
 
-	var returnedName string
+	sp.Lock()
+	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
+	// check connection
+	if err := sp.CheckAndConnect(); err != nil {
 		return false, err
 	}
 
 	stmt, names := qb.Select(organizationTable).Columns(organizationTableIndex).Where(qb.Eq(organizationTableIndex)).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		organizationTableIndex: name})
+	q := gocqlx.Query(sp.Session.Query(stmt), names).Bind(name)
 
-	err := q.GetRelease(&returnedName)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, conversions.ToDerror(err)
-		}
+	returned := make([]string, 0)
+	cqlErr := q.SelectRelease(&returned)
+
+	if cqlErr != nil {
+		return false, derrors.AsError(cqlErr, "cannot list organization")
 	}
 
-	return true, nil
+	return len(returned) > 0, nil
 
 }
 
@@ -378,27 +239,14 @@ func (sp *ScyllaOrganizationProvider) Get(organizationID string) (*entities.Orga
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	if err := sp.checkAndConnect(); err != nil {
+	var organization interface{} = &entities.Organization{}
+
+	err := sp.UnsafeGet(organizationTable, organizationTablePK, organizationID, organizationTableColumns, &organization)
+	if err != nil {
 		return nil, err
 	}
+	return organization.(*entities.Organization), nil
 
-	var org entities.Organization
-	stmt, names := qb.Select(organizationTable).Where(qb.Eq(organizationTablePK)).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		organizationTablePK: organizationID,
-	})
-
-	cqlErr := q.GetRelease(&org)
-	if cqlErr != nil {
-		if cqlErr.Error() == rowNotFound {
-			return nil, derrors.NewNotFoundError(organizationID)
-		} else {
-			return nil, derrors.AsError(cqlErr, "cannot get organization")
-		}
-	}
-
-	return &org, nil
 }
 
 func (sp *ScyllaOrganizationProvider) List() ([]entities.Organization, derrors.Error) {
@@ -407,12 +255,11 @@ func (sp *ScyllaOrganizationProvider) List() ([]entities.Organization, derrors.E
 	defer sp.Unlock()
 
 	// check connection
-	if err := sp.checkAndConnect(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return nil, err
 	}
 
-	stmt, names := qb.Select(organizationTable).ToCql()
-
+	stmt, names := qb.Select(organizationTable).Columns(organizationTableColumns...).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names)
 
 	organizations := make([]entities.Organization, 0)
@@ -433,12 +280,7 @@ func (sp *ScyllaOrganizationProvider) AddCluster(organizationID string, clusterI
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	if err := sp.checkAndConnect(); err != nil {
-		return err
-	}
-
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return err
 	}
@@ -446,28 +288,12 @@ func (sp *ScyllaOrganizationProvider) AddCluster(organizationID string, clusterI
 		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
-	// check if the organization exists
-	exists, err = sp.unsafeClusterExists(organizationID, clusterID)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return derrors.NewAlreadyExistsError("cluster").WithParams(organizationID, clusterID)
-	}
-
 	// insert the organization instance
-	stmt, names := qb.Insert(organizationClusterTable).Columns("organization_id", "cluster_id").ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"cluster_id":      clusterID})
+	pkColumn := sp.createOrganizationClusterPKMap(organizationID, clusterID)
 
-	cqlErr := q.ExecRelease()
+	record := entities.NewOrganizationCluster(organizationID, clusterID)
+	return sp.UnsafeCompositeAdd(organizationClusterTable, pkColumn, organizationClusterTableColumns, record)
 
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot add cluster")
-	}
-
-	return nil
 }
 
 // ClusterExists checks if a cluster is linked to an organization.
@@ -476,27 +302,9 @@ func (sp *ScyllaOrganizationProvider) ClusterExists(organizationID string, clust
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
-		return false, err
-	}
+	pkColumn := sp.createOrganizationClusterPKMap(organizationID, clusterID)
+	return sp.UnsafeGenericCompositeExist(organizationClusterTable, pkColumn)
 
-	var returnedId string
-
-	stmt, names := qb.Select(organizationClusterTable).Columns("cluster_id").Where(qb.Eq("organization_id")).Where(qb.Eq("cluster_id")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"cluster_id":      clusterID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if cluster exists")
-		}
-	}
-
-	return true, nil
 }
 
 // ListClusters returns a list of clusters in an organization.
@@ -510,7 +318,7 @@ func (sp *ScyllaOrganizationProvider) ListClusters(organizationID string) ([]str
 	}
 
 	// 1.-Check if the organization exists
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -539,30 +347,9 @@ func (sp *ScyllaOrganizationProvider) DeleteCluster(organizationID string, clust
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	err := sp.checkAndConnect()
-	if err != nil {
-		return err
-	}
+	pkColumn := sp.createOrganizationClusterPKMap(organizationID, clusterID)
+	return sp.UnsafeCompositeRemove(organizationClusterTable, pkColumn)
 
-	// check if the cluster exists in the organization
-	exists, err := sp.unsafeClusterExists(organizationID, clusterID)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return derrors.NewNotFoundError("cluster").WithParams(organizationID, clusterID)
-	}
-
-	// delete a cluster of an organization
-	stmt, _ := qb.Delete(organizationClusterTable).Where(qb.Eq("organization_id")).Where(qb.Eq("cluster_id")).ToCql()
-	cqlErr := sp.Session.Query(stmt, organizationID, clusterID).Exec()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot delete cluster")
-	}
-
-	return nil
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -573,12 +360,7 @@ func (sp *ScyllaOrganizationProvider) AddNode(organizationID string, nodeID stri
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	if err := sp.checkAndConnect(); err != nil {
-		return err
-	}
-
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return err
 	}
@@ -586,28 +368,11 @@ func (sp *ScyllaOrganizationProvider) AddNode(organizationID string, nodeID stri
 		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
-	// check if the organization exists
-	exists, err = sp.unsafeNodeExists(organizationID, nodeID)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return derrors.NewAlreadyExistsError("node").WithParams(organizationID, nodeID)
-	}
+	// insert the organization instance
+	pkColumn := sp.createOrganizationNodePKMap(organizationID, nodeID)
 
-	// add a node in the organization instance
-	stmt, names := qb.Insert(organizationNodeTable).Columns("organization_id", "node_id").ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"node_id":         nodeID})
-
-	cqlErr := q.ExecRelease()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot add node")
-	}
-
-	return nil
+	record := entities.NewOrganizationNode(organizationID, nodeID)
+	return sp.UnsafeCompositeAdd(organizationNodeTable, pkColumn, organizationNodeTableColumns, record)
 }
 
 // NodeExists checks if a node is linked to an organization.
@@ -616,27 +381,8 @@ func (sp *ScyllaOrganizationProvider) NodeExists(organizationID string, nodeID s
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
-		return false, err
-	}
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationNodeTable).Columns("node_id").Where(qb.Eq("organization_id")).Where(qb.Eq("node_id")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"node_id":         nodeID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if node exists")
-		}
-	}
-
-	return true, nil
+	pkColumn := sp.createOrganizationNodePKMap(organizationID, nodeID)
+	return sp.UnsafeGenericCompositeExist(organizationNodeTable, pkColumn)
 
 }
 
@@ -646,12 +392,12 @@ func (sp *ScyllaOrganizationProvider) ListNodes(organizationID string) ([]string
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return nil, err
 	}
 
 	// 1.-Check if the organization exists
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -680,30 +426,8 @@ func (sp *ScyllaOrganizationProvider) DeleteNode(organizationID string, nodeID s
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	err := sp.checkAndConnect()
-	if err != nil {
-		return err
-	}
-
-	// check if the node exists in the organization
-	exists, err := sp.unsafeNodeExists(organizationID, nodeID)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return derrors.NewNotFoundError("node").WithParams(organizationID, nodeID)
-	}
-
-	// delete the node of an organization
-	stmt, _ := qb.Delete(organizationNodeTable).Where(qb.Eq("organization_id")).Where(qb.Eq("node_id")).ToCql()
-	cqlErr := sp.Session.Query(stmt, organizationID, nodeID).Exec()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot delete node")
-	}
-
-	return nil
+	pkColumn := sp.createOrganizationNodePKMap(organizationID, nodeID)
+	return sp.UnsafeCompositeRemove(organizationNodeTable, pkColumn)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -714,12 +438,7 @@ func (sp *ScyllaOrganizationProvider) AddDescriptor(organizationID string, appDe
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	if err := sp.checkAndConnect(); err != nil {
-		return err
-	}
-
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return err
 	}
@@ -727,28 +446,11 @@ func (sp *ScyllaOrganizationProvider) AddDescriptor(organizationID string, appDe
 		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
-	// check if the descriptor exists
-	exists, err = sp.unsafeDescriptorExists(organizationID, appDescriptorID)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return derrors.NewAlreadyExistsError("appDescriptor").WithParams(organizationID, appDescriptorID)
-	}
+	// insert the organization instance
+	pkColumn := sp.createOrganizationDescriptorPKMap(organizationID, appDescriptorID)
 
-	// add an app descriptor in the organization instance
-	stmt, names := qb.Insert(organizationDescriptorTable).Columns("organization_id", "app_descriptor_id").ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id":   organizationID,
-		"app_descriptor_id": appDescriptorID})
-
-	cqlErr := q.ExecRelease()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot add descriptor")
-	}
-
-	return nil
+	record := entities.NewOrganizationDescriptor(organizationID, appDescriptorID)
+	return sp.UnsafeCompositeAdd(organizationDescriptorTable, pkColumn, organizationDescriptorTableColumns, record)
 }
 
 // DescriptorExists checks if an application descriptor exists on the system.
@@ -757,27 +459,8 @@ func (sp *ScyllaOrganizationProvider) DescriptorExists(organizationID string, ap
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
-		return false, err
-	}
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationDescriptorTable).Columns("app_descriptor_id").Where(qb.Eq("organization_id")).Where(qb.Eq("app_descriptor_id")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id":   organizationID,
-		"app_descriptor_id": appDescriptorID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if descriptor exists")
-		}
-	}
-
-	return true, nil
+	pkColumn := sp.createOrganizationDescriptorPKMap(organizationID, appDescriptorID)
+	return sp.UnsafeGenericCompositeExist(organizationDescriptorTable, pkColumn)
 
 }
 
@@ -787,12 +470,8 @@ func (sp *ScyllaOrganizationProvider) ListDescriptors(organizationID string) ([]
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
-		return nil, err
-	}
-
 	// 1.-Check if the organization exists
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -820,30 +499,8 @@ func (sp *ScyllaOrganizationProvider) DeleteDescriptor(organizationID string, ap
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	err := sp.checkAndConnect()
-	if err != nil {
-		return err
-	}
-
-	// check if the descriptor exists in the organization
-	exists, err := sp.unsafeDescriptorExists(organizationID, appDescriptorID)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return derrors.NewNotFoundError("app descriptor").WithParams(organizationID, appDescriptorID)
-	}
-
-	// delete the descriptor of an organization
-	stmt, _ := qb.Delete(organizationDescriptorTable).Where(qb.Eq("organization_id")).Where(qb.Eq("app_descriptor_id")).ToCql()
-	cqlErr := sp.Session.Query(stmt, organizationID, appDescriptorID).Exec()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot delete descriptor")
-	}
-
-	return nil
+	pkColumn := sp.createOrganizationDescriptorPKMap(organizationID, appDescriptorID)
+	return sp.UnsafeCompositeRemove(organizationDescriptorTable, pkColumn)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -854,12 +511,7 @@ func (sp *ScyllaOrganizationProvider) AddInstance(organizationID string, appInst
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	if err := sp.checkAndConnect(); err != nil {
-		return err
-	}
-
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return err
 	}
@@ -867,28 +519,11 @@ func (sp *ScyllaOrganizationProvider) AddInstance(organizationID string, appInst
 		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
-	// check if the instance exists
-	exists, err = sp.unsafeInstanceExists(organizationID, appInstanceID)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return derrors.NewAlreadyExistsError("app_instance").WithParams(organizationID, appInstanceID)
-	}
-
 	// add an app instance in the organization
-	stmt, names := qb.Insert(organizationInstanceTable).Columns("organization_id", "app_instance_id").ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"app_instance_id": appInstanceID})
+	pkColumn := sp.createOrganizationInstanceKMap(organizationID, appInstanceID)
 
-	cqlErr := q.ExecRelease()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot add instance")
-	}
-
-	return nil
+	record := entities.NewOrganizationInstance(organizationID, appInstanceID)
+	return sp.UnsafeCompositeAdd(organizationInstanceTable, pkColumn, organizationInstanceTableColumns, record)
 }
 
 // InstanceExists checks if an application instance exists on the system.
@@ -897,27 +532,8 @@ func (sp *ScyllaOrganizationProvider) InstanceExists(organizationID string, appI
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
-		return false, err
-	}
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationInstanceTable).Columns("app_instance_id").Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"app_instance_id": appInstanceID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate id instance exists")
-		}
-	}
-
-	return true, nil
+	pkColumn := sp.createOrganizationInstanceKMap(organizationID, appInstanceID)
+	return sp.UnsafeGenericCompositeExist(organizationInstanceTable, pkColumn)
 
 }
 
@@ -927,12 +543,8 @@ func (sp *ScyllaOrganizationProvider) ListInstances(organizationID string) ([]st
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
-		return nil, err
-	}
-
 	// 1.-Check if the organization exists
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -960,30 +572,8 @@ func (sp *ScyllaOrganizationProvider) DeleteInstance(organizationID string, appI
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	err := sp.checkAndConnect()
-	if err != nil {
-		return err
-	}
-
-	// check if the instance exists in the organization
-	exists, err := sp.unsafeInstanceExists(organizationID, appInstanceID)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return derrors.NewNotFoundError("app descriptor").WithParams(organizationID, appInstanceID)
-	}
-
-	// delete the instance of an organization
-	stmt, _ := qb.Delete(organizationInstanceTable).Where(qb.Eq("organization_id")).Where(qb.Eq("app_instance_id")).ToCql()
-	cqlErr := sp.Session.Query(stmt, organizationID, appInstanceID).Exec()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot delete instance")
-	}
-
-	return nil
+	pkColumn := sp.createOrganizationInstanceKMap(organizationID, appInstanceID)
+	return sp.UnsafeCompositeRemove(organizationInstanceTable, pkColumn)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -994,12 +584,7 @@ func (sp *ScyllaOrganizationProvider) AddUser(organizationID string, email strin
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	if err := sp.checkAndConnect(); err != nil {
-		return err
-	}
-
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return err
 	}
@@ -1007,28 +592,11 @@ func (sp *ScyllaOrganizationProvider) AddUser(organizationID string, email strin
 		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
-	// check if the user exists
-	exists, err = sp.unsafeUserExists(organizationID, email)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return derrors.NewAlreadyExistsError("user").WithParams(organizationID, email)
-	}
+	// add an app instance in the organization
+	pkColumn := sp.createOrganizationUserKMap(organizationID, email)
 
-	// add an user in the organization
-	stmt, names := qb.Insert(organizationUserTable).Columns("organization_id", "email").ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"email":           email})
-
-	cqlErr := q.ExecRelease()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot add user")
-	}
-
-	return nil
+	record := entities.NewOrganizationUser(organizationID, email)
+	return sp.UnsafeCompositeAdd(organizationUserTable, pkColumn, organizationUserTableColumns, record)
 }
 
 // UserExists checks if a user is linked to an organization.
@@ -1037,27 +605,8 @@ func (sp *ScyllaOrganizationProvider) UserExists(organizationID string, email st
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
-		return false, err
-	}
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationUserTable).Columns("email").Where(qb.Eq("organization_id")).Where(qb.Eq("email")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"email":           email})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if user exists")
-		}
-	}
-
-	return true, nil
+	pkColumn := sp.createOrganizationUserKMap(organizationID, email)
+	return sp.UnsafeGenericCompositeExist(organizationUserTable, pkColumn)
 
 }
 
@@ -1067,12 +616,8 @@ func (sp *ScyllaOrganizationProvider) ListUsers(organizationID string) ([]string
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
-		return nil, err
-	}
-
 	// 1.-Check if the organization exists
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -1100,30 +645,8 @@ func (sp *ScyllaOrganizationProvider) DeleteUser(organizationID string, email st
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	err := sp.checkAndConnect()
-	if err != nil {
-		return err
-	}
-
-	// check if the user exists in the organization
-	exists, err := sp.unsafeUserExists(organizationID, email)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return derrors.NewNotFoundError("user").WithParams(organizationID, email)
-	}
-
-	// delete the user of an organization
-	stmt, _ := qb.Delete(organizationUserTable).Where(qb.Eq("organization_id")).Where(qb.Eq("email")).ToCql()
-	cqlErr := sp.Session.Query(stmt, organizationID, email).Exec()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot delete user")
-	}
-
-	return nil
+	pkColumn := sp.createOrganizationUserKMap(organizationID, email)
+	return sp.UnsafeCompositeRemove(organizationUserTable, pkColumn)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -1134,12 +657,7 @@ func (sp *ScyllaOrganizationProvider) AddRole(organizationID string, roleID stri
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	if err := sp.checkAndConnect(); err != nil {
-		return err
-	}
-
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return err
 	}
@@ -1147,28 +665,11 @@ func (sp *ScyllaOrganizationProvider) AddRole(organizationID string, roleID stri
 		return derrors.NewNotFoundError("organization").WithParams(organizationID)
 	}
 
-	// check if the role exists
-	exists, err = sp.unsafeRoleExists(organizationID, roleID)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return derrors.NewAlreadyExistsError("role").WithParams(organizationID, roleID)
-	}
+	// add an app instance in the organization
+	pkColumn := sp.createOrganizationRoleKMap(organizationID, roleID)
 
-	// add an user in the organization
-	stmt, names := qb.Insert(organizationRoleTable).Columns("organization_id", "role_id").ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"role_id":         roleID})
-
-	cqlErr := q.ExecRelease()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot add role")
-	}
-
-	return nil
+	record := entities.NewOrganizationRole(organizationID, roleID)
+	return sp.UnsafeCompositeAdd(organizationRoleTable, pkColumn, organizationRoleTableColumns, record)
 }
 
 // RoleExists checks if a role is linked to an organization.
@@ -1177,27 +678,8 @@ func (sp *ScyllaOrganizationProvider) RoleExists(organizationID string, roleID s
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
-		return false, err
-	}
-
-	var returnedId string
-
-	stmt, names := qb.Select(organizationRoleTable).Columns("role_id").Where(qb.Eq("organization_id")).Where(qb.Eq("role_id")).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"role_id":         roleID})
-
-	err := q.GetRelease(&returnedId)
-	if err != nil {
-		if err.Error() == rowNotFound {
-			return false, nil
-		} else {
-			return false, derrors.AsError(err, "cannot determinate if role exists")
-		}
-	}
-
-	return true, nil
+	pkColumn := sp.createOrganizationRoleKMap(organizationID, roleID)
+	return sp.UnsafeGenericCompositeExist(organizationRoleTable, pkColumn)
 
 }
 
@@ -1207,12 +689,8 @@ func (sp *ScyllaOrganizationProvider) ListRoles(organizationID string) ([]string
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
-		return nil, err
-	}
-
 	// 1.-Check if the organization exists
-	exists, err := sp.unsafeExists(organizationID)
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -1247,24 +725,8 @@ func (sp *ScyllaOrganizationProvider) DeleteRole(organizationID string, roleID s
 		return err
 	}
 
-	// check if the role exists in the organization
-	exists, err := sp.unsafeRoleExists(organizationID, roleID)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return derrors.NewNotFoundError("role").WithParams(organizationID, roleID)
-	}
-
-	// delete the role of the organization
-	stmt, _ := qb.Delete(organizationRoleTable).Where(qb.Eq("organization_id")).Where(qb.Eq("role_id")).ToCql()
-	cqlErr := sp.Session.Query(stmt, organizationID, roleID).Exec()
-
-	if cqlErr != nil {
-		return derrors.AsError(cqlErr, "cannot delete role")
-	}
-
-	return nil
+	pkColumn := sp.createOrganizationRoleKMap(organizationID, roleID)
+	return sp.UnsafeCompositeRemove(organizationRoleTable, pkColumn)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -1274,52 +736,7 @@ func (sp *ScyllaOrganizationProvider) Clear() derrors.Error {
 	sp.Lock()
 	defer sp.Unlock()
 
-	// check connection
-	if err := sp.checkAndConnect(); err != nil {
-		return err
-	}
+	return sp.UnsafeClear([]string{organizationTable, organizationNodeTable, organizationRoleTable, organizationUserTable,
+		organizationClusterTable, organizationDescriptorTable, organizationInstanceTable})
 
-	// delete organizations table
-	err := sp.Session.Query("TRUNCATE TABLE organizations").Exec()
-	if err != nil {
-		return derrors.AsError(err, "cannot truncate organizations table")
-	}
-
-	// delete organization-cluster table
-	err = sp.Session.Query("TRUNCATE TABLE organization_clusters").Exec()
-	if err != nil {
-		return derrors.AsError(err, "cannot truncate organization_cluster table")
-	}
-
-	// delete organization-nodes table
-	err = sp.Session.Query("TRUNCATE TABLE organization_nodes").Exec()
-	if err != nil {
-		return derrors.AsError(err, "cannot truncate organization_nodes cluster")
-	}
-
-	// delete organization-descriptors table
-	err = sp.Session.Query("TRUNCATE TABLE organization_appdescriptors").Exec()
-	if err != nil {
-		return derrors.AsError(err, "cannot truncate organization_appdescriptors table")
-	}
-
-	// delete organization-instances table
-	err = sp.Session.Query("TRUNCATE TABLE organization_appinstances").Exec()
-	if err != nil {
-		return derrors.AsError(err, "cannot truncate organization_appinstances table")
-	}
-
-	// delete organization-users table
-	err = sp.Session.Query("TRUNCATE TABLE organization_users").Exec()
-	if err != nil {
-		return derrors.AsError(err, "cannot truncate organization_users table")
-	}
-
-	// delete organization-roles table
-	err = sp.Session.Query("TRUNCATE TABLE organization_roles").Exec()
-	if err != nil {
-		return derrors.AsError(err, "cannot truncate organization_roles table")
-	}
-
-	return nil
 }

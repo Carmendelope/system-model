@@ -299,8 +299,8 @@ func RunTest(provider Provider) {
 
 	})
 
-	// NodeExists
-	ginkgo.It("Should be able to find a node in a organization", func() {
+	// ClusterExists
+	ginkgo.It("Should be able to find a cluster in a organization", func() {
 
 		organizationID := "Org_0001"
 		org := &entities.Organization{ID: organizationID, Name: "organization 0001", Created: 12}
@@ -316,7 +316,7 @@ func RunTest(provider Provider) {
 		gomega.Expect(exists).To(gomega.BeTrue())
 
 	})
-	ginkgo.It("Should not be able to find a node in a organization", func() {
+	ginkgo.It("Should not be able to find a cluster in a organization", func() {
 
 		organizationID := "Org_0001"
 
