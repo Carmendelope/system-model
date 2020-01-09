@@ -203,6 +203,31 @@ func (m *MockupOrganizationProvider) List() ([]entities.Organization, derrors.Er
 	return result, nil
 }
 
+func (m *MockupOrganizationProvider) Update(org entities.Organization) derrors.Error {
+
+	// 1.- Check if organization exists
+	m.Lock()
+	defer m.Unlock()
+	oldOrg, exists := m.organizations[org.ID]
+	if !exists {
+		return derrors.NewNotFoundError(org.ID)
+	}
+	// 2.- get the organization to check if the name is being updated
+	if oldOrg.Name != org.Name {
+		// 3.- Check the name
+		if m.unsafeExistsByName(org.Name) {
+			return derrors.NewAlreadyExistsError("unable to update the organization").WithParams(org.Name)
+		}
+		delete(m.organizationNames, oldOrg.Name)
+	}
+
+	// 4.- Update
+	m.organizations[org.ID] = org
+
+	return nil
+}
+
+
 // AddCluster adds a new cluster ID to the organization.
 func (m *MockupOrganizationProvider) AddCluster(organizationID string, clusterID string) derrors.Error {
 	m.Lock()

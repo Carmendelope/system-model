@@ -16,9 +16,19 @@
 
 package utils
 
-import "os"
+import (
+	"fmt"
+	"github.com/google/uuid"
+	"github.com/nalej/system-model/internal/pkg/entities"
+	"os"
+)
 
 func RunIntegrationTests() bool {
 	var runIntegration = os.Getenv("RUN_INTEGRATION_TEST")
 	return runIntegration == "true"
+}
+
+
+func CreateOrganization() *entities.Organization {
+	return entities.NewOrganization(fmt.Sprintf("Nalej-%s", uuid.New().String()), "Nalej Test Address", "City Test", "State Test", "U.S.A", "XXX", "Photo")
 }

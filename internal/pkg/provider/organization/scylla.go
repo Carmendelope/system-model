@@ -41,7 +41,8 @@ const organizationTablePK = "id"
 const organizationTableIndex = "name"
 
 // columns
-var organizationTableColumns = []string{"id", "name", "created"}
+var organizationTableColumns = []string{"id", "name", "full_address", "city", "state", "country", "zip_code", "photo_base64", "created"}
+var organizationTableColumnsNoPK = []string{"name", "full_address", "city", "state", "country", "zip_code", "photo_base64", "created"}
 var organizationClusterTableColumns = []string{"organization_id", "cluster_id"}
 var organizationNodeTableColumns = []string{"organization_id", "node_id"}
 var organizationDescriptorTableColumns = []string{"organization_id", "app_descriptor_id"}
@@ -184,11 +185,7 @@ func (sp *ScyllaOrganizationProvider) Exists(organizationID string) (bool, derro
 
 }
 
-func (sp *ScyllaOrganizationProvider) ExistsByName(name string) (bool, derrors.Error) {
-
-	sp.Lock()
-	defer sp.Unlock()
-
+func (sp *ScyllaOrganizationProvider) unsafeExistsByName(name string) (bool, derrors.Error) {
 	// check connection
 	if err := sp.CheckAndConnect(); err != nil {
 		return false, err
@@ -205,6 +202,14 @@ func (sp *ScyllaOrganizationProvider) ExistsByName(name string) (bool, derrors.E
 	}
 
 	return len(returned) > 0, nil
+}
+
+func (sp *ScyllaOrganizationProvider) ExistsByName(name string) (bool, derrors.Error) {
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	return sp.unsafeExistsByName(name)
 
 }
 
@@ -246,6 +251,44 @@ func (sp *ScyllaOrganizationProvider) List() ([]entities.Organization, derrors.E
 
 	return organizations, nil
 }
+
+func (sp *ScyllaOrganizationProvider) Update(org entities.Organization) derrors.Error {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// 1.- Check if organization exists
+	exists, err := sp.UnsafeGenericExist(organizationTable, organizationTablePK, org.ID)
+	if err != nil {
+		return err
+	}
+	if ! exists {
+		return derrors.NewNotFoundError(org.ID)
+	}
+
+	// 2.- get the organization to check if the name is being updated
+	var retrieved interface{} = &entities.Organization{}
+	err = sp.UnsafeGet(organizationTable, organizationTablePK, org.ID, organizationTableColumns, &retrieved)
+	if err != nil {
+		return err
+	}
+
+	// 3.- Check the name
+	if retrieved.(*entities.Organization).Name != org.Name {
+		log.Debug().Msg("The name is being updated")
+
+		exists, err := sp.unsafeExistsByName(org.Name)
+		if err != nil {
+			return err
+		}
+		if exists {
+			return derrors.NewAlreadyExistsError("unable to update the organization").WithParams(org.Name)
+		}
+	}
+	// 4.- Update
+	return sp.UnsafeUpdate(organizationTable, organizationTablePK, org.ID, organizationTableColumnsNoPK, org)
+
+}
+
 
 // --------------------------------------------------------------------------------------------------------------------
 
