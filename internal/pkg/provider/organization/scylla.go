@@ -50,9 +50,6 @@ var organizationUserTableColumns = []string{"organization_id", "email"}
 var organizationRoleTableColumns = []string{"organization_id", "role_id"}
 
 
-
-const rowNotFound = "not found"
-
 type ScyllaOrganizationProvider struct {
 	scylladb.ScyllaDB
 	sync.Mutex
@@ -155,28 +152,6 @@ func (sp *ScyllaOrganizationProvider) createOrganizationRoleKMap(OrganizationID 
 	}
 
 	return res
-}
-
-// check that the session is created
-func (sp *ScyllaOrganizationProvider) checkConnection() derrors.Error {
-	if sp.Session == nil {
-		return derrors.NewGenericError("Session not created")
-	}
-	return nil
-}
-
-func (sp *ScyllaOrganizationProvider) checkAndConnect() derrors.Error {
-
-	err := sp.checkConnection()
-	if err != nil {
-		// try to reconnect
-		log.Info().Msg("session no created, trying to reconnect...")
-		err = sp.connect()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -313,7 +288,7 @@ func (sp *ScyllaOrganizationProvider) ListClusters(organizationID string) ([]str
 	sp.Lock()
 	defer sp.Unlock()
 
-	if err := sp.checkAndConnect(); err != nil {
+	if err := sp.CheckAndConnect(); err != nil {
 		return nil, err
 	}
 
@@ -718,12 +693,6 @@ func (sp *ScyllaOrganizationProvider) DeleteRole(organizationID string, roleID s
 
 	sp.Lock()
 	defer sp.Unlock()
-
-	// check connection
-	err := sp.checkAndConnect()
-	if err != nil {
-		return err
-	}
 
 	pkColumn := sp.createOrganizationRoleKMap(organizationID, roleID)
 	return sp.UnsafeCompositeRemove(organizationRoleTable, pkColumn)
