@@ -88,3 +88,80 @@ func (h *Handler) UpdateOrganization(ctx context.Context, updateOrganizationRequ
 	}
 	return &grpc_common_go.Success{}, nil
 }
+
+// AddSetting adds a new setting for the organization
+func (h *Handler) AddSetting(ctx context.Context, addRequest *grpc_organization_go.AddSettingRequest) (*grpc_organization_go.OrganizationSetting, error){
+
+	vErr := entities.ValidateAddSettingRequest(addRequest)
+	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid add setting request")
+		return nil, conversions.ToGRPCError(vErr)
+	}
+
+	added, err := h.Manager.AddSetting(addRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return added.ToGRPC(), nil
+
+
+}
+// GetSetting returns an OrganizationSetting
+func (h *Handler) GetSetting(ctx context.Context, key *grpc_organization_go.SettingKey) (*grpc_organization_go.OrganizationSetting, error){
+	vErr := entities.ValidateSettingKey(key)
+	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid setting key")
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	setting, err := h.Manager.GetSetting(key)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return setting.ToGRPC(), nil
+}
+// ListSettings returns a list of settings of an organization
+func (h *Handler) ListSettings(ctx context.Context, orgId *grpc_organization_go.OrganizationId) (*grpc_organization_go.OrganizationSettingList, error){
+	vErr := entities.ValidOrganizationID(orgId)
+	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid organizationId")
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	list, err := h.Manager.ListSettings(orgId)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	convertedList := make ([]*grpc_organization_go.OrganizationSetting, 0)
+	for _, setting := range list {
+		convertedList = append(convertedList, setting.ToGRPC())
+	}
+	return &grpc_organization_go.OrganizationSettingList{
+		Settings:convertedList,
+	}, nil
+}
+// UpdateSetting update the value and/or the description of a setting
+func (h *Handler) UpdateSetting(ctx context.Context, updateRequest *grpc_organization_go.UpdateSettingRequest) (*grpc_common_go.Success, error){
+	vErr := entities.ValidateUpdateSettingRequest(updateRequest)
+	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid update setting request")
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	err := h.Manager.UpdateSetting(updateRequest)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+
+}
+// RemoveSetting removes a given setting of an organization
+func (h *Handler) RemoveSetting(ctx context.Context, key *grpc_organization_go.SettingKey) (*grpc_common_go.Success, error){
+	vErr := entities.ValidateSettingKey(key)
+	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid setting key")
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	err := h.Manager.RemoveSetting(key)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
+}

@@ -23,6 +23,7 @@ import (
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/test"
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
+	"github.com/nalej/system-model/internal/pkg/provider/organization_setting"
 	"github.com/nalej/system-model/internal/pkg/server/testhelpers"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -39,6 +40,7 @@ var _ = ginkgo.Describe("Organization service", func() {
 	var client grpc_organization_go.OrganizationsClient
 
 	var orgProvider organization.Provider
+	var settingProvider organization_setting.Provider
 
 	ginkgo.BeforeSuite(func() {
 		listener = test.GetDefaultListener()
@@ -46,7 +48,8 @@ var _ = ginkgo.Describe("Organization service", func() {
 
 		// Register the service
 		orgProvider = organization.NewMockupOrganizationProvider()
-		manager := NewManager(orgProvider)
+		settingProvider = organization_setting.NewMockupOrganizationSettingProvider()
+		manager := NewManager(orgProvider, settingProvider)
 		handler := NewHandler(manager)
 		grpc_organization_go.RegisterOrganizationsServer(server, handler)
 
