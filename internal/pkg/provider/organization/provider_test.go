@@ -18,10 +18,22 @@ package organization
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 )
+
+func CreateOrganization() *entities.Organization {
+	return entities.NewOrganization(
+		fmt.Sprintf(fmt.Sprintf("org-%s", uuid.New().String())),
+		"Nalej Test Address",
+		"City Test",
+		"State Test",
+		"U.S.A",
+		"XXX",
+		"Photo")
+}
 
 func RunTest(provider Provider) {
 
@@ -32,8 +44,7 @@ func RunTest(provider Provider) {
 	// Add and organization
 	ginkgo.It("Should be able to add a organization", func() {
 
-		org := &entities.Organization{ID: "Org_0001", Name: "organization 0001", Created: 12}
-
+		org := CreateOrganization()
 		err := provider.Add(*org)
 		gomega.Expect(err).To(gomega.Succeed())
 
@@ -42,22 +53,23 @@ func RunTest(provider Provider) {
 	// Get Organization
 	ginkgo.It("Should be able to get a organization", func() {
 
-		org := &entities.Organization{ID: "Org_0001", Name: "organization 0001", Created: 12}
+		org := CreateOrganization()
 
 		err := provider.Add(*org)
 		gomega.Expect(err).To(gomega.Succeed())
 
-		org, err = provider.Get(org.ID)
+		retrieved, err := provider.Get(org.ID)
 		gomega.Expect(err).To(gomega.Succeed())
-		gomega.Expect(org).NotTo(gomega.BeNil())
+		gomega.Expect(retrieved).NotTo(gomega.BeNil())
+		gomega.Expect(*retrieved).Should(gomega.Equal(*org))
 
 	})
 
 	// List Organization
 	ginkgo.It("Should be able to list a organization", func() {
 
-		org := &entities.Organization{ID: "Org_0001", Name: "organization 0001", Created: 12}
-		org1 := &entities.Organization{ID: "Org_0002", Name: "organization 0002", Created: 13}
+		org := CreateOrganization()
+		org1 := CreateOrganization()
 
 		err := provider.Add(*org)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -92,7 +104,7 @@ func RunTest(provider Provider) {
 	// Exists Organization
 	ginkgo.It("Should be able to find a organization", func() {
 
-		org := &entities.Organization{ID: "Org_0001", Name: "organization 0001", Created: 12}
+		org := CreateOrganization()
 
 		err := provider.Add(*org)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -110,7 +122,7 @@ func RunTest(provider Provider) {
 	})
 	ginkgo.It("Should be able to find a organization by name", func() {
 
-		org := &entities.Organization{ID: "Org_0001", Name: "organization 0001", Created: 12}
+		org := CreateOrganization()
 
 		err := provider.Add(*org)
 		gomega.Expect(err).To(gomega.Succeed())
@@ -127,6 +139,49 @@ func RunTest(provider Provider) {
 		gomega.Expect(exists).NotTo(gomega.BeTrue())
 	})
 
+	ginkgo.It("Should be able to update an organization", func() {
+		org := CreateOrganization()
+		// add the organization
+		err := provider.Add(*org)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		// Update
+		org.Name = "Name updated"
+		org.State = "State updated"
+		err = provider.Update(*org)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		retrieved, err := provider.Get(org.ID)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(retrieved).NotTo(gomega.BeNil())
+		gomega.Expect(*org).Should(gomega.Equal(*retrieved))
+
+
+	})
+	ginkgo.It("Should not be able to update an organization if exists other one with the new name", func() {
+		org1 := CreateOrganization()
+		// add the organization
+		err := provider.Add(*org1)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		org2 := CreateOrganization()
+		// add the organization
+		err = provider.Add(*org2)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		org1.Name = org2.Name
+		err = provider.Update(*org1)
+		gomega.Expect(err).NotTo(gomega.Succeed())
+
+
+
+
+	})
+	ginkgo.It("Should not be able to update a non existing organization", func() {
+		org := CreateOrganization()
+		err := provider.Update(*org)
+		gomega.Expect(err).NotTo(gomega.Succeed())
+	})
 	// --------------------------------------------------------------------------------------------------------------------
 
 	// AddCluster
@@ -299,8 +354,8 @@ func RunTest(provider Provider) {
 
 	})
 
-	// NodeExists
-	ginkgo.It("Should be able to find a node in a organization", func() {
+	// ClusterExists
+	ginkgo.It("Should be able to find a cluster in a organization", func() {
 
 		organizationID := "Org_0001"
 		org := &entities.Organization{ID: organizationID, Name: "organization 0001", Created: 12}
@@ -316,7 +371,7 @@ func RunTest(provider Provider) {
 		gomega.Expect(exists).To(gomega.BeTrue())
 
 	})
-	ginkgo.It("Should not be able to find a node in a organization", func() {
+	ginkgo.It("Should not be able to find a cluster in a organization", func() {
 
 		organizationID := "Org_0001"
 

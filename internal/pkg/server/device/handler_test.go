@@ -145,7 +145,7 @@ var _ = ginkgo.Describe("Applications", func() {
 
 	ginkgo.BeforeEach(func() {
 		ginkgo.By("cleaning the mockups", func() {
-			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
+			targetOrganization = testhelpers.AddOrganization(organizationProvider)
 		})
 	})
 	ginkgo.AfterEach(func() {

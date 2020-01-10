@@ -316,7 +316,7 @@ var _ = ginkgo.Describe("Applications", func() {
 			deviceProvider.(*devProvider.MockupDeviceProvider).Clear()
 
 			// Initial data
-			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
+			targetOrganization = testhelpers.AddOrganization(organizationProvider)
 
 			// generate deviceGroups
 			testhelpers.CreateDeviceGroup(deviceProvider, targetOrganization.ID, "dg1")

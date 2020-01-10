@@ -24,14 +24,21 @@ import (
 )
 
 type Organization struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Created int64  `json:"created"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	FullAddress string `json:"full_address"`
+	City        string `json:"city"`
+	State       string `json:"state"`
+	Country     string `json:"country"`
+	ZipCode     string `json:"zip_code"`
+	PhotoBase64 string `json:"photo_base64"`
+	Created     int64  `json:"created"`
 }
 
-func NewOrganization(name string) *Organization {
+func NewOrganization(name string, fullAddress string, city string, state string, country string, zipCode string, photo string) *Organization {
 	uuid := GenerateUUID()
-	return &Organization{uuid, name, time.Now().Unix()}
+	return &Organization{uuid, name, fullAddress, city, state, country,
+		zipCode, photo, time.Now().Unix()}
 }
 
 func (o *Organization) String() string {
@@ -42,8 +49,39 @@ func (o *Organization) ToGRPC() *grpc_organization_go.Organization {
 	return &grpc_organization_go.Organization{
 		OrganizationId: o.ID,
 		Name:           o.Name,
+		FullAddress:    o.FullAddress,
+		City:           o.City,
+		Country:        o.Country,
+		State:          o.State,
+		ZipCode:        o.ZipCode,
+		PhotoBase64:    o.PhotoBase64,
 		Created:        o.Created,
 	}
+}
+func (o *Organization) ApplyUpdate(toUpdate *grpc_organization_go.UpdateOrganizationRequest) {
+
+	if toUpdate.UpdateName {
+		o.Name = toUpdate.Name
+	}
+	if toUpdate.UpdateFullAddress {
+		o.FullAddress = toUpdate.FullAddress
+	}
+	if toUpdate.UpdateCity {
+		o.City = toUpdate.City
+	}
+	if toUpdate.UpdateCountry {
+		o.Country = toUpdate.Country
+	}
+	if toUpdate.UpdateState {
+		o.State = toUpdate.State
+	}
+	if toUpdate.UpdatePhoto {
+		o.PhotoBase64 = toUpdate.PhotoBase64
+	}
+	if toUpdate.UpdateZipCode {
+		o.ZipCode = toUpdate.ZipCode
+	}
+
 }
 
 func OrganizationListToGRPC(list []Organization) *grpc_organization_go.OrganizationList {
@@ -69,5 +107,66 @@ func ValidAddOrganizationRequest(toAdd *grpc_organization_go.AddOrganizationRequ
 }
 
 func ValidUpdateOrganization(toUpdate *grpc_organization_go.UpdateOrganizationRequest) derrors.Error {
+	if toUpdate.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	if toUpdate.UpdateName && toUpdate.Name == "" {
+		return derrors.NewInvalidArgumentError(emptyName)
+
+	}
 	return nil
+}
+
+type OrganizationCluster struct {
+	OrganizationId string `json:"organization_id"`
+	ClusterId      string `json:"cluster_id"`
+}
+
+func NewOrganizationCluster(org string, cluster string) *OrganizationCluster {
+	return &OrganizationCluster{org, cluster}
+}
+
+type OrganizationNode struct {
+	OrganizationId string `json:"organization_id"`
+	NodeId         string `json:"node_id"`
+}
+
+func NewOrganizationNode(org string, node string) *OrganizationNode {
+	return &OrganizationNode{org, node}
+}
+
+type OrganizationDescriptor struct {
+	OrganizationId  string `json:"organization_id"`
+	AppDescriptorId string `json:"app_descriptor_id"`
+}
+
+func NewOrganizationDescriptor(org string, appDescriptorID string) *OrganizationDescriptor {
+	return &OrganizationDescriptor{org, appDescriptorID}
+}
+
+type OrganizationInstance struct {
+	OrganizationId string `json:"organization_id"`
+	AppInstanceId  string `json:"app_instance_id"`
+}
+
+func NewOrganizationInstance(org string, appInstanceID string) *OrganizationInstance {
+	return &OrganizationInstance{org, appInstanceID}
+}
+
+type OrganizationUser struct {
+	OrganizationId string `json:"organization_id"`
+	Email          string `json:"email"`
+}
+
+func NewOrganizationUser(org string, email string) *OrganizationUser {
+	return &OrganizationUser{org, email}
+}
+
+type OrganizationRole struct {
+	OrganizationId string `json:"organization_id"`
+	RoleId         string `json:"role_id"`
+}
+
+func NewOrganizationRole(org string, roleId string) *OrganizationRole {
+	return &OrganizationRole{org, roleId}
 }

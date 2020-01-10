@@ -18,7 +18,6 @@ package organization
 
 import (
 	"context"
-	"github.com/nalej/derrors"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
@@ -76,7 +75,16 @@ func (h *Handler) ListOrganizations(ctx context.Context, _ *grpc_common_go.Empty
 
 // UpdateOrganization updates the public information of an organization.
 func (h *Handler) UpdateOrganization(ctx context.Context, updateOrganizationRequest *grpc_organization_go.UpdateOrganizationRequest) (*grpc_common_go.Success, error) {
-	notImplemented := derrors.NewUnimplementedError("update organization")
-	log.Error().Str("trace", notImplemented.DebugReport()).Msg("cannot update organization")
-	return nil, conversions.ToGRPCError(notImplemented)
+	vErr := entities.ValidUpdateOrganization(updateOrganizationRequest)
+	if vErr != nil {
+		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid update organization request")
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	err := h.Manager.UpdateOrganization(updateOrganizationRequest)
+	if err != nil {
+		log.Error().Str("trace", err.DebugReport()).Msg("cannot update organization")
+
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
 }

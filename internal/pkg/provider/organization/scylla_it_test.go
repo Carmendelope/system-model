@@ -39,6 +39,9 @@ create table nalej.Organization_AppDescriptors (organization_id text, app_descri
 create table nalej.Organization_AppInstances (organization_id text, app_instance_id text, PRIMARY KEY (organization_id, app_instance_id));
 create table nalej.Organization_Users (organization_id text, email text, PRIMARY KEY (organization_id, email));
 create table nalej.Organization_Roles (organization_id text, role_id text, PRIMARY KEY (organization_id, role_id));
+
+
+create index IF NOT EXISTS organizationName ON nalej.organizations (name);
 */
 
 var _ = ginkgo.Describe("Scylla organization provider", func() {

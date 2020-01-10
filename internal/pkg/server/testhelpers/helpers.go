@@ -18,6 +18,8 @@ package testhelpers
 
 import (
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"github.com/nalej/system-model/internal/pkg/entities/devices"
 	devProvider "github.com/nalej/system-model/internal/pkg/provider/device"
@@ -27,8 +29,41 @@ import (
 	"math/rand"
 )
 
-func CreateOrganization(orgProvider orgProvider.Provider) *entities.Organization {
-	toAdd := entities.NewOrganization(fmt.Sprintf("org-%d-%d", ginkgo.GinkgoRandomSeed(), rand.Int()))
+func CreateOrganization() *entities.Organization {
+	return entities.NewOrganization(
+		fmt.Sprintf(fmt.Sprintf("org-%d-%d", ginkgo.GinkgoRandomSeed(), rand.Int())),
+		"Nalej Test Address",
+		"City Test",
+		"State Test",
+		"U.S.A",
+		"XXX",
+		"Photo")
+}
+
+func CreateAddOrganizationRequest() *grpc_organization_go.AddOrganizationRequest {
+	return &grpc_organization_go.AddOrganizationRequest{
+		Name:        fmt.Sprintf("Nalej-%s", uuid.New().String()),
+		FullAddress: "Address",
+		City:        "City",
+		State:       "State",
+		Country:     "Country",
+		ZipCode:     "Zip Code",
+		PhotoBase64: "Photo",
+	}
+}
+
+func CreateUpdateOrganizationRequest(id string, updateName bool, newName string) *grpc_organization_go.UpdateOrganizationRequest {
+	return &grpc_organization_go.UpdateOrganizationRequest{
+		OrganizationId:    id,
+		UpdateName:        updateName,
+		Name:              newName,
+		UpdateFullAddress: true,
+		FullAddress:       "Address modified",
+	}
+}
+
+func AddOrganization(orgProvider orgProvider.Provider) *entities.Organization {
+	toAdd := CreateOrganization()
 	err := orgProvider.Add(*toAdd)
 	gomega.Expect(err).To(gomega.Succeed())
 	return toAdd

@@ -86,7 +86,7 @@ var _ = ginkgo.Describe("User service", func() {
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			userProvider.(*uProvider.MockupUserProvider).Clear()
 			// Initial data
-			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
+			targetOrganization = testhelpers.AddOrganization(organizationProvider)
 		})
 	})
 
