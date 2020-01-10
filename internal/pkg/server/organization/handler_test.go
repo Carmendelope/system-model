@@ -18,21 +18,17 @@ package organization
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/test"
 	"github.com/nalej/system-model/internal/pkg/provider/organization"
+	"github.com/nalej/system-model/internal/pkg/utils"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 )
-
-func createOrganization(name string) *grpc_organization_go.AddOrganizationRequest {
-	return &grpc_organization_go.AddOrganizationRequest{
-		Name: name,
-	}
-}
 
 var _ = ginkgo.Describe("Organization service", func() {
 	// gRPC server
@@ -71,12 +67,18 @@ var _ = ginkgo.Describe("Organization service", func() {
 
 	ginkgo.Context("adding organization", func() {
 		ginkgo.It("should support adding a new organization", func() {
-			toAdd := createOrganization("org1")
+			toAdd := utils.CreateAddOrganizationRequest()
 			org, err := client.AddOrganization(context.Background(), toAdd)
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(org).ShouldNot(gomega.BeNil())
 			gomega.Expect(org.Name).To(gomega.Equal(toAdd.Name))
 			gomega.Expect(org.OrganizationId).ShouldNot(gomega.BeNil())
+
+			retrieved, err := client.GetOrganization(context.Background(), &grpc_organization_go.OrganizationId{
+				OrganizationId:org.OrganizationId} )
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(*retrieved).Should(gomega.Equal(*org))
+
 		})
 
 		ginkgo.It("should fail if the organization name is not specified", func() {
@@ -87,13 +89,13 @@ var _ = ginkgo.Describe("Organization service", func() {
 		})
 
 		ginkgo.It("should fail if the organization name already exists", func() {
-			toAdd := createOrganization("org_test")
+			toAdd := utils.CreateAddOrganizationRequest()
 			org, err := client.AddOrganization(context.Background(), toAdd)
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(org).ShouldNot(gomega.BeNil())
 
-			sameNameOrg := createOrganization("org_test")
-			_, err = client.AddOrganization(context.Background(), sameNameOrg)
+			//sameNameOrg := createOrganization("org_test")
+			_, err = client.AddOrganization(context.Background(), toAdd)
 			gomega.Expect(err).NotTo(gomega.Succeed())
 		})
 
@@ -101,10 +103,11 @@ var _ = ginkgo.Describe("Organization service", func() {
 
 	ginkgo.Context("retrieve organization", func() {
 		ginkgo.It("should work on existing organization", func() {
-			toAdd := createOrganization("org2")
+			toAdd := utils.CreateAddOrganizationRequest()
 			org, err := client.AddOrganization(context.Background(), toAdd)
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
 			toGet := grpc_organization_go.OrganizationId{
 				OrganizationId: org.OrganizationId,
 			}
@@ -115,12 +118,12 @@ var _ = ginkgo.Describe("Organization service", func() {
 		})
 
 		ginkgo.It("should recover a list of organizations", func() {
-			toAdd := createOrganization("org2")
+			toAdd := utils.CreateAddOrganizationRequest()
 			org, err := client.AddOrganization(context.Background(), toAdd)
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(org).ShouldNot(gomega.BeNil())
 
-			toAdd = createOrganization("org3")
+			toAdd =  utils.CreateAddOrganizationRequest()
 			org, err = client.AddOrganization(context.Background(), toAdd)
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(org).ShouldNot(gomega.BeNil())
@@ -156,12 +159,57 @@ var _ = ginkgo.Describe("Organization service", func() {
 		})
 	})
 
-	ginkgo.PContext("update organization", func() {
-		ginkgo.PIt("should support updating an existing organization", func() {
+	ginkgo.Context("update organization", func() {
+		ginkgo.It("should support updating an existing organization", func() {
+			toAdd := utils.CreateAddOrganizationRequest()
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			toUpdate := utils.CreateUpdateOrganizationRequest(org.OrganizationId, false, "")
+			success, err := client.UpdateOrganization(context.Background(), toUpdate)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(success).NotTo(gomega.BeNil())
+
+			retrieved, err := client.GetOrganization(context.Background(), &grpc_organization_go.OrganizationId{OrganizationId:org.OrganizationId})
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(retrieved).NotTo(gomega.Equal(org))
 
 		})
 
-		ginkgo.PIt("should fail on non-existing organization", func() {
+		ginkgo.It("should fail on non-existing organization", func() {
+			toUpdate := utils.CreateUpdateOrganizationRequest(uuid.New().String(), false, "")
+			success, err := client.UpdateOrganization(context.Background(), toUpdate)
+			gomega.Expect(err).ShouldNot(gomega.Succeed())
+			gomega.Expect(success).To(gomega.BeNil())
+		})
+
+		ginkgo.It("should fail when removing the name of an organization", func() {
+			toAdd := utils.CreateAddOrganizationRequest()
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			toUpdate := utils.CreateUpdateOrganizationRequest(org.OrganizationId, true, "")
+			success, err := client.UpdateOrganization(context.Background(), toUpdate)
+			gomega.Expect(err).ShouldNot(gomega.Succeed())
+			gomega.Expect(success).To(gomega.BeNil())
+		})
+		ginkgo.It("Should fail when updating the name of an organization if there is another with that name", func() {
+			toAdd1 := utils.CreateAddOrganizationRequest()
+			org1, err := client.AddOrganization(context.Background(), toAdd1)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org1).ShouldNot(gomega.BeNil())
+
+			toAdd2 := utils.CreateAddOrganizationRequest()
+			org2, err := client.AddOrganization(context.Background(), toAdd2)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org2).ShouldNot(gomega.BeNil())
+
+			toUpdate := utils.CreateUpdateOrganizationRequest(org1.OrganizationId, true, org2.Name)
+			success, err := client.UpdateOrganization(context.Background(), toUpdate)
+			gomega.Expect(err).ShouldNot(gomega.Succeed())
+			gomega.Expect(success).To(gomega.BeNil())
 
 		})
 	})

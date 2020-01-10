@@ -49,8 +49,39 @@ func (o *Organization) ToGRPC() *grpc_organization_go.Organization {
 	return &grpc_organization_go.Organization{
 		OrganizationId: o.ID,
 		Name:           o.Name,
+		FullAddress:    o.FullAddress,
+		City:           o.City,
+		Country:        o.Country,
+		State:          o.State,
+		ZipCode:        o.ZipCode,
+		PhotoBase64:    o.PhotoBase64,
 		Created:        o.Created,
 	}
+}
+func (o *Organization) ApplyUpdate(toUpdate *grpc_organization_go.UpdateOrganizationRequest) {
+
+	if toUpdate.UpdateName {
+		o.Name = toUpdate.Name
+	}
+	if toUpdate.UpdateFullAddress {
+		o.FullAddress = toUpdate.FullAddress
+	}
+	if toUpdate.UpdateCity {
+		o.City = toUpdate.City
+	}
+	if toUpdate.UpdateCountry {
+		o.Country = toUpdate.Country
+	}
+	if toUpdate.UpdateState {
+		o.State = toUpdate.State
+	}
+	if toUpdate.UpdatePhoto {
+		o.PhotoBase64 = toUpdate.PhotoBase64
+	}
+	if toUpdate.UpdateZipCode {
+		o.ZipCode = toUpdate.ZipCode
+	}
+
 }
 
 func OrganizationListToGRPC(list []Organization) *grpc_organization_go.OrganizationList {
@@ -76,6 +107,13 @@ func ValidAddOrganizationRequest(toAdd *grpc_organization_go.AddOrganizationRequ
 }
 
 func ValidUpdateOrganization(toUpdate *grpc_organization_go.UpdateOrganizationRequest) derrors.Error {
+	if toUpdate.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	if toUpdate.UpdateName && toUpdate.Name == "" {
+		return derrors.NewInvalidArgumentError(emptyName)
+
+	}
 	return nil
 }
 

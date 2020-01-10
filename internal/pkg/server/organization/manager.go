@@ -35,7 +35,8 @@ func NewManager(provider organization.Provider) Manager {
 
 // AddOrganization adds a new organization to the system.
 func (m *Manager) AddOrganization(toAdd grpc_organization_go.AddOrganizationRequest) (*entities.Organization, derrors.Error) {
-	newOrg := entities.NewOrganization(toAdd.Name)
+	newOrg := entities.NewOrganization(toAdd.Name, toAdd.FullAddress, toAdd.City,
+		toAdd.State , toAdd.Country, toAdd.ZipCode, toAdd.PhotoBase64)
 
 	exists, err := m.Provider.ExistsByName(newOrg.Name)
 	if err != nil {
@@ -60,4 +61,26 @@ func (m *Manager) GetOrganization(orgID grpc_organization_go.OrganizationId) (*e
 // ListOrganization retrieves the profile information of a given organization.
 func (m *Manager) ListOrganization() ([]entities.Organization, derrors.Error) {
 	return m.Provider.List()
+}
+
+func (m *Manager) UpdateOrganization (newOrg *grpc_organization_go.UpdateOrganizationRequest) derrors.Error {
+
+	if newOrg.UpdateName {
+		// check if there is an organization with the new name
+		exists, err := m.Provider.ExistsByName(newOrg.Name)
+		if err != nil {
+			return err
+		}
+		if exists {
+			return derrors.NewAlreadyExistsError("name").WithParams(newOrg.Name)
+		}
+	}
+
+	org, err := m.Provider.Get(newOrg.OrganizationId)
+	if err != nil {
+		return err
+	}
+	org.ApplyUpdate(newOrg)
+	return m.Provider.Update(*org)
+
 }

@@ -19,6 +19,7 @@ package utils
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/system-model/internal/pkg/entities"
 	"os"
 )
@@ -28,7 +29,28 @@ func RunIntegrationTests() bool {
 	return runIntegration == "true"
 }
 
-
 func CreateOrganization() *entities.Organization {
 	return entities.NewOrganization(fmt.Sprintf("Nalej-%s", uuid.New().String()), "Nalej Test Address", "City Test", "State Test", "U.S.A", "XXX", "Photo")
+}
+
+func CreateAddOrganizationRequest() *grpc_organization_go.AddOrganizationRequest {
+	return &grpc_organization_go.AddOrganizationRequest{
+		Name:        fmt.Sprintf("Nalej-%s", uuid.New().String()),
+		FullAddress: "Address",
+		City:        "City",
+		State:       "State",
+		Country:     "Country",
+		ZipCode:     "Zip Code",
+		PhotoBase64: "Photo",
+	}
+}
+
+func CreateUpdateOrganizationRequest(id string, updateName bool, newName string) *grpc_organization_go.UpdateOrganizationRequest {
+	return &grpc_organization_go.UpdateOrganizationRequest{
+		OrganizationId:    id,
+		UpdateName:        updateName,
+		Name:              newName,
+		UpdateFullAddress: true,
+		FullAddress:       "Address modified",
+	}
 }
