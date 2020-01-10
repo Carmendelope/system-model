@@ -94,7 +94,7 @@ var _ = ginkgo.Describe("Asset service", func() {
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			aProvider.Clear()
 			// Initial data
-			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
+			targetOrganization = testhelpers.AddOrganization(organizationProvider)
 		})
 	})
 

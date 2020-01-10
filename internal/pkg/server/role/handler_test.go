@@ -84,7 +84,7 @@ var _ = ginkgo.Describe("Role service", func() {
 			organizationProvider.(*orgProvider.MockupOrganizationProvider).Clear()
 			roleProvider.(*rProvider.MockupRoleProvider).Clear()
 			// Initial data
-			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
+			targetOrganization = testhelpers.AddOrganization(organizationProvider)
 		})
 	})
 

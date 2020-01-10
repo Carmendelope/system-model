@@ -102,7 +102,7 @@ var _ = ginkgo.Describe("Node service", func() {
 			nProvider.(*nodeProvider.MockupNodeProvider).Clear()
 			clusterProvider.(*clusProvider.MockupClusterProvider).Clear()
 			// Initial data
-			targetOrganization = testhelpers.CreateOrganization(organizationProvider)
+			targetOrganization = testhelpers.AddOrganization(organizationProvider)
 			targetCluster = createCluster(targetOrganization.ID, organizationProvider, clusterProvider)
 		})
 	})
