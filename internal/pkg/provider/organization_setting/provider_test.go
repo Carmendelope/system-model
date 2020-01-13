@@ -79,7 +79,7 @@ func RunTest(provider Provider) {
 		})
 	})
 	ginkgo.Context("listing settings", func() {
-		ginkgo.It("should be able to return the settings of an organization", func() {
+		ginkgo.FIt("should be able to return the settings of an organization", func() {
 
 			orgId := uuid.New().String()
 			numSettings := 2
@@ -94,6 +94,20 @@ func RunTest(provider Provider) {
 			gomega.Expect(list).NotTo(gomega.BeNil())
 			gomega.Expect(len(list)).Should(gomega.Equal(numSettings))
 
+			// add other organization with settings and check when listing the settings, only its settings are being returned
+
+			orgId2 := uuid.New().String()
+			numSettings2 := 5
+			for i:=0; i<numSettings2; i++ {
+				setting := CreateOrganizationSetting(orgId2)
+				err := provider.Add(*setting)
+				gomega.Expect(err).Should(gomega.Succeed())
+			}
+
+			list2, err := provider.List(orgId2)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(list2).NotTo(gomega.BeNil())
+			gomega.Expect(len(list2)).Should(gomega.Equal(numSettings2))
 		})
 		ginkgo.It("should be able to return an empty list of settings of an organization", func() {
 			orgId := uuid.New().String()
@@ -102,6 +116,7 @@ func RunTest(provider Provider) {
 			gomega.Expect(list).NotTo(gomega.BeNil())
 			gomega.Expect(len(list)).Should(gomega.Equal(0))
 		})
+
 	})
 	ginkgo.Context("updating a setting", func() {
 		ginkgo.It("should be able to update a setting", func() {

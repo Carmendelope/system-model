@@ -106,8 +106,10 @@ func (s *ScyllaOrganizationSettingProvider) List(organizationID string) ([]entit
 		return nil, err
 	}
 
-	stmt, names := qb.Select(organizationSettingTable).Columns(organizationSettingTableColumns...).ToCql()
-	q := gocqlx.Query(s.Session.Query(stmt), names)
+	stmt, names := qb.Select(organizationSettingTable).Columns(organizationSettingTableColumns...).Where(qb.Eq("organization_id")).ToCql()
+	q := gocqlx.Query(s.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": organizationID,
+	})
 
 	settings := make([]entities.OrganizationSetting, 0)
 	cqlErr := q.SelectRelease(&settings)
