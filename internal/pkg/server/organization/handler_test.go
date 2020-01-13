@@ -79,7 +79,7 @@ var _ = ginkgo.Describe("Organization service", func() {
 			gomega.Expect(org.OrganizationId).ShouldNot(gomega.BeNil())
 
 			retrieved, err := client.GetOrganization(context.Background(), &grpc_organization_go.OrganizationId{
-				OrganizationId:org.OrganizationId} )
+				OrganizationId: org.OrganizationId})
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(*retrieved).Should(gomega.Equal(*org))
 
@@ -127,7 +127,7 @@ var _ = ginkgo.Describe("Organization service", func() {
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(org).ShouldNot(gomega.BeNil())
 
-			toAdd =  testhelpers.CreateAddOrganizationRequest()
+			toAdd = testhelpers.CreateAddOrganizationRequest()
 			org, err = client.AddOrganization(context.Background(), toAdd)
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(org).ShouldNot(gomega.BeNil())
@@ -175,7 +175,7 @@ var _ = ginkgo.Describe("Organization service", func() {
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(success).NotTo(gomega.BeNil())
 
-			retrieved, err := client.GetOrganization(context.Background(), &grpc_organization_go.OrganizationId{OrganizationId:org.OrganizationId})
+			retrieved, err := client.GetOrganization(context.Background(), &grpc_organization_go.OrganizationId{OrganizationId: org.OrganizationId})
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(retrieved).NotTo(gomega.Equal(org))
 
@@ -223,6 +223,189 @@ var _ = ginkgo.Describe("Organization service", func() {
 
 		})
 		ginkgo.PIt("should fail on non-existing organization", func() {
+
+		})
+	})
+
+	ginkgo.Context("adding setting", func() {
+		ginkgo.It("Should be able to add a setting", func() {
+			// add Organization
+			toAdd := testhelpers.CreateAddOrganizationRequest()
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			settingToAdd := testhelpers.CreateAddSettingRequest(org.OrganizationId)
+			setting, err := client.AddSetting(context.Background(), settingToAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(setting).NotTo(gomega.BeNil())
+
+		})
+		ginkgo.It("Should not be able to add a setting if the organization does not exist", func() {
+			settingToAdd := testhelpers.CreateAddSettingRequest("organization-test")
+			_, err := client.AddSetting(context.Background(), settingToAdd)
+			gomega.Expect(err).ShouldNot(gomega.Succeed())
+
+		})
+	})
+	ginkgo.Context("removing setting", func() {
+
+		ginkgo.It("Should be able to remove a setting", func() {
+			// add Organization
+			toAdd := testhelpers.CreateAddOrganizationRequest()
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			settingToAdd := testhelpers.CreateAddSettingRequest(org.OrganizationId)
+			setting, err := client.AddSetting(context.Background(), settingToAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(setting).NotTo(gomega.BeNil())
+
+			success, err := client.RemoveSetting(context.Background(), &grpc_organization_go.SettingKey{
+				OrganizationId: setting.OrganizationId,
+				Key:            setting.Key,
+			})
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(success).ShouldNot(gomega.BeNil())
+
+		})
+		ginkgo.It("Should not be able to remove a non existing setting", func() {
+			// add Organization
+			toAdd := testhelpers.CreateAddOrganizationRequest()
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			success, err := client.RemoveSetting(context.Background(), &grpc_organization_go.SettingKey{
+				OrganizationId: org.OrganizationId,
+				Key:            "key",
+			})
+			gomega.Expect(err).ShouldNot(gomega.Succeed())
+			gomega.Expect(success).Should(gomega.BeNil())
+
+		})
+	})
+	ginkgo.Context("updating setting", func() {
+		ginkgo.It("Should be able to update a setting", func() {
+			// add Organization
+			toAdd := testhelpers.CreateAddOrganizationRequest()
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			settingToAdd := testhelpers.CreateAddSettingRequest(org.OrganizationId)
+			setting, err := client.AddSetting(context.Background(), settingToAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(setting).NotTo(gomega.BeNil())
+
+			toUpdate := testhelpers.CreateUpdateSettingRequest(setting)
+			success, err := client.UpdateSetting(context.Background(), toUpdate)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(success).NotTo(gomega.BeNil())
+
+		})
+		ginkgo.It("Should not be able to update a non existing setting", func() {
+			// add Organization
+			toAdd := testhelpers.CreateAddOrganizationRequest()
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			settingToAdd := testhelpers.CreateAddSettingRequest(org.OrganizationId)
+			setting, err := client.AddSetting(context.Background(), settingToAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(setting).NotTo(gomega.BeNil())
+
+			toUpdate := testhelpers.CreateUpdateSettingRequest(setting)
+			toUpdate.Key = "wrong key"
+			success, err := client.UpdateSetting(context.Background(), toUpdate)
+			gomega.Expect(err).NotTo(gomega.Succeed())
+			gomega.Expect(success).To(gomega.BeNil())
+
+		})
+	})
+	ginkgo.Context("listing setting", func() {
+		ginkgo.It("Should be able to add a setting", func() {
+			// add Organization
+			toAdd := testhelpers.CreateAddOrganizationRequest()
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			numSettings := 5
+			for i := 0; i < numSettings; i++ {
+				settingToAdd := testhelpers.CreateAddSettingRequest(org.OrganizationId)
+				setting, err := client.AddSetting(context.Background(), settingToAdd)
+				gomega.Expect(err).Should(gomega.Succeed())
+				gomega.Expect(setting).NotTo(gomega.BeNil())
+			}
+			list, err := client.ListSettings(context.Background(), &grpc_organization_go.OrganizationId{
+				OrganizationId: org.OrganizationId,
+			})
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(list).NotTo(gomega.BeNil())
+			gomega.Expect(len(list.Settings)).Should(gomega.Equal(numSettings))
+
+		})
+		ginkgo.It("Should be able to return an empty list of settings", func() {
+			// add Organization
+			toAdd := testhelpers.CreateAddOrganizationRequest()
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			list, err := client.ListSettings(context.Background(), &grpc_organization_go.OrganizationId{
+				OrganizationId: org.OrganizationId,
+			})
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(list).NotTo(gomega.BeNil())
+			gomega.Expect(len(list.Settings)).Should(gomega.Equal(0))
+
+		})
+		ginkgo.It("Should not be able to return a list of settings if the organization does not exist", func() {
+
+			_, err := client.ListSettings(context.Background(), &grpc_organization_go.OrganizationId{
+				OrganizationId: uuid.New().String(),
+			})
+			gomega.Expect(err).ShouldNot(gomega.Succeed())
+		})
+	})
+	ginkgo.Context("removing setting", func() {
+		ginkgo.It("Should be able to remove a setting", func() {
+			// add Organization
+			toAdd := testhelpers.CreateAddOrganizationRequest()
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			settingToAdd := testhelpers.CreateAddSettingRequest(org.OrganizationId)
+			setting, err := client.AddSetting(context.Background(), settingToAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(setting).NotTo(gomega.BeNil())
+
+			success, err := client.RemoveSetting(context.Background(), &grpc_organization_go.SettingKey{
+				OrganizationId: org.OrganizationId,
+				Key:            setting.Key,
+			})
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(success).NotTo(gomega.BeNil())
+
+
+		})
+		ginkgo.It("Should not be able to remove a non existing setting", func() {
+			// add Organization
+			toAdd := testhelpers.CreateAddOrganizationRequest()
+			org, err := client.AddOrganization(context.Background(), toAdd)
+			gomega.Expect(err).Should(gomega.Succeed())
+			gomega.Expect(org).ShouldNot(gomega.BeNil())
+
+			success, err := client.RemoveSetting(context.Background(), &grpc_organization_go.SettingKey{
+				OrganizationId: org.OrganizationId,
+				Key:            uuid.New().String(),
+			})
+			gomega.Expect(err).ShouldNot(gomega.Succeed())
+			gomega.Expect(success).To(gomega.BeNil())
 
 		})
 	})
