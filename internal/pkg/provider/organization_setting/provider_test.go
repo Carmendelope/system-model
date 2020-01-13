@@ -79,7 +79,7 @@ func RunTest(provider Provider) {
 		})
 	})
 	ginkgo.Context("listing settings", func() {
-		ginkgo.FIt("should be able to return the settings of an organization", func() {
+		ginkgo.It("should be able to return the settings of an organization", func() {
 
 			orgId := uuid.New().String()
 			numSettings := 2
