@@ -27,6 +27,7 @@ import (
 	"github.com/nalej/grpc-project-go"
 	"github.com/nalej/grpc-role-go"
 	"github.com/nalej/grpc-user-go"
+	"github.com/nalej/system-model/internal/pkg/provider/organization_setting"
 	"github.com/nalej/system-model/internal/pkg/server/application_history_logs"
 	"github.com/nalej/system-model/internal/pkg/server/application_network"
 	"github.com/nalej/system-model/internal/pkg/server/project"
@@ -80,6 +81,7 @@ func NewService(conf Config) *Service {
 // Providers structure with all the providers in the system.
 type Providers struct {
 	organizationProvider   orgProvider.Provider
+	settingsProvider       organization_setting.Provider
 	clusterProvider        clusterProvider.Provider
 	nodeProvider           nodeProvider.Provider
 	applicationProvider    appProvider.Provider
@@ -108,6 +110,7 @@ func (s *Service) Description() string {
 func (s *Service) CreateInMemoryProviders() *Providers {
 	return &Providers{
 		organizationProvider:   orgProvider.NewMockupOrganizationProvider(),
+		settingsProvider: organization_setting.NewMockupOrganizationSettingProvider(),
 		clusterProvider:        clusterProvider.NewMockupClusterProvider(),
 		nodeProvider:           nodeProvider.NewMockupNodeProvider(),
 		applicationProvider:    appProvider.NewMockupApplicationProvider(),
@@ -127,6 +130,8 @@ func (s *Service) CreateInMemoryProviders() *Providers {
 func (s *Service) CreateDBScyllaProviders() *Providers {
 	return &Providers{
 		organizationProvider: orgProvider.NewScyllaOrganizationProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+		settingsProvider: organization_setting.NewScyllaOrganizationSettingProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 		clusterProvider: clusterProvider.NewScyllaClusterProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
@@ -179,7 +184,7 @@ func (s *Service) Run() error {
 		log.Fatal().Errs("failed to listen: %v", []error{err})
 	}
 	// organizations
-	orgManager := organization.NewManager(p.organizationProvider)
+	orgManager := organization.NewManager(p.organizationProvider, p.settingsProvider)
 	organizationHandler := organization.NewHandler(orgManager)
 	// clusters
 	clusterManager := cluster.NewManager(p.organizationProvider, p.clusterProvider)

@@ -96,3 +96,24 @@ func DeleteGroups(devProvider devProvider.Provider, organizationID string) {
 	}
 
 }
+
+func CreateAddSettingRequest(organizationID string) *grpc_organization_go.AddSettingRequest {
+	randValue := rand.Int()
+	return &grpc_organization_go.AddSettingRequest{
+		OrganizationId: organizationID,
+		Key:            fmt.Sprintf("Key-%d", randValue),
+		Value:          fmt.Sprintf("Value-%d", randValue),
+		Description:    "Description",
+	}
+}
+
+func CreateUpdateSettingRequest(setting *grpc_organization_go.OrganizationSetting) *grpc_organization_go.UpdateSettingRequest {
+	return &grpc_organization_go.UpdateSettingRequest{
+		OrganizationId:    setting.OrganizationId,
+		Key:               setting.Key,
+		UpdateValue:       true,
+		Value:             "new value",
+		UpdateDescription: true,
+		Description:       "new description",
+	}
+}

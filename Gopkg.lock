@@ -204,12 +204,12 @@
   version = "v0.0.31"
 
 [[projects]]
-  digest = "1:b4f0146f2b4dbbaabca9ce3a3fe53192f133f6d8988f9990cf1ebf58f70f3119"
+  digest = "1:72ac554d3a65bb7182facea97d8edd0d679df14984c66b1110da0eda47441e7b"
   name = "github.com/nalej/grpc-organization-go"
   packages = ["."]
   pruneopts = ""
-  revision = "3ec11d7581d05db4b44c590e3e04c0c37ca2906c"
-  version = "v0.0.32"
+  revision = "448507f75afa7dd6c13a4481970bef0fb6383d39"
+  version = "v0.0.33"
 
 [[projects]]
   digest = "1:321c1968b9842e7ffdc8273bffe8f59910f80d1e0e76e0c59eb7b6b92d1d6f70"
