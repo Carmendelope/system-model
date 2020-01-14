@@ -173,9 +173,6 @@ func RunTest(provider Provider) {
 		err = provider.Update(*org1)
 		gomega.Expect(err).NotTo(gomega.Succeed())
 
-
-
-
 	})
 	ginkgo.It("Should not be able to update a non existing organization", func() {
 		org := CreateOrganization()
