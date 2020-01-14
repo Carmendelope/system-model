@@ -65,7 +65,12 @@ func (m *Manager) ListOrganization() ([]entities.Organization, derrors.Error) {
 
 func (m *Manager) UpdateOrganization (newOrg *grpc_organization_go.UpdateOrganizationRequest) derrors.Error {
 
-	if newOrg.UpdateName {
+	org, err := m.Provider.Get(newOrg.OrganizationId)
+	if err != nil {
+		return err
+	}
+	// if the name is going to be updated to a different name..
+	if newOrg.UpdateName && newOrg.Name != org.Name {
 		// check if there is an organization with the new name
 		exists, err := m.Provider.ExistsByName(newOrg.Name)
 		if err != nil {
@@ -76,10 +81,7 @@ func (m *Manager) UpdateOrganization (newOrg *grpc_organization_go.UpdateOrganiz
 		}
 	}
 
-	org, err := m.Provider.Get(newOrg.OrganizationId)
-	if err != nil {
-		return err
-	}
+
 	org.ApplyUpdate(newOrg)
 	return m.Provider.Update(*org)
 
