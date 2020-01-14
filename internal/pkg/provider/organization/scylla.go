@@ -29,6 +29,7 @@ import (
 )
 
 const organizationTable = "Organizations"
+const organizationPhotoTable = "OrganizationPhotos"
 const organizationClusterTable = "Organization_Clusters"
 const organizationNodeTable = "Organization_Nodes"
 const organizationDescriptorTable = "organization_appdescriptors"
@@ -38,18 +39,20 @@ const organizationRoleTable = "Organization_Roles"
 
 // PKs
 const organizationTablePK = "id"
+const organizationPhotoTablePK = "organization_id"
 const organizationTableIndex = "name"
 
 // columns
-var organizationTableColumns = []string{"id", "name", "full_address", "city", "state", "country", "zip_code", "photo_base64", "created"}
-var organizationTableColumnsNoPK = []string{"name", "full_address", "city", "state", "country", "zip_code", "photo_base64", "created"}
+var organizationTableColumns = []string{"id", "name", "full_address", "city", "state", "country", "zip_code", "created"}
+var organizationTableColumnsNoPK = []string{"name", "full_address", "city", "state", "country", "zip_code", "created"}
+var organizationPhotoTableColumns = []string{"organization_id", "photo_base64"}
+var organizationPhotoTableColumnsNoPK = []string{"photo_base64"}
 var organizationClusterTableColumns = []string{"organization_id", "cluster_id"}
 var organizationNodeTableColumns = []string{"organization_id", "node_id"}
 var organizationDescriptorTableColumns = []string{"organization_id", "app_descriptor_id"}
 var organizationInstanceTableColumns = []string{"organization_id", "app_instance_id"}
 var organizationUserTableColumns = []string{"organization_id", "email"}
 var organizationRoleTableColumns = []string{"organization_id", "role_id"}
-
 
 type ScyllaOrganizationProvider struct {
 	scylladb.ScyllaDB
@@ -118,8 +121,8 @@ func (sp *ScyllaOrganizationProvider) createOrganizationNodePKMap(OrganizationID
 func (sp *ScyllaOrganizationProvider) createOrganizationDescriptorPKMap(OrganizationID string, appDescriptorId string) map[string]interface{} {
 
 	res := map[string]interface{}{
-		"organization_id": OrganizationID,
-		"app_descriptor_id":         appDescriptorId,
+		"organization_id":   OrganizationID,
+		"app_descriptor_id": appDescriptorId,
 	}
 
 	return res
@@ -129,7 +132,7 @@ func (sp *ScyllaOrganizationProvider) createOrganizationInstanceKMap(Organizatio
 
 	res := map[string]interface{}{
 		"organization_id": OrganizationID,
-		"app_instance_id":         appInstanceId,
+		"app_instance_id": appInstanceId,
 	}
 
 	return res
@@ -139,7 +142,7 @@ func (sp *ScyllaOrganizationProvider) createOrganizationUserKMap(OrganizationID 
 
 	res := map[string]interface{}{
 		"organization_id": OrganizationID,
-		"email":         email,
+		"email":           email,
 	}
 
 	return res
@@ -157,7 +160,54 @@ func (sp *ScyllaOrganizationProvider) createOrganizationRoleKMap(OrganizationID 
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// PhotoInfo is an internal struct to map the organizationPhoto records
+type PhotoInfo struct {
+	OrganizationId string `json:"organization_id"`
+	PhotoBase64    string `json:"photo_base64"`
+}
+
+// unsafeAddPhoto no uses generic add to avoid check if the photo already exist
+// we use this method to insert and to update the photos
+func (sp *ScyllaOrganizationProvider) unsafeAddPhoto(id string, photo string) derrors.Error {
+	if err := sp.CheckAndConnect(); err != nil {
+		return err
+	}
+	toAdd := &PhotoInfo{id, photo}
+	// insert the photo
+	stmt, names := qb.Insert(organizationPhotoTable).Columns(organizationPhotoTableColumns...).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(toAdd)
+	cqlErr := q.ExecRelease()
+
+	if cqlErr != nil {
+		log.Warn().Str("err", cqlErr.Error()).Msg("error adding the element")
+		return derrors.AsError(cqlErr, "cannot add new element")
+	}
+
+	return nil
+}
+
+func (sp *ScyllaOrganizationProvider) unsafeGetPhoto(id string) (*PhotoInfo, derrors.Error) {
+	var photo interface{} = &PhotoInfo{}
+	err := sp.UnsafeGet(organizationPhotoTable, organizationPhotoTablePK, id, organizationPhotoTableColumns, &photo)
+	if err != nil {
+		return nil, err
+	}
+	return photo.(*PhotoInfo), nil
+}
+
+func (sp *ScyllaOrganizationProvider) unsafeRemoveOrganization(id string) derrors.Error {
+	err := sp.UnsafeRemove(organizationTable, organizationTablePK, id)
+	if err != nil {
+		log.Error().Err(err).Msg("error removing organization")
+	}
+	return nil
+}
+// --------------------------------------------------------------------------------------------------------------------
+
+
 // Add a new organization to the system.
+// The organization is storing in two tables (for clarity). Organization and OrganizationPhotos
+
 func (sp *ScyllaOrganizationProvider) Add(org entities.Organization) derrors.Error {
 
 	sp.Lock()
@@ -171,7 +221,18 @@ func (sp *ScyllaOrganizationProvider) Add(org entities.Organization) derrors.Err
 	if exists {
 		return derrors.NewAlreadyExistsError(org.Name)
 	}
-	return sp.UnsafeAdd(organizationTable, organizationTablePK, org.ID, organizationTableColumns, org)
+	addErr := sp.UnsafeAdd(organizationTable, organizationTablePK, org.ID, organizationTableColumns, org)
+	if addErr != nil {
+		return addErr
+	}
+	photoErr := sp.unsafeAddPhoto(org.ID, org.PhotoBase64)
+	if photoErr != nil {
+		log.Error().Err(photoErr).Msg("error adding photo")
+		// TODO: review if it might be more interesting not to rollback the insert
+		sp.unsafeRemoveOrganization(org.ID)
+		return photoErr
+	}
+	return nil
 
 }
 
@@ -213,6 +274,18 @@ func (sp *ScyllaOrganizationProvider) ExistsByName(name string) (bool, derrors.E
 
 }
 
+func (sp *ScyllaOrganizationProvider) fillPhoto(org *entities.Organization) derrors.Error {
+	if org == nil {
+		return nil
+	}
+	photo, err := sp.unsafeGetPhoto(org.ID)
+	if err != nil {
+		return err
+	}
+	org.PhotoBase64 = photo.PhotoBase64
+	return nil
+}
+
 // Get an organization.
 func (sp *ScyllaOrganizationProvider) Get(organizationID string) (*entities.Organization, derrors.Error) {
 
@@ -225,7 +298,10 @@ func (sp *ScyllaOrganizationProvider) Get(organizationID string) (*entities.Orga
 	if err != nil {
 		return nil, err
 	}
-	return organization.(*entities.Organization), nil
+	org := organization.(*entities.Organization)
+	sp.fillPhoto(org)
+
+	return org, nil
 
 }
 
@@ -249,6 +325,13 @@ func (sp *ScyllaOrganizationProvider) List() ([]entities.Organization, derrors.E
 		return nil, derrors.AsError(cqlErr, "cannot list organization")
 	}
 
+	for i:=0; i<len(organizations); i++ {
+		err := sp.fillPhoto(&organizations[i])
+		if err != nil {
+			log.Warn().Str("organization_id", organizations[i].ID).Msg("error getting the photo")
+		}
+	}
+
 	return organizations, nil
 }
 
@@ -261,7 +344,7 @@ func (sp *ScyllaOrganizationProvider) Update(org entities.Organization) derrors.
 	if err != nil {
 		return err
 	}
-	if ! exists {
+	if !exists {
 		return derrors.NewNotFoundError(org.ID)
 	}
 
@@ -285,10 +368,17 @@ func (sp *ScyllaOrganizationProvider) Update(org entities.Organization) derrors.
 		}
 	}
 	// 4.- Update
-	return sp.UnsafeUpdate(organizationTable, organizationTablePK, org.ID, organizationTableColumnsNoPK, org)
-
+	err = sp.UnsafeUpdate(organizationTable, organizationTablePK, org.ID, organizationTableColumnsNoPK, org)
+	if err != nil {
+		return nil
+	}
+	// 5.- Update photo
+	err = sp.unsafeAddPhoto(org.ID, org.PhotoBase64)
+	if err != nil {
+		return err
+	}
+	return nil
 }
-
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -749,6 +839,6 @@ func (sp *ScyllaOrganizationProvider) Clear() derrors.Error {
 	defer sp.Unlock()
 
 	return sp.UnsafeClear([]string{organizationTable, organizationNodeTable, organizationRoleTable, organizationUserTable,
-		organizationClusterTable, organizationDescriptorTable, organizationInstanceTable})
+		organizationClusterTable, organizationDescriptorTable, organizationInstanceTable, organizationPhotoTable})
 
 }

@@ -148,6 +148,7 @@ func RunTest(provider Provider) {
 		// Update
 		org.Name = "Name updated"
 		org.State = "State updated"
+		org.PhotoBase64 = "Other Photo"
 		err = provider.Update(*org)
 		gomega.Expect(err).To(gomega.Succeed())
 
@@ -172,9 +173,6 @@ func RunTest(provider Provider) {
 		org1.Name = org2.Name
 		err = provider.Update(*org1)
 		gomega.Expect(err).NotTo(gomega.Succeed())
-
-
-
 
 	})
 	ginkgo.It("Should not be able to update a non existing organization", func() {

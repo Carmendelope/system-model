@@ -32,7 +32,8 @@ docker exec -it scylla cqlsh
 
 create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 use nalej;
-create table nalej.organizations (id text, name text, created bigint, PRIMARY KEY (id));
+create table nalej.organizations (id text, name text, full_address text, city text, state text, country text, zip_code text, photo_base64 text, created bigint, PRIMARY KEY (id));
+create table nalej.OrganizationPhotos (organization_id text, photo_base64 text, PRIMARY KEY (organization_id));
 create table nalej.Organization_Clusters (organization_id text, cluster_id text, PRIMARY KEY (organization_id, cluster_id));
 create table nalej.Organization_Nodes (organization_id text, node_id text, PRIMARY KEY (organization_id, node_id));
 create table nalej.Organization_AppDescriptors (organization_id text, app_descriptor_id text, PRIMARY KEY (organization_id, app_descriptor_id));
