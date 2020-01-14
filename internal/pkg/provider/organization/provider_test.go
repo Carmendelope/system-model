@@ -148,6 +148,7 @@ func RunTest(provider Provider) {
 		// Update
 		org.Name = "Name updated"
 		org.State = "State updated"
+		org.PhotoBase64 = "Other Photo"
 		err = provider.Update(*org)
 		gomega.Expect(err).To(gomega.Succeed())
 

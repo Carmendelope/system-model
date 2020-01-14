@@ -160,13 +160,30 @@ func (sp *ScyllaOrganizationProvider) createOrganizationRoleKMap(OrganizationID 
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// PhotoInfo is an internal struct to map the organizationPhoto records
 type PhotoInfo struct {
 	OrganizationId string `json:"organization_id"`
 	PhotoBase64    string `json:"photo_base64"`
 }
 
+// unsafeAddPhoto no uses generic add to avoid check if the photo already exist
+// we use this method to insert and to update the photos
 func (sp *ScyllaOrganizationProvider) unsafeAddPhoto(id string, photo string) derrors.Error {
-	return sp.UnsafeAdd(organizationPhotoTable, organizationPhotoTablePK, id, organizationPhotoTableColumns, PhotoInfo{id, photo})
+	if err := sp.CheckAndConnect(); err != nil {
+		return err
+	}
+	toAdd := &PhotoInfo{id, photo}
+	// insert the photo
+	stmt, names := qb.Insert(organizationPhotoTable).Columns(organizationPhotoTableColumns...).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(toAdd)
+	cqlErr := q.ExecRelease()
+
+	if cqlErr != nil {
+		log.Warn().Str("err", cqlErr.Error()).Msg("error adding the element")
+		return derrors.AsError(cqlErr, "cannot add new element")
+	}
+
+	return nil
 }
 
 func (sp *ScyllaOrganizationProvider) unsafeGetPhoto(id string) (*PhotoInfo, derrors.Error) {
@@ -176,10 +193,6 @@ func (sp *ScyllaOrganizationProvider) unsafeGetPhoto(id string) (*PhotoInfo, der
 		return nil, err
 	}
 	return photo.(*PhotoInfo), nil
-}
-
-func (sp *ScyllaOrganizationProvider) unsafeUpdatePhoto(id string, photo string) derrors.Error {
-	return sp.UnsafeUpdate(organizationPhotoTable, organizationPhotoTablePK, id, organizationPhotoTableColumnsNoPK, PhotoInfo{id, photo})
 }
 
 func (sp *ScyllaOrganizationProvider) unsafeRemoveOrganization(id string) derrors.Error {
@@ -360,7 +373,7 @@ func (sp *ScyllaOrganizationProvider) Update(org entities.Organization) derrors.
 		return nil
 	}
 	// 5.- Update photo
-	err = sp.unsafeUpdatePhoto(org.ID, org.PhotoBase64)
+	err = sp.unsafeAddPhoto(org.ID, org.PhotoBase64)
 	if err != nil {
 		return err
 	}

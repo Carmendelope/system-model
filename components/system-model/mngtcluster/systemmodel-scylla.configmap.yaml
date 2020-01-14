@@ -59,7 +59,7 @@ data:
     ------------
     create table IF NOT EXISTS nalej.Users (organization_id text, email text, name text, photo_url text, member_since bigint, last_name text, title text, phone text, location text, PRIMARY KEY (email));
     create table IF NOT EXISTS nalej.Roles (organization_id text, role_id text, name text, description text, internal boolean, created int, PRIMARY KEY (role_id));
-    create table IF NOT EXISTS nalej.organizations (id text, name text, full_address text, city text, state text, country text, zip_code text, photo_base64 text, created bigint, PRIMARY KEY (id));
+    create table IF NOT EXISTS nalej.organizations (id text, name text, full_address text, city text, state text, country text, zip_code text, created bigint, PRIMARY KEY (id));
     create table IF NOT EXISTS nalej.OrganizationPhotos (organization_id text, photo_base64 text, PRIMARY KEY (organization_id));
     create table IF NOT EXISTS nalej.organizationsetting (organization_id text, key text, value text, description text, PRIMARY KEY (organization_id, key));
     create table IF NOT EXISTS nalej.Organization_Clusters (organization_id text, cluster_id text, PRIMARY KEY (organization_id, cluster_id));
