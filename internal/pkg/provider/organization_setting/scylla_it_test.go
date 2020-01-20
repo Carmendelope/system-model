@@ -15,7 +15,7 @@
  *
  */
 
- /*
+/*
  docker run --name scylla -p 9042:9042 -d scylladb/scylla
  docker exec -it scylla cqlsh
 
@@ -26,7 +26,7 @@
  RUN_INTEGRATION_TEST=true
  IT_NALEJ_KEYSPACE=nalej
  IT_SCYLLA_PORT=9042
- */
+*/
 
 package organization_setting
 

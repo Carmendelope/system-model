@@ -391,7 +391,6 @@ var _ = ginkgo.Describe("Organization service", func() {
 			gomega.Expect(err).Should(gomega.Succeed())
 			gomega.Expect(success).NotTo(gomega.BeNil())
 
-
 		})
 		ginkgo.It("Should not be able to remove a non existing setting", func() {
 			// add Organization

@@ -227,7 +227,6 @@ func (m *MockupOrganizationProvider) Update(org entities.Organization) derrors.E
 	return nil
 }
 
-
 // AddCluster adds a new cluster ID to the organization.
 func (m *MockupOrganizationProvider) AddCluster(organizationID string, clusterID string) derrors.Error {
 	m.Lock()

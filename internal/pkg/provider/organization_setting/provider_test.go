@@ -26,7 +26,6 @@ import (
 	"math/rand"
 )
 
-
 func CreateOrganizationSetting(organizationID string) *entities.OrganizationSetting {
 	key := rand.Int()
 	return entities.NewOrganizationSetting(organizationID, fmt.Sprintf("key_%d", key),
@@ -83,7 +82,7 @@ func RunTest(provider Provider) {
 
 			orgId := uuid.New().String()
 			numSettings := 2
-			for i:=0; i<numSettings; i++ {
+			for i := 0; i < numSettings; i++ {
 				setting := CreateOrganizationSetting(orgId)
 				err := provider.Add(*setting)
 				gomega.Expect(err).Should(gomega.Succeed())
@@ -98,7 +97,7 @@ func RunTest(provider Provider) {
 
 			orgId2 := uuid.New().String()
 			numSettings2 := 5
-			for i:=0; i<numSettings2; i++ {
+			for i := 0; i < numSettings2; i++ {
 				setting := CreateOrganizationSetting(orgId2)
 				err := provider.Add(*setting)
 				gomega.Expect(err).Should(gomega.Succeed())

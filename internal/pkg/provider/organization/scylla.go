@@ -202,8 +202,8 @@ func (sp *ScyllaOrganizationProvider) unsafeRemoveOrganization(id string) derror
 	}
 	return nil
 }
-// --------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------
 
 // Add a new organization to the system.
 // The organization is storing in two tables (for clarity). Organization and OrganizationPhotos
@@ -325,7 +325,7 @@ func (sp *ScyllaOrganizationProvider) List() ([]entities.Organization, derrors.E
 		return nil, derrors.AsError(cqlErr, "cannot list organization")
 	}
 
-	for i:=0; i<len(organizations); i++ {
+	for i := 0; i < len(organizations); i++ {
 		err := sp.fillPhoto(&organizations[i])
 		if err != nil {
 			log.Warn().Str("organization_id", organizations[i].ID).Msg("error getting the photo")

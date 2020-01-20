@@ -110,7 +110,7 @@ func (s *Service) Description() string {
 func (s *Service) CreateInMemoryProviders() *Providers {
 	return &Providers{
 		organizationProvider:   orgProvider.NewMockupOrganizationProvider(),
-		settingsProvider: organization_setting.NewMockupOrganizationSettingProvider(),
+		settingsProvider:       organization_setting.NewMockupOrganizationSettingProvider(),
 		clusterProvider:        clusterProvider.NewMockupClusterProvider(),
 		nodeProvider:           nodeProvider.NewMockupNodeProvider(),
 		applicationProvider:    appProvider.NewMockupApplicationProvider(),

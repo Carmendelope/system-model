@@ -64,7 +64,7 @@ create type IF NOT EXISTS nalej.cluster_watch_info(name text, organization_id te
 ------------
 -- TABLES --
 ------------
-create table IF NOT EXISTS nalej.Users (organization_id text, email text, name text, photo_url text, member_since int, PRIMARY KEY (email));
+create table IF NOT EXISTS nalej.Users (organization_id text, email text, name text, photo_base64 text, member_since int, PRIMARY KEY (email));
 create table IF NOT EXISTS nalej.Roles (organization_id text, role_id text, name text, description text, internal boolean, created int, PRIMARY KEY (role_id));
 create table IF NOT EXISTS nalej.organizations (id text, name text, created bigint, PRIMARY KEY (id));
 create table IF NOT EXISTS nalej.Organization_Clusters (organization_id text, cluster_id text, PRIMARY KEY (organization_id, cluster_id));

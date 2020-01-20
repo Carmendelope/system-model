@@ -36,7 +36,7 @@
 
 [[constraint]]
     name="github.com/nalej/grpc-user-go"
-    version="=v0.0.36"
+    version="=v0.0.37"
 
 [[constraint]]
     name="github.com/nalej/grpc-role-go"
@@ -65,7 +65,6 @@
 [[constraint]]
     name="github.com/nalej/scylladb-utils"
     version="=v0.1.0"
-
 
 [[override]]
   source = "https://github.com/fsnotify/fsnotify/archive/v1.4.7.tar.gz"

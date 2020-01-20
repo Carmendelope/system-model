@@ -26,10 +26,9 @@ import (
 type MockupOrganizationSettingProvider struct {
 	sync.Mutex
 	settings map[string][]entities.OrganizationSetting
-
 }
 
-func NewMockupOrganizationSettingProvider() *MockupOrganizationSettingProvider{
+func NewMockupOrganizationSettingProvider() *MockupOrganizationSettingProvider {
 	return &MockupOrganizationSettingProvider{
 		settings: make(map[string][]entities.OrganizationSetting, 0),
 	}
@@ -37,7 +36,7 @@ func NewMockupOrganizationSettingProvider() *MockupOrganizationSettingProvider{
 
 func (m *MockupOrganizationSettingProvider) unsafeExists(organizationId string, key string) bool {
 	settings, exists := m.settings[organizationId]
-	if ! exists {
+	if !exists {
 		return false
 	}
 	for _, setting := range settings {
@@ -49,7 +48,7 @@ func (m *MockupOrganizationSettingProvider) unsafeExists(organizationId string, 
 }
 
 // Add a new setting for an organization.
-func (m *MockupOrganizationSettingProvider) Add(setting entities.OrganizationSetting) derrors.Error{
+func (m *MockupOrganizationSettingProvider) Add(setting entities.OrganizationSetting) derrors.Error {
 
 	m.Lock()
 	defer m.Unlock()
@@ -63,25 +62,27 @@ func (m *MockupOrganizationSettingProvider) Add(setting entities.OrganizationSet
 	settings, exists := m.settings[setting.OrganizationId]
 	if !exists {
 		m.settings[setting.OrganizationId] = []entities.OrganizationSetting{setting}
-	}else{
+	} else {
 		m.settings[setting.OrganizationId] = append(settings, setting)
 	}
 
 	return nil
 }
+
 // Check if a setting is defined for an organization
-func (m *MockupOrganizationSettingProvider) Exists(organizationID string, key string) (bool, derrors.Error){
+func (m *MockupOrganizationSettingProvider) Exists(organizationID string, key string) (bool, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 	return m.unsafeExists(organizationID, key), nil
 }
+
 // Get a setting organization.
 func (m *MockupOrganizationSettingProvider) Get(organizationID string, key string) (*entities.OrganizationSetting, derrors.Error) {
 	m.Lock()
 	defer m.Unlock()
 
 	settings, exists := m.settings[organizationID]
-	if ! exists {
+	if !exists {
 		return nil, derrors.NewNotFoundError("setting").WithParams(organizationID, key)
 	}
 	for _, setting := range settings {
@@ -92,25 +93,27 @@ func (m *MockupOrganizationSettingProvider) Get(organizationID string, key strin
 	return nil, derrors.NewNotFoundError("setting").WithParams(organizationID, key)
 
 }
+
 // List all the settings of an organization.
-func (m *MockupOrganizationSettingProvider) List(organizationID string) ([]entities.OrganizationSetting, derrors.Error){
+func (m *MockupOrganizationSettingProvider) List(organizationID string) ([]entities.OrganizationSetting, derrors.Error) {
 	settings, exists := m.settings[organizationID]
-	if ! exists {
-		emptyList := make ([]entities.OrganizationSetting, 0)
+	if !exists {
+		emptyList := make([]entities.OrganizationSetting, 0)
 		return emptyList, nil
 	}
 	return settings, nil
 }
+
 // Update a setting of an organization
 func (m *MockupOrganizationSettingProvider) Update(setting entities.OrganizationSetting) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
 	settings, exists := m.settings[setting.OrganizationId]
-	if ! exists {
-		return  derrors.NewNotFoundError("setting").WithParams(setting.OrganizationId, setting.Key)
+	if !exists {
+		return derrors.NewNotFoundError("setting").WithParams(setting.OrganizationId, setting.Key)
 	}
-	for i:=0; i< len(settings); i++ {
+	for i := 0; i < len(settings); i++ {
 		if settings[i].Key == setting.Key {
 			settings[i] = setting
 			return nil
@@ -119,38 +122,38 @@ func (m *MockupOrganizationSettingProvider) Update(setting entities.Organization
 	return derrors.NewNotFoundError("setting").WithParams(setting.OrganizationId, setting.Key)
 }
 
-func (m *MockupOrganizationSettingProvider)	Remove(organizationID string, key string) derrors.Error{
+func (m *MockupOrganizationSettingProvider) Remove(organizationID string, key string) derrors.Error {
 	m.Lock()
 	defer m.Unlock()
 
 	settings, exists := m.settings[organizationID]
-	if ! exists {
-		return  derrors.NewNotFoundError("setting").WithParams(organizationID, key)
+	if !exists {
+		return derrors.NewNotFoundError("setting").WithParams(organizationID, key)
 	}
 
-	newSettingsList := make ([]entities.OrganizationSetting, 0)
+	newSettingsList := make([]entities.OrganizationSetting, 0)
 	found := false
 	for _, set := range settings {
 		if set.Key != key {
 			newSettingsList = append(newSettingsList, set)
-		}else{
+		} else {
 			found = true
 		}
 
 	}
 	if !found {
 		return derrors.NewNotFoundError("setting").WithParams(organizationID, key)
-	}else{
+	} else {
 		if len(newSettingsList) == 0 {
 			delete(m.settings, organizationID)
-		}else{
+		} else {
 			m.settings[organizationID] = newSettingsList
 		}
 	}
 	return nil
 }
 
-func (m *MockupOrganizationSettingProvider)	Clear() derrors.Error{
-	m.settings =  make(map[string][]entities.OrganizationSetting, 0)
+func (m *MockupOrganizationSettingProvider) Clear() derrors.Error {
+	m.settings = make(map[string][]entities.OrganizationSetting, 0)
 	return nil
 }
