@@ -27,4 +27,3 @@ func TestOrganizationSettingProviderPackage(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "Organization Setting Providers package suite")
 }
-

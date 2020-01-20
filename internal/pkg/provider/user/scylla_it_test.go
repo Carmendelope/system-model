@@ -42,7 +42,7 @@ Prepare the database...
 
 docker exec -it scylla cqlsh
 create KEYSPACE nalej WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-create table nalej.Users (organization_id text, email text, name text, photo_url text, member_since int, PRIMARY KEY (email));
+create table nalej.Users (organization_id text, email text, name text, photo_base64 text, member_since int, PRIMARY KEY (email));
 
 */
 

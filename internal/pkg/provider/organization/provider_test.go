@@ -157,7 +157,6 @@ func RunTest(provider Provider) {
 		gomega.Expect(retrieved).NotTo(gomega.BeNil())
 		gomega.Expect(*org).Should(gomega.Equal(*retrieved))
 
-
 	})
 	ginkgo.It("Should not be able to update an organization if exists other one with the new name", func() {
 		org1 := CreateOrganization()

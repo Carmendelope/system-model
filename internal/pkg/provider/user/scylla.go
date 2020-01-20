@@ -143,7 +143,7 @@ func (sp *ScyllaUserProvider) Add(user entities.User) derrors.Error {
 
 	// insert a user
 
-	stmt, names := qb.Insert(userTable).Columns("organization_id", "email", "name", "photo_url", "member_since", "last_name", "title", "phone", "location").ToCql()
+	stmt, names := qb.Insert(userTable).Columns("organization_id", "email", "name", "photo_base64", "member_since", "last_name", "title", "phone", "location").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(user)
 	cqlErr := q.ExecRelease()
 
@@ -176,7 +176,7 @@ func (sp *ScyllaUserProvider) Update(user entities.User) derrors.Error {
 	}
 
 	// update a user
-	stmt, names := qb.Update(userTable).Set("organization_id", "name", "photo_url", "member_since", "last_name", "title", "phone", "location").Where(qb.Eq(userTablePK)).ToCql()
+	stmt, names := qb.Update(userTable).Set("organization_id", "name", "photo_base64", "member_since", "last_name", "title", "phone", "location").Where(qb.Eq(userTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(user)
 	cqlErr := q.ExecRelease()
 

@@ -38,7 +38,7 @@ func NewOrganizationSetting(organizationId string, key string, value string, des
 	}
 }
 
-func NewOrganizationSettingFromGRPC(addRequest *grpc_organization_go.AddSettingRequest) *OrganizationSetting{
+func NewOrganizationSettingFromGRPC(addRequest *grpc_organization_go.AddSettingRequest) *OrganizationSetting {
 	return NewOrganizationSetting(addRequest.OrganizationId, addRequest.Key, addRequest.Value, addRequest.Description)
 }
 
@@ -61,7 +61,7 @@ func (o *OrganizationSetting) ApplyUpdate(toUpdate *grpc_organization_go.UpdateS
 	}
 }
 
-func ValidateAddSettingRequest(addRequest *grpc_organization_go.AddSettingRequest) derrors.Error{
+func ValidateAddSettingRequest(addRequest *grpc_organization_go.AddSettingRequest) derrors.Error {
 
 	if addRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
@@ -72,7 +72,7 @@ func ValidateAddSettingRequest(addRequest *grpc_organization_go.AddSettingReques
 	return nil
 }
 
-func ValidateUpdateSettingRequest(updateRequest *grpc_organization_go.UpdateSettingRequest) derrors.Error{
+func ValidateUpdateSettingRequest(updateRequest *grpc_organization_go.UpdateSettingRequest) derrors.Error {
 
 	if updateRequest.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)
@@ -83,7 +83,7 @@ func ValidateUpdateSettingRequest(updateRequest *grpc_organization_go.UpdateSett
 	return nil
 }
 
-func ValidateSettingKey(in *grpc_organization_go.SettingKey) derrors.Error{
+func ValidateSettingKey(in *grpc_organization_go.SettingKey) derrors.Error {
 
 	if in.OrganizationId == "" {
 		return derrors.NewInvalidArgumentError(emptyOrganizationId)

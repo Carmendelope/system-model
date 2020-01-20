@@ -27,7 +27,6 @@ type User struct {
 	OrganizationId string `json:"organization_id,omitempty"`
 	Email          string `json:"email,omitempty"`
 	Name           string `json:"name,omitempty"`
-	PhotoUrl       string `json:"photo_url,omitempty"`
 	MemberSince    int64  `json:"member_since,omitempty"`
 	LastName       string `json:"last_name,omitempty"`
 	Title          string `json:"title,omitempty"`
@@ -41,7 +40,7 @@ func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) *User {
 		OrganizationId: addUserRequest.OrganizationId,
 		Email:          addUserRequest.Email,
 		Name:           addUserRequest.Name,
-		PhotoUrl:       "",
+		PhotoBase64:    addUserRequest.PhotoBase64,
 		MemberSince:    time.Now().UnixNano(),
 		Title:          addUserRequest.Title,
 	}
@@ -52,7 +51,6 @@ func (u *User) ToGRPC() *grpc_user_go.User {
 		OrganizationId: u.OrganizationId,
 		Email:          u.Email,
 		Name:           u.Name,
-		PhotoUrl:       u.PhotoUrl,
 		MemberSince:    u.MemberSince,
 		LastName:       u.LastName,
 		Title:          u.Title,
@@ -79,8 +77,8 @@ func (u *User) ApplyUpdate(request *grpc_user_go.UpdateUserRequest) {
 		u.Phone = request.Phone
 	}
 
-	if request.UpdatePhotoUrl {
-		u.PhotoUrl = request.PhotoUrl
+	if request.UpdatePhotoBase64 {
+		u.PhotoBase64 = request.PhotoBase64
 	}
 
 	if request.UpdateLastName {

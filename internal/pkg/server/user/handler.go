@@ -128,10 +128,6 @@ func (h *Handler) RemoveUser(ctx context.Context, removeRequest *grpc_user_go.Re
 	return &grpc_common_go.Success{}, nil
 }
 
-func (h *Handler) UpdateContactInfo(_ context.Context, in *grpc_user_go.UpdateContactInfoRequest) (*grpc_common_go.Success, error) {
-	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
-}
-
 func (h *Handler) AddAccountUser(_ context.Context, in *grpc_user_go.AddAccountUserRequest) (*grpc_user_go.AccountUser, error) {
 	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented yet!"))
 }

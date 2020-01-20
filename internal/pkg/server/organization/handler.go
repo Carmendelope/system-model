@@ -90,7 +90,7 @@ func (h *Handler) UpdateOrganization(ctx context.Context, updateOrganizationRequ
 }
 
 // AddSetting adds a new setting for the organization
-func (h *Handler) AddSetting(ctx context.Context, addRequest *grpc_organization_go.AddSettingRequest) (*grpc_organization_go.OrganizationSetting, error){
+func (h *Handler) AddSetting(ctx context.Context, addRequest *grpc_organization_go.AddSettingRequest) (*grpc_organization_go.OrganizationSetting, error) {
 
 	vErr := entities.ValidateAddSettingRequest(addRequest)
 	if vErr != nil {
@@ -104,10 +104,10 @@ func (h *Handler) AddSetting(ctx context.Context, addRequest *grpc_organization_
 	}
 	return added.ToGRPC(), nil
 
-
 }
+
 // GetSetting returns an OrganizationSetting
-func (h *Handler) GetSetting(ctx context.Context, key *grpc_organization_go.SettingKey) (*grpc_organization_go.OrganizationSetting, error){
+func (h *Handler) GetSetting(ctx context.Context, key *grpc_organization_go.SettingKey) (*grpc_organization_go.OrganizationSetting, error) {
 	vErr := entities.ValidateSettingKey(key)
 	if vErr != nil {
 		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid setting key")
@@ -119,8 +119,9 @@ func (h *Handler) GetSetting(ctx context.Context, key *grpc_organization_go.Sett
 	}
 	return setting.ToGRPC(), nil
 }
+
 // ListSettings returns a list of settings of an organization
-func (h *Handler) ListSettings(ctx context.Context, orgId *grpc_organization_go.OrganizationId) (*grpc_organization_go.OrganizationSettingList, error){
+func (h *Handler) ListSettings(ctx context.Context, orgId *grpc_organization_go.OrganizationId) (*grpc_organization_go.OrganizationSettingList, error) {
 	vErr := entities.ValidOrganizationID(orgId)
 	if vErr != nil {
 		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid organizationId")
@@ -130,16 +131,17 @@ func (h *Handler) ListSettings(ctx context.Context, orgId *grpc_organization_go.
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
-	convertedList := make ([]*grpc_organization_go.OrganizationSetting, 0)
+	convertedList := make([]*grpc_organization_go.OrganizationSetting, 0)
 	for _, setting := range list {
 		convertedList = append(convertedList, setting.ToGRPC())
 	}
 	return &grpc_organization_go.OrganizationSettingList{
-		Settings:convertedList,
+		Settings: convertedList,
 	}, nil
 }
+
 // UpdateSetting update the value and/or the description of a setting
-func (h *Handler) UpdateSetting(ctx context.Context, updateRequest *grpc_organization_go.UpdateSettingRequest) (*grpc_common_go.Success, error){
+func (h *Handler) UpdateSetting(ctx context.Context, updateRequest *grpc_organization_go.UpdateSettingRequest) (*grpc_common_go.Success, error) {
 	vErr := entities.ValidateUpdateSettingRequest(updateRequest)
 	if vErr != nil {
 		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid update setting request")
@@ -152,8 +154,9 @@ func (h *Handler) UpdateSetting(ctx context.Context, updateRequest *grpc_organiz
 	return &grpc_common_go.Success{}, nil
 
 }
+
 // RemoveSetting removes a given setting of an organization
-func (h *Handler) RemoveSetting(ctx context.Context, key *grpc_organization_go.SettingKey) (*grpc_common_go.Success, error){
+func (h *Handler) RemoveSetting(ctx context.Context, key *grpc_organization_go.SettingKey) (*grpc_common_go.Success, error) {
 	vErr := entities.ValidateSettingKey(key)
 	if vErr != nil {
 		log.Error().Str("trace", vErr.DebugReport()).Msg("invalid setting key")
