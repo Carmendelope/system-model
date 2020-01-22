@@ -123,6 +123,7 @@ func (m *Manager) GetUsers(organizationID *grpc_organization_go.OrganizationId) 
 			return nil, err
 		}
 		result = append(result, *toAdd)
+		log.Debug().Interface("result", result).Msg("get users result")
 	}
 	return result, nil
 }

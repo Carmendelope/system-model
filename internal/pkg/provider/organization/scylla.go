@@ -28,6 +28,7 @@ import (
 	"sync"
 )
 
+// Tables
 const organizationTable = "Organizations"
 const organizationPhotoTable = "OrganizationPhotos"
 const organizationClusterTable = "Organization_Clusters"
@@ -42,7 +43,7 @@ const organizationTablePK = "id"
 const organizationPhotoTablePK = "organization_id"
 const organizationTableIndex = "name"
 
-// columns
+// Columns
 var organizationTableColumns = []string{"id", "name", "full_address", "city", "state", "country", "zip_code", "created"}
 var organizationTableColumnsNoPK = []string{"name", "full_address", "city", "state", "country", "zip_code", "created"}
 var organizationPhotoTableColumns = []string{"organization_id", "photo_base64"}

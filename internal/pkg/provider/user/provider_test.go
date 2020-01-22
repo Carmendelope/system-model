@@ -102,7 +102,7 @@ func RunTest(provider Provider) {
 			Email:       email,
 			Name:        "Name",
 			MemberSince: 1,
-			PhotoBase64:    "../../photo"}
+			PhotoBase64: "../../photo"}
 
 		err := provider.Add(*user)
 		gomega.Expect(err).To(gomega.Succeed())
