@@ -27,12 +27,32 @@ import (
 	"sync"
 )
 
+// Tables
 const userTable = "users"
-const userTablePK = "email"
+const userPhotoTable = "UserPhotos"
 
+// PKs
+const userTablePK = "email"
+const userPhotoTablePK = "email"
+
+// Errors
 const rowNotFound = "not found"
 
-// TODO: ask to Dani if we need cluster.Consistency = gocql.Quorum
+// UserPhotoInfo is an internal struct to map the userPhoto records
+type UserPhotoInfo struct {
+	Email       string `json:"email"`
+	PhotoBase64 string `json:"photo_base64"`
+}
+
+// NewUserPhotoInfo return a UserPhotoInfo struct when provided an email and an image
+func NewUserPhotoInfo(email string, photoBase64 string) UserPhotoInfo {
+	return UserPhotoInfo{
+		Email:       email,
+		PhotoBase64: photoBase64,
+	}
+}
+
+// TODO: ask Dani if we need cluster.Consistency = gocql.Quorum
 type ScyllaUserProvider struct {
 	Address  string
 	Port     int
@@ -142,13 +162,22 @@ func (sp *ScyllaUserProvider) Add(user entities.User) derrors.Error {
 	}
 
 	// insert a user
-
-	stmt, names := qb.Insert(userTable).Columns("organization_id", "email", "name", "photo_base64", "member_since", "last_name", "title", "phone", "location").ToCql()
+	stmt, names := qb.Insert(userTable).Columns("organization_id", "email", "name", "member_since", "last_name", "title", "phone", "location").ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(user)
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
 		return derrors.AsError(cqlErr, "cannot add user")
+	}
+
+	userPhoto := NewUserPhotoInfo(user.Email, user.PhotoBase64)
+	stmt, names = qb.Insert(userPhotoTable).Columns("email", "photo_base64").ToCql()
+	q = gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(userPhoto)
+	cqlErr = q.ExecRelease()
+
+	if cqlErr != nil {
+
+		return derrors.AsError(cqlErr, "cannot add user photo")
 	}
 
 	return nil
@@ -176,12 +205,21 @@ func (sp *ScyllaUserProvider) Update(user entities.User) derrors.Error {
 	}
 
 	// update a user
-	stmt, names := qb.Update(userTable).Set("organization_id", "name", "photo_base64", "member_since", "last_name", "title", "phone", "location").Where(qb.Eq(userTablePK)).ToCql()
+	stmt, names := qb.Update(userTable).Set("organization_id", "name", "member_since", "last_name", "title", "phone", "location").Where(qb.Eq(userTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(user)
 	cqlErr := q.ExecRelease()
 
 	if cqlErr != nil {
 		return derrors.AsError(cqlErr, "cannot update user")
+	}
+
+	userPhoto := NewUserPhotoInfo(user.Email, user.PhotoBase64)
+	stmt, names = qb.Update(userPhotoTable).Set("photo_base64").Where(qb.Eq(userPhotoTablePK)).ToCql()
+	q = gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(userPhoto)
+	cqlErr = q.ExecRelease()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot update user photo")
 	}
 
 	return nil
@@ -213,6 +251,19 @@ func (sp *ScyllaUserProvider) Exists(email string) (bool, derrors.Error) {
 		}
 	}
 
+	stmt, names = qb.Select(userPhotoTable).Columns(userPhotoTablePK).Where(qb.Eq(userPhotoTablePK)).ToCql()
+	q = gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		userPhotoTablePK: email})
+
+	err = q.GetRelease(&returnedEmail)
+	if err != nil {
+		if err.Error() == rowNotFound {
+			return false, nil
+		} else {
+			return false, derrors.AsError(err, "there seems to be an issue with the user in the userphotos table")
+		}
+	}
+
 	return true, nil
 }
 
@@ -228,6 +279,7 @@ func (sp *ScyllaUserProvider) Get(email string) (*entities.User, derrors.Error) 
 	}
 
 	var user entities.User
+	// get from users table
 	stmt, names := qb.Select(userTable).Where(qb.Eq(userTablePK)).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		userTablePK: email,
@@ -242,8 +294,22 @@ func (sp *ScyllaUserProvider) Get(email string) (*entities.User, derrors.Error) 
 		}
 	}
 
-	return &user, nil
+	// get from userphotos table
+	stmt, names = qb.Select(userPhotoTable).Columns("photo_base64").Where(qb.Eq(userPhotoTablePK)).ToCql()
+	q = gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		userPhotoTablePK: email,
+	})
 
+	photo := ""
+	err = q.GetRelease(&photo)
+	if err != nil {
+		if err.Error() != rowNotFound {
+			return nil, derrors.AsError(err, "cannot get user from userphotos table")
+		}
+	}
+	user.PhotoBase64 = photo
+
+	return &user, nil
 }
 
 // Remove a user.
@@ -273,6 +339,13 @@ func (sp *ScyllaUserProvider) Remove(email string) derrors.Error {
 
 	if cqlErr != nil {
 		return derrors.AsError(cqlErr, "cannot remove user")
+	}
+
+	stmt, _ = qb.Delete(userPhotoTable).Where(qb.Eq(userPhotoTablePK)).ToCql()
+	cqlErr = sp.Session.Query(stmt, email).Exec()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot remove user photo")
 	}
 
 	return nil
