@@ -32,6 +32,7 @@ import (
 func CreateOrganization() *entities.Organization {
 	return entities.NewOrganization(
 		fmt.Sprintf(fmt.Sprintf("org-%d-%d", ginkgo.GinkgoRandomSeed(), rand.Int())),
+		"test@email.com",
 		"Nalej Test Address",
 		"City Test",
 		"State Test",

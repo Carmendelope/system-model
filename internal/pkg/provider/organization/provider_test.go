@@ -27,6 +27,7 @@ import (
 func CreateOrganization() *entities.Organization {
 	return entities.NewOrganization(
 		fmt.Sprintf(fmt.Sprintf("org-%s", uuid.New().String())),
+		"test@email.com",
 		"Nalej Test Address",
 		"City Test",
 		"State Test",

@@ -44,8 +44,8 @@ const organizationPhotoTablePK = "organization_id"
 const organizationTableIndex = "name"
 
 // Columns
-var organizationTableColumns = []string{"id", "name", "full_address", "city", "state", "country", "zip_code", "created"}
-var organizationTableColumnsNoPK = []string{"name", "full_address", "city", "state", "country", "zip_code", "created"}
+var organizationTableColumns = []string{"id", "name", "email", "full_address", "city", "state", "country", "zip_code", "created"}
+var organizationTableColumnsNoPK = []string{"name", "email", "full_address", "city", "state", "country", "zip_code", "created"}
 var organizationPhotoTableColumns = []string{"organization_id", "photo_base64"}
 var organizationPhotoTableColumnsNoPK = []string{"photo_base64"}
 var organizationClusterTableColumns = []string{"organization_id", "cluster_id"}
