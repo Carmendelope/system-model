@@ -40,6 +40,7 @@ func NewUserFromGRPC(addUserRequest *grpc_user_go.AddUserRequest) *User {
 		OrganizationId: addUserRequest.OrganizationId,
 		Email:          addUserRequest.Email,
 		Name:           addUserRequest.Name,
+		LastName:       addUserRequest.LastName,
 		PhotoBase64:    addUserRequest.PhotoBase64,
 		MemberSince:    time.Now().UnixNano(),
 		Title:          addUserRequest.Title,
