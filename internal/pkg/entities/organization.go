@@ -26,6 +26,7 @@ import (
 type Organization struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
+	Email       string `json:"email"`
 	FullAddress string `json:"full_address"`
 	City        string `json:"city"`
 	State       string `json:"state"`
@@ -35,9 +36,9 @@ type Organization struct {
 	Created     int64  `json:"created"`
 }
 
-func NewOrganization(name string, fullAddress string, city string, state string, country string, zipCode string, photo string) *Organization {
+func NewOrganization(name string, email string, fullAddress string, city string, state string, country string, zipCode string, photo string) *Organization {
 	uuid := GenerateUUID()
-	return &Organization{uuid, name, fullAddress, city, state, country,
+	return &Organization{uuid, name, email, fullAddress, city, state, country,
 		zipCode, photo, time.Now().Unix()}
 }
 
@@ -49,6 +50,7 @@ func (o *Organization) ToGRPC() *grpc_organization_go.Organization {
 	return &grpc_organization_go.Organization{
 		OrganizationId: o.ID,
 		Name:           o.Name,
+		Email:          o.Email,
 		FullAddress:    o.FullAddress,
 		City:           o.City,
 		Country:        o.Country,
@@ -62,6 +64,9 @@ func (o *Organization) ApplyUpdate(toUpdate *grpc_organization_go.UpdateOrganiza
 
 	if toUpdate.UpdateName {
 		o.Name = toUpdate.Name
+	}
+	if toUpdate.UpdateEmail {
+		o.Email = toUpdate.Email
 	}
 	if toUpdate.UpdateFullAddress {
 		o.FullAddress = toUpdate.FullAddress

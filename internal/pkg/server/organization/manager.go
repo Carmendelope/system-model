@@ -37,7 +37,7 @@ func NewManager(provider organization.Provider, settingProvider organization_set
 
 // AddOrganization adds a new organization to the system.
 func (m *Manager) AddOrganization(toAdd grpc_organization_go.AddOrganizationRequest) (*entities.Organization, derrors.Error) {
-	newOrg := entities.NewOrganization(toAdd.Name, toAdd.FullAddress, toAdd.City,
+	newOrg := entities.NewOrganization(toAdd.Name, toAdd.Email, toAdd.FullAddress, toAdd.City,
 		toAdd.State, toAdd.Country, toAdd.ZipCode, toAdd.PhotoBase64)
 
 	exists, err := m.Provider.ExistsByName(newOrg.Name)
